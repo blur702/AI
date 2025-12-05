@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Ollama Generation",
+    "status": "PASS",
+    "response": "Hello, test passed!"
+  },
+  {
+    "name": "Open WebUI",
+    "status": "PASS",
+    "title": "Open WebUI"
+  },
+  {
+    "name": "ComfyUI",
+    "status": "PASS",
+    "title": "*Unsaved Workflow - ComfyUI"
+  },
+  {
+    "name": "Wan2GP Video",
+    "status": "PASS",
+    "title": "WanGP"
+  },
+  {
+    "name": "YuE Music",
+    "status": "PASS",
+    "title": ""
+  },
+  {
+    "name": "DiffRhythm",
+    "status": "PASS",
+    "title": ""
+  },
+  {
+    "name": "MusicGen",
+    "status": "FAIL",
+    "error": "page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:7872/\nCall log:\n\u001b[2m  - navigating to \"http://localhost:7872/\", waiting until \"domcontentloaded\"\u001b[22m\n"
+  },
+  {
+    "name": "Stable Audio",
+    "status": "PASS",
+    "title": "Stable Audio Open"
+  },
+  {
+    "name": "Open WebUI Chat",
+    "status": "PASS"
+  }
+]

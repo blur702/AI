@@ -1,0 +1,32 @@
+# Large AI project clones (these have their own git repos)
+alltalk_tts/
+audiocraft/
+ComfyUI/
+DiffRhythm/
+local-talking-llm/
+MusicGPT/
+stable-audio-tools/
+stability-matrix/
+Wan2GP/
+YuE/
+
+# Dependencies and models
+node_modules/
+ollama-models/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Test artifacts
+test-results/
+*.log
+
+# Misc
+nul
+.DS_Store
+Thumbs.db

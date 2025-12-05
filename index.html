@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Services Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 28px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        .card-port {
+            font-size: 0.85rem;
+            color: #888;
+            font-family: monospace;
+        }
+        .card-description {
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+        .card-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .tag {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+        .status {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        .status-online { background: #00ff88; }
+        .status-offline { background: #ff4444; }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        /* Card colors */
+        .card-openwebui .card-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .card-comfyui .card-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .card-alltalk .card-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .card-ollama .card-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .card-wan2gp .card-icon { background: linear-gradient(135deg, #ff6b6b, #feca57); }
+        .card-n8n .card-icon { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        /* Music generators */
+        .card-yue .card-icon { background: linear-gradient(135deg, #a855f7, #ec4899); }
+        .card-diffrhythm .card-icon { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+        .card-musicgen .card-icon { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+        .card-stableaudio .card-icon { background: linear-gradient(135deg, #10b981, #059669); }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ccc;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .ip-info {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            font-family: monospace;
+        }
+        .ip-info span {
+            color: #00d4ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Services Dashboard</h1>
+        <p class="subtitle">Local AI Infrastructure</p>
+
+        <div class="ip-info">
+            Server IP: <span id="serverIp">10.0.0.138</span>
+        </div>
+
+        <div class="grid">
+            <a href="http://10.0.0.138:3000" target="_blank" class="card card-openwebui">
+                <div class="card-header">
+                    <div class="card-icon">💬</div>
+                    <div>
+                        <div class="card-title">Open WebUI</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 3000</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    Chat interface for LLMs. Connect to Ollama models for conversations, code assistance, and more.
+                </p>
+                <div class="card-features">
+                    <span class="tag">Chat</span>
+                    <span class="tag">LLM</span>
+                    <span class="tag">Ollama</span>
+                </div>
+            </a>
+
+            <a href="http://10.0.0.138:8188" target="_blank" class="card card-comfyui">
+                <div class="card-header">
+                    <div class="card-icon">🎨</div>
+                    <div>
+                        <div class="card-title">ComfyUI</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 8188</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    Node-based image generation with Stable Diffusion. Create images with advanced workflows.
+                </p>
+                <div class="card-features">
+                    <span class="tag">Image Gen</span>
+                    <span class="tag">Stable Diffusion</span>
+                    <span class="tag">Workflows</span>
+                </div>
+            </a>
+
+            <a href="http://10.0.0.138:7851" target="_blank" class="card card-alltalk">
+                <div class="card-header">
+                    <div class="card-icon">🎙️</div>
+                    <div>
+                        <div class="card-title">AllTalk TTS</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 7851</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    Text-to-speech with voice cloning. Create custom voices from audio samples using XTTS v2.
+                </p>
+                <div class="card-features">
+                    <span class="tag">TTS</span>
+                    <span class="tag">Voice Clone</span>
+                    <span class="tag">XTTS</span>
+                </div>
+            </a>
+
+            <a href="http://10.0.0.138:11434" target="_blank" class="card card-ollama">
+                <div class="card-header">
+                    <div class="card-icon">🦙</div>
+                    <div>
+                        <div class="card-title">Ollama API</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 11434</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    REST API for running local LLMs. Backend for Open WebUI and other applications.
+                </p>
+                <div class="card-features">
+                    <span class="tag">API</span>
+                    <span class="tag">Qwen 32B</span>
+                    <span class="tag">Backend</span>
+                </div>
+            </a>
+
+            <a href="http://10.0.0.138:7860" target="_blank" class="card card-wan2gp">
+                <div class="card-header">
+                    <div class="card-icon">🎬</div>
+                    <div>
+                        <div class="card-title">Wan2GP Video</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 7860</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    AI video generation with Wan 2.1/2.2, LTX Video, Hunyuan Video, and Flux 2. Text-to-video and image-to-video.
+                </p>
+                <div class="card-features">
+                    <span class="tag">Video Gen</span>
+                    <span class="tag">Wan 2.1</span>
+                    <span class="tag">LTX Video</span>
+                </div>
+            </a>
+
+            <a href="http://10.0.0.138:5678" target="_blank" class="card card-n8n">
+                <div class="card-header">
+                    <div class="card-icon">n8n</div>
+                    <div>
+                        <div class="card-title">N8N Workflows</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 5678</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    Visual workflow automation to orchestrate local AI tools, APIs, and webhooks.
+                </p>
+                <div class="card-features">
+                    <span class="tag">Automation</span>
+                    <span class="tag">Workflows</span>
+                    <span class="tag">Webhooks</span>
+                </div>
+            </a>
+        </div>
+
+        <h2 class="section-title">Music Generation</h2>
+        <div class="grid">
+            <a href="http://10.0.0.138:7870" target="_blank" class="card card-yue">
+                <div class="card-header">
+                    <div class="card-icon">🎵</div>
+                    <div>
+                        <div class="card-title">YuE Music</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 7870</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    Full song generation with vocals from lyrics. Supports multiple languages and genres like EDM, pop, rock.
+                </p>
+                <div class="card-features">
+                    <span class="tag">Text-to-Music</span>
+                    <span class="tag">Vocals</span>
+                    <span class="tag">5 min songs</span>
+                </div>
+            </a>
+
+            <a href="http://10.0.0.138:7871" target="_blank" class="card card-diffrhythm">
+                <div class="card-header">
+                    <div class="card-icon">🎼</div>
+                    <div>
+                        <div class="card-title">DiffRhythm</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 7871</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    Fast full-song generation. Creates 4+ minute songs with vocals and instrumentals in ~10 seconds.
+                </p>
+                <div class="card-features">
+                    <span class="tag">Fast Gen</span>
+                    <span class="tag">Full Songs</span>
+                    <span class="tag">Diffusion</span>
+                </div>
+            </a>
+
+            <a href="http://10.0.0.138:7872" target="_blank" class="card card-musicgen">
+                <div class="card-header">
+                    <div class="card-icon">🎹</div>
+                    <div>
+                        <div class="card-title">MusicGen</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 7872</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    Meta's AudioCraft for high-quality instrumental music generation from text or melody prompts.
+                </p>
+                <div class="card-features">
+                    <span class="tag">Instrumental</span>
+                    <span class="tag">Meta AI</span>
+                    <span class="tag">Melody Input</span>
+                </div>
+            </a>
+
+            <a href="http://10.0.0.138:7873" target="_blank" class="card card-stableaudio">
+                <div class="card-header">
+                    <div class="card-icon">🔊</div>
+                    <div>
+                        <div class="card-title">Stable Audio</div>
+                        <div class="card-port"><span class="status status-online"></span>Port 7873</div>
+                    </div>
+                </div>
+                <p class="card-description">
+                    Sound effects, drum beats, ambient sounds, and production elements. Up to 47 second audio clips.
+                </p>
+                <div class="card-features">
+                    <span class="tag">Sound FX</span>
+                    <span class="tag">Beats</span>
+                    <span class="tag">Ambient</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>RTX 3090 (24GB) • Ryzen 9 5900X • 64GB RAM</p>
+        </div>
+    </div>
+
+    <script>
+        // Update IP dynamically based on current page
+        const currentHost = window.location.hostname;
+        if (currentHost && currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+            document.getElementById('serverIp').textContent = currentHost;
+            document.querySelectorAll('.card').forEach(card => {
+                card.href = card.href.replace('10.0.0.138', currentHost);
+            });
+        }
+    </script>
+</body>
+</html>
