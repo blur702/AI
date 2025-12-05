@@ -1,6 +1,16 @@
 {
   "dependencies": {
-    "playwright": "^1.57.0"
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "playwright": "^1.57.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^22.8.1",
+    "@types/ws": "^8.18.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
   },
   "globalDependencies": {
     "n8n": "installed globally via npm (npm install n8n -g)"
@@ -8,6 +18,21 @@
   "scripts": {
     "install-n8n": "npm install n8n -g",
     "check-node": "node --version",
-    "check-n8n": "n8n --version"
+    "check-n8n": "n8n --version",
+    "test": "npx playwright test --config=tests/config/playwright.config.ts",
+    "test:headed": "npx playwright test --config=tests/config/playwright.config.ts --headed",
+    "test:api": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/api",
+    "test:ui": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/ui",
+    "test:smoke": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/smoke",
+    "test:debug": "PWDEBUG=1 npx playwright test --config=tests/config/playwright.config.ts",
+    "test:ui-mode": "npx playwright test --config=tests/config/playwright.config.ts --ui",
+    "test:report": "npx playwright show-report",
+    "test:codegen": "npx playwright codegen --config=tests/config/playwright.config.ts",
+    "test:services": "npx playwright test --config=tests/config/playwright.config.ts --grep \"@service=${SERVICE}\"",
+    "test:parallel": "npx playwright test --config=tests/config/playwright.config.ts",
+    "test:serial": "npx playwright test --config=tests/config/playwright.config.ts --workers=1",
+    "test:chrome": "npx playwright test --config=tests/config/playwright.config.ts --project=chromium",
+    "test:firefox": "npx playwright test --config=tests/config/playwright.config.ts --project=firefox",
+    "test:webkit": "npx playwright test --config=tests/config/playwright.config.ts --project=webkit"
   }
 }

@@ -1,0 +1,17 @@
+{
+  "ollamaModels": [
+    {
+      "name": "gemma2:27b",
+      "expectedVramMb": 27000,
+      "timeoutSeconds": 600,
+      "capabilities": ["llm", "chat"]
+    },
+    {
+      "name": "qwen2.5:32b",
+      "expectedVramMb": 32000,
+      "timeoutSeconds": 900,
+      "capabilities": ["llm", "chat", "tools"]
+    }
+  ]
+}
+

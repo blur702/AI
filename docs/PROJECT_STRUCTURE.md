@@ -52,10 +52,6 @@ Root Files:
 
 ## Core Projects
 
-### API Gateway (FastAPI unified gateway)
-- **Location:** `D:/AI/api_gateway`
-- **Purpose:** Unified API gateway on port 1301 coordinating GPU-intensive services, job queue, and VRAM management.
-
 ### 1. **alltalk_tts** 
 **Purpose:** Advanced Text-to-Speech system with voice cloning  
 **Technology:** XTTSv2, Coqui TTS  
