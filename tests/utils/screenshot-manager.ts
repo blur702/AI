@@ -28,7 +28,6 @@ export class ScreenshotManager {
 
   // Placeholder for visual regression comparison; implementation can be plugged in later.
   async compareScreenshots(_baseline: string, _current: string): Promise<boolean> {
-    return true;
+    throw new Error('compareScreenshots not implemented - visual regression comparison requires implementation');
   }
 }
-

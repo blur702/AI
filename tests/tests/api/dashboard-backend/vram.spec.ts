@@ -13,11 +13,4 @@ test.describe('Dashboard Backend VRAM API', () => {
 
     expect(Array.isArray(status.processes)).toBe(true);
   });
-
-  test('handles GPU info unavailable gracefully', async ({ dashboardAPI }) => {
-    // Placeholder behavior: ensure the endpoint is resilient.
-    const status = await dashboardAPI.getVRAMStatus();
-    expect(status.gpu).toBeDefined();
-  });
 });
-

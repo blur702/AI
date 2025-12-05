@@ -10,19 +10,40 @@ export function connectWebSocket(url: string): Promise<WebSocketHandle> {
     const socket = new WebSocket(url);
     const messages: any[] = [];
 
-    socket.on('message', (data: WebSocket.RawData) => {
+    const messageHandler = (data: WebSocket.RawData) => {
       try {
         messages.push(JSON.parse(data.toString()));
       } catch {
         messages.push(data.toString());
       }
-    });
+    };
 
-    socket.on('error', (err: Error) => reject(err));
+    const errorHandler = (err: Error) => {
+      cleanup();
+      reject(err);
+    };
 
-    socket.on('open', () => {
+    const openHandler = () => {
+      cleanup();
       resolve({ socket, messages });
-    });
+    };
+
+    const closeHandler = () => {
+      cleanup();
+      reject(new Error('WebSocket closed before connection established'));
+    };
+
+    const cleanup = () => {
+      socket.off('message', messageHandler);
+      socket.off('error', errorHandler);
+      socket.off('open', openHandler);
+      socket.off('close', closeHandler);
+    };
+
+    socket.on('message', messageHandler);
+    socket.on('error', errorHandler);
+    socket.on('open', openHandler);
+    socket.on('close', closeHandler);
   });
 }
 
