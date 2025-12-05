@@ -28,6 +28,7 @@
 | YuE Music | 7870 | **WORKING** | `D:/AI/YuE/yue_env/Scripts/python.exe run_ui.py` |
 | DiffRhythm | 7871 | **WORKING** | `D:/AI/DiffRhythm/diffrhythm_env/Scripts/python.exe run_ui.py` |
 | Stable Audio | 7873 | **WORKING** | `D:/AI/stable-audio-tools/stable_audio_env/Scripts/python.exe run_ui.py` |
+| API Gateway | 1301 | **PLANNED** | `D:/AI/api_gateway/start_gateway.bat` |
 
 ## Services Ready to Launch
 
