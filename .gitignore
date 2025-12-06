@@ -26,6 +26,9 @@ venv/
 test-results/
 *.log
 
+# VSCode workspace settings (machine-specific)
+.vscode/settings.json
+
 # Misc
 nul
 .DS_Store

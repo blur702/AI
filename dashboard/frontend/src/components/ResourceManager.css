@@ -50,7 +50,6 @@
 .vram-bar-mini .vram-fill {
   height: 100%;
   transition: width 0.3s ease;
-  width: var(--vram-width);
 }
 
 .vram-text {
@@ -106,8 +105,20 @@
 .vram-fill {
   height: 100%;
   transition: width 0.5s ease;
-  width: var(--vram-width);
+  width: 0;
 }
+
+.vram-fill.level-0 { width: 0%; }
+.vram-fill.level-1 { width: 10%; }
+.vram-fill.level-2 { width: 20%; }
+.vram-fill.level-3 { width: 30%; }
+.vram-fill.level-4 { width: 40%; }
+.vram-fill.level-5 { width: 50%; }
+.vram-fill.level-6 { width: 60%; }
+.vram-fill.level-7 { width: 70%; }
+.vram-fill.level-8 { width: 80%; }
+.vram-fill.level-9 { width: 90%; }
+.vram-fill.level-10 { width: 100%; }
 
 .vram-fill.low {
   background: linear-gradient(90deg, #10b981, #34d399);

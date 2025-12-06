@@ -94,15 +94,23 @@ export function ResourceManager({ onUnloadModel }: ResourceManagerProps) {
 
   const handleUnloadOllamaModel = async (modelName: string) => {
     try {
-      await fetch(`${getApiBase()}/api/models/ollama/unload`, {
+      const response = await fetch(`${getApiBase()}/api/models/ollama/unload`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model_name: modelName })
       });
-      fetchData(); // Refresh
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Failed to unload model "${modelName}" (${response.status}): ${errorText}`);
+        throw new Error(`Failed to unload model: ${response.status} ${response.statusText}`);
+      }
+
+      fetchData(); // Refresh only on success
       onUnloadModel?.(modelName);
     } catch (error) {
       console.error('Error unloading model:', error);
+      // TODO: Surface error to user via notification/toast
     }
   };
 
@@ -110,10 +118,9 @@ export function ResourceManager({ onUnloadModel }: ResourceManagerProps) {
     return <div className="resource-manager loading">Loading resource info...</div>;
   }
 
-  // Normalize GPU info to a simple nullable value so TypeScript
-  // doesn't have to deal with both `null` and `undefined`.
-  const gpu = summary ? summary.gpu : null;
-  const usedPercent = gpu ? (gpu.used_mb / gpu.total_mb) * 100 : 0;
+  const gpu = summary?.gpu ?? null;
+  const usedPercent = gpu && gpu.total_mb > 0 ? (gpu.used_mb / gpu.total_mb) * 100 : 0;
+  const usageLevel = Math.max(0, Math.min(10, Math.round(usedPercent / 10)));
 
   return (
     <div className={`resource-manager ${expanded ? 'expanded' : 'collapsed'}`}>
@@ -123,8 +130,9 @@ export function ResourceManager({ onUnloadModel }: ResourceManagerProps) {
           {gpu && (
             <div className="vram-bar-mini">
               <div
-                className={`vram-fill ${usedPercent > 80 ? 'high' : usedPercent > 50 ? 'medium' : 'low'}`}
-                style={{ '--vram-width': `${usedPercent}%` } as React.CSSProperties}
+                className={`vram-fill level-${usageLevel} ${
+                  usedPercent > 80 ? 'high' : usedPercent > 50 ? 'medium' : 'low'
+                }`}
               />
             </div>
           )}
@@ -143,8 +151,9 @@ export function ResourceManager({ onUnloadModel }: ResourceManagerProps) {
               <h4>GPU: {gpu.name}</h4>
               <div className="vram-bar">
                 <div
-                  className={`vram-fill ${usedPercent > 80 ? 'high' : usedPercent > 50 ? 'medium' : 'low'}`}
-                  style={{ '--vram-width': `${usedPercent}%` } as React.CSSProperties}
+                  className={`vram-fill level-${usageLevel} ${
+                    usedPercent > 80 ? 'high' : usedPercent > 50 ? 'medium' : 'low'
+                  }`}
                 />
                 <span className="vram-label">{usedPercent.toFixed(1)}%</span>
               </div>

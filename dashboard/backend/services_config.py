@@ -158,4 +158,4 @@ GPU_INTENSIVE_SERVICES = [
 ]
 
 # Default host for health checks
-DEFAULT_HOST = "127.0.0.1"
+DEFAULT_HOST = "127.0.0.1"  

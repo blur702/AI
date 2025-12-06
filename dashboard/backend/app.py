@@ -569,6 +569,8 @@ def api_restart_service(service_id):
 @app.route("/api/services/<service_id>/touch", methods=["POST"])
 def api_touch_service(service_id):
     """Update last activity timestamp for a service."""
+    if service_id not in SERVICES:
+        return jsonify({"error": "Service not found"}), 404
     service_manager.touch_activity(service_id)
     return jsonify({"success": True, "message": "Activity updated"})
 
@@ -708,12 +710,17 @@ def serve_index():
 @app.route("/<path:path>")
 def serve_static(path):
     """Serve static files, fall back to index.html for SPA routing."""
+    from werkzeug.security import safe_join
+    
     # Don't catch API routes
     if path.startswith("api/") or path.startswith("socket.io/"):
         return jsonify({"error": "Not found"}), 404
-    # If the file exists, serve it
-    if os.path.exists(os.path.join(FRONTEND_DIST, path)):
+    
+    # Safely check if file exists (prevents path traversal)
+    safe_path = safe_join(FRONTEND_DIST, path)
+    if safe_path and os.path.isfile(safe_path):
         return send_from_directory(FRONTEND_DIST, path)
+    
     # Otherwise, serve index.html for SPA routing
     return send_from_directory(FRONTEND_DIST, "index.html")
 

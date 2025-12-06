@@ -1,0 +1,63 @@
+{
+  // Configure your Python interpreter path here
+  // Examples:
+  //   "python.defaultInterpreterPath": "${workspaceFolder}/dashboard/backend/.venv/Scripts/python.exe",
+  //   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+  //   "python.defaultInterpreterPath": "python",
+  
+  "files.watcherExclude": {
+    "**/alltalk_tts/**": true,
+    "**/audiocraft/**": true,
+    "**/ComfyUI/**": true,
+    "**/DiffRhythm/**": true,
+    "**/local-talking-llm/**": true,
+    "**/MusicGPT/**": true,
+    "**/stable-audio-tools/**": true,
+    "**/stability-matrix/**": true,
+    "**/Wan2GP/**": true,
+    "**/YuE/**": true,
+    "**/node_modules/**": true,
+    "**/ollama-models/**": true,
+    "**/__pycache__/**": true,
+    "**/.git/**": true
+  },
+  "files.exclude": {
+    "alltalk_tts": true,
+    "audiocraft": true,
+    "ComfyUI": true,
+    "DiffRhythm": true,
+    "local-talking-llm": true,
+    "MusicGPT": true,
+    "stable-audio-tools": true,
+    "stability-matrix": true,
+    "Wan2GP": true,
+    "YuE": true,
+    "node_modules": true,
+    "ollama-models": true
+  },
+  "search.exclude": {
+    "**/alltalk_tts/**": true,
+    "**/audiocraft/**": true,
+    "**/ComfyUI/**": true,
+    "**/DiffRhythm/**": true,
+    "**/local-talking-llm/**": true,
+    "**/MusicGPT/**": true,
+    "**/stable-audio-tools/**": true,
+    "**/stability-matrix/**": true,
+    "**/Wan2GP/**": true,
+    "**/YuE/**": true,
+    "**/node_modules/**": true,
+    "**/ollama-models/**": true
+  },
+  "git.ignoredRepositories": [
+    "alltalk_tts",
+    "audiocraft",
+    "ComfyUI",
+    "DiffRhythm",
+    "local-talking-llm",
+    "MusicGPT",
+    "stable-audio-tools",
+    "Wan2GP",
+    "YuE"
+  ]
+}

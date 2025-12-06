@@ -103,11 +103,26 @@ class ServiceManager:
                     return False
 
                 pid = None
+                target_port = str(port)
                 for line in result.stdout.splitlines():
                     # Typical line: TCP    0.0.0.0:7851         0.0.0.0:0              LISTENING       1234
-                    if f":{port} " in line or f":{port}\n" in line or f":{port}\r" in line:
-                        parts = line.split()
-                        if len(parts) >= 5 and parts[-1].isdigit():
+                    parts = line.split()
+                    if len(parts) < 5:
+                        continue
+                    
+                    # Local address is typically the 2nd column (index 1)
+                    local_address = parts[1]
+                    
+                    # Extract port by splitting on the last ':' (handles IPv6)
+                    if ':' not in local_address:
+                        continue
+                    
+                    addr_port = local_address.rsplit(':', 1)[-1]
+                    
+                    # Check for exact port match
+                    if addr_port == target_port:
+                        # Verify PID is in the last column and is numeric
+                        if parts[-1].isdigit():
                             pid = parts[-1]
                             break
 
@@ -200,27 +215,36 @@ class ServiceManager:
         if not config:
             return {"error": f"Unknown service: {service_id}"}
 
+        # Capture current state while holding lock
         with self._lock:
             state = self._services.get(service_id, ServiceState())
+            current_status = state.status
 
-            # Check if service is running (either managed or external)
-            is_healthy = self._health_check(service_id)
-            port_in_use = self._check_port_in_use(config["port"])
+        # Perform blocking I/O operations outside the lock
+        is_healthy = self._health_check(service_id)
+        port_in_use = self._check_port_in_use(config["port"])
 
-            # Update status based on actual state
-            if state.status == ServiceStatus.STARTING:
-                if is_healthy:
-                    state.status = ServiceStatus.RUNNING
-                    self._emit_status(service_id, ServiceStatus.RUNNING, "Service is ready")
-            elif state.status == ServiceStatus.RUNNING:
-                if not is_healthy and not port_in_use:
-                    state.status = ServiceStatus.STOPPED
-                    state.process = None
-                    self._emit_status(service_id, ServiceStatus.STOPPED, "Service stopped")
-            elif state.status == ServiceStatus.STOPPED:
-                if is_healthy:
-                    # Service running externally
-                    state.status = ServiceStatus.RUNNING
+        # Re-acquire lock to update state
+        with self._lock:
+            state = self._services.get(service_id, ServiceState())
+            
+            # Only update if state hasn't changed significantly
+            if state.status == current_status:
+                # Update status based on actual state
+                if state.status == ServiceStatus.STARTING:
+                    if is_healthy:
+                        state.status = ServiceStatus.RUNNING
+                        self._emit_status(service_id, ServiceStatus.RUNNING, "Service is ready")
+                elif state.status == ServiceStatus.RUNNING:
+                    if not is_healthy and not port_in_use:
+                        state.status = ServiceStatus.STOPPED
+                        state.process = None
+                        state.pid = None
+                        self._emit_status(service_id, ServiceStatus.STOPPED, "Service stopped")
+                elif state.status == ServiceStatus.STOPPED:
+                    if is_healthy:
+                        # Service running externally
+                        state.status = ServiceStatus.RUNNING
 
             return {
                 "service_id": service_id,
@@ -284,6 +308,7 @@ class ServiceManager:
                     if not is_healthy and not port_in_use:
                         state.status = ServiceStatus.STOPPED
                         state.process = None
+                        state.pid = None
                         self._emit_status(service_id, ServiceStatus.STOPPED, "Service stopped")
                 elif state.status == ServiceStatus.STOPPED:
                     if is_healthy:
@@ -323,7 +348,7 @@ class ServiceManager:
             return {"success": False, "error": f"Service {service_id} is not managed by this system"}
 
         with self._lock:
-            state = self._services[service_id]
+            state = self._services[service_id] 
 
             # Check if already running
             if state.status in (ServiceStatus.RUNNING, ServiceStatus.STARTING):
@@ -355,15 +380,21 @@ class ServiceManager:
         config = SERVICES[service_id]
 
         try:
+            # Prepare creationflags for cross-platform compatibility
+            # CREATE_NEW_PROCESS_GROUP is Windows-only
+            creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            
             # Start the process
-            process = subprocess.Popen(
-                config["command"],
-                cwd=config["working_dir"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-                shell=False
-            )
+            popen_kwargs = {
+                "cwd": config["working_dir"],
+                "stdout": subprocess.PIPE,
+                "stderr": subprocess.STDOUT,
+                "shell": False,
+            }
+            if creationflags:
+                popen_kwargs["creationflags"] = creationflags
+            
+            process = subprocess.Popen(config["command"], **popen_kwargs)
 
             with self._lock:
                 state = self._services[service_id]
@@ -468,19 +499,21 @@ class ServiceManager:
                 return {"success": True, "message": "Service already stopped"}
 
             state.status = ServiceStatus.STOPPING
+            # Capture process reference while holding lock
+            process = state.process
             self._emit_status(service_id, ServiceStatus.STOPPING, "Stopping service...")
 
         try:
             # Try graceful termination first
-            state.process.terminate()
+            process.terminate()
 
             # Wait for process to exit
             try:
-                state.process.wait(timeout=10)
+                process.wait(timeout=10)
             except subprocess.TimeoutExpired:
                 # Force kill
-                state.process.kill()
-                state.process.wait(timeout=5)
+                process.kill()
+                process.wait(timeout=5)
 
             with self._lock:
                 state.status = ServiceStatus.STOPPED
@@ -509,14 +542,25 @@ class ServiceManager:
             Dictionary with result information
         """
         stop_result = self.stop_service(service_id)
-        if not stop_result.get("success", False) and "already stopped" not in stop_result.get("message", ""):
+        # Check both "message" and "error" keys for "already stopped"
+        stop_message = stop_result.get("message", stop_result.get("error", ""))
+        if not stop_result.get("success", False) and "already stopped" not in stop_message:
             return stop_result
 
         time.sleep(2)  # Brief pause between stop and start
         return self.start_service(service_id)
 
     def touch_activity(self, service_id: str):
-        """Update last activity timestamp for a service."""
+        """
+        Update the last activity timestamp for a service.
+
+        Args:
+            service_id: The identifier of the service whose activity timestamp should be updated.
+
+        Behavior:
+            Updates the last_activity timestamp to the current time. Does nothing if service_id
+            is not found in the service registry.
+        """
         with self._lock:
             if service_id in self._services:
                 self._services[service_id].last_activity = time.time()

@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **local AI development workspace** featuring an integrated ecosystem of AI generation tools (audio, image, music, video, text-to-speech, and LLM) designed for RTX 3090 (24GB VRAM). The architecture follows a **master-satellite pattern** where a central dashboard orchestrates independent AI services.
 
-**External access**: `http://ssdd.kevinalthaus.com` (port 80 only exposed)
+**External access**: `http://<EXTERNAL_HOST>` (port 80 only exposed)  
+_Note: Configure your actual domain in a private environment variable or config file._
 
 ## Key Commands
 
