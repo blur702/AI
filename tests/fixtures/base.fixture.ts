@@ -24,7 +24,8 @@ export const test = base.extend<{
   cleanupJobs: CleanupJobs;
 }>({
   dashboardAPI: async ({}, use) => {
-    const url = process.env.DASHBOARD_API_URL || 'http://localhost:5000';
+    // Single-port deployment: Dashboard serves frontend + API on port 80
+    const url = process.env.DASHBOARD_API_URL || 'http://localhost';
     await use(new DashboardAPIClient(url));
   },
 

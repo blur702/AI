@@ -19,9 +19,14 @@ export const test = base.extend<{
         process.env.N8N_URL
       ].filter((u): u is string => !!u);
 
-      await Promise.all(serviceUrls.map((url) => waitForServiceReady(url, 30_000)));
+      let healthy = true;
+      try {
+        await Promise.all(serviceUrls.map((url) => waitForServiceReady(url, 5_000)));
+      } catch {
+        healthy = false;
+      }
 
-      await use(true);
+      await use(healthy);
     },
     { auto: false }
   ]

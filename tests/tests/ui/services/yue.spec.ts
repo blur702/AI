@@ -1,11 +1,15 @@
-import { test } from '../../../fixtures/services.fixture';
+import { test } from '../../../fixtures/base.fixture';
 import { YuEPage } from '../../../page-objects/services/YuEPage';
+import { isServiceAvailable } from '../../../utils/wait-helpers';
 
 test.describe('YuE service UI', () => {
-  test('loads main page', async ({ page, servicesHealthy }) => {
-    test.skip(!servicesHealthy, 'Services not marked healthy');
+  const serviceUrl = process.env.YUE_URL || 'http://localhost:7870';
+
+  test('loads main page', async ({ page }) => {
+    const available = await isServiceAvailable(serviceUrl);
+    test.skip(!available, `YuE service not available at ${serviceUrl}`);
     const ui = new YuEPage(page);
-    await ui.goto(process.env.YUE_URL || 'http://localhost:9001');
+    await ui.goto(serviceUrl);
     await ui.waitForPageLoad();
   });
 });

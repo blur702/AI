@@ -21,9 +21,16 @@ export interface VRAMStatusResponse {
 }
 
 export interface OllamaModel {
+  id?: string;
   name: string;
+  size?: string;
   size_mb?: number;
   loaded?: boolean;
+}
+
+export interface OllamaModelsResponse {
+  count: number;
+  models: OllamaModel[];
 }
 
 export type DashboardWebSocketCallback = (data: any) => void;
@@ -33,12 +40,13 @@ export class DashboardAPIClient extends BaseAPIClient {
     return this.get<VRAMStatusResponse>('/api/vram/status');
   }
 
-  listOllamaModels(): Promise<OllamaModel[]> {
-    return this.get<OllamaModel[]>('/api/models/ollama/list');
+  listOllamaModels(): Promise<OllamaModelsResponse> {
+    return this.get<OllamaModelsResponse>('/api/models/ollama/list');
   }
 
-  getLoadedModels(): Promise<OllamaModel[]> {
-    return this.get<OllamaModel[]>('/api/models/ollama/loaded');
+  async getLoadedModels(): Promise<OllamaModel[]> {
+    const response = await this.get<OllamaModelsResponse>('/api/models/ollama/loaded');
+    return response.models;
   }
 
   loadModel(modelName: string): Promise<{ status: string }> {

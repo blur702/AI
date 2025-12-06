@@ -1,14 +1,21 @@
 import logging
+import os
 import subprocess
 import threading
 import time
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
+from service_manager import get_service_manager, ServiceStatus
+from services_config import SERVICES
 
-app = Flask(__name__)
+# Path to React build output
+FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
+
+# Don't use Flask's built-in static serving - we'll handle it manually
+app = Flask(__name__, static_folder=None)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Explicit async_mode for compatibility on Windows; threading works well here.
@@ -27,6 +34,22 @@ vram_thread_lock = threading.Lock()
 connected_clients = 0
 vram_thread_stop = False
 gpu_info_error = False
+
+
+def emit_service_status(service_id: str, status: str, message: str = ""):
+    """Callback for service manager to emit status updates via WebSocket."""
+    socketio.emit(
+        "service_status",
+        {
+            "service_id": service_id,
+            "status": status,
+            "message": message,
+        },
+    )
+
+
+# Initialize service manager with WebSocket callback
+service_manager = get_service_manager(emit_service_status)
 
 
 def run_command(command):
@@ -272,7 +295,6 @@ def pull_ollama_model(model_name):
             "progress": "starting",
             "status": "downloading",
         },
-        broadcast=True,
     )
 
     try:
@@ -295,8 +317,7 @@ def pull_ollama_model(model_name):
                     "progress": line,
                     "status": "downloading",
                 },
-                broadcast=True,
-            )
+                    )
 
         process.wait()
         if process.returncode == 0:
@@ -307,8 +328,7 @@ def pull_ollama_model(model_name):
                     "progress": "complete",
                     "status": "complete",
                 },
-                broadcast=True,
-            )
+                    )
         else:
             socketio.emit(
                 "model_download_progress",
@@ -317,8 +337,7 @@ def pull_ollama_model(model_name):
                     "progress": "error",
                     "status": "error",
                 },
-                broadcast=True,
-            )
+                    )
             logger.error(
                 "Error pulling Ollama model '%s', return code %s",
                 model_name,
@@ -334,8 +353,7 @@ def pull_ollama_model(model_name):
                 "progress": msg,
                 "status": "error",
             },
-            broadcast=True,
-        )
+            )
     except Exception as exc:  # noqa: BLE001
         msg = f"Error pulling Ollama model '{model_name}': {exc}"
         logger.error(msg)
@@ -346,8 +364,7 @@ def pull_ollama_model(model_name):
                 "progress": msg,
                 "status": "error",
             },
-            broadcast=True,
-        )
+            )
 
 
 @app.route("/api/vram/status", methods=["GET"])
@@ -499,6 +516,56 @@ def api_download_ollama_model():
     )
 
 
+# =============================================================================
+# Service Management Endpoints
+# =============================================================================
+
+
+@app.route("/api/services", methods=["GET"])
+def api_list_services():
+    """Get list of all services with their current status."""
+    statuses = service_manager.get_all_status()
+    return jsonify(
+        {
+            "services": statuses,
+            "count": len(statuses),
+        }
+    )
+
+
+@app.route("/api/services/<service_id>", methods=["GET"])
+def api_get_service(service_id):
+    """Get status of a specific service."""
+    status = service_manager.get_status(service_id)
+    if "error" in status:
+        return jsonify(status), 404
+    return jsonify(status)
+
+
+@app.route("/api/services/<service_id>/start", methods=["POST"])
+def api_start_service(service_id):
+    """Start a service."""
+    result = service_manager.start_service(service_id)
+    status_code = 200 if result.get("success") else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/services/<service_id>/stop", methods=["POST"])
+def api_stop_service(service_id):
+    """Stop a service."""
+    result = service_manager.stop_service(service_id)
+    status_code = 200 if result.get("success") else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/services/<service_id>/restart", methods=["POST"])
+def api_restart_service(service_id):
+    """Restart a service."""
+    result = service_manager.restart_service(service_id)
+    status_code = 200 if result.get("success") else 400
+    return jsonify(result), status_code
+
+
 def vram_background_thread():
     """Background thread that periodically emits VRAM status updates."""
     global vram_thread_stop, gpu_info_error
@@ -520,7 +587,7 @@ def vram_background_thread():
                     "Unable to retrieve GPU information; emitting error updates over WebSocket.",
                 )
                 gpu_info_error = True
-            socketio.emit("vram_update", payload, broadcast=True)
+            socketio.emit("vram_update", payload)
             socketio.sleep(5)
             continue
 
@@ -533,7 +600,7 @@ def vram_background_thread():
             "processes": processes,
             "timestamp": time.time(),
         }
-        socketio.emit("vram_update", payload, broadcast=True)
+        socketio.emit("vram_update", payload)
         socketio.sleep(2)
 
     logger.info("VRAM monitoring background thread stopping.")
@@ -560,5 +627,31 @@ def handle_disconnect():
             vram_thread_stop = True
 
 
+# =============================================================================
+# Static File Serving (React Frontend)
+# =============================================================================
+
+
+@app.route("/")
+def serve_index():
+    """Serve the React app index.html."""
+    return send_from_directory(FRONTEND_DIST, "index.html")
+
+
+@app.route("/<path:path>")
+def serve_static(path):
+    """Serve static files, fall back to index.html for SPA routing."""
+    # Don't catch API routes
+    if path.startswith("api/") or path.startswith("socket.io/"):
+        return jsonify({"error": "Not found"}), 404
+    # If the file exists, serve it
+    if os.path.exists(os.path.join(FRONTEND_DIST, path)):
+        return send_from_directory(FRONTEND_DIST, path)
+    # Otherwise, serve index.html for SPA routing
+    return send_from_directory(FRONTEND_DIST, "index.html")
+
+
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
+    # Run on port 80 for single-port deployment
+    # debug=False to avoid the reloader spawning multiple processes
+    socketio.run(app, host="0.0.0.0", port=80, debug=False)

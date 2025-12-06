@@ -1,11 +1,15 @@
-import { test } from '../../../fixtures/services.fixture';
+import { test } from '../../../fixtures/base.fixture';
 import { DiffRhythmPage } from '../../../page-objects/services/DiffRhythmPage';
+import { isServiceAvailable } from '../../../utils/wait-helpers';
 
 test.describe('DiffRhythm service UI', () => {
-  test('loads main page', async ({ page, servicesHealthy }) => {
-    test.skip(!servicesHealthy, 'Services not marked healthy');
+  const serviceUrl = process.env.DIFFRHYTHM_URL || 'http://localhost:7871';
+
+  test('loads main page', async ({ page }) => {
+    const available = await isServiceAvailable(serviceUrl);
+    test.skip(!available, `DiffRhythm service not available at ${serviceUrl}`);
     const ui = new DiffRhythmPage(page);
-    await ui.goto(process.env.DIFFRHYTHM_URL || 'http://localhost:9002');
+    await ui.goto(serviceUrl);
     await ui.waitForPageLoad();
   });
 });

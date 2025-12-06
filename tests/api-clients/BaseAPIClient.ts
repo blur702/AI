@@ -67,7 +67,7 @@ export class BaseAPIClient {
       const status = error?.response?.status;
       const data = error?.response?.data;
 
-      console.error('[BaseAPIClient] Error:', { status, data, message: error?.message });
+      console.error('[BaseAPIClient] Error:', { status, data, message: error?.message, code: error?.code, url: this.baseUrl + config.url });
 
       // Don't retry 4xx client errors
       if (status >= 400 && status < 500) {

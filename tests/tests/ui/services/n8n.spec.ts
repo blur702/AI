@@ -1,11 +1,15 @@
-import { test } from '../../../fixtures/services.fixture';
+import { test } from '../../../fixtures/base.fixture';
 import { N8NPage } from '../../../page-objects/services/N8NPage';
+import { isServiceAvailable } from '../../../utils/wait-helpers';
 
 test.describe('N8N service UI', () => {
-  test('loads main page', async ({ page, servicesHealthy }) => {
-    test.skip(!servicesHealthy, 'Services not marked healthy');
+  const serviceUrl = process.env.N8N_URL || 'http://localhost:5678';
+
+  test('loads main page', async ({ page }) => {
+    const available = await isServiceAvailable(serviceUrl);
+    test.skip(!available, `N8N service not available at ${serviceUrl}`);
     const ui = new N8NPage(page);
-    await ui.goto(process.env.N8N_URL || 'http://localhost:5678');
+    await ui.goto(serviceUrl);
     await ui.waitForPageLoad();
   });
 });

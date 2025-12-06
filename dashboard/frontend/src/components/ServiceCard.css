@@ -1,0 +1,212 @@
+.card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 28px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.card.status-stopped {
+  opacity: 0.7;
+}
+
+.card.status-starting {
+  border-color: rgba(255, 193, 7, 0.5);
+}
+
+.card.status-running {
+  border-color: rgba(0, 255, 136, 0.3);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.card-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.card-title {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.card-port {
+  font-size: 0.85rem;
+  color: #888;
+  font-family: monospace;
+}
+
+.card-description {
+  color: #aaa;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.card-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tag {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  color: #ccc;
+}
+
+.status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-online {
+  background: #00ff88;
+  animation: pulse 2s infinite;
+}
+
+.status-offline {
+  background: #666;
+}
+
+.status-starting-indicator {
+  background: #ffc107;
+  animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Card colors */
+.card-openwebui .card-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
+.card-comfyui .card-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
+.card-alltalk .card-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+.card-ollama .card-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+.card-wan2gp .card-icon { background: linear-gradient(135deg, #ff6b6b, #feca57); }
+.card-n8n .card-icon { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.card-yue .card-icon { background: linear-gradient(135deg, #a855f7, #ec4899); }
+.card-diffrhythm .card-icon { background: linear-gradient(135deg, #06b6d4, #3b82f6); }
+.card-musicgen .card-icon { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+.card-stableaudio .card-icon { background: linear-gradient(135deg, #10b981, #059669); }
+
+/* Service action buttons */
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-start {
+  background: linear-gradient(135deg, #00ff88, #00cc6a);
+  color: #000;
+}
+
+.btn-start:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 255, 136, 0.4);
+}
+
+.btn-stop {
+  background: linear-gradient(135deg, #ff4444, #cc0000);
+  color: #fff;
+}
+
+.btn-stop:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4);
+}
+
+.btn-open {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #fff;
+  flex: 1;
+}
+
+.btn-open:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* Status message overlay */
+.status-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.9);
+  padding: 20px 30px;
+  border-radius: 12px;
+  text-align: center;
+  z-index: 10;
+  display: none;
+}
+
+.status-message.visible {
+  display: block;
+}
+
+.status-message .spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #00d4ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+.status-text {
+  color: #fff;
+  font-size: 0.9rem;
+}

@@ -1,0 +1,43 @@
+.connection-status {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+}
+
+.connection-status.connected {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+}
+
+.connection-status.disconnected {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+}
+
+.connection-status .status {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.connection-status .status-online {
+  background: #00ff88;
+  animation: pulse 2s infinite;
+}
+
+.connection-status .status-offline {
+  background: #ff4444;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

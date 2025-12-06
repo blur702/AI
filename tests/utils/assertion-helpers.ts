@@ -5,8 +5,9 @@ export function assertAPIResponse<T = any>(
   response: UnifiedResponse<T>,
   expectedStatus: 'success' | 'error'
 ): void {
-  expect(response.status).toBe(expectedStatus);
-  if (expectedStatus === 'success') {
+  const isSuccess = expectedStatus === 'success';
+  expect(response.success).toBe(isSuccess);
+  if (isSuccess) {
     expect(response.data).toBeTruthy();
   } else {
     expect(response.error).toBeTruthy();

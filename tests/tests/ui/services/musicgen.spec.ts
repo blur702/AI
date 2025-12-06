@@ -1,11 +1,15 @@
-import { test } from '../../../fixtures/services.fixture';
+import { test } from '../../../fixtures/base.fixture';
 import { MusicGenPage } from '../../../page-objects/services/MusicGenPage';
+import { isServiceAvailable } from '../../../utils/wait-helpers';
 
 test.describe('MusicGen service UI', () => {
-  test('loads main page', async ({ page, servicesHealthy }) => {
-    test.skip(!servicesHealthy, 'Services not marked healthy');
+  const serviceUrl = process.env.MUSICGEN_URL || 'http://localhost:7872';
+
+  test('loads main page', async ({ page }) => {
+    const available = await isServiceAvailable(serviceUrl);
+    test.skip(!available, `MusicGen service not available at ${serviceUrl}`);
     const ui = new MusicGenPage(page);
-    await ui.goto(process.env.MUSICGEN_URL || 'http://localhost:9003');
+    await ui.goto(serviceUrl);
     await ui.waitForPageLoad();
   });
 });

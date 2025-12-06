@@ -2,11 +2,23 @@ import axios from 'axios';
 import { Page } from '@playwright/test';
 import { BaseAPIClient } from '../api-clients/BaseAPIClient';
 
+/**
+ * Check if a service is reachable (quick check, no retry)
+ */
+export async function isServiceAvailable(url: string, timeoutMs = 3000): Promise<boolean> {
+  try {
+    const response = await axios.get(url, { timeout: timeoutMs, validateStatus: () => true });
+    return response.status < 500;
+  } catch {
+    return false;
+  }
+}
+
 export async function waitForServiceReady(url: string, timeoutMs = 30_000): Promise<void> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
-      const response = await axios.get(url, { timeout: 5000 });
+      const response = await axios.get(url, { timeout: 5000, validateStatus: () => true });
       if (response.status < 500) {
         return;
       }
