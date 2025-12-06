@@ -1,5 +1,6 @@
 import { ServiceCard } from './components/ServiceCard';
 import { ConnectionStatus } from './components/ConnectionStatus';
+import { ResourceManager } from './components/ResourceManager';
 import { useSocket } from './hooks/useSocket';
 import { SERVICES_CONFIG } from './config/services';
 import './App.css';
@@ -20,6 +21,8 @@ function App() {
       <div className="ip-info">
         Server IP: <span>{serverIp}</span>
       </div>
+
+      <ResourceManager />
 
       <div className="grid">
         {mainServices.map(config => (

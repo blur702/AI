@@ -1,0 +1,240 @@
+.resource-manager {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.resource-manager.loading {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+}
+
+.resource-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.resource-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.resource-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gpu-icon {
+  background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.vram-bar-mini {
+  width: 100px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.vram-bar-mini .vram-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  width: var(--vram-width);
+}
+
+.vram-text {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+
+.expand-icon {
+  font-size: 1.5rem;
+  color: #888;
+  font-weight: 300;
+}
+
+.resource-content {
+  padding: 0 20px 20px;
+}
+
+.resource-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.resource-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gpu-badge {
+  background: rgba(123, 44, 191, 0.3);
+  color: #c084fc;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+/* VRAM Bar */
+.vram-bar {
+  height: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.vram-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  width: var(--vram-width);
+}
+
+.vram-fill.low {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.vram-fill.medium {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.vram-fill.high {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+}
+
+.vram-label {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.vram-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Model and Process Lists */
+.model-list,
+.process-list,
+.service-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.model-item,
+.process-item,
+.service-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+.model-name,
+.process-name,
+.service-name {
+  font-family: monospace;
+  color: #fff;
+}
+
+.model-size,
+.process-memory {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.service-idle {
+  color: #888;
+  font-size: 0.85rem;
+}
+
+.service-item.gpu {
+  border-left: 3px solid #7b2cbf;
+}
+
+.btn-unload {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.2s;
+}
+
+.btn-unload:hover {
+  background: rgba(239, 68, 68, 0.4);
+}
+
+/* Settings */
+.resource-section.settings {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 20px;
+  padding-top: 20px;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.setting-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ccc;
+  cursor: pointer;
+}
+
+.setting-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #00d4ff;
+}
+
+.setting-row select {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.setting-row select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

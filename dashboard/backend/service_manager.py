@@ -38,10 +38,14 @@ class ServiceState:
     error_message: Optional[str] = None
     start_time: Optional[float] = None
     pid: Optional[int] = None
+    last_activity: Optional[float] = None  # Last time service was accessed/used
 
 
 class ServiceManager:
     """Manages AI service lifecycle (start, stop, status)."""
+
+    # Default idle timeout in seconds (30 minutes)
+    DEFAULT_IDLE_TIMEOUT = 30 * 60
 
     def __init__(self, status_callback: Optional[Callable] = None):
         """
@@ -54,6 +58,10 @@ class ServiceManager:
         self._services: Dict[str, ServiceState] = {}
         self._lock = threading.Lock()
         self._status_callback = status_callback
+        self._idle_timeout = self.DEFAULT_IDLE_TIMEOUT
+        self._auto_stop_enabled = False
+        self._idle_check_thread: Optional[threading.Thread] = None
+        self._idle_check_stop = False
 
         # Initialize state for all services
         for service_id in SERVICES:
@@ -506,6 +514,149 @@ class ServiceManager:
 
         time.sleep(2)  # Brief pause between stop and start
         return self.start_service(service_id)
+
+    def touch_activity(self, service_id: str):
+        """Update last activity timestamp for a service."""
+        with self._lock:
+            if service_id in self._services:
+                self._services[service_id].last_activity = time.time()
+
+    def get_idle_time(self, service_id: str) -> Optional[float]:
+        """Get idle time in seconds for a service, or None if not running."""
+        with self._lock:
+            state = self._services.get(service_id)
+            if not state or state.status != ServiceStatus.RUNNING:
+                return None
+            last = state.last_activity or state.start_time
+            if not last:
+                return None
+        
+        return time.time() - last
+
+    def _get_idle_time_unlocked(self, service_id: str) -> Optional[float]:
+        """Get idle time without acquiring lock (caller must hold lock)."""
+        state = self._services.get(service_id)
+        if not state or state.status != ServiceStatus.RUNNING:
+            return None
+        last = state.last_activity or state.start_time
+        if not last:
+            return None
+        return time.time() - last
+
+    def set_idle_timeout(self, timeout_seconds: int):
+        """Set the idle timeout in seconds."""
+        self._idle_timeout = timeout_seconds
+
+    def get_idle_timeout(self) -> int:
+        """Get the current idle timeout in seconds."""
+        return self._idle_timeout
+
+    def enable_auto_stop(self, enabled: bool = True):
+        """Enable or disable auto-stop for idle services."""
+        self._auto_stop_enabled = enabled
+        if enabled:
+            self._start_idle_check_thread()
+        else:
+            self._stop_idle_check_thread()
+
+    def is_auto_stop_enabled(self) -> bool:
+        """Check if auto-stop is enabled."""
+        return self._auto_stop_enabled
+
+    def _start_idle_check_thread(self):
+        """Start the background thread that checks for idle services."""
+        if self._idle_check_thread and self._idle_check_thread.is_alive():
+            return  # Already running
+
+        self._idle_check_stop = False
+        self._idle_check_thread = threading.Thread(
+            target=self._idle_check_loop,
+            daemon=True
+        )
+        self._idle_check_thread.start()
+        logger.info("Idle check thread started")
+
+    def _stop_idle_check_thread(self):
+        """Stop the idle check background thread."""
+        self._idle_check_stop = True
+        if self._idle_check_thread:
+            self._idle_check_thread.join(timeout=5)
+        logger.info("Idle check thread stopped")
+
+    def _idle_check_loop(self):
+        """Background loop that stops idle services."""
+        from services_config import GPU_INTENSIVE_SERVICES
+
+        while not self._idle_check_stop:
+            time.sleep(60)  # Check every minute
+
+            if not self._auto_stop_enabled:
+                continue
+
+            services_to_stop = []
+
+            with self._lock:
+                for service_id, state in self._services.items():
+                    if state.status != ServiceStatus.RUNNING:
+                        continue
+
+                    # Only auto-stop GPU-intensive services
+                    if service_id not in GPU_INTENSIVE_SERVICES:
+                        continue
+
+                    idle_time = self._get_idle_time_unlocked(service_id)
+                    if idle_time and idle_time > self._idle_timeout:
+                        services_to_stop.append((service_id, idle_time))
+
+            # Stop services outside the lock
+            for service_id, idle_time in services_to_stop:
+                logger.info(
+                    f"Auto-stopping {service_id} after {idle_time:.0f}s idle"
+                )
+                self.stop_service(service_id)
+                self._emit_status(
+                    service_id,
+                    ServiceStatus.STOPPED,
+                    f"Auto-stopped after {idle_time // 60:.0f} min idle"
+                )
+
+    def get_resource_summary(self) -> dict:
+        """Get a summary of resource usage across all services."""
+        from services_config import GPU_INTENSIVE_SERVICES
+
+        running_services = []
+        idle_services = []
+        total_running = 0
+        gpu_intensive_running = 0
+
+        with self._lock:
+            for service_id, state in self._services.items():
+                if state.status == ServiceStatus.RUNNING:
+                    total_running += 1
+                    idle_time = self._get_idle_time_unlocked(service_id)
+                    service_info = {
+                        "id": service_id,
+                        "name": SERVICES[service_id]["name"],
+                        "idle_seconds": idle_time,
+                        "gpu_intensive": service_id in GPU_INTENSIVE_SERVICES,
+                        "start_time": state.start_time,
+                    }
+                    running_services.append(service_info)
+
+                    if service_id in GPU_INTENSIVE_SERVICES:
+                        gpu_intensive_running += 1
+
+                    if idle_time and idle_time > 300:  # 5 min idle threshold
+                        idle_services.append(service_info)
+
+        return {
+            "total_running": total_running,
+            "gpu_intensive_running": gpu_intensive_running,
+            "running_services": running_services,
+            "idle_services": idle_services,
+            "auto_stop_enabled": self._auto_stop_enabled,
+            "idle_timeout_seconds": self._idle_timeout,
+        }
 
 
 # Singleton instance

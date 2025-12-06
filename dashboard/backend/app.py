@@ -566,6 +566,73 @@ def api_restart_service(service_id):
     return jsonify(result), status_code
 
 
+@app.route("/api/services/<service_id>/touch", methods=["POST"])
+def api_touch_service(service_id):
+    """Update last activity timestamp for a service."""
+    service_manager.touch_activity(service_id)
+    return jsonify({"success": True, "message": "Activity updated"})
+
+
+# =============================================================================
+# Resource Management Endpoints
+# =============================================================================
+
+
+@app.route("/api/resources/summary", methods=["GET"])
+def api_resource_summary():
+    """Get summary of resource usage across all services."""
+    gpu = get_gpu_info()
+    processes = get_gpu_processes()
+    ollama_models = get_loaded_ollama_models()
+    service_summary = service_manager.get_resource_summary()
+
+    return jsonify({
+        "gpu": gpu,
+        "gpu_processes": processes,
+        "ollama_models": ollama_models,
+        "services": service_summary,
+    })
+
+
+@app.route("/api/resources/settings", methods=["GET"])
+def api_resource_settings():
+    """Get current resource management settings."""
+    return jsonify({
+        "auto_stop_enabled": service_manager.is_auto_stop_enabled(),
+        "idle_timeout_seconds": service_manager.get_idle_timeout(),
+        "idle_timeout_minutes": service_manager.get_idle_timeout() // 60,
+    })
+
+
+@app.route("/api/resources/settings", methods=["POST"])
+def api_update_resource_settings():
+    """Update resource management settings."""
+    if not request.is_json:
+        return jsonify({"success": False, "message": "Expected JSON body."}), 400
+
+    data = request.get_json(silent=True) or {}
+
+    if "auto_stop_enabled" in data:
+        service_manager.enable_auto_stop(bool(data["auto_stop_enabled"]))
+
+    if "idle_timeout_minutes" in data:
+        try:
+            minutes = int(data["idle_timeout_minutes"])
+            service_manager.set_idle_timeout(minutes * 60)
+        except (ValueError, TypeError):
+            return jsonify({
+                "success": False,
+                "message": "idle_timeout_minutes must be an integer"
+            }), 400
+
+    return jsonify({
+        "success": True,
+        "auto_stop_enabled": service_manager.is_auto_stop_enabled(),
+        "idle_timeout_seconds": service_manager.get_idle_timeout(),
+        "idle_timeout_minutes": service_manager.get_idle_timeout() // 60,
+    })
+
+
 def vram_background_thread():
     """Background thread that periodically emits VRAM status updates."""
     global vram_thread_stop, gpu_info_error
