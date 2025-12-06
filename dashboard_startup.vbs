@@ -55,6 +55,12 @@ For attempts = 1 To 6
     If WshShell.Run("cmd /c docker info >nul 2>&1", 0, True) = 0 Then Exit For
 Next
 
+' Verify Docker is actually available before proceeding
+If WshShell.Run("cmd /c docker info >nul 2>&1", 0, True) <> 0 Then
+    WScript.Echo "ERROR: Docker failed to start after 30 seconds. Cannot start Docker-dependent services."
+    WScript.Quit 1
+End If
+
 ' Start the Open WebUI container if it exists but is stopped
 WshShell.Run "cmd /c docker start open-webui 2>nul", 0, False
 

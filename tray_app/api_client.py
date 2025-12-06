@@ -9,7 +9,13 @@ from typing import Optional
 
 
 class DashboardAPI:
-    """Client for the AI Dashboard API."""
+    """
+    Client for the AI Dashboard API.
+    
+    Args:
+        base_url: Full URL to the dashboard backend including port (e.g., "http://localhost:80").
+                  Defaults to "http://localhost" (port 80).
+    """
 
     def __init__(self, base_url: str = "http://localhost"):
         self.base_url = base_url.rstrip("/")
