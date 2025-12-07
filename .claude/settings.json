@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "documentation": {
+      "command": "python",
+      "args": ["-m", "mcp_servers.documentation.main"],
+      "cwd": "${PROJECT_ROOT}"
+    }
+  }
+}

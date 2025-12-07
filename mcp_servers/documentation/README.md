@@ -61,7 +61,7 @@ Add to your Claude Code MCP settings:
 }
 ```
 
-**Note:** Replace `<path-to-your-AI-workspace>` with the absolute path to your AI workspace directory (e.g., `/home/user/AI` on Linux/macOS or `C:\\Users\\user\\AI` on Windows).
+**Note:** Replace `<path-to-your-AI-workspace>` with the absolute path to your AI workspace directory (e.g., `/home/user/AI` on Linux/macOS or `C:\\Users\\user\\AI` on Windows). Alternatively, set a `PROJECT_ROOT` environment variable and use `${PROJECT_ROOT}` in the configuration.
 
 ### Claude Desktop
 
@@ -73,13 +73,13 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
     "documentation": {
       "command": "python",
       "args": ["-m", "mcp_servers.documentation.main"],
-      "cwd": "<path-to-your-AI-workspace>"
+      "cwd": "${PROJECT_ROOT}"
     }
   }
 }
 ```
 
-**Note:** Replace `<path-to-your-AI-workspace>` with the absolute path to your AI workspace directory.
+**Note:** Set the `PROJECT_ROOT` environment variable to the absolute path of your AI workspace directory before starting Claude Desktop. Alternatively, you can replace `${PROJECT_ROOT}` with the direct path (e.g., `/home/user/AI` on Linux/macOS or `C:\\Users\\user\\AI` on Windows).
 
 ## Available Tools
 
