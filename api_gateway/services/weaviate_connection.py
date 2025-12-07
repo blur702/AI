@@ -72,5 +72,6 @@ class WeaviateConnection:
             self.client.close()
 
 
-# Collection name constant - shared between ingestion and search
+# Collection name constants - shared between ingestion and search
 DOCUMENTATION_COLLECTION_NAME = "Documentation"
+CODE_ENTITY_COLLECTION_NAME = "CodeEntity"

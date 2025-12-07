@@ -120,7 +120,7 @@ export class OpenWebUIPage extends BasePage {
    * Wait for the LLM response to appear and complete.
    * Anchors detection to a new response created after the message was sent.
    */
-  async waitForResponse(timeoutMs = 30000): Promise<void> {
+  async waitForLLMResponse(timeoutMs = 30000): Promise<void> {
     try {
       console.log('[OpenWebUIPage] Waiting for LLM response...');
 

@@ -11,6 +11,7 @@ import requests as http_requests
 
 from service_manager import get_service_manager, ServiceStatus
 from services_config import SERVICES
+from ingestion_manager import get_ingestion_manager
 
 # Path to React build output
 FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
@@ -34,7 +35,20 @@ logger = logging.getLogger(__name__)
 MAX_PROXY_REQUEST_SIZE = int(os.environ.get("MAX_PROXY_REQUEST_SIZE", str(100 * 1024 * 1024)))  # 100MB default
 PROXY_TIMEOUT_SECONDS = int(os.environ.get("PROXY_TIMEOUT_SECONDS", "30"))
 PROXY_AUTH_ENABLED = os.environ.get("PROXY_AUTH_ENABLED", "false").lower() == "true"
-PROXY_AUTH_TOKEN = os.environ.get("PROXY_AUTH_TOKEN", "")
+PROXY_AUTH_TOKEN = os.environ.get("PROXY_AUTH_TOKEN", "").strip()
+
+# Validate proxy authentication configuration
+if PROXY_AUTH_ENABLED:
+    if not PROXY_AUTH_TOKEN:
+        logger.error(
+            "FATAL: PROXY_AUTH_ENABLED is true but PROXY_AUTH_TOKEN is not set or empty. "
+            "This would allow authentication with empty tokens, which is insecure. "
+            "Please set a strong PROXY_AUTH_TOKEN environment variable or disable authentication."
+        )
+        raise SystemExit(1)
+    logger.info("Proxy authentication enabled with configured token")
+else:
+    logger.info("Proxy authentication disabled")
 
 
 vram_thread = None
@@ -58,6 +72,15 @@ def emit_service_status(service_id: str, status: str, message: str = ""):
 
 # Initialize service manager with WebSocket callback
 service_manager = get_service_manager(emit_service_status)
+
+
+def emit_ingestion_event(event_name: str, data: dict):
+    """Callback for ingestion manager to emit events via WebSocket."""
+    socketio.emit(event_name, data)
+
+
+# Initialize ingestion manager with WebSocket callback
+ingestion_manager = get_ingestion_manager(emit_ingestion_event)
 
 
 def run_command(command):
@@ -665,6 +688,69 @@ def api_update_resource_settings():
         "idle_timeout_seconds": service_manager.get_idle_timeout(),
         "idle_timeout_minutes": service_manager.get_idle_timeout() // 60,
     })
+
+
+# =============================================================================
+# Ingestion Management Endpoints
+# =============================================================================
+
+
+@app.route("/api/ingestion/status", methods=["GET"])
+def api_ingestion_status():
+    """Get current ingestion status and collection statistics."""
+    status = ingestion_manager.get_status()
+    return jsonify(status)
+
+
+@app.route("/api/ingestion/start", methods=["POST"])
+def api_ingestion_start():
+    """Start ingestion in the background."""
+    if not request.is_json:
+        return jsonify({"success": False, "message": "Expected JSON body."}), 400
+
+    data = request.get_json(silent=True) or {}
+
+    # Validate types
+    types = data.get("types", [])
+    if not types or not isinstance(types, list):
+        return jsonify({
+            "success": False,
+            "message": "Field 'types' is required and must be a list.",
+        }), 400
+
+    valid_types = {"documentation", "code"}
+    for t in types:
+        if t not in valid_types:
+            return jsonify({
+                "success": False,
+                "message": f"Invalid type '{t}'. Valid types: {valid_types}",
+            }), 400
+
+    reindex = bool(data.get("reindex", False))
+    code_service = data.get("code_service", "core")
+
+    result = ingestion_manager.start_ingestion(types, reindex, code_service)
+
+    if not result.get("success"):
+        return jsonify(result), 409  # Conflict - already running
+
+    # Start the actual ingestion in background
+    socketio.start_background_task(
+        ingestion_manager.run_ingestion,
+        types,
+        reindex,
+        code_service,
+    )
+
+    return jsonify(result)
+
+
+@app.route("/api/ingestion/cancel", methods=["POST"])
+def api_ingestion_cancel():
+    """Cancel the current ingestion."""
+    result = ingestion_manager.cancel_ingestion()
+    status_code = 200 if result.get("success") else 400
+    return jsonify(result), status_code
 
 
 def vram_background_thread():

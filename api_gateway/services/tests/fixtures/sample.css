@@ -1,0 +1,251 @@
+/**
+ * Sample CSS file for testing the code parser.
+ *
+ * This file contains various CSS constructs to test the parser's
+ * ability to extract style rules and animations.
+ */
+
+/* Base card component */
+.card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px;
+  transition: all 0.3s ease;
+}
+
+/* Card hover state */
+.card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Card header section */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Card title */
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Card content area */
+.card-content {
+  flex: 1;
+  padding: 8px 0;
+}
+
+/* Button base styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Primary button variant */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #5a6fd6, #6a4190);
+  transform: scale(1.02);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary button variant */
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Start button with success color */
+.btn-start {
+  background: linear-gradient(135deg, #43e97b, #38f9d7);
+  color: #1a1a2e;
+}
+
+.btn-start:hover {
+  background: linear-gradient(135deg, #3cd96f, #32e8c8);
+}
+
+/* Stop button with danger color */
+.btn-stop {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+  color: #ffffff;
+}
+
+.btn-stop:hover {
+  background: linear-gradient(135deg, #ff5555, #dd4a4a);
+}
+
+/* Icon inside buttons */
+.btn-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+}
+
+/* Status indicator */
+.status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
+}
+
+.status-indicator.running {
+  background: #43e97b;
+  box-shadow: 0 0 8px rgba(67, 233, 123, 0.5);
+}
+
+.status-indicator.stopped {
+  background: #6c757d;
+}
+
+.status-indicator.error {
+  background: #ff6b6b;
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.5);
+}
+
+/* Multiple selectors on same rule */
+.alert,
+.notification,
+.toast {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+/* Nested pseudo-elements */
+.input-field::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.25);
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulse animation for status indicators */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(67, 233, 123, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(67, 233, 123, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(67, 233, 123, 0);
+  }
+}
+
+/* Spinner component */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Animated card entrance */
+.card-animated {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Pulsing status indicator */
+.status-indicator.running {
+  animation: pulse 2s infinite;
+}
+
+/* Grid layout for cards */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+/* Responsive adjustments */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Utility classes */
+.text-center {
+  text-align: center;
+}
+
+.text-muted {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+.mt-4 {
+  margin-top: 16px;
+}

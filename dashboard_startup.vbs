@@ -45,6 +45,14 @@ If DockerDesktopPath = "%DOCKER_DESKTOP_EXE%" Or DockerDesktopPath = "" Then
     DockerDesktopPath = "C:\Program Files\Docker\Docker\Docker Desktop.exe"
 End If
 
+' Validate that Docker Desktop executable exists
+If Not FSO.FileExists(DockerDesktopPath) Then
+    WScript.Echo "ERROR: Docker Desktop executable not found at: " & DockerDesktopPath & vbCrLf & _
+                 "Please install Docker Desktop or set DOCKER_DESKTOP_EXE environment variable to the correct path." & vbCrLf & _
+                 "Docker-dependent services (Open WebUI, Weaviate) will not be available."
+    WScript.Quit 1
+End If
+
 ' Start Docker Desktop if not running (needed for Open WebUI)
 WshShell.Run "cmd /c docker info >nul 2>&1 || start """" """ & DockerDesktopPath & """", 0, False
 

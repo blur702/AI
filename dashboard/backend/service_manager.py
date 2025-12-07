@@ -63,6 +63,8 @@ class ServiceManager:
         self._idle_check_thread: Optional[threading.Thread] = None
         self._idle_check_stop = False
         self._test_error_services: Set[str] = set()
+        # Track which services have had their auto_start_with dependencies triggered
+        self._auto_start_triggered: Set[str] = set()
 
         # Initialize state for all services
         for service_id in SERVICES:
@@ -88,6 +90,98 @@ class ServiceManager:
                 self._status_callback(service_id, status.value, message)
             except Exception as e:
                 logger.error(f"Error in status callback: {e}")
+
+    def _check_auto_start_dependencies(self, service_id: str):
+        """
+        Check if a service that just came online has auto_start_with dependencies.
+        If so, start those dependent services.
+        """
+        config = SERVICES.get(service_id)
+        if not config:
+            return
+
+        auto_start_services = config.get("auto_start_with", [])
+        if not auto_start_services:
+            return
+
+        # Only trigger once per session (reset when service goes offline)
+        with self._lock:
+            if service_id in self._auto_start_triggered:
+                return
+            self._auto_start_triggered.add(service_id)
+        logger.info(f"Service {service_id} is online, auto-starting: {auto_start_services}")
+
+        # Start dependent services in background threads
+        for dep_service_id in auto_start_services:
+            if dep_service_id not in SERVICES:
+                logger.warning(f"Unknown auto_start_with service: {dep_service_id}")
+                continue
+
+            # Check if already running - copy status while holding lock
+            should_start = False
+            with self._lock:
+                dep_state = self._services.get(dep_service_id)
+                if not dep_state or dep_state.status != ServiceStatus.RUNNING:
+                    should_start = True
+                else:
+                    logger.info(f"Dependent service {dep_service_id} already running")
+
+            # Start the dependent service outside the lock
+            if should_start:
+                logger.info(f"Auto-starting dependent service: {dep_service_id}")
+                threading.Thread(
+                    target=self._auto_start_dependent_service,
+                    args=(dep_service_id, service_id),
+                    daemon=True
+                ).start()
+
+    def _is_docker_available(self) -> bool:
+        """Check if Docker is running and available."""
+        try:
+            result = subprocess.run(
+                ["docker", "info"],
+                capture_output=True,
+                timeout=5,
+                check=False,
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
+
+    def _auto_start_dependent_service(self, service_id: str, triggered_by: str):
+        """Background thread to auto-start a dependent service."""
+        try:
+            # Special handling for Weaviate - requires Docker
+            if service_id == "weaviate":
+                if not self._is_docker_available():
+                    logger.warning(
+                        f"Cannot auto-start {service_id}: Docker is not running"
+                    )
+                    return
+
+            result = self.start_service(service_id)
+            if result.get("success"):
+                logger.info(f"Auto-started {service_id} (triggered by {triggered_by})")
+                
+                # Only emit STARTING if the service hasn't already transitioned to RUNNING
+                with self._lock:
+                    state = self._services.get(service_id)
+                    if state and state.status == ServiceStatus.STARTING:
+                        self._emit_status(
+                            service_id,
+                            ServiceStatus.STARTING,
+                            f"Auto-started with {SERVICES[triggered_by]['name']}"
+                        )
+            else:
+                logger.warning(
+                    f"Failed to auto-start {service_id}: {result.get('error', 'unknown')}"
+                )
+        except Exception as e:
+            logger.error(f"Error auto-starting {service_id}: {e}")
+
+    def _clear_auto_start_trigger(self, service_id: str):
+        """Clear the auto-start trigger when a service goes offline."""
+        self._auto_start_triggered.discard(service_id)
 
     def _check_port_in_use(self, port: int) -> bool:
         """Check if a port is in use (service might be running externally)."""
@@ -238,6 +332,9 @@ class ServiceManager:
         is_healthy = self._health_check(service_id)
         port_in_use = self._check_port_in_use(config["port"])
 
+        # Track if we need to check auto-start after releasing lock
+        should_check_auto_start = False
+
         # Re-acquire lock to update state
         with self._lock:
             state = self._services.get(service_id, ServiceState())
@@ -254,13 +351,16 @@ class ServiceManager:
                         state.status = ServiceStatus.STOPPED
                         state.process = None
                         state.pid = None
+                        self._clear_auto_start_trigger(service_id)
                         self._emit_status(service_id, ServiceStatus.STOPPED, "Service stopped")
                 elif state.status == ServiceStatus.STOPPED:
                     if is_healthy:
-                        # Service running externally
+                        # Service running externally - notify subscribers and mark for auto-start check
                         state.status = ServiceStatus.RUNNING
+                        self._emit_status(service_id, ServiceStatus.RUNNING, "Service detected running externally")
+                        should_check_auto_start = True
 
-            return {
+            result = {
                 "service_id": service_id,
                 "name": config["name"],
                 "status": state.status.value,
@@ -273,6 +373,12 @@ class ServiceManager:
                 "external": config.get("external", False),
                 "manageable": config.get("command") is not None and not config.get("external", False),
             }
+
+        # Check auto-start dependencies outside the lock
+        if should_check_auto_start:
+            self._check_auto_start_dependencies(service_id)
+
+        return result
 
     def get_all_status(self) -> Dict[str, dict]:
         """Get status of all services using concurrent health and port checks."""
@@ -306,6 +412,9 @@ class ServiceManager:
 
         # Build status dict using cached results
         result = {}
+        # Track services that need auto-start check (processed outside lock)
+        services_to_auto_start = []
+
         with self._lock:
             for service_id in SERVICES:
                 config = SERVICES[service_id]
@@ -323,10 +432,13 @@ class ServiceManager:
                         state.status = ServiceStatus.STOPPED
                         state.process = None
                         state.pid = None
+                        self._clear_auto_start_trigger(service_id)
                         self._emit_status(service_id, ServiceStatus.STOPPED, "Service stopped")
                 elif state.status == ServiceStatus.STOPPED:
                     if is_healthy:
                         state.status = ServiceStatus.RUNNING
+                        # Mark for auto-start check after lock is released
+                        services_to_auto_start.append(service_id)
 
                 result[service_id] = {
                     "service_id": service_id,
@@ -341,6 +453,10 @@ class ServiceManager:
                     "external": config.get("external", False),
                     "manageable": config.get("command") is not None and not config.get("external", False),
                 }
+
+        # Check auto-start dependencies for services that just came online
+        for service_id in services_to_auto_start:
+            self._check_auto_start_dependencies(service_id)
 
         return result
 
