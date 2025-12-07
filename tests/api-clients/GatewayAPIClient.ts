@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { BaseAPIClient } from './BaseAPIClient';
+import { BaseAPIClient, BaseAPIClientOptions } from './BaseAPIClient';
 
 export interface UnifiedError {
   code: string;
@@ -13,6 +13,19 @@ export interface UnifiedResponse<T = any> {
   error?: UnifiedError;
   job_id?: string;
   timestamp?: string;
+}
+
+export interface APIKeyInfo {
+  name: string;
+  created_at: string;
+  last_used_at: string | null;
+  is_active: boolean;
+}
+
+export interface CreateAPIKeyResponse {
+  key: string;
+  name: string;
+  created_at: string;
 }
 
 export interface JobInfo<TMeta = any> {
@@ -104,5 +117,48 @@ export class GatewayAPIClient extends BaseAPIClient {
     }
 
     throw new Error(`Job ${jobId} did not complete within ${timeoutMs}ms`);
+  }
+
+  // Authentication Methods
+
+  /**
+   * Creates a new API key with the given name.
+   */
+  createAPIKey(name: string): Promise<UnifiedResponse<CreateAPIKeyResponse>> {
+    return this.post<UnifiedResponse<CreateAPIKeyResponse>>('/auth/keys', { name });
+  }
+
+  /**
+   * Lists all API keys (without exposing the actual key values).
+   */
+  listAPIKeys(): Promise<UnifiedResponse<{ keys: APIKeyInfo[] }>> {
+    return this.get<UnifiedResponse<{ keys: APIKeyInfo[] }>>('/auth/keys');
+  }
+
+  /**
+   * Deactivates an API key.
+   */
+  deactivateAPIKey(key: string): Promise<UnifiedResponse<{ success: boolean }>> {
+    return this.delete<UnifiedResponse<{ success: boolean }>>(`/auth/keys/${key}`);
+  }
+
+  /**
+   * Override withHeaders to return a GatewayAPIClient instance.
+   * Uses stored configuration from the base class instead of reading Axios internals.
+   */
+  override withHeaders(headers: Record<string, string>): GatewayAPIClient {
+    const options = this.getOptions();
+    return new GatewayAPIClient(this.baseUrl, {
+      ...options,
+      headers: { ...options.headers, ...headers }
+    });
+  }
+
+  /**
+   * Returns a new GatewayAPIClient instance with the X-API-Key header set.
+   * Delegates to withHeaders to reuse the safe header-augmentation mechanism.
+   */
+  withAPIKey(apiKey: string): GatewayAPIClient {
+    return this.withHeaders({ 'X-API-Key': apiKey });
   }
 }

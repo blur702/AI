@@ -16,12 +16,17 @@ export interface CleanupJobs {
   registerJob(id: string): void;
 }
 
+export interface CleanupAPIKeys {
+  registerAPIKey(key: string): void;
+}
+
 export const test = base.extend<{
   dashboardAPI: DashboardAPIClient;
   gatewayAPI: GatewayAPIClient;
   testData: TestData;
   screenshotManager: ScreenshotManager;
   cleanupJobs: CleanupJobs;
+  cleanupAPIKeys: CleanupAPIKeys;
 }>({
   dashboardAPI: async ({}, use) => {
     // Single-port deployment: Dashboard serves frontend + API on port 80
@@ -61,6 +66,24 @@ export const test = base.extend<{
         await gatewayAPI.cancelJob(id);
       } catch (error) {
         console.warn(`Failed to cleanup job ${id}`, error);
+      }
+    }
+  },
+
+  cleanupAPIKeys: async ({ gatewayAPI }, use) => {
+    const apiKeys: string[] = [];
+    await use({
+      registerAPIKey(key: string) {
+        apiKeys.push(key);
+      }
+    });
+
+    // Cleanup: deactivate all registered API keys
+    for (const key of apiKeys) {
+      try {
+        await gatewayAPI.deactivateAPIKey(key);
+      } catch (error) {
+        console.warn(`Failed to cleanup API key ${key}`, error);
       }
     }
   }

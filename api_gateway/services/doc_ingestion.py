@@ -21,19 +21,16 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
-from urllib.parse import urlparse
 
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property
 
 from ..config import settings
 from ..utils.logger import get_logger
+from .weaviate_connection import WeaviateConnection, DOCUMENTATION_COLLECTION_NAME
 
 
 logger = get_logger("api_gateway.doc_ingestion")
-
-
-DOCUMENTATION_COLLECTION_NAME = "Documentation"
 
 
 @dataclass
@@ -50,42 +47,6 @@ class DocChunk:
       "file_path": self.file_path,
       "section": self.section,
     }
-
-
-class WeaviateConnection:
-  """Context manager for Weaviate client connection."""
-
-  def __init__(self) -> None:
-    self.client: Optional[weaviate.WeaviateClient] = None
-
-  def __enter__(self) -> weaviate.WeaviateClient:
-    parsed = urlparse(settings.WEAVIATE_URL)
-    host = parsed.hostname or "localhost"
-    port = parsed.port or 8080
-
-    logger.info(
-      "Connecting to Weaviate at %s (host=%s, http_port=%s, grpc_port=%s)",
-      settings.WEAVIATE_URL,
-      host,
-      port,
-      settings.WEAVIATE_GRPC_PORT,
-    )
-
-    # Connect using configured host/ports so that changes in .env
-    # (WEAVIATE_URL / WEAVIATE_GRPC_PORT) affect the actual endpoint.
-    self.client = weaviate.connect_to_local(
-      host=host,
-      port=port,
-      grpc_port=settings.WEAVIATE_GRPC_PORT,
-    )
-    if not self.client.is_ready():
-      logger.warning("Weaviate did not report ready() == True")
-    return self.client
-
-  def __exit__(self, exc_type, exc_val, exc_tb) -> None:  # type: ignore[override]
-    if self.client is not None:
-      logger.info("Closing Weaviate client")
-      self.client.close()
 
 
 def scan_markdown_files() -> List[Path]:

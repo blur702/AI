@@ -52,6 +52,33 @@ From the project root:
 - Use fixtures from `fixtures/base.fixture.ts` or `fixtures/services.fixture.ts`
 - Place API specs under `tests/api/` and UI specs under `tests/ui/`
 
+## Authentication Tests
+
+The authentication test suite (`tests/api/api-gateway/auth.spec.ts`) tests the API key authentication system:
+
+- **API Key Creation**: Tests creating API keys with valid names and verifying unique keys are generated
+- **API Key Listing**: Tests listing keys without exposing actual key values, verifying is_active status
+- **API Key Deactivation**: Tests deactivating keys, idempotent deactivation, and non-existent key handling
+- **Middleware - Valid Keys**: Tests that valid API keys allow access to protected endpoints
+- **Middleware - Invalid Keys**: Tests rejection of missing, invalid, and deactivated keys (401 errors)
+- **Public Endpoints**: Verifies that `/health`, `GET /jobs`, and `GET /llm/models` are accessible without API keys
+
+### Running Auth Tests
+
+```bash
+# Run auth tests only
+npm test -- tests/api/api-gateway/auth.spec.ts
+
+# Run all API tests (includes auth tests)
+npm run test:api
+```
+
+### Requirements
+
+- API Gateway must be running on port 1301 (default) or configured via `GATEWAY_API_URL`
+- Tests automatically create and cleanup API keys after execution
+- No external services required for auth tests (protected endpoint validation may require Ollama)
+
 ## Debugging
 
 - Use `npm run test:debug` for inspector mode

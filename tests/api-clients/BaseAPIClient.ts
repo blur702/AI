@@ -36,16 +36,32 @@ export class BaseAPIClient {
   protected readonly client: AxiosInstance;
   protected readonly maxRetries: number;
   protected readonly baseUrl: string;
+  protected readonly timeoutMs: number;
+  protected readonly headers: Record<string, string>;
 
   constructor(baseUrl: string, options: BaseAPIClientOptions = {}) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
     this.maxRetries = options.maxRetries ?? 3;
+    this.timeoutMs = options.timeoutMs ?? 30_000;
+    this.headers = options.headers ?? { 'Content-Type': 'application/json' };
 
     this.client = axios.create({
       baseURL: this.baseUrl,
-      timeout: options.timeoutMs ?? 30_000,
-      headers: options.headers ?? { 'Content-Type': 'application/json' }
+      timeout: this.timeoutMs,
+      headers: this.headers
     });
+  }
+
+  /**
+   * Returns the stored options for creating new client instances.
+   * Subclasses can use this to preserve configuration when cloning.
+   */
+  protected getOptions(): BaseAPIClientOptions {
+    return {
+      timeoutMs: this.timeoutMs,
+      maxRetries: this.maxRetries,
+      headers: { ...this.headers }
+    };
   }
 
   protected async requestWithRetry<T>(config: AxiosRequestConfig, attempt = 1): Promise<T> {
@@ -104,6 +120,26 @@ export class BaseAPIClient {
 
   delete<T = any>(endpoint: string): Promise<T> {
     return this.requestWithRetry<T>({ method: 'DELETE', url: endpoint });
+  }
+
+  /**
+   * Creates a new client instance with additional headers merged in.
+   * Uses stored configuration instead of reading from Axios internals.
+   * Subclasses should override this method to return the correct subclass type.
+   */
+  withHeaders(headers: Record<string, string>): BaseAPIClient {
+    const options = this.getOptions();
+    return new BaseAPIClient(this.baseUrl, {
+      ...options,
+      headers: { ...options.headers, ...headers }
+    });
+  }
+
+  /**
+   * Returns the base URL of this client.
+   */
+  getBaseUrl(): string {
+    return this.baseUrl;
   }
 }
 
