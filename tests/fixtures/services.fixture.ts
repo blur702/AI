@@ -1,4 +1,4 @@
-import { test as base } from './base.fixture';
+import { test as base, expect } from './base.fixture';
 import { waitForServiceReady } from '../utils/wait-helpers';
 
 export const test = base.extend<{
@@ -31,3 +31,5 @@ export const test = base.extend<{
     { auto: false }
   ]
 });
+
+export { expect };

@@ -25,6 +25,7 @@ export const test = base.extend<{
 }>({
   dashboardAPI: async ({}, use) => {
     // Single-port deployment: Dashboard serves frontend + API on port 80
+    // Override with DASHBOARD_API_URL env var for remote testing (e.g., production, staging)
     const url = process.env.DASHBOARD_API_URL || 'http://localhost';
     await use(new DashboardAPIClient(url));
   },

@@ -64,6 +64,17 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     section: 'main'
   },
   {
+    id: 'weaviate',
+    name: 'Weaviate',
+    port: 8080,
+    icon: '\uD83E\uDDE0',
+    description: 'Vector database for semantic search, RAG, and long-term memory. Stores embeddings via Ollama.',
+    tags: ['Vector DB', 'RAG', 'Memory'],
+    cardClass: 'card-weaviate',
+    section: 'main',
+    external: true
+  },
+  {
     id: 'yue',
     name: 'YuE Music',
     port: 7870,

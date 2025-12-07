@@ -5,17 +5,43 @@ Defines all AI services with their startup commands, ports, and health check set
 Used by the service manager for on-demand service starting.
 """
 
+import os
+from pathlib import Path
+
+# Get AI root directory from environment or use platform-aware default
+# Default: ~/AI on Linux/macOS, D:\AI on Windows
+if os.environ.get('AI_ROOT_DIR'):
+    AI_ROOT_PATH = Path(os.environ['AI_ROOT_DIR'])
+else:
+    if os.name == 'nt':  # Windows
+        AI_ROOT_PATH = Path(r'D:\AI')
+    else:  # Linux/macOS
+        AI_ROOT_PATH = Path.home() / 'AI'
+
+# Helper function to build platform-agnostic paths
+def _build_path(*parts):
+    """Build absolute path from AI root."""
+    return str(AI_ROOT_PATH.joinpath(*parts))
+
+def _build_python_path(venv_dir, script_name=None):
+    """Build path to Python executable in virtual environment."""
+    if os.name == 'nt':  # Windows
+        python_exe = _build_path(venv_dir, 'Scripts', 'python.exe')
+    else:  # Linux/macOS
+        python_exe = _build_path(venv_dir, 'bin', 'python')
+    
+    if script_name:
+        return [python_exe, script_name]
+    return python_exe
+
 SERVICES = {
     "alltalk": {
         "name": "AllTalk TTS",
         "port": 7851,
         "icon": "🗣️",
         "description": "Text-to-Speech synthesis",
-        "working_dir": "D:\\AI\\alltalk_tts",
-        "command": [
-            "D:\\AI\\alltalk_tts\\alltalk_environment\\env\\python.exe",
-            "script.py"
-        ],
+        "working_dir": _build_path("alltalk_tts"),
+        "command": _build_python_path("alltalk_tts/alltalk_environment/env", "script.py"),
         "health_endpoint": "/",
         "startup_timeout": 120,
         "gradio": False,
@@ -25,12 +51,8 @@ SERVICES = {
         "port": 8188,
         "icon": "🎨",
         "description": "Image generation workflows",
-        "working_dir": "D:\\AI\\ComfyUI",
-        "command": [
-            "D:\\AI\\ComfyUI\\venv\\Scripts\\python.exe",
-            "main.py",
-            "--listen", "0.0.0.0"
-        ],
+        "working_dir": _build_path("ComfyUI"),
+        "command": _build_python_path("ComfyUI/venv") + ["main.py", "--listen", "0.0.0.0"],
         "health_endpoint": "/",
         "startup_timeout": 120,
         "gradio": False,
@@ -40,12 +62,8 @@ SERVICES = {
         "port": 7860,
         "icon": "🎬",
         "description": "Video generation",
-        "working_dir": "D:\\AI\\Wan2GP",
-        "command": [
-            "D:\\AI\\Wan2GP\\wan2gp_env\\python.exe",
-            "wgp.py",
-            "--listen"
-        ],
+        "working_dir": _build_path("Wan2GP"),
+        "command": _build_python_path("Wan2GP/wan2gp_env", "wgp.py") + ["--listen"],
         "health_endpoint": "/",
         "startup_timeout": 180,
         "gradio": True,
@@ -55,11 +73,8 @@ SERVICES = {
         "port": 7870,
         "icon": "🎵",
         "description": "AI music generation",
-        "working_dir": "D:\\AI\\YuE",
-        "command": [
-            "D:\\AI\\YuE\\yue_env\\Scripts\\python.exe",
-            "run_ui.py"
-        ],
+        "working_dir": _build_path("YuE"),
+        "command": _build_python_path("YuE/yue_env", "run_ui.py"),
         "health_endpoint": "/",
         "startup_timeout": 120,
         "gradio": True,
@@ -69,11 +84,8 @@ SERVICES = {
         "port": 7871,
         "icon": "🥁",
         "description": "Rhythm-based music generation",
-        "working_dir": "D:\\AI\\DiffRhythm",
-        "command": [
-            "D:\\AI\\DiffRhythm\\diffrhythm_env\\Scripts\\python.exe",
-            "run_ui.py"
-        ],
+        "working_dir": _build_path("DiffRhythm"),
+        "command": _build_python_path("DiffRhythm/diffrhythm_env", "run_ui.py"),
         "health_endpoint": "/",
         "startup_timeout": 120,
         "gradio": True,
@@ -83,9 +95,8 @@ SERVICES = {
         "port": 7872,
         "icon": "🎹",
         "description": "Meta's music generation model",
-        "working_dir": "D:\\AI\\audiocraft",
-        "command": [
-            "D:\\AI\\audiocraft\\audiocraft_env\\Scripts\\python.exe",
+        "working_dir": _build_path("audiocraft"),
+        "command": _build_python_path("audiocraft/audiocraft_env") + [
             "demos/musicgen_app.py",
             "--listen", "0.0.0.0",
             "--server_port", "7872"
@@ -99,11 +110,8 @@ SERVICES = {
         "port": 7873,
         "icon": "🔊",
         "description": "Stability AI audio generation",
-        "working_dir": "D:\\AI\\stable-audio-tools",
-        "command": [
-            "D:\\AI\\stable-audio-tools\\stable_audio_env\\Scripts\\python.exe",
-            "run_ui.py"
-        ],
+        "working_dir": _build_path("stable-audio-tools"),
+        "command": _build_python_path("stable-audio-tools/stable_audio_env", "run_ui.py"),
         "health_endpoint": "/",
         "startup_timeout": 120,
         "gradio": True,
@@ -113,7 +121,7 @@ SERVICES = {
         "port": 3000,
         "icon": "💬",
         "description": "LLM chat interface",
-        "working_dir": "D:\\AI\\open-webui",
+        "working_dir": _build_path("open-webui"),
         "command": None,  # Managed separately (Docker or standalone)
         "health_endpoint": "/",
         "startup_timeout": 60,
@@ -125,9 +133,9 @@ SERVICES = {
         "port": 5678,
         "icon": "🔄",
         "description": "Workflow automation",
-        "working_dir": "D:\\AI",
-        # Uses cmd.exe to find n8n in PATH; requires: npm install n8n -g
-        "command": ["cmd.exe", "/c", "n8n", "start"],
+        "working_dir": str(AI_ROOT_PATH),
+        # Uses cmd.exe/sh to find n8n in PATH; requires: npm install n8n -g
+        "command": ["cmd.exe" if os.name == 'nt' else "sh", "/c" if os.name == 'nt' else "-c", "n8n start"],
         "health_endpoint": "/",
         "startup_timeout": 60,
         "gradio": False,
@@ -143,6 +151,18 @@ SERVICES = {
         "startup_timeout": 30,
         "gradio": False,
         "external": True,  # Managed as Windows service
+    },
+    "weaviate": {
+        "name": "Weaviate",
+        "port": 8080,
+        "icon": "🧠",
+        "description": "Vector database for RAG and memory",
+        "working_dir": _build_path("api_gateway"),
+        "command": ["docker-compose", "up", "-d"],
+        "health_endpoint": "/v1/.well-known/ready",
+        "startup_timeout": 60,
+        "gradio": False,
+        "external": True,  # Docker container
     },
 }
 

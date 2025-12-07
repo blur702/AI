@@ -13,7 +13,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, Optional, Set
 
 import requests
 
@@ -62,10 +62,24 @@ class ServiceManager:
         self._auto_stop_enabled = False
         self._idle_check_thread: Optional[threading.Thread] = None
         self._idle_check_stop = False
+        self._test_error_services: Set[str] = set()
 
         # Initialize state for all services
         for service_id in SERVICES:
             self._services[service_id] = ServiceState()
+
+    def set_test_error_mode(self, service_id: str, enabled: bool = True):
+        """
+        Enable or disable test-only error mode for a service.
+
+        When enabled, start requests will simulate a startup failure and
+        transition the service into ERROR without launching a real process.
+        """
+        with self._lock:
+            if enabled:
+                self._test_error_services.add(service_id)
+            else:
+                self._test_error_services.discard(service_id)
 
     def _emit_status(self, service_id: str, status: ServiceStatus, message: str = ""):
         """Emit status update via callback if configured."""
@@ -345,10 +359,46 @@ class ServiceManager:
             return {"success": False, "error": f"Unknown service: {service_id}"}
 
         if config.get("external", False) or config.get("command") is None:
-            return {"success": False, "error": f"Service {service_id} is not managed by this system"}
+            return {
+                "success": False,
+                "error": f"Service {service_id} is not managed by this system",
+            }
+
+        # Test-only error mode: simulate a startup failure without launching a process
+        if service_id in self._test_error_services:
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.STARTING
+                state.error_message = None
+                self._emit_status(
+                    service_id,
+                    ServiceStatus.STARTING,
+                    "Starting service (test error mode)...",
+                )
+
+            def _fail_start():
+                time.sleep(0.5)
+                with self._lock:
+                    state = self._services[service_id]
+                    # Only transition to error if still starting
+                    if state.status == ServiceStatus.STARTING:
+                        state.status = ServiceStatus.ERROR
+                        state.error_message = "Test-forced startup error"
+                self._emit_status(
+                    service_id,
+                    ServiceStatus.ERROR,
+                    "Test-forced startup error",
+                )
+
+            threading.Thread(target=_fail_start, daemon=True).start()
+
+            return {
+                "success": True,
+                "message": "Service starting (test error mode)",
+            }
 
         with self._lock:
-            state = self._services[service_id] 
+            state = self._services[service_id]
 
             # Check if already running
             if state.status in (ServiceStatus.RUNNING, ServiceStatus.STARTING):
@@ -367,9 +417,7 @@ class ServiceManager:
 
         # Start in background thread
         thread = threading.Thread(
-            target=self._start_service_thread,
-            args=(service_id,),
-            daemon=True
+            target=self._start_service_thread, args=(service_id,), daemon=True
         )
         thread.start()
 

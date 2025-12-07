@@ -104,6 +104,43 @@ Error example:
 }
 ```
 
+## Vector Database
+
+The API Gateway integrates with Weaviate for long-term memory and RAG capabilities:
+
+- **Weaviate:** `http://localhost:8080` (Docker container)
+- **Embedding Model:** nomic-embed-text (via Ollama)
+- **Features:** Conversation history, document RAG, semantic search
+
+### Starting Weaviate
+
+**Windows:**
+```cmd
+cd api_gateway
+start_weaviate.bat
+```
+
+**macOS/Linux:**
+```bash
+cd api_gateway
+docker-compose up -d
+```
+
+**Platform-agnostic (recommended):**
+```bash
+# From project root, navigate to api_gateway
+cd api_gateway
+docker-compose up -d
+```
+
+### Verifying Weaviate
+
+```bash
+curl http://localhost:8080/v1/.well-known/ready
+```
+
+See `docs/WEAVIATE_SETUP.md` for detailed setup and configuration.
+
 ## Backend Services
 
 The gateway routes to the following services:

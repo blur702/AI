@@ -9,10 +9,20 @@ export class DashboardPage extends BasePage {
   }
 
   getServiceCardByName(name: string): ServiceCard {
-    return new ServiceCard(this.page, `.service-card:has(.service-name:text("${name}"))`);
+    // Frontend uses .card class with .card-title for service name
+    return new ServiceCard(this.page, `.card:has(.card-title:has-text("${name}"))`);
   }
 
   getVRAMMonitor(): VRAMMonitor {
-    return new VRAMMonitor(this.page, '.vram-monitor');
+    // Frontend uses .resource-manager for the VRAM/GPU section
+    return new VRAMMonitor(this.page, '.resource-manager');
+  }
+
+  async getAllServiceCards(): Promise<number> {
+    return this.page.locator('.card').count();
+  }
+
+  getFirstServiceCard(): ServiceCard {
+    return new ServiceCard(this.page, '.card:nth-of-type(1)');
   }
 }

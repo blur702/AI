@@ -192,6 +192,36 @@ Root Files:
 
 ---
 
+## Vector Database (Weaviate)
+
+**Purpose:** Long-term memory and RAG for LLM applications
+**Technology:** Weaviate with text2vec-ollama module
+**Deployment:** Docker container (port 8080 HTTP, 50051 gRPC)
+**Embedding Model:** nomic-embed-text via Ollama
+**Status:** ✅ Configured and ready for integration
+
+**Key Features:**
+- Conversation history storage with semantic search
+- Document/knowledge base for RAG
+- User-specific memory isolation
+- GraphQL API for advanced queries
+- Persistent storage via Docker volumes
+
+**Entry Points:**
+- `api_gateway/start_weaviate.bat` - Launch Weaviate container
+- `api_gateway/docker-compose.yml` - Container configuration
+- API: http://localhost:8080
+- GraphQL: http://localhost:8080/v1/graphql
+
+**Integration:**
+- Connects to Ollama at localhost:11434 for embeddings (via host.docker.internal)
+- Will be integrated into API Gateway via vector_service.py (Phase 2)
+- Supports conversation history, document RAG, and semantic search
+
+**Documentation:** See `docs/WEAVIATE_SETUP.md` for detailed setup instructions
+
+---
+
 ## Supporting Infrastructure
 
 ### Node.js Components

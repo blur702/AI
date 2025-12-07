@@ -6,6 +6,7 @@ import * as path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
 const isCI = !!process.env.CI;
+// Default to localhost for local development; override with BASE_URL env var for remote testing
 const baseURL = process.env.BASE_URL || 'http://localhost';
 const globalTimeout = Number(process.env.TEST_TIMEOUT || 60000);
 const workers = isCI ? 1 : Math.max(1, Math.floor(os.cpus().length / 2));

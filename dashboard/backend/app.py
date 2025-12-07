@@ -575,6 +575,30 @@ def api_touch_service(service_id):
     return jsonify({"success": True, "message": "Activity updated"})
 
 
+@app.route("/api/test/services/<service_id>/force-error", methods=["POST"])
+def api_test_force_error(service_id):
+    """Test-only endpoint to force a service into startup error mode."""
+    if not os.environ.get("DASHBOARD_TEST_MODE"):
+        return jsonify({"error": "Test mode not enabled"}), 403
+    if service_id not in SERVICES:
+        return jsonify({"error": "Service not found"}), 404
+
+    service_manager.set_test_error_mode(service_id, True)
+    return jsonify({"success": True, "message": "Test error mode enabled"})
+
+
+@app.route("/api/test/services/<service_id>/clear-error", methods=["POST"])
+def api_test_clear_error(service_id):
+    """Test-only endpoint to clear forced error mode for a service."""
+    if not os.environ.get("DASHBOARD_TEST_MODE"):
+        return jsonify({"error": "Test mode not enabled"}), 403
+    if service_id not in SERVICES:
+        return jsonify({"error": "Service not found"}), 404
+
+    service_manager.set_test_error_mode(service_id, False)
+    return jsonify({"success": True, "message": "Test error mode disabled"})
+
+
 # =============================================================================
 # Resource Management Endpoints
 # =============================================================================
