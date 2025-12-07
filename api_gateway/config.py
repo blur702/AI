@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Dict, List
 
 from dotenv import load_dotenv
@@ -12,7 +13,24 @@ class Settings:
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./api_gateway.db")
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "*").split(",")
-    VRAM_MANAGER_PATH: str = os.getenv("VRAM_MANAGER_PATH", "D:/AI/vram_manager.py")
+    
+    # VRAM Manager path - resolves relative paths to absolute
+    @staticmethod
+    def _resolve_vram_path() -> str:
+        vram_path = os.getenv("VRAM_MANAGER_PATH", "./vram_manager.py")
+        if not vram_path:
+            vram_path = "./vram_manager.py"
+        
+        # Resolve relative paths relative to project root (parent of api_gateway)
+        path = Path(vram_path)
+        if not path.is_absolute():
+            # Get project root (parent directory of api_gateway)
+            project_root = Path(__file__).resolve().parent.parent
+            path = (project_root / vram_path).resolve()
+        
+        return str(path)
+    
+    VRAM_MANAGER_PATH: str = _resolve_vram_path.__func__()
 
     # Weaviate Vector Database
     WEAVIATE_URL: str = os.getenv("WEAVIATE_URL", "http://localhost:8080")
