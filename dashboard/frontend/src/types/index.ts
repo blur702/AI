@@ -8,8 +8,9 @@ export interface ServiceConfig {
   description: string;
   tags: string[];
   cardClass: string;
-  section: 'main' | 'music';
+  section: 'main' | 'music' | 'image';
   external?: boolean;
+  proxyId?: string;  // ID for reverse proxy path (e.g., 'n8n' -> /proxy/n8n/)
 }
 
 export interface ServiceState {

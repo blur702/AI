@@ -4,9 +4,10 @@ import subprocess
 import threading
 import time
 
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, Response
 from flask_cors import CORS
 from flask_socketio import SocketIO
+import requests as http_requests
 
 from service_manager import get_service_manager, ServiceStatus
 from services_config import SERVICES
@@ -27,6 +28,13 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+# Proxy configuration
+MAX_PROXY_REQUEST_SIZE = int(os.environ.get("MAX_PROXY_REQUEST_SIZE", str(100 * 1024 * 1024)))  # 100MB default
+PROXY_TIMEOUT_SECONDS = int(os.environ.get("PROXY_TIMEOUT_SECONDS", "30"))
+PROXY_AUTH_ENABLED = os.environ.get("PROXY_AUTH_ENABLED", "false").lower() == "true"
+PROXY_AUTH_TOKEN = os.environ.get("PROXY_AUTH_TOKEN", "")
 
 
 vram_thread = None
@@ -718,6 +726,144 @@ def handle_disconnect():
         logger.info("Client disconnected. Total clients: %s", connected_clients)
         if connected_clients == 0:
             vram_thread_stop = True
+
+
+# =============================================================================
+# Reverse Proxy for Services
+# =============================================================================
+
+# Map URL prefixes to service ports
+SERVICE_PROXY_MAP = {
+    "n8n": 5678,
+    "comfyui": 8188,
+    "openwebui": 3000,
+    "alltalk": 7851,
+    "wan2gp": 7860,
+    "yue": 7870,
+    "diffrhythm": 7871,
+    "musicgen": 7872,
+    "stable-audio": 7873,
+    "ollama": 11434,
+    "weaviate": 8080,
+    "a1111": 7861,
+    "forge": 7862,
+    "fooocus": 7865,
+}
+
+EXCLUDED_HEADERS = [
+    'content-encoding', 'content-length', 'transfer-encoding', 'connection',
+    'host', 'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host'
+]
+
+
+def check_proxy_auth():
+    """
+    Check if request is authorized to use the proxy.
+    Returns (authorized: bool, error_response: tuple or None).
+    """
+    if not PROXY_AUTH_ENABLED:
+        return True, None
+    
+    # Check for Authorization header with Bearer token
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        logger.warning("Proxy request rejected: Missing or invalid Authorization header")
+        return False, (jsonify({"error": "Unauthorized: Missing or invalid token"}), 401)
+    
+    token = auth_header[7:]  # Remove "Bearer " prefix
+    if token != PROXY_AUTH_TOKEN:
+        logger.warning("Proxy request rejected: Invalid token")
+        return False, (jsonify({"error": "Forbidden: Invalid token"}), 403)
+    
+    return True, None
+
+
+def proxy_request(target_url):
+    """
+    Proxy a request to the target URL and return the response.
+    
+    Security features:
+    - Optional token-based authentication
+    - Request size limiting
+    - Configurable timeout
+    """
+    # Authentication check
+    authorized, error_response = check_proxy_auth()
+    if not authorized:
+        return error_response
+    
+    # Check request size
+    content_length = request.headers.get("Content-Length")
+    if content_length:
+        try:
+            size = int(content_length)
+            if size > MAX_PROXY_REQUEST_SIZE:
+                logger.warning(
+                    f"Proxy request rejected: Body size {size} exceeds limit {MAX_PROXY_REQUEST_SIZE}"
+                )
+                return jsonify({
+                    "error": f"Request body too large (max {MAX_PROXY_REQUEST_SIZE // (1024 * 1024)}MB)"
+                }), 413
+        except ValueError:
+            logger.warning("Proxy request with invalid Content-Length header")
+            return jsonify({"error": "Invalid Content-Length header"}), 400
+    
+    try:
+        # Stream request body to avoid loading large payloads into memory
+        if request.method in ["POST", "PUT", "PATCH"]:
+            # Use request.stream for body streaming
+            request_data = request.stream
+        else:
+            request_data = None
+        
+        # Forward the request with configurable timeout
+        resp = http_requests.request(
+            method=request.method,
+            url=target_url,
+            headers={k: v for k, v in request.headers if k.lower() not in EXCLUDED_HEADERS},
+            data=request_data,
+            cookies=request.cookies,
+            allow_redirects=False,
+            stream=True,
+            timeout=PROXY_TIMEOUT_SECONDS,
+        )
+
+        # Build response headers, excluding hop-by-hop headers
+        headers = [(k, v) for k, v in resp.raw.headers.items()
+                   if k.lower() not in EXCLUDED_HEADERS]
+
+        return Response(
+            resp.iter_content(chunk_size=8192),
+            status=resp.status_code,
+            headers=headers,
+            content_type=resp.headers.get('content-type'),
+        )
+    except http_requests.exceptions.ConnectionError:
+        logger.error(f"Proxy connection error to {target_url}")
+        return jsonify({"error": "Service not available"}), 503
+    except http_requests.exceptions.Timeout:
+        logger.error(f"Proxy timeout to {target_url} (timeout={PROXY_TIMEOUT_SECONDS}s)")
+        return jsonify({"error": "Service timeout"}), 504
+    except Exception as e:
+        logger.error(f"Proxy error to {target_url}: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/proxy/<service_id>/", defaults={"path": ""})
+@app.route("/proxy/<service_id>/<path:path>")
+def proxy_service(service_id, path):
+    """Reverse proxy requests to backend services."""
+    if service_id not in SERVICE_PROXY_MAP:
+        return jsonify({"error": f"Unknown service: {service_id}"}), 404
+
+    port = SERVICE_PROXY_MAP[service_id]
+    target_url = f"http://127.0.0.1:{port}/{path}"
+
+    # Preserve query string
+    if request.query_string:
+        target_url += f"?{request.query_string.decode()}"
+
+    return proxy_request(target_url)
 
 
 # =============================================================================

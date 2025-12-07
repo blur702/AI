@@ -20,7 +20,7 @@ export function ServiceCard({ config, state, onStart, onStop }: ServiceCardProps
 
   const handleOpen = () => {
     if (isRunning) {
-      window.open(getServiceUrl(config.port), '_blank');
+      window.open(getServiceUrl(config.port, config.proxyId), '_blank');
     }
   };
 

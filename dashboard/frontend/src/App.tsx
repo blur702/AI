@@ -9,6 +9,7 @@ function App() {
   const { connected, services, startService, stopService } = useSocket();
 
   const mainServices = SERVICES_CONFIG.filter(s => s.section === 'main');
+  const imageServices = SERVICES_CONFIG.filter(s => s.section === 'image');
   const musicServices = SERVICES_CONFIG.filter(s => s.section === 'music');
 
   const serverIp = window.location.hostname || '10.0.0.138';
@@ -26,6 +27,19 @@ function App() {
 
       <div className="grid">
         {mainServices.map(config => (
+          <ServiceCard
+            key={config.id}
+            config={config}
+            state={services[config.id]}
+            onStart={startService}
+            onStop={stopService}
+          />
+        ))}
+      </div>
+
+      <h2 className="section-title">Image Generation</h2>
+      <div className="grid">
+        {imageServices.map(config => (
           <ServiceCard
             key={config.id}
             config={config}

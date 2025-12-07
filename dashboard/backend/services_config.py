@@ -167,6 +167,45 @@ SERVICES = {
         "gradio": False,
         "external": True,  # Docker container
     },
+    "a1111": {
+        "name": "A1111 WebUI",
+        "port": 7861,
+        "icon": "🖼️",
+        "description": "AUTOMATIC1111 Stable Diffusion Web UI",
+        "working_dir": _build_path("stability-matrix/Packages/Stable Diffusion WebUI"),
+        "command": _build_python_path("stability-matrix/Packages/Stable Diffusion WebUI/venv") + [
+            "launch.py", "--listen", "--port", "7861"
+        ],
+        "health_endpoint": "/",
+        "startup_timeout": 180,
+        "gradio": True,
+    },
+    "forge": {
+        "name": "SD Forge",
+        "port": 7862,
+        "icon": "⚒️",
+        "description": "Stable Diffusion WebUI Forge",
+        "working_dir": _build_path("stability-matrix/Packages/stable-diffusion-webui-forge"),
+        "command": _build_python_path("stability-matrix/Packages/stable-diffusion-webui-forge/venv") + [
+            "launch.py", "--listen", "--port", "7862"
+        ],
+        "health_endpoint": "/",
+        "startup_timeout": 180,
+        "gradio": True,
+    },
+    "fooocus": {
+        "name": "Fooocus",
+        "port": 7865,
+        "icon": "🎯",
+        "description": "Simplified Stable Diffusion interface",
+        "working_dir": _build_path("stability-matrix/Packages/Fooocus"),
+        "command": _build_python_path("stability-matrix/Packages/Fooocus/venv") + [
+            "launch.py", "--listen", "0.0.0.0", "--port", "7865"
+        ],
+        "health_endpoint": "/",
+        "startup_timeout": 180,
+        "gradio": True,
+    },
 }
 
 # Services that use significant GPU VRAM
@@ -178,6 +217,9 @@ GPU_INTENSIVE_SERVICES = [
     "stable_audio",
     "comfyui",
     "alltalk",
+    "a1111",
+    "forge",
+    "fooocus",
 ]
 
 # Default host for health checks

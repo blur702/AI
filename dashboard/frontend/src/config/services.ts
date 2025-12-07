@@ -10,7 +10,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     tags: ['Chat', 'LLM', 'Ollama'],
     cardClass: 'card-openwebui',
     section: 'main',
-    external: true
+    external: true,
+    proxyId: 'openwebui'
   },
   {
     id: 'comfyui',
@@ -20,7 +21,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     description: 'Node-based image generation with Stable Diffusion. Create images with advanced workflows.',
     tags: ['Image Gen', 'Stable Diffusion', 'Workflows'],
     cardClass: 'card-comfyui',
-    section: 'main'
+    section: 'main',
+    proxyId: 'comfyui'
   },
   {
     id: 'alltalk',
@@ -30,7 +32,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     description: 'Text-to-speech with voice cloning. Create custom voices from audio samples using XTTS v2.',
     tags: ['TTS', 'Voice Clone', 'XTTS'],
     cardClass: 'card-alltalk',
-    section: 'main'
+    section: 'main',
+    proxyId: 'alltalk'
   },
   {
     id: 'ollama',
@@ -41,7 +44,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     tags: ['API', 'Qwen 32B', 'Backend'],
     cardClass: 'card-ollama',
     section: 'main',
-    external: true
+    external: true,
+    proxyId: 'ollama'
   },
   {
     id: 'wan2gp',
@@ -51,17 +55,19 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     description: 'AI video generation with Wan 2.1/2.2, LTX Video, Hunyuan Video, and Flux 2. Text-to-video and image-to-video.',
     tags: ['Video Gen', 'Wan 2.1', 'LTX Video'],
     cardClass: 'card-wan2gp',
-    section: 'main'
+    section: 'main',
+    proxyId: 'wan2gp'
   },
   {
     id: 'n8n',
     name: 'N8N Workflows',
     port: 5678,
-    icon: 'n8n',
+    icon: '🔄',
     description: 'Visual workflow automation to orchestrate local AI tools, APIs, and webhooks.',
     tags: ['Automation', 'Workflows', 'Webhooks'],
     cardClass: 'card-n8n',
-    section: 'main'
+    section: 'main',
+    proxyId: 'n8n'
   },
   {
     id: 'weaviate',
@@ -72,7 +78,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     tags: ['Vector DB', 'RAG', 'Memory'],
     cardClass: 'card-weaviate',
     section: 'main',
-    external: true
+    external: true,
+    proxyId: 'weaviate'
   },
   {
     id: 'yue',
@@ -82,7 +89,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     description: 'Full song generation with vocals from lyrics. Supports multiple languages and genres like EDM, pop, rock.',
     tags: ['Text-to-Music', 'Vocals', '5 min songs'],
     cardClass: 'card-yue',
-    section: 'music'
+    section: 'music',
+    proxyId: 'yue'
   },
   {
     id: 'diffrhythm',
@@ -92,7 +100,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     description: 'Fast full-song generation. Creates 4+ minute songs with vocals and instrumentals in ~10 seconds.',
     tags: ['Fast Gen', 'Full Songs', 'Diffusion'],
     cardClass: 'card-diffrhythm',
-    section: 'music'
+    section: 'music',
+    proxyId: 'diffrhythm'
   },
   {
     id: 'musicgen',
@@ -102,7 +111,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     description: "Meta's AudioCraft for high-quality instrumental music generation from text or melody prompts.",
     tags: ['Instrumental', 'Meta AI', 'Melody Input'],
     cardClass: 'card-musicgen',
-    section: 'music'
+    section: 'music',
+    proxyId: 'musicgen'
   },
   {
     id: 'stable_audio',
@@ -112,7 +122,41 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     description: 'Sound effects, drum beats, ambient sounds, and production elements. Up to 47 second audio clips.',
     tags: ['Sound FX', 'Beats', 'Ambient'],
     cardClass: 'card-stableaudio',
-    section: 'music'
+    section: 'music',
+    proxyId: 'stable-audio'
+  },
+  {
+    id: 'a1111',
+    name: 'A1111 WebUI',
+    port: 7861,
+    icon: '\uD83D\uDDBC\uFE0F',
+    description: 'AUTOMATIC1111 Stable Diffusion Web UI. The classic interface for image generation with extensive features.',
+    tags: ['Image Gen', 'SD', 'Classic'],
+    cardClass: 'card-a1111',
+    section: 'image',
+    proxyId: 'a1111'
+  },
+  {
+    id: 'forge',
+    name: 'SD Forge',
+    port: 7862,
+    icon: '\u2692\uFE0F',
+    description: 'Stable Diffusion WebUI Forge. Optimized fork with better memory management and faster generation.',
+    tags: ['Image Gen', 'SD', 'Optimized'],
+    cardClass: 'card-forge',
+    section: 'image',
+    proxyId: 'forge'
+  },
+  {
+    id: 'fooocus',
+    name: 'Fooocus',
+    port: 7865,
+    icon: '\uD83C\uDFAF',
+    description: 'Simplified Stable Diffusion interface inspired by Midjourney. Focus on prompts, minimal settings.',
+    tags: ['Image Gen', 'Simple', 'Midjourney-like'],
+    cardClass: 'card-fooocus',
+    section: 'image',
+    proxyId: 'fooocus'
   }
 ];
 
@@ -121,7 +165,18 @@ export const getApiBase = (): string => {
   return window.location.origin;
 };
 
-export const getServiceUrl = (port: number): string => {
-  const host = window.location.hostname || '10.0.0.138';
+export const getServiceUrl = (port: number, proxyId?: string): string => {
+  // If proxyId is provided and we're not on localhost, use the reverse proxy
+  const isLocalhost = window.location.hostname === 'localhost' ||
+                      window.location.hostname === '127.0.0.1';
+
+  if (proxyId && !isLocalhost) {
+    // Use reverse proxy path for external access
+    return `${window.location.origin}/proxy/${proxyId}/`;
+  }
+
+  // Direct port access for local network
+  // Use environment variable for development host, fallback to current hostname
+  const host = import.meta.env.VITE_DEV_HOST || window.location.hostname;
   return `http://${host}:${port}`;
 };
