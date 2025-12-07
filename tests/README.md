@@ -5,6 +5,7 @@ This directory contains a TypeScript-based Playwright test suite for the dashboa
 ## Prerequisites
 
 - Node.js 18+ recommended
+- Playwright browsers installed (Chromium, Firefox, WebKit)
 - `npm install` executed in the project root
 - All core services running (dashboard backend, API gateway, Open WebUI, ComfyUI, Ollama, Wan2GP, YuE, DiffRhythm, MusicGen, Stable Audio, AllTalk, N8N)
 
@@ -13,6 +14,7 @@ This directory contains a TypeScript-based Playwright test suite for the dashboa
 From the project root:
 
 - Install dependencies: `npm install`
+- Install Playwright browsers: `npm run install:browsers` (installs Chromium, Firefox, and WebKit along with required system dependencies; this step may require elevated permissions on some systems)
 - Configure environment: copy `.env.example` to `.env` and adjust URLs as needed
 
 ## Running Tests
@@ -55,4 +57,3 @@ From the project root:
 - Use `npm run test:debug` for inspector mode
 - Use `npm run test:ui-mode` for interactive UI mode
 - Traces, screenshots, and videos are captured on failures and retries
-

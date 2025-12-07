@@ -17,7 +17,19 @@ class Settings:
     # Weaviate Vector Database
     WEAVIATE_URL: str = os.getenv("WEAVIATE_URL", "http://localhost:8080")
     WEAVIATE_GRPC_HOST: str = os.getenv("WEAVIATE_GRPC_HOST", "localhost")
-    WEAVIATE_GRPC_PORT: int = int(os.getenv("WEAVIATE_GRPC_PORT", "50051"))
+    
+    # Validate WEAVIATE_GRPC_PORT is a valid integer
+    @staticmethod
+    def _parse_grpc_port() -> int:
+        port_str = os.getenv("WEAVIATE_GRPC_PORT", "50051")
+        try:
+            return int(port_str)
+        except ValueError:
+            import logging
+            logging.warning(f"Invalid WEAVIATE_GRPC_PORT '{port_str}', using default 50051")
+            return 50051
+    
+    WEAVIATE_GRPC_PORT: int = _parse_grpc_port.__func__()
     OLLAMA_EMBEDDING_MODEL: str = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
 
     SERVICES: Dict[str, str] = {

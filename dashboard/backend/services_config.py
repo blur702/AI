@@ -24,7 +24,10 @@ def _build_path(*parts):
     return str(AI_ROOT_PATH.joinpath(*parts))
 
 def _build_python_path(venv_dir, script_name=None):
-    """Build path to Python executable in virtual environment."""
+    """
+    Build path to Python executable in virtual environment.
+    Always returns a list to allow easy concatenation with additional arguments.
+    """
     if os.name == 'nt':  # Windows
         python_exe = _build_path(venv_dir, 'Scripts', 'python.exe')
     else:  # Linux/macOS
@@ -32,7 +35,7 @@ def _build_python_path(venv_dir, script_name=None):
     
     if script_name:
         return [python_exe, script_name]
-    return python_exe
+    return [python_exe]
 
 SERVICES = {
     "alltalk": {

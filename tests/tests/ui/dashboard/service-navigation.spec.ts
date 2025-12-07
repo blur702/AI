@@ -1,38 +1,11 @@
 import { test, expect } from '../../../fixtures/base.fixture';
 import type { Page } from '@playwright/test';
 import { DashboardPage } from '../../../page-objects/dashboard/DashboardPage';
-
-/**
- * Helper to wait for React app to fully render
- * Returns true if dashboard loaded, false otherwise
- */
-async function waitForDashboardReady(page: Page): Promise<boolean> {
-  try {
-    await page.goto('/');
-    await page.waitForLoadState('domcontentloaded');
-
-    // Wait for React to mount and render content
-    await page.waitForFunction(() => {
-      const root = document.getElementById('root');
-      return root && root.children.length > 0;
-    }, { timeout: 15000 });
-
-    // Wait for cards to appear
-    await page.waitForSelector('.card', { timeout: 15000 });
-    return true;
-  } catch (e) {
-    console.log('Dashboard did not load fully:', (e as Error).message?.substring(0, 100));
-    return false;
-  }
-}
+import { waitForDashboardReady } from '../../../utils/dashboard-helpers';
 
 test.describe('Dashboard service navigation', () => {
   test('service cards have interactive buttons', async ({ page }) => {
-    const loaded = await waitForDashboardReady(page);
-    if (!loaded) {
-      test.skip(true, 'Dashboard did not load - possible network/browser issue');
-      return;
-    }
+    await waitForDashboardReady(page);
 
     const firstCard = page.locator('.card').first();
     await expect(firstCard).toBeVisible();
@@ -51,11 +24,7 @@ test.describe('Dashboard service navigation', () => {
   });
 
   test('verifies service card structure and count', async ({ page }) => {
-    const loaded = await waitForDashboardReady(page);
-    if (!loaded) {
-      test.skip(true, 'Dashboard did not load - possible network/browser issue');
-      return;
-    }
+    await waitForDashboardReady(page);
 
     // Only select service cards that have btn-open (excludes ResourceManager and other non-service cards)
     const cards = page.locator('.card:has(.btn-open)');

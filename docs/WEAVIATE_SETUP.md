@@ -391,6 +391,64 @@ A `vector_service.py` will be created to integrate Weaviate with the API Gateway
 - Document/knowledge base for RAG
 - User-specific memory isolation
 
+### Phase 3: Documentation Ingestion Service
+
+The API Gateway includes a standalone documentation ingestion service that:
+
+- Scans markdown files in the workspace (`docs/` and selected root `.md` files)
+- Chunks content by markdown headers for semantic coherence
+- Ingests chunks into a `Documentation` collection in Weaviate using `text2vec-ollama` with the configured embedding model (default: `nomic-embed-text`)
+
+**Service Location**
+
+- Module: `api_gateway/services/doc_ingestion.py`
+- Collection name: `Documentation`
+
+**CLI Usage (from project root)**
+
+```powershell
+cd api_gateway
+
+# Run initial ingestion
+python -m api_gateway.services.doc_ingestion ingest --verbose
+
+# Force reindex (delete and recreate collection, then ingest)
+python -m api_gateway.services.doc_ingestion reindex --verbose
+
+# Check collection status (object count)
+python -m api_gateway.services.doc_ingestion status
+
+# Dry run (scan and chunk without ingesting)
+python -m api_gateway.services.doc_ingestion ingest --dry-run --verbose
+```
+
+**Expected Output (example)**
+
+```text
+[INFO] Connecting to Weaviate at http://localhost:8080 (gRPC localhost:50051)
+[INFO] Found 16 markdown files for ingestion
+[INFO] Created 8 chunks from docs/WEAVIATE_SETUP.md
+[INFO] Created 12 chunks from docs/PROJECT_STRUCTURE.md
+...
+[INFO] Ingestion complete: 16 files, 127 chunks, 0 errors
+```
+
+**Status Command**
+
+The `status` command reports basic statistics for the `Documentation` collection:
+
+- Total object count via `collection.aggregate.over_all(total_count=True)`
+
+Use this to quickly verify that documents have been ingested.
+
+**Troubleshooting**
+
+- Ensure Weaviate is running (`start_weaviate.bat` / `docker-compose up -d`)
+- Ensure Ollama is running with the configured embedding model:
+  - `ollama pull nomic-embed-text`
+  - `ollama ps` / `ollama list`
+- Check `api_gateway.log` for detailed ingestion and connection logs
+
 ### Useful Resources
 
 - **Weaviate Documentation:** https://weaviate.io/developers/weaviate
