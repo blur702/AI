@@ -75,3 +75,8 @@ class WeaviateConnection:
 # Collection name constants - shared between ingestion and search
 DOCUMENTATION_COLLECTION_NAME = "Documentation"
 CODE_ENTITY_COLLECTION_NAME = "CodeEntity"
+
+# Talking head collections
+TALKING_HEAD_PROFILES_COLLECTION_NAME = "TalkingHeadProfiles"
+CONVERSATION_MEMORY_COLLECTION_NAME = "ConversationMemory"
+VOICE_CLONES_COLLECTION_NAME = "VoiceClones"
