@@ -133,8 +133,9 @@ export function SettingsPanel() {
             {/* Code Service Selector */}
             {selectedTypes.has('code') && (
               <div className="service-selector">
-                <label>Code scope:</label>
+                <label htmlFor="code-scope-select">Code scope:</label>
                 <select
+                  id="code-scope-select"
                   value={codeService}
                   onChange={(e) => setCodeService(e.target.value)}
                   disabled={isRunning}
