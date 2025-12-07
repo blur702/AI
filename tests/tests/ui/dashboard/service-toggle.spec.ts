@@ -320,6 +320,17 @@ test.describe("Service Toggle - Dashboard Interactions", () => {
         `[INFO] After start - stopVisible=${stopVisible}, startVisible=${startVisible}, onlineVisible=${onlineVisible}`,
       );
 
+      // Assert expected UI state after service starts
+      await expect.soft(stopVisible).toBe(true);
+      await expect.soft(startVisible).toBe(false);
+      await expect.soft(onlineVisible).toBe(true);
+
+      if (!stopVisible || startVisible || !onlineVisible) {
+        console.warn(
+          `[WARNING] UI state mismatch after start: expected Stop visible, Start hidden, status online`,
+        );
+      }
+
       console.log(
         "[INFO] Service is running with Stop button visible and online status",
       );

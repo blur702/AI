@@ -108,14 +108,23 @@ def scan_markdown_files() -> List[Path]:
     "env",
   }
 
+  def is_excluded(path: Path) -> bool:
+    """Check if any parent directory of the path is in excluded_dirs."""
+    for parent in path.resolve().parents:
+      if parent.name in excluded_dirs:
+        return True
+    return False
+
   markdown_files: List[Path] = []
 
   if docs_dir.is_dir():
     for path in docs_dir.rglob("*.md"):
-      markdown_files.append(path)
+      if not is_excluded(path):
+        markdown_files.append(path)
 
   for path in workspace_root.glob("*.md"):
-    markdown_files.append(path)
+    if not is_excluded(path):
+      markdown_files.append(path)
 
   # Remove duplicates if any
   unique_files = sorted({p.resolve() for p in markdown_files})
@@ -237,7 +246,7 @@ def create_documentation_collection(
     client.collections.create(
       name=DOCUMENTATION_COLLECTION_NAME,
       vectorizer_config=Configure.Vectorizer.text2vec_ollama(
-        api_endpoint="http://host.docker.internal:11434",
+        api_endpoint=settings.OLLAMA_API_ENDPOINT,
         model=settings.OLLAMA_EMBEDDING_MODEL,
       ),
       properties=[

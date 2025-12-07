@@ -31,6 +31,9 @@ class Settings:
     
     WEAVIATE_GRPC_PORT: int = _parse_grpc_port.__func__()
     OLLAMA_EMBEDDING_MODEL: str = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
+    # Ollama API endpoint for embeddings (from Weaviate's perspective)
+    # Use host.docker.internal when Weaviate runs in Docker, localhost for native setup
+    OLLAMA_API_ENDPOINT: str = os.getenv("OLLAMA_API_ENDPOINT", "http://127.0.0.1:11434")
 
     SERVICES: Dict[str, str] = {
         "comfyui": "http://localhost:8188",

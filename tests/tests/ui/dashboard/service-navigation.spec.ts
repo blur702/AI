@@ -1,6 +1,5 @@
 import { test, expect } from '../../../fixtures/base.fixture';
 import type { Page } from '@playwright/test';
-import { DashboardPage } from '../../../page-objects/dashboard/DashboardPage';
 import { waitForDashboardReady } from '../../../utils/dashboard-helpers';
 
 test.describe('Dashboard service navigation', () => {
