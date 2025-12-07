@@ -20,7 +20,7 @@ import argparse
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Callable, Dict, Iterable, List, Optional
 
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property
@@ -232,70 +232,133 @@ def _batched(iterable: Iterable[DocChunk], batch_size: int) -> Iterable[List[Doc
     yield batch
 
 
+ProgressCallback = Callable[[str, int, int, str], None]
+CancelCheck = Callable[[], bool]
+
+
 def ingest_documentation(
   client: weaviate.WeaviateClient,
   force_reindex: bool = False,
   dry_run: bool = False,
+  progress_callback: Optional[ProgressCallback] = None,
+  check_cancelled: Optional[CancelCheck] = None,
 ) -> Dict[str, int]:
   """
   Ingest all discovered markdown files into Weaviate.
+
+  Args:
+    client: Weaviate client connection
+    force_reindex: If True, delete and recreate the collection
+    dry_run: If True, scan files without ingesting
+    progress_callback: Optional callback(phase, current, total, message) for progress updates
+    check_cancelled: Optional callback() -> bool to check if operation should be cancelled
 
   Returns statistics dict with keys:
     - files
     - chunks
     - errors
+    - cancelled (bool, only if cancelled)
   """
   files = scan_markdown_files()
-  total_files = 0
+  total_files = len(files)
+  processed_files = 0
   total_chunks = 0
   errors = 0
   collection = None
+  cancelled = False
+
+  def emit_progress(phase: str, current: int, total: int, message: str) -> None:
+    if progress_callback:
+      try:
+        progress_callback(phase, current, total, message)
+      except Exception:  # noqa: BLE001
+        pass  # Don't let callback errors stop ingestion
+
+  def is_cancelled() -> bool:
+    if check_cancelled:
+      try:
+        return check_cancelled()
+      except Exception:  # noqa: BLE001
+        return False
+    return False
+
+  emit_progress("scanning", 0, total_files, f"Found {total_files} markdown files")
 
   def chunk_stream() -> Iterable[DocChunk]:
-    nonlocal total_files, total_chunks, errors
-    for path in files:
+    nonlocal processed_files, total_chunks, errors, cancelled
+    for idx, path in enumerate(files):
+      if is_cancelled():
+        cancelled = True
+        logger.info("Ingestion cancelled by user")
+        return
+
       try:
-        total_files += 1
         chunks = chunk_by_headers(path)
         total_chunks += len(chunks)
+        processed_files += 1
+        emit_progress(
+          "processing",
+          idx + 1,
+          total_files,
+          f"Processing {_relative_to_workspace(path)}"
+        )
         for chunk in chunks:
           yield chunk
       except Exception as exc:  # noqa: BLE001
         errors += 1
+        processed_files += 1
         logger.exception("Failed to process %s: %s", path, exc)
 
   if dry_run:
     # In dry-run mode, never alter the collection (no delete/create, no inserts).
     for _chunk in chunk_stream():
-      pass
+      if cancelled:
+        break
     logger.info(
       "Dry run complete: %d files, %d chunks, %d errors (no data ingested)",
-      total_files,
+      processed_files,
       total_chunks,
       errors,
     )
-    return {"files": total_files, "chunks": total_chunks, "errors": errors}
+    result = {"files": processed_files, "chunks": total_chunks, "errors": errors}
+    if cancelled:
+      result["cancelled"] = True
+    return result
 
+  emit_progress("indexing", 0, total_files, "Creating/updating collection")
   create_documentation_collection(client, force_reindex=force_reindex)
   collection = client.collections.get(DOCUMENTATION_COLLECTION_NAME)
 
+  batch_count = 0
   for batch in _batched(chunk_stream(), batch_size=64):
+    if cancelled:
+      break
     try:
       collection.data.insert_many(
         [chunk.to_properties() for chunk in batch],
       )
+      batch_count += 1
       logger.info("Inserted batch of %d chunks", len(batch))
     except Exception as exc:  # noqa: BLE001
       errors += len(batch)
       logger.exception("Failed to insert batch of %d chunks: %s", len(batch), exc)
 
+  if cancelled:
+    emit_progress("cancelled", processed_files, total_files, "Ingestion cancelled")
+  else:
+    emit_progress("complete", processed_files, total_files, "Ingestion complete")
+
   logger.info(
-    "Ingestion complete: %d files, %d chunks, %d errors",
-    total_files,
+    "Ingestion %s: %d files, %d chunks, %d errors",
+    "cancelled" if cancelled else "complete",
+    processed_files,
     total_chunks,
     errors,
   )
-  return {"files": total_files, "chunks": total_chunks, "errors": errors}
+  result = {"files": processed_files, "chunks": total_chunks, "errors": errors}
+  if cancelled:
+    result["cancelled"] = True
+  return result
 
 
 def collection_status(client: weaviate.WeaviateClient) -> Dict[str, int]:

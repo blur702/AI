@@ -4,7 +4,17 @@
   //   "python.defaultInterpreterPath": "${workspaceFolder}/dashboard/backend/.venv/Scripts/python.exe",
   //   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
   //   "python.defaultInterpreterPath": "python",
-  
+
+  // MCP Servers for Claude VS Code extension
+  // Documentation search server - requires Weaviate running with ingested docs
+  "claude.mcpServers": {
+    "documentation": {
+      "command": "python",
+      "args": ["-m", "mcp_servers.documentation.main"],
+      "cwd": "${workspaceFolder}"
+    }
+  },
+
   "files.watcherExclude": {
     "**/alltalk_tts/**": true,
     "**/audiocraft/**": true,
@@ -33,7 +43,8 @@
     "Wan2GP": true,
     "YuE": true,
     "node_modules": true,
-    "ollama-models": true
+    "ollama-models": true,
+    "__pycache__": true
   },
   "search.exclude": {
     "**/alltalk_tts/**": true,
@@ -57,6 +68,7 @@
     "local-talking-llm",
     "MusicGPT",
     "stable-audio-tools",
+    "stability-matrix",
     "Wan2GP",
     "YuE"
   ]

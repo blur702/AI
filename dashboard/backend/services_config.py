@@ -154,6 +154,7 @@ SERVICES = {
         "startup_timeout": 30,
         "gradio": False,
         "external": True,  # Managed as Windows service
+        "auto_start_with": ["weaviate", "n8n"],  # Start these when Ollama comes online
     },
     "weaviate": {
         "name": "Weaviate",

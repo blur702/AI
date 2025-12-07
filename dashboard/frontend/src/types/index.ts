@@ -88,3 +88,63 @@ export interface ResourceSettings {
   idle_timeout_seconds: number;
   idle_timeout_minutes: number;
 }
+
+// Ingestion Types
+
+export interface CollectionStats {
+  exists: boolean;
+  object_count: number;
+}
+
+export interface IngestionStatus {
+  is_running: boolean;
+  task_id: string | null;
+  current_type: string | null;
+  started_at: number | null;
+  collections: {
+    documentation: CollectionStats;
+    code_entity: CollectionStats;
+  };
+}
+
+export interface IngestionProgress {
+  task_id: string;
+  type: 'documentation' | 'code';
+  phase: 'scanning' | 'processing' | 'indexing' | 'complete' | 'cancelled';
+  current: number;
+  total: number;
+  message: string;
+}
+
+export interface IngestionPhaseComplete {
+  task_id: string;
+  type: 'documentation' | 'code';
+  stats: {
+    files?: number;
+    chunks?: number;
+    entities?: number;
+    errors?: number;
+  };
+}
+
+export interface IngestionComplete {
+  task_id: string;
+  success: boolean;
+  stats: {
+    documentation?: { files: number; chunks: number; errors: number };
+    code?: { files: number; entities: number; errors: number };
+  };
+  duration_seconds: number;
+}
+
+export interface IngestionError {
+  task_id: string;
+  error: string;
+  type: string | null;
+}
+
+export interface IngestionRequest {
+  types: ('documentation' | 'code')[];
+  reindex: boolean;
+  code_service?: string;
+}

@@ -22,7 +22,7 @@ async function performChatInteraction(
   await ui.sendMessage(prompt);
 
   // Wait for LLM response with extended timeout for slow models
-  await ui.waitForResponse(60000);
+  await ui.waitForLLMResponse(60000);
 
   // Capture screenshot
   const screenshotPath = await screenshotManager.captureScreenshot(

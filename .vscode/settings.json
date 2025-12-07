@@ -1,4 +1,11 @@
 {
+  "claude.mcpServers": {
+    "documentation": {
+      "command": "python",
+      "args": ["-m", "mcp_servers.documentation.main"],
+      "cwd": "D:\\AI"
+    }
+  },
   "files.watcherExclude": {
     "**/alltalk_tts/**": true,
     "**/audiocraft/**": true,
