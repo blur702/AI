@@ -12,6 +12,7 @@ import requests as http_requests
 from service_manager import get_service_manager, ServiceStatus
 from services_config import SERVICES
 from ingestion_manager import get_ingestion_manager
+from claude_manager import get_claude_manager
 
 # Path to React build output
 FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
@@ -81,6 +82,9 @@ def emit_ingestion_event(event_name: str, data: dict):
 
 # Initialize ingestion manager with WebSocket callback
 ingestion_manager = get_ingestion_manager(emit_ingestion_event)
+
+# Initialize Claude manager with WebSocket callback
+claude_manager = get_claude_manager(emit_ingestion_event, socketio.start_background_task)
 
 
 def run_command(command):
@@ -751,6 +755,92 @@ def api_ingestion_cancel():
     result = ingestion_manager.cancel_ingestion()
     status_code = 200 if result.get("success") else 400
     return jsonify(result), status_code
+
+
+# =============================================================================
+# Claude Code Execution Endpoints
+# =============================================================================
+
+
+@app.route("/api/claude/execute", methods=["POST"])
+def api_claude_execute():
+    """Execute Claude CLI in normal mode."""
+    if not request.is_json:
+        return jsonify({"success": False, "error": "Expected JSON body"}), 400
+
+    data = request.get_json(silent=True) or {}
+    prompt = data.get("prompt")
+
+    if not prompt or not isinstance(prompt, str):
+        return jsonify({
+            "success": False,
+            "error": "Field 'prompt' is required and must be a string",
+        }), 400
+
+    result = claude_manager.execute_claude(prompt, "normal")
+
+    if not result.get("success"):
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+
+@app.route("/api/claude/execute-yolo", methods=["POST"])
+def api_claude_execute_yolo():
+    """Execute Claude CLI in YOLO mode (skips permission prompts)."""
+    if not request.is_json:
+        return jsonify({"success": False, "error": "Expected JSON body"}), 400
+
+    data = request.get_json(silent=True) or {}
+    prompt = data.get("prompt")
+
+    if not prompt or not isinstance(prompt, str):
+        return jsonify({
+            "success": False,
+            "error": "Field 'prompt' is required and must be a string",
+        }), 400
+
+    result = claude_manager.execute_claude(prompt, "yolo")
+
+    if not result.get("success"):
+        return jsonify(result), 400
+
+    return jsonify(result)
+
+
+@app.route("/api/claude/sessions", methods=["GET"])
+def api_claude_sessions():
+    """Get list of all Claude execution sessions."""
+    sessions = claude_manager.get_sessions()
+    return jsonify({
+        "sessions": sessions,
+        "count": len(sessions),
+    })
+
+
+@app.route("/api/claude/sessions/<session_id>", methods=["GET"])
+def api_claude_session(session_id):
+    """Get details for a specific Claude execution session."""
+    include_output = request.args.get("include_output", "false").lower() == "true"
+    result = claude_manager.get_session(session_id, include_output=include_output)
+
+    if "error" in result:
+        return jsonify(result), 404
+
+    return jsonify(result)
+
+
+@app.route("/api/claude/sessions/<session_id>/cancel", methods=["POST"])
+def api_claude_cancel(session_id):
+    """Cancel a running Claude execution session."""
+    result = claude_manager.cancel_session(session_id)
+
+    if not result.get("success"):
+        if "not found" in result.get("error", "").lower():
+            return jsonify(result), 404
+        return jsonify(result), 400
+
+    return jsonify(result)
 
 
 def vram_background_thread():
