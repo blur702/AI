@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Select-Object -First 30 -ExpandProperty FullName)",
+      "Bash(powershell -Command:*)",
+      "mcp__documentation__search_code",
+      "Bash(timeout:*)",
+      "Bash(ollama show:*)",
+      "Bash(findstr:*)",
+      "Bash(ollama list:*)",
+      "Bash(dir:*)",
+      "Bash(python -m api_gateway.services.ingestion_trigger:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
