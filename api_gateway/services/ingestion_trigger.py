@@ -2,13 +2,13 @@
 Unified CLI for triggering Weaviate ingestion.
 
 Provides a single entry point for ingesting documentation and/or code
-into Weaviate collections. Supports both full ingestion and incremental
-updates from git hooks.
+into Weaviate collections. Supports full ingestion, incremental updates,
+and deferred queue processing for VRAM-friendly workflows.
 
 CLI usage (from project root):
 
     # Full ingestion
-    python -m api_gateway.services.ingestion_trigger all          # Doc + Code (core)
+    python -m api_gateway.services.ingestion_trigger all          # Doc + Code (all services)
     python -m api_gateway.services.ingestion_trigger doc          # Documentation only
     python -m api_gateway.services.ingestion_trigger code         # Code only (core)
     python -m api_gateway.services.ingestion_trigger code --service comfyui
@@ -16,7 +16,12 @@ CLI usage (from project root):
     python -m api_gateway.services.ingestion_trigger status
     python -m api_gateway.services.ingestion_trigger all --dry-run
 
-    # Incremental update (for git hooks)
+    # Queue management (deferred ingestion - avoids VRAM conflicts)
+    python -m api_gateway.services.ingestion_trigger queue           # Show queued files
+    python -m api_gateway.services.ingestion_trigger process-queue   # Process the queue
+    python -m api_gateway.services.ingestion_trigger process-queue --dry-run
+
+    # Incremental update (for git hooks - now queues by default)
     python -m api_gateway.services.ingestion_trigger --files "path/to/file1.py path/to/file2.md"
 """
 
@@ -67,6 +72,9 @@ def print_progress(
 # File extensions that trigger code vs documentation ingestion
 CODE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css"}
 DOC_EXTENSIONS = {".md"}
+
+# Queue file location for deferred ingestion
+INGESTION_QUEUE_FILE = Path("D:/AI/logs/ingestion_queue.txt")
 
 
 def _relative_to_workspace(path: Path) -> str:
@@ -196,6 +204,91 @@ def run_incremental(file_paths: List[str], dry_run: bool = False) -> int:
     print()
     print(f"Incremental ingestion complete. Errors: {errors}")
     return 1 if errors > 0 else 0
+
+
+def process_queue(dry_run: bool = False) -> int:
+    """
+    Process the ingestion queue file.
+
+    Reads queued file paths from INGESTION_QUEUE_FILE, deduplicates them,
+    runs incremental ingestion, then clears the queue.
+
+    Args:
+        dry_run: If True, only show what would be done without processing
+
+    Returns:
+        Exit code (0 for success, 1 for errors)
+    """
+    if not INGESTION_QUEUE_FILE.exists():
+        print("No queued files to process.")
+        return 0
+
+    # Read and deduplicate queued files
+    with open(INGESTION_QUEUE_FILE, "r") as f:
+        all_files = [line.strip() for line in f if line.strip()]
+
+    if not all_files:
+        print("Queue file is empty.")
+        INGESTION_QUEUE_FILE.unlink()
+        return 0
+
+    # Deduplicate while preserving order
+    seen = set()
+    unique_files = []
+    for f in all_files:
+        if f not in seen:
+            seen.add(f)
+            unique_files.append(f)
+
+    print(f"Found {len(unique_files)} unique files in queue (from {len(all_files)} total entries)")
+
+    if dry_run:
+        print("\n[DRY RUN] Would process:")
+        for f in unique_files:
+            print(f"  {f}")
+        return 0
+
+    # Run incremental ingestion
+    result = run_incremental(unique_files, dry_run=False)
+
+    # Clear the queue on success
+    if result == 0:
+        INGESTION_QUEUE_FILE.unlink()
+        print("\nQueue cleared.")
+    else:
+        print("\nQueue NOT cleared due to errors. Run again to retry.")
+
+    return result
+
+
+def show_queue() -> int:
+    """Show the current ingestion queue without processing it."""
+    if not INGESTION_QUEUE_FILE.exists():
+        print("No queued files.")
+        return 0
+
+    with open(INGESTION_QUEUE_FILE, "r") as f:
+        all_files = [line.strip() for line in f if line.strip()]
+
+    if not all_files:
+        print("Queue file is empty.")
+        return 0
+
+    # Deduplicate for display
+    seen = set()
+    unique_files = []
+    for f in all_files:
+        if f not in seen:
+            seen.add(f)
+            unique_files.append(f)
+
+    print(f"Queued files ({len(unique_files)} unique, {len(all_files)} total entries):")
+    for f in unique_files:
+        suffix = Path(f).suffix.lower()
+        file_type = "code" if suffix in CODE_EXTENSIONS else "doc" if suffix in DOC_EXTENSIONS else "?"
+        print(f"  [{file_type}] {f}")
+
+    return 0
 
 
 def run_status() -> int:
@@ -337,10 +430,11 @@ Examples:
 
     parser.add_argument(
         "target",
-        choices=["all", "doc", "code", "status"],
+        choices=["all", "doc", "code", "status", "queue", "process-queue"],
         nargs="?",
         default=None,
-        help="What to ingest: 'all' (doc + code), 'doc', 'code', or 'status' check",
+        help="What to ingest: 'all' (doc + code), 'doc', 'code', 'status' check, "
+             "'queue' (show pending), or 'process-queue' (run queued ingestion)",
     )
 
     parser.add_argument(
@@ -403,6 +497,10 @@ Examples:
     # Execute command
     if args.target == "status":
         exit_code = run_status()
+    elif args.target == "queue":
+        exit_code = show_queue()
+    elif args.target == "process-queue":
+        exit_code = process_queue(dry_run=args.dry_run)
     else:
         targets = [args.target] if args.target != "all" else ["doc", "code"]
         exit_code = run_ingestion(
