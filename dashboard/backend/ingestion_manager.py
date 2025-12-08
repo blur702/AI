@@ -23,6 +23,7 @@ from api_gateway.services.weaviate_connection import (
     WeaviateConnection,
     DOCUMENTATION_COLLECTION_NAME,
     CODE_ENTITY_COLLECTION_NAME,
+    DRUPAL_API_COLLECTION_NAME,
 )
 from api_gateway.services.doc_ingestion import (
     ingest_documentation,
@@ -31,6 +32,13 @@ from api_gateway.services.doc_ingestion import (
 from api_gateway.services.code_ingestion import (
     ingest_code_entities,
     collection_status as code_collection_status,
+)
+from api_gateway.services.drupal_api_schema import (
+    get_collection_stats as drupal_collection_stats,
+)
+from api_gateway.services.drupal_scraper import (
+    scrape_drupal_api,
+    ScrapeConfig as DrupalScrapeConfig,
 )
 
 
@@ -80,6 +88,7 @@ class IngestionManager:
         collections = {
             "documentation": {"exists": False, "object_count": 0},
             "code_entity": {"exists": False, "object_count": 0},
+            "drupal_api": {"exists": False, "object_count": 0, "entity_counts": {}},
         }
 
         try:
@@ -99,6 +108,15 @@ class IngestionManager:
                         "exists": code_stats.get("exists", True),
                         "object_count": code_stats.get("object_count", 0),
                     }
+
+                # Drupal API collection
+                if client.collections.exists(DRUPAL_API_COLLECTION_NAME):
+                    drupal_stats = drupal_collection_stats(client)
+                    collections["drupal_api"] = {
+                        "exists": drupal_stats.get("exists", True),
+                        "object_count": drupal_stats.get("object_count", 0),
+                        "entity_counts": drupal_stats.get("entity_counts", {}),
+                    }
         except Exception as exc:
             # Return status even if Weaviate is unavailable
             collections["error"] = str(exc)
@@ -116,14 +134,16 @@ class IngestionManager:
         types: List[str],
         reindex: bool = False,
         code_service: str = "all",
+        drupal_limit: Optional[int] = None,
     ) -> Dict[str, Any]:
         """
         Start ingestion in the background.
 
         Args:
-            types: List of types to ingest ("documentation", "code")
+            types: List of types to ingest ("documentation", "code", "drupal")
             reindex: If True, delete existing collections before ingesting
             code_service: For code ingestion: "core", "all", or specific service
+            drupal_limit: For drupal ingestion: max entities to scrape (None = unlimited)
 
         Returns:
             Dictionary with success status and task_id or error message.
@@ -154,6 +174,7 @@ class IngestionManager:
         types: List[str],
         reindex: bool = False,
         code_service: str = "all",
+        drupal_limit: Optional[int] = None,
     ) -> None:
         """
         Run the actual ingestion (called from background task).
@@ -162,6 +183,7 @@ class IngestionManager:
             types: List of types to ingest
             reindex: Whether to force reindex
             code_service: Code service target
+            drupal_limit: Max entities for Drupal scraper
         """
         task_id = self.task_id
         start_time = self.started_at or time.time()
@@ -226,6 +248,43 @@ class IngestionManager:
                     })
 
                     if code_stats.get("cancelled"):
+                        raise InterruptedError("Cancelled")
+
+                # Process Drupal API
+                if "drupal" in types:
+                    if self.cancel_requested:
+                        raise InterruptedError("Cancelled")
+
+                    self.current_type = "drupal"
+
+                    # Configure Drupal scraper
+                    drupal_config = DrupalScrapeConfig(
+                        max_entities=drupal_limit,
+                    )
+
+                    # For reindex, delete existing collection first
+                    if reindex:
+                        from api_gateway.services.drupal_api_schema import (
+                            create_drupal_api_collection,
+                        )
+                        create_drupal_api_collection(client, force_reindex=True)
+
+                    drupal_stats = scrape_drupal_api(
+                        config=drupal_config,
+                        progress_callback=lambda phase, current, total, msg: self._emit_progress(
+                            task_id, "drupal", phase, current, total, msg
+                        ),
+                        check_cancelled=lambda: self.cancel_requested,
+                    )
+                    all_stats["drupal"] = drupal_stats
+
+                    self.emit("ingestion_phase_complete", {
+                        "task_id": task_id,
+                        "type": "drupal",
+                        "stats": drupal_stats,
+                    })
+
+                    if drupal_stats.get("cancelled"):
                         raise InterruptedError("Cancelled")
 
         except InterruptedError:

@@ -12,3 +12,7 @@ dashboard/frontend/src/components/ServiceCard.css
 dashboard/frontend/src/components/ServiceCard.tsx
 dashboard/frontend/src/config/services.ts
 dashboard/frontend/src/types/index.ts
+api_gateway/services/drupal_api_schema.py
+api_gateway/services/talking_head_schema.py
+api_gateway/services/weaviate_connection.py
+dashboard/frontend/src/components/SettingsPanel.tsx

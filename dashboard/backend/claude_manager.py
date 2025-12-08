@@ -54,11 +54,9 @@ class ClaudeSession:
             "status": self.status,
             "start_time": self.start_time,
             "end_time": self.end_time,
-            "output_line_count": len(self.output_lines),
+            "output_lines": self.output_lines if include_output else [],
             "error_message": self.error_message,
         }
-        if include_output:
-            result["output_lines"] = self.output_lines
         return result
 
 

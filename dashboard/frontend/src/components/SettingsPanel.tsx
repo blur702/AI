@@ -28,13 +28,14 @@ export function SettingsPanel() {
   } = useIngestion();
 
   const [expanded, setExpanded] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState<Set<'documentation' | 'code'>>(
+  const [selectedTypes, setSelectedTypes] = useState<Set<'documentation' | 'code' | 'drupal'>>(
     new Set(['documentation', 'code'])
   );
   const [codeService, setCodeService] = useState('all');
   const [reindex, setReindex] = useState(false);
+  const [drupalLimit, setDrupalLimit] = useState<number | null>(null);
 
-  const handleTypeToggle = useCallback((type: 'documentation' | 'code') => {
+  const handleTypeToggle = useCallback((type: 'documentation' | 'code' | 'drupal') => {
     setSelectedTypes(prev => {
       const next = new Set(prev);
       if (next.has(type)) {
@@ -53,10 +54,11 @@ export function SettingsPanel() {
       types: Array.from(selectedTypes),
       reindex,
       code_service: codeService,
+      drupal_limit: selectedTypes.has('drupal') ? drupalLimit : undefined,
     };
 
     await startIngestion(request);
-  }, [selectedTypes, reindex, codeService, startIngestion]);
+  }, [selectedTypes, reindex, codeService, drupalLimit, startIngestion]);
 
   const handleCancel = useCallback(async () => {
     await cancelIngestion();
@@ -69,6 +71,7 @@ export function SettingsPanel() {
   const isRunning = status?.is_running ?? false;
   const docCount = status?.collections?.documentation?.object_count ?? 0;
   const codeCount = status?.collections?.code_entity?.object_count ?? 0;
+  const drupalCount = status?.collections?.drupal_api?.object_count ?? 0;
 
   // Calculate progress percentage
   let progressPercent = 0;
@@ -101,6 +104,10 @@ export function SettingsPanel() {
                 <span className="stat-label">Code Entities:</span>
                 <span className="stat-value">{codeCount.toLocaleString()} objects</span>
               </div>
+              <div className="stat-item">
+                <span className="stat-label">Drupal API:</span>
+                <span className="stat-value">{drupalCount.toLocaleString()} entities</span>
+              </div>
             </div>
           </div>
 
@@ -128,6 +135,15 @@ export function SettingsPanel() {
                 />
                 Code Entities
               </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={selectedTypes.has('drupal')}
+                  onChange={() => handleTypeToggle('drupal')}
+                  disabled={isRunning}
+                />
+                Drupal API (Web Scrape)
+              </label>
             </div>
 
             {/* Code Service Selector */}
@@ -146,6 +162,26 @@ export function SettingsPanel() {
                     </option>
                   ))}
                 </select>
+              </div>
+            )}
+
+            {/* Drupal Limit Selector */}
+            {selectedTypes.has('drupal') && (
+              <div className="service-selector">
+                <label htmlFor="drupal-limit-select">Drupal entity limit:</label>
+                <select
+                  id="drupal-limit-select"
+                  value={drupalLimit ?? 'unlimited'}
+                  onChange={(e) => setDrupalLimit(e.target.value === 'unlimited' ? null : parseInt(e.target.value))}
+                  disabled={isRunning}
+                >
+                  <option value="unlimited">Unlimited (full scrape)</option>
+                  <option value="100">100 entities</option>
+                  <option value="500">500 entities</option>
+                  <option value="1000">1,000 entities</option>
+                  <option value="5000">5,000 entities</option>
+                </select>
+                <span className="help-text">Note: Full Drupal API scrape takes several hours</span>
               </div>
             )}
 
@@ -184,7 +220,8 @@ export function SettingsPanel() {
               <div className="ingestion-progress">
                 <div className="progress-header">
                   <span className="progress-type">
-                    {progress.type === 'documentation' ? 'Documentation' : 'Code'}
+                    {progress.type === 'documentation' ? 'Documentation' :
+                     progress.type === 'code' ? 'Code' : 'Drupal API'}
                   </span>
                   <span className="progress-phase">{progress.phase}</span>
                 </div>
@@ -234,6 +271,16 @@ export function SettingsPanel() {
                       {lastResult.stats.code.errors > 0 && (
                         <span className="error-count">
                           ({lastResult.stats.code.errors} errors)
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {lastResult.stats.drupal && (
+                    <span>
+                      Drupal: {lastResult.stats.drupal.entities_inserted} entities
+                      {lastResult.stats.drupal.errors > 0 && (
+                        <span className="error-count">
+                          ({lastResult.stats.drupal.errors} errors)
                         </span>
                       )}
                     </span>

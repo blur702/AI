@@ -80,6 +80,8 @@ The dashboard uses a **single-port architecture** where Flask serves both the Re
 | 1301 | API Gateway (FastAPI) |
 | 5678 | N8N workflow automation |
 | 3000 | Open WebUI (LLM chat) |
+| 8080 | Weaviate (vector database HTTP) |
+| 50051 | Weaviate (gRPC) |
 | 8188 | ComfyUI (image generation) |
 | 7851 | AllTalk TTS |
 | 7860 | Wan2GP Video |
@@ -149,9 +151,17 @@ Each AI project (alltalk_tts, audiocraft, ComfyUI, DiffRhythm, stable-audio-tool
 - Isolated Python virtual environment (e.g., `audiocraft_env/Scripts/python.exe`)
 - Independent dependencies
 
-## Weaviate Vector Database (Code Reference)
+## Weaviate Vector Database
 
-This project maintains a semantic index of all documentation and code in Weaviate. **Query the vector DB BEFORE using Glob/Grep** for faster, more accurate results.
+This project maintains a semantic index of documentation, code, and external API references in Weaviate. **Query the vector DB BEFORE using Glob/Grep** for faster, more accurate results.
+
+### Collections
+
+| Collection | Contents | Source |
+|------------|----------|--------|
+| `Documentation` | Markdown docs, READMEs | Local `docs/`, `.md` files |
+| `CodeEntity` | Functions, classes, methods, styles | Local Python/TS/JS/CSS |
+| `DrupalAPI` | Drupal 11.x API reference | Scraped from api.drupal.org |
 
 ### MCP Tools Available
 
@@ -180,6 +190,9 @@ This project maintains a semantic index of all documentation and code in Weaviat
 - **CodeEntity**: Functions, classes, methods, variables, interfaces, types, CSS styles, animations
   - Languages: Python, TypeScript, JavaScript, CSS
   - Services: core (dashboard, api_gateway, tests) + all AI services
+- **DrupalAPI**: Classes, interfaces, functions, hooks, constants, namespaces from Drupal 11.x
+  - Scraped from api.drupal.org with rate limiting
+  - Includes signatures, parameters, descriptions, deprecation notices
 
 ### Ingestion Commands
 ```bash
@@ -191,7 +204,52 @@ curl http://localhost/api/ingestion/status
 python -m api_gateway.services.doc_ingestion reindex
 python -m api_gateway.services.code_ingestion reindex --service core
 python -m api_gateway.services.code_ingestion reindex --service all
+
+# Drupal API scraper
+python -m api_gateway.services.drupal_scraper status
+python -m api_gateway.services.drupal_scraper scrape --limit 100
+python -m api_gateway.services.drupal_scraper reindex
 ```
+
+## Scraper Supervisor
+
+Long-running scraping jobs are managed by the supervisor system with automatic restart and resume capabilities.
+
+### Features
+- **Checkpoint/Resume**: Saves progress every 10 entities, resumes from last checkpoint on restart
+- **Deduplication**: Skips already-scraped entities via stable UUID comparison
+- **Health Monitoring**: Detects crashed processes and heartbeat timeouts
+- **Auto-Restart**: Automatically restarts failed jobs (up to 3 retries)
+- **Windows Scheduled Task**: Runs health checks every 5 minutes
+
+### Supervisor Commands
+```bash
+# Check status of all scraping jobs
+python -m api_gateway.services.scraper_supervisor status
+
+# Start a new scraping job
+python -m api_gateway.services.scraper_supervisor start drupal
+python -m api_gateway.services.scraper_supervisor start drupal --limit 1000
+python -m api_gateway.services.scraper_supervisor start drupal -f  # foreground
+
+# Resume a failed/stopped job
+python -m api_gateway.services.scraper_supervisor resume drupal -f
+
+# Run supervisor daemon (continuous monitoring)
+python -m api_gateway.services.scraper_supervisor run
+
+# Single health check pass
+python -m api_gateway.services.scraper_supervisor check
+
+# Windows scheduled task management
+python -m api_gateway.services.scraper_supervisor install-task --interval 5
+python -m api_gateway.services.scraper_supervisor uninstall-task
+```
+
+### Data Locations
+- Jobs registry: `D:\AI\data\scraper\jobs.json`
+- Checkpoints: `D:\AI\data\scraper\checkpoints\`
+- Logs: `D:\AI\data\scraper\drupal_stderr.log`
 
 ## Critical Development Notes
 
