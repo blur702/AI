@@ -4,8 +4,8 @@ import { IngestionRequest } from '../types';
 import './SettingsPanel.css';
 
 const CODE_SERVICES = [
-  { value: 'core', label: 'Core Project' },
   { value: 'all', label: 'All AI Services' },
+  { value: 'core', label: 'Core Project' },
   { value: 'alltalk', label: 'AllTalk TTS' },
   { value: 'audiocraft', label: 'AudioCraft' },
   { value: 'comfyui', label: 'ComfyUI' },
@@ -31,7 +31,7 @@ export function SettingsPanel() {
   const [selectedTypes, setSelectedTypes] = useState<Set<'documentation' | 'code'>>(
     new Set(['documentation', 'code'])
   );
-  const [codeService, setCodeService] = useState('core');
+  const [codeService, setCodeService] = useState('all');
   const [reindex, setReindex] = useState(false);
 
   const handleTypeToggle = useCallback((type: 'documentation' | 'code') => {

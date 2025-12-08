@@ -3,8 +3,8 @@ Documentation ingestion service for Weaviate.
 
 Scans markdown files in the workspace, chunks them by headers for
 semantic coherence, and ingests them into a `Documentation` collection
-in Weaviate using the `text2vec-ollama` vectorizer with the
-`nomic-embed-text` model (or the model configured via settings).
+in Weaviate using manual vectorization via Ollama API
+(bypasses Weaviate's text2vec-ollama to avoid connection issues).
 
 CLI usage (from project root, with api_gateway on PYTHONPATH):
 
@@ -18,12 +18,14 @@ from __future__ import annotations
 
 import argparse
 import logging
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
 
+import httpx
 import weaviate
-from weaviate.classes.config import Configure, DataType, Property
+from weaviate.classes.config import Configure, DataType, Property, VectorDistances
 
 from ..config import settings
 from ..utils.logger import get_logger
@@ -31,6 +33,27 @@ from .weaviate_connection import WeaviateConnection, DOCUMENTATION_COLLECTION_NA
 
 
 logger = get_logger("api_gateway.doc_ingestion")
+
+
+def get_embedding(text: str) -> List[float]:
+    """Get embedding vector from Ollama API."""
+    response = httpx.post(
+        f"{settings.OLLAMA_API_ENDPOINT}/api/embeddings",
+        json={"model": settings.OLLAMA_EMBEDDING_MODEL, "prompt": text},
+        timeout=30.0,
+    )
+    response.raise_for_status()
+    return response.json()["embedding"]
+
+
+def get_doc_text_for_embedding(chunk: "DocChunk") -> str:
+    """Build text representation for embedding computation."""
+    parts = []
+    if chunk.title:
+        parts.append(chunk.title)
+    if chunk.content:
+        parts.append(chunk.content[:1000])  # Limit content length
+    return " ".join(parts)
 
 
 @dataclass
@@ -49,13 +72,30 @@ class DocChunk:
     }
 
 
-def scan_markdown_files() -> List[Path]:
+# AI service directory mappings (same as code_ingestion.py)
+AI_SERVICE_DIRS = {
+    "alltalk_tts": "alltalk",
+    "audiocraft": "audiocraft",
+    "ComfyUI": "comfyui",
+    "DiffRhythm": "diffrhythm",
+    "MusicGPT": "musicgpt",
+    "stable-audio-tools": "stable_audio",
+    "Wan2GP": "wan2gp",
+    "YuE": "yue",
+}
+
+
+def scan_markdown_files(include_service_readmes: bool = True) -> List[Path]:
   """
   Scan the workspace for markdown files.
 
   - Includes all `.md` files under `docs/`
   - Includes `.md` files in the workspace root
+  - Optionally includes README.md files from AI service directories
   - Excludes common large/irrelevant directories such as node_modules, .git, venvs.
+
+  Args:
+      include_service_readmes: If True, include README.md from AI service directories
   """
   workspace_root = Path(__file__).resolve().parents[2]
   docs_dir = workspace_root / "docs"
@@ -67,6 +107,16 @@ def scan_markdown_files() -> List[Path]:
     ".venv",
     "venv",
     "env",
+    # AI service venvs
+    "audiocraft_env",
+    "wan2gp_env",
+    "yue_env",
+    "alltalk_env",
+    "alltalk_environment",
+    "comfyui_env",
+    "diffrhythm_env",
+    "musicgpt_env",
+    "stable_audio_env",
   }
 
   def is_excluded(path: Path) -> bool:
@@ -78,14 +128,34 @@ def scan_markdown_files() -> List[Path]:
 
   markdown_files: List[Path] = []
 
+  # Include docs/ directory
   if docs_dir.is_dir():
     for path in docs_dir.rglob("*.md"):
       if not is_excluded(path):
         markdown_files.append(path)
 
+  # Include root .md files
   for path in workspace_root.glob("*.md"):
     if not is_excluded(path):
       markdown_files.append(path)
+
+  # Include AI service READMEs
+  if include_service_readmes:
+    for dir_name in AI_SERVICE_DIRS.keys():
+      service_dir = workspace_root / dir_name
+      if service_dir.is_dir():
+        # Look for README.md (case-insensitive on Windows)
+        for readme_name in ["README.md", "readme.md", "Readme.md"]:
+          readme_path = service_dir / readme_name
+          if readme_path.exists():
+            markdown_files.append(readme_path)
+            break
+        # Also include docs folder within service if it exists
+        service_docs = service_dir / "docs"
+        if service_docs.is_dir():
+          for path in service_docs.rglob("*.md"):
+            if not is_excluded(path):
+              markdown_files.append(path)
 
   # Remove duplicates if any
   unique_files = sorted({p.resolve() for p in markdown_files})
@@ -204,11 +274,13 @@ def create_documentation_collection(
 
   if not exists:
     logger.info("Creating collection '%s'", DOCUMENTATION_COLLECTION_NAME)
+    # Use manual vectorization (none) to avoid Weaviate's text2vec-ollama connection issues
+    # We compute embeddings via Python and pass them on insert
     client.collections.create(
       name=DOCUMENTATION_COLLECTION_NAME,
-      vectorizer_config=Configure.Vectorizer.text2vec_ollama(
-        api_endpoint=settings.OLLAMA_API_ENDPOINT,
-        model=settings.OLLAMA_EMBEDDING_MODEL,
+      vectorizer_config=Configure.Vectorizer.none(),
+      vector_index_config=Configure.VectorIndex.hnsw(
+        distance_metric=VectorDistances.COSINE,
       ),
       properties=[
         Property(name="title", data_type=DataType.TEXT),
@@ -329,19 +401,39 @@ def ingest_documentation(
   create_documentation_collection(client, force_reindex=force_reindex)
   collection = client.collections.get(DOCUMENTATION_COLLECTION_NAME)
 
-  batch_count = 0
-  for batch in _batched(chunk_stream(), batch_size=64):
+  inserted_count = 0
+  for chunk in chunk_stream():
     if cancelled:
       break
-    try:
-      collection.data.insert_many(
-        [chunk.to_properties() for chunk in batch],
-      )
-      batch_count += 1
-      logger.info("Inserted batch of %d chunks", len(batch))
-    except Exception as exc:  # noqa: BLE001
-      errors += len(batch)
-      logger.exception("Failed to insert batch of %d chunks: %s", len(batch), exc)
+
+    retries = 3
+    while retries > 0:
+      if is_cancelled():
+        cancelled = True
+        break
+
+      try:
+        # Compute embedding via Python (bypassing Weaviate's text2vec-ollama issues)
+        text = get_doc_text_for_embedding(chunk)
+        vector = get_embedding(text)
+        collection.data.insert(chunk.to_properties(), vector=vector)
+        inserted_count += 1
+        if inserted_count % 50 == 0:
+          logger.info("Inserted %d chunks so far...", inserted_count)
+          emit_progress(
+            "indexing",
+            processed_files,
+            total_files,
+            f"Indexed {inserted_count} chunks"
+          )
+        break
+      except Exception as exc:  # noqa: BLE001
+        retries -= 1
+        if retries == 0:
+          errors += 1
+          logger.warning("Failed to insert chunk '%s' after retries: %s", chunk.title[:50], exc)
+        else:
+          time.sleep(1)  # Brief pause before retry
 
   if cancelled:
     emit_progress("cancelled", processed_files, total_files, "Ingestion cancelled")
