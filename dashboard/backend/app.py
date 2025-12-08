@@ -921,6 +921,7 @@ SERVICE_PROXY_MAP = {
     "stable-audio": 7873,
     "ollama": 11434,
     "weaviate": 8080,
+    "weaviate-console": 8081,
     "a1111": 7861,
     "forge": 7862,
     "fooocus": 7865,

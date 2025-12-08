@@ -30,6 +30,17 @@ services:
     networks:
       - weaviate_network
 
+  weaviate-console:
+    image: semitechnologies/weaviate-console:latest
+    container_name: weaviate-console
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8081:80"
+    depends_on:
+      - weaviate
+    networks:
+      - weaviate_network
+
 volumes:
   weaviate_data:
 

@@ -157,13 +157,13 @@ SERVICES = {
         "auto_start_with": ["weaviate", "n8n"],  # Start these when Ollama comes online
     },
     "weaviate": {
-        "name": "Weaviate",
-        "port": 8080,
+        "name": "Weaviate Console",
+        "port": 8081,
         "icon": "🧠",
-        "description": "Vector database for RAG and memory",
+        "description": "Vector database explorer for RAG and memory",
         "working_dir": _build_path("api_gateway"),
         "command": ["docker-compose", "up", "-d"],
-        "health_endpoint": "/v1/.well-known/ready",
+        "health_endpoint": "/",
         "startup_timeout": 60,
         "gradio": False,
         "external": True,  # Docker container
