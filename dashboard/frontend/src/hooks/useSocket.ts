@@ -9,38 +9,58 @@ export function useSocket() {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    const socket = io(getApiBase(), {
-      transports: ['websocket', 'polling']
-    });
-    socketRef.current = socket;
+    // Fetch session token for Socket.IO authentication
+    fetch(`${getApiBase()}/api/auth/token`, {
+      credentials: 'include'
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Authentication required');
+        return res.json();
+      })
+      .then(data => {
+        // Connect with token in auth payload
+        const socket = io(getApiBase(), {
+          transports: ['websocket', 'polling'],
+          auth: {
+            token: data.token
+          }
+        });
+        socketRef.current = socket;
 
-    socket.on('connect', () => {
-      console.log('WebSocket connected');
-      setConnected(true);
-    });
+        socket.on('connect', () => {
+          console.log('WebSocket connected');
+          setConnected(true);
+        });
 
-    socket.on('disconnect', () => {
-      console.log('WebSocket disconnected');
-      setConnected(false);
-    });
+        socket.on('disconnect', () => {
+          console.log('WebSocket disconnected');
+          setConnected(false);
+        });
 
-    socket.on('service_status', (data: ServiceStatusUpdate) => {
-      console.log('Service status update:', data);
-      setServices(prev => ({
-        ...prev,
-        [data.service_id]: {
-          ...prev[data.service_id],
-          status: data.status,
-          error: data.message || null
-        }
-      }));
-    });
+        socket.on('service_status', (data: ServiceStatusUpdate) => {
+          console.log('Service status update:', data);
+          setServices(prev => ({
+            ...prev,
+            [data.service_id]: {
+              ...prev[data.service_id],
+              status: data.status,
+              error: data.message || null
+            }
+          }));
+        });
 
-    // Fetch initial statuses
-    fetchStatuses();
+        // Fetch initial statuses
+        fetchStatuses();
+      })
+      .catch(error => {
+        console.error('Socket.IO authentication failed:', error);
+        setConnected(false);
+      });
 
     return () => {
-      socket.disconnect();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
   }, []);
 

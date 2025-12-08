@@ -3,11 +3,20 @@ import os
 import subprocess
 import threading
 import time
+from functools import wraps
 
 from flask import Flask, jsonify, request, send_from_directory, Response
 from flask_cors import CORS
 from flask_socketio import SocketIO
 import requests as http_requests
+
+# Load environment variables from .env file if present
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not required if using system environment variables
+    pass
 
 from service_manager import get_service_manager, ServiceStatus
 from services_config import SERVICES
@@ -30,6 +39,147 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# HTTP Basic Authentication
+# =============================================================================
+
+# Load authentication credentials from environment variables
+BASIC_AUTH_USERNAME = os.environ.get("DASHBOARD_AUTH_USERNAME", "").strip()
+BASIC_AUTH_PASSWORD = os.environ.get("DASHBOARD_AUTH_PASSWORD", "").strip()
+
+# Validate required authentication configuration at startup
+if not BASIC_AUTH_USERNAME or not BASIC_AUTH_PASSWORD:
+    logger.error(
+        "FATAL: DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD environment variables must be set. "
+        "Authentication cannot be enabled with missing credentials. "
+        "Please set these environment variables before starting the dashboard."
+    )
+    raise SystemExit(1)
+
+logger.info(f"Dashboard authentication enabled for user: {BASIC_AUTH_USERNAME}")
+
+
+def check_auth(username, password):
+    """Check if the provided credentials are valid."""
+    return username == BASIC_AUTH_USERNAME and password == BASIC_AUTH_PASSWORD
+
+
+# Session management with secure random tokens
+import secrets
+from datetime import datetime, timedelta
+
+# In-memory session storage (use Redis/database in production)
+# Structure: {token: {"username": str, "created_at": datetime, "expires_at": datetime}}
+_session_store = {}
+_session_lock = threading.Lock()
+
+# Session configuration
+SESSION_EXPIRY_HOURS = int(os.environ.get("SESSION_EXPIRY_HOURS", "24"))
+
+
+def _cleanup_expired_sessions():
+    """Remove expired sessions from storage (called during validation)."""
+    now = datetime.utcnow()
+    expired_tokens = [
+        token for token, data in _session_store.items()
+        if data["expires_at"] <= now
+    ]
+    for token in expired_tokens:
+        del _session_store[token]
+    if expired_tokens:
+        logger.debug("Cleaned up %d expired sessions", len(expired_tokens))
+
+
+def generate_session_token(username, password):
+    """Generate a secure session token after validating credentials.
+    
+    Returns token string if credentials valid, None otherwise.
+    Creates a cryptographically secure random token and stores session metadata.
+    """
+    # Verify credentials first
+    if not check_auth(username, password):
+        return None
+    
+    # Generate secure random token
+    token = secrets.token_urlsafe(32)  # 256 bits of entropy
+    
+    # Set expiration
+    now = datetime.utcnow()
+    expires_at = now + timedelta(hours=SESSION_EXPIRY_HOURS)
+    
+    # Store session
+    with _session_lock:
+        _session_store[token] = {
+            "username": username,
+            "created_at": now,
+            "expires_at": expires_at,
+        }
+    
+    logger.info("Session created for user: %s (expires in %d hours)", username, SESSION_EXPIRY_HOURS)
+    return token
+
+
+def validate_session_token(token):
+    """Validate a session token and return whether it's valid.
+    
+    Returns True if token is valid and not expired, False otherwise.
+    Automatically cleans up expired sessions during validation.
+    """
+    if not token:
+        return False
+    
+    with _session_lock:
+        # Cleanup expired sessions
+        _cleanup_expired_sessions()
+        
+        # Check if token exists
+        session = _session_store.get(token)
+        if not session:
+            return False
+        
+        # Check expiration (redundant after cleanup, but explicit)
+        if session["expires_at"] <= datetime.utcnow():
+            del _session_store[token]
+            return False
+        
+        return True
+
+
+def revoke_session_token(token):
+    """Revoke a session token, removing it from storage.
+    
+    Returns True if token was found and revoked, False otherwise.
+    """
+    if not token:
+        return False
+    
+    with _session_lock:
+        if token in _session_store:
+            del _session_store[token]
+            logger.info("Session revoked")
+            return True
+        return False
+
+
+def authenticate():
+    """Return a 401 JSON response that prompts for Basic Auth credentials."""
+    response = jsonify({"error": "Authentication required"})
+    response.status_code = 401
+    response.headers["WWW-Authenticate"] = 'Basic realm="Dashboard"'
+    return response
+
+
+def require_auth(f):
+    """Decorator that requires HTTP Basic Authentication for a route."""
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        auth = request.authorization
+        if not auth or not check_auth(auth.username, auth.password):
+            return authenticate()
+        return f(*args, **kwargs)
+    return decorated
 
 
 # Proxy configuration
@@ -402,7 +552,49 @@ def pull_ollama_model(model_name):
             )
 
 
+# =============================================================================
+# Authentication Check Endpoint
+# =============================================================================
+
+
+@app.route("/api/auth/check", methods=["GET"])
+def api_auth_check():
+    """Verify authentication status."""
+    auth = request.authorization
+    if not auth or not check_auth(auth.username, auth.password):
+        return authenticate()
+    return jsonify({"authenticated": True, "username": BASIC_AUTH_USERNAME})
+
+
+@app.route("/api/auth/token", methods=["GET"])
+def api_auth_token():
+    """Generate a session token for Socket.IO authentication."""
+    auth = request.authorization
+    if not auth:
+        return authenticate()
+    
+    token = generate_session_token(auth.username, auth.password)
+    if not token:
+        return authenticate()
+    
+    return jsonify({"token": token, "username": auth.username})
+
+
+@app.route("/api/auth/revoke", methods=["POST"])
+def api_auth_revoke():
+    """Revoke the current session token."""
+    # Extract token from Authorization header (if sent as Bearer token)
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header[7:]
+        if revoke_session_token(token):
+            return jsonify({"success": True, "message": "Session revoked"})
+    
+    return jsonify({"success": False, "message": "No valid session to revoke"}), 400
+
+
 @app.route("/api/vram/status", methods=["GET"])
+@require_auth
 def api_vram_status():
     gpu = get_gpu_info()
     processes = get_gpu_processes()
@@ -428,6 +620,7 @@ def api_vram_status():
 
 
 @app.route("/api/models/ollama/list", methods=["GET"])
+@require_auth
 def api_list_ollama_models():
     models = get_available_ollama_models()
     return jsonify(
@@ -439,6 +632,7 @@ def api_list_ollama_models():
 
 
 @app.route("/api/models/ollama/loaded", methods=["GET"])
+@require_auth
 def api_loaded_ollama_models():
     models = get_loaded_ollama_models()
     return jsonify(
@@ -450,6 +644,7 @@ def api_loaded_ollama_models():
 
 
 @app.route("/api/models/ollama/load", methods=["POST"])
+@require_auth
 def api_load_ollama_model():
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
@@ -486,6 +681,7 @@ def api_load_ollama_model():
 
 
 @app.route("/api/models/ollama/unload", methods=["POST"])
+@require_auth
 def api_unload_ollama_model():
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
@@ -522,6 +718,7 @@ def api_unload_ollama_model():
 
 
 @app.route("/api/models/ollama/download", methods=["POST"])
+@require_auth
 def api_download_ollama_model():
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
@@ -557,6 +754,7 @@ def api_download_ollama_model():
 
 
 @app.route("/api/services", methods=["GET"])
+@require_auth
 def api_list_services():
     """Get list of all services with their current status."""
     statuses = service_manager.get_all_status()
@@ -569,6 +767,7 @@ def api_list_services():
 
 
 @app.route("/api/services/<service_id>", methods=["GET"])
+@require_auth
 def api_get_service(service_id):
     """Get status of a specific service."""
     status = service_manager.get_status(service_id)
@@ -578,6 +777,7 @@ def api_get_service(service_id):
 
 
 @app.route("/api/services/<service_id>/start", methods=["POST"])
+@require_auth
 def api_start_service(service_id):
     """Start a service."""
     result = service_manager.start_service(service_id)
@@ -586,6 +786,7 @@ def api_start_service(service_id):
 
 
 @app.route("/api/services/<service_id>/stop", methods=["POST"])
+@require_auth
 def api_stop_service(service_id):
     """Stop a service."""
     result = service_manager.stop_service(service_id)
@@ -594,6 +795,7 @@ def api_stop_service(service_id):
 
 
 @app.route("/api/services/<service_id>/restart", methods=["POST"])
+@require_auth
 def api_restart_service(service_id):
     """Restart a service."""
     result = service_manager.restart_service(service_id)
@@ -602,6 +804,7 @@ def api_restart_service(service_id):
 
 
 @app.route("/api/services/<service_id>/touch", methods=["POST"])
+@require_auth
 def api_touch_service(service_id):
     """Update last activity timestamp for a service."""
     if service_id not in SERVICES:
@@ -611,6 +814,7 @@ def api_touch_service(service_id):
 
 
 @app.route("/api/test/services/<service_id>/force-error", methods=["POST"])
+@require_auth
 def api_test_force_error(service_id):
     """Test-only endpoint to force a service into startup error mode."""
     if not os.environ.get("DASHBOARD_TEST_MODE"):
@@ -623,6 +827,7 @@ def api_test_force_error(service_id):
 
 
 @app.route("/api/test/services/<service_id>/clear-error", methods=["POST"])
+@require_auth
 def api_test_clear_error(service_id):
     """Test-only endpoint to clear forced error mode for a service."""
     if not os.environ.get("DASHBOARD_TEST_MODE"):
@@ -640,6 +845,7 @@ def api_test_clear_error(service_id):
 
 
 @app.route("/api/resources/summary", methods=["GET"])
+@require_auth
 def api_resource_summary():
     """Get summary of resource usage across all services."""
     gpu = get_gpu_info()
@@ -656,6 +862,7 @@ def api_resource_summary():
 
 
 @app.route("/api/resources/settings", methods=["GET"])
+@require_auth
 def api_resource_settings():
     """Get current resource management settings."""
     return jsonify({
@@ -666,6 +873,7 @@ def api_resource_settings():
 
 
 @app.route("/api/resources/settings", methods=["POST"])
+@require_auth
 def api_update_resource_settings():
     """Update resource management settings."""
     if not request.is_json:
@@ -700,6 +908,7 @@ def api_update_resource_settings():
 
 
 @app.route("/api/ingestion/status", methods=["GET"])
+@require_auth
 def api_ingestion_status():
     """Get current ingestion status and collection statistics."""
     status = ingestion_manager.get_status()
@@ -707,6 +916,7 @@ def api_ingestion_status():
 
 
 @app.route("/api/ingestion/start", methods=["POST"])
+@require_auth
 def api_ingestion_start():
     """Start ingestion in the background."""
     if not request.is_json:
@@ -722,7 +932,7 @@ def api_ingestion_start():
             "message": "Field 'types' is required and must be a list.",
         }), 400
 
-    valid_types = {"documentation", "code"}
+    valid_types = {"documentation", "code", "drupal"}
     for t in types:
         if t not in valid_types:
             return jsonify({
@@ -732,8 +942,9 @@ def api_ingestion_start():
 
     reindex = bool(data.get("reindex", False))
     code_service = data.get("code_service", "core")
+    drupal_limit = data.get("drupal_limit")  # Optional: max entities for Drupal
 
-    result = ingestion_manager.start_ingestion(types, reindex, code_service)
+    result = ingestion_manager.start_ingestion(types, reindex, code_service, drupal_limit)
 
     if not result.get("success"):
         return jsonify(result), 409  # Conflict - already running
@@ -744,12 +955,14 @@ def api_ingestion_start():
         types,
         reindex,
         code_service,
+        drupal_limit,
     )
 
     return jsonify(result)
 
 
 @app.route("/api/ingestion/cancel", methods=["POST"])
+@require_auth
 def api_ingestion_cancel():
     """Cancel the current ingestion."""
     result = ingestion_manager.cancel_ingestion()
@@ -763,6 +976,7 @@ def api_ingestion_cancel():
 
 
 @app.route("/api/claude/execute", methods=["POST"])
+@require_auth
 def api_claude_execute():
     """Execute Claude CLI in normal mode."""
     if not request.is_json:
@@ -786,6 +1000,7 @@ def api_claude_execute():
 
 
 @app.route("/api/claude/execute-yolo", methods=["POST"])
+@require_auth
 def api_claude_execute_yolo():
     """Execute Claude CLI in YOLO mode (skips permission prompts)."""
     if not request.is_json:
@@ -809,6 +1024,7 @@ def api_claude_execute_yolo():
 
 
 @app.route("/api/claude/sessions", methods=["GET"])
+@require_auth
 def api_claude_sessions():
     """Get list of all Claude execution sessions."""
     sessions = claude_manager.get_sessions()
@@ -819,6 +1035,7 @@ def api_claude_sessions():
 
 
 @app.route("/api/claude/sessions/<session_id>", methods=["GET"])
+@require_auth
 def api_claude_session(session_id):
     """Get details for a specific Claude execution session."""
     include_output = request.args.get("include_output", "false").lower() == "true"
@@ -831,6 +1048,7 @@ def api_claude_session(session_id):
 
 
 @app.route("/api/claude/sessions/<session_id>/cancel", methods=["POST"])
+@require_auth
 def api_claude_cancel(session_id):
     """Cancel a running Claude execution session."""
     result = claude_manager.cancel_session(session_id)
@@ -884,8 +1102,21 @@ def vram_background_thread():
 
 
 @socketio.on("connect")
-def handle_connect():
+def handle_connect(auth):
     global vram_thread, connected_clients, vram_thread_stop
+
+    # Check authentication for WebSocket connections using Socket.IO auth payload
+    # Clients must send a session token in the auth payload: { auth: { token: "..." } }
+    token = None
+    if auth and isinstance(auth, dict):
+        token = auth.get('token')
+    
+    if not validate_session_token(token):
+        logger.warning("WebSocket connection rejected: Invalid or missing auth token")
+        return False  # Reject the connection
+    
+    logger.info("WebSocket connection accepted: Valid auth token")
+
     with vram_thread_lock:
         connected_clients += 1
         logger.info("Client connected. Total clients: %s", connected_clients)
@@ -1028,6 +1259,7 @@ def proxy_request(target_url):
 
 @app.route("/proxy/<service_id>/", defaults={"path": ""})
 @app.route("/proxy/<service_id>/<path:path>")
+@require_auth
 def proxy_service(service_id, path):
     """Reverse proxy requests to backend services."""
     if service_id not in SERVICE_PROXY_MAP:
@@ -1049,12 +1281,14 @@ def proxy_service(service_id, path):
 
 
 @app.route("/")
+@require_auth
 def serve_index():
     """Serve the React app index.html."""
     return send_from_directory(FRONTEND_DIST, "index.html")
 
 
 @app.route("/<path:path>")
+@require_auth
 def serve_static(path):
     """Serve static files, fall back to index.html for SPA routing."""
     from werkzeug.security import safe_join

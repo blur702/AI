@@ -1,0 +1,480 @@
+.claude-panel {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  margin-bottom: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.claude-panel.loading {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+}
+
+.claude-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.claude-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.claude-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 500;
+}
+
+.claude-icon {
+  font-size: 1.2rem;
+  font-family: monospace;
+  color: #00d4ff;
+}
+
+.running-badge {
+  background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.expand-icon {
+  font-size: 1.5rem;
+  color: #888;
+  font-weight: 300;
+}
+
+.claude-content {
+  padding: 0 20px 20px;
+}
+
+.claude-section {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.claude-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  color: #aaa;
+}
+
+/* Prompt Input */
+.prompt-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.prompt-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+}
+
+.prompt-input:focus {
+  outline: none;
+  border-color: #00d4ff;
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+}
+
+.prompt-input::placeholder {
+  color: #666;
+}
+
+.prompt-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.prompt-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-execute,
+.btn-execute-yolo {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-execute {
+  background: linear-gradient(135deg, #00d4ff, #7b2cbf);
+  color: white;
+}
+
+.btn-execute:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.btn-execute:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-execute-yolo {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.btn-execute-yolo:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-execute-yolo:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.prompt-hints {
+  display: flex;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: #666;
+}
+
+/* Error Display */
+.claude-error {
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  color: #f87171;
+  border-left: 3px solid #ef4444;
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-dismiss {
+  background: none;
+  border: none;
+  color: #f87171;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.btn-dismiss:hover {
+  color: #fff;
+}
+
+/* Sessions List */
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.no-sessions {
+  color: #666;
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+.session-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.session-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.session-item.active {
+  background: rgba(0, 212, 255, 0.1);
+  border-left-color: #00d4ff;
+}
+
+.session-item.status-running {
+  border-left-color: #00d4ff;
+}
+
+.session-item.status-completed {
+  border-left-color: #10b981;
+}
+
+.session-item.status-error {
+  border-left-color: #ef4444;
+}
+
+.session-item.status-cancelled {
+  border-left-color: #6b7280;
+}
+
+.session-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.session-status-icon {
+  font-size: 0.8rem;
+  width: 16px;
+  text-align: center;
+}
+
+.session-item.status-running .session-status-icon {
+  color: #00d4ff;
+  animation: pulse 1s infinite;
+}
+
+.session-item.status-completed .session-status-icon {
+  color: #10b981;
+}
+
+.session-item.status-error .session-status-icon {
+  color: #ef4444;
+}
+
+.session-item.status-cancelled .session-status-icon {
+  color: #6b7280;
+}
+
+.session-prompt {
+  flex: 1;
+  color: #ccc;
+  font-family: monospace;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-mode {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.session-mode.normal {
+  background: rgba(0, 212, 255, 0.2);
+  color: #00d4ff;
+}
+
+.session-mode.yolo {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+}
+
+.session-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.session-status {
+  text-transform: capitalize;
+}
+
+.session-status.status-running {
+  color: #00d4ff;
+}
+
+.session-status.status-completed {
+  color: #10b981;
+}
+
+.session-status.status-error {
+  color: #ef4444;
+}
+
+.session-status.status-cancelled {
+  color: #6b7280;
+}
+
+/* Terminal Output */
+.terminal-section {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.terminal-header h4 {
+  margin: 0;
+}
+
+.btn-cancel {
+  padding: 6px 16px;
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: rgba(239, 68, 68, 0.3);
+}
+
+.terminal-container {
+  background: #0d1117;
+  border-radius: 6px;
+  padding: 12px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.terminal-prompt-display {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.terminal-prompt-label {
+  color: #10b981;
+  font-weight: bold;
+}
+
+.terminal-prompt-text {
+  color: #00d4ff;
+  word-break: break-word;
+}
+
+.terminal-waiting {
+  color: #666;
+  font-style: italic;
+  animation: pulse 2s infinite;
+}
+
+.terminal-line {
+  color: #c9d1d9;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.terminal-error {
+  color: #f87171;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+}
+
+.terminal-cursor {
+  display: inline;
+}
+
+.cursor-blink {
+  color: #00d4ff;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* Scrollbar styling for terminal */
+.terminal-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.terminal-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.terminal-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Sessions list scrollbar */
+.sessions-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sessions-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.sessions-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+.sessions-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Accessibility: Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  /* Disable all animations */
+  .running-badge,
+  .cursor-blink,
+  .status-icon,
+  * {
+    animation: none !important;
+    animation-duration: 0s !important;
+  }
+  
+  /* Disable transitions */
+  .claude-toggle,
+  .session-item,
+  .btn-primary,
+  .btn-secondary,
+  * {
+    transition: none !important;
+  }
+}

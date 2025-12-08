@@ -14,9 +14,49 @@ cd d:/AI/dashboard/backend
 pip install -r requirements.txt
 ```
 
+## Configuration
+The dashboard requires authentication credentials to be set via environment variables. 
+
+### Option 1: Using .env file (Recommended)
+Copy the example file and edit it with your credentials:
+```bash
+cp .env.example .env
+# Edit .env and set DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD
+```
+
+### Option 2: System Environment Variables
+Set the required variables in your system environment:
+
+```bash
+# Required: Dashboard authentication credentials
+DASHBOARD_AUTH_USERNAME=your_username
+DASHBOARD_AUTH_PASSWORD=your_secure_password
+
+# Optional: Session token expiry (in hours, default: 24)
+SESSION_EXPIRY_HOURS=24
+
+# Optional: Proxy authentication (if enabled)
+PROXY_AUTH_ENABLED=false
+PROXY_AUTH_TOKEN=your_proxy_token
+
+# Optional: Resource limits
+MAX_PROXY_REQUEST_SIZE=104857600  # 100MB default
+PROXY_TIMEOUT_SECONDS=30
+```
+
+**Security Note:** 
+- Never commit credentials to source control. The `.env` file is already in `.gitignore`.
+- Session tokens use cryptographically secure random generation (256-bit entropy)
+- Sessions are stored in-memory and expire after configured hours (default 24h)
+- For production, consider using Redis or a database for session persistence
+
 ## Running the Server
 ```bash
+# With .env file (recommended)
 python app.py
+
+# Or with inline environment variables
+DASHBOARD_AUTH_USERNAME=admin DASHBOARD_AUTH_PASSWORD=secure123 python app.py
 ```
 
 Server runs on `http://localhost:5000`

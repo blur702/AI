@@ -37,55 +37,123 @@ export function useIngestion() {
 
   // Set up WebSocket listeners
   useEffect(() => {
-    const socket = io(getApiBase(), {
-      transports: ['websocket', 'polling'],
-    });
-    socketRef.current = socket;
+    const abortController = new AbortController();
 
-    socket.on('ingestion_started', (data: { task_id: string; types: string[]; reindex: boolean }) => {
-      console.log('Ingestion started:', data);
-      setProgress(null);
-      setLastResult(null);
-      setError(null);
-      // Refresh status
-      fetchStatus();
-    });
+    // Fetch session token for Socket.IO authentication
+    fetch(`${getApiBase()}/api/auth/token`, {
+      credentials: 'include',
+      signal: abortController.signal,
+    })
+      .then(res => {
+        if (abortController.signal.aborted) return;
+        if (!res.ok) throw new Error('Authentication required');
+        return res.json();
+      })
+      .then(data => {
+        if (abortController.signal.aborted || !data) return;
+        // Connect with token in auth payload
+        const socket = io(getApiBase(), {
+          transports: ['websocket', 'polling'],
+          auth: {
+            token: data.token
+          }
+        });
+        socketRef.current = socket;
 
-    socket.on('ingestion_progress', (data: IngestionProgress) => {
-      console.log('Ingestion progress:', data);
-      setProgress(data);
-    });
+        // Connection error handler
+        socket.on('connect_error', (err) => {
+          console.error('Socket.IO connection error:', err);
+          setError('Failed to establish real-time connection. Please check your network and authentication.');
+          setLoading(false);
+        });
 
-    socket.on('ingestion_phase_complete', (data: { task_id: string; type: string; stats: object }) => {
-      console.log('Ingestion phase complete:', data);
-    });
+        // Disconnect handler
+        socket.on('disconnect', (reason) => {
+          console.log('Socket.IO disconnected:', reason);
 
-    socket.on('ingestion_complete', (data: IngestionComplete) => {
-      console.log('Ingestion complete:', data);
-      setLastResult(data);
-      setProgress(null);
-      // Refresh status to get updated collection counts
-      fetchStatus();
-    });
+          // Differentiate between intentional and unexpected disconnects
+          if (reason === 'io server disconnect' || reason === 'io client disconnect') {
+            // Intentional disconnect (server closed connection or client called disconnect())
+            console.log('Intentional disconnect, no action needed');
+          } else {
+            // Unexpected disconnect (network error, timeout, etc.)
+            console.warn('Unexpected disconnect:', reason);
+            setError('Real-time connection lost. Updates may be delayed. Attempting to reconnect...');
+          }
+        });
 
-    socket.on('ingestion_cancelled', (data: { task_id: string }) => {
-      console.log('Ingestion cancelled:', data);
-      setProgress(null);
-      fetchStatus();
-    });
+        // Connection established
+        socket.on('connect', () => {
+          console.log('Socket.IO connected for ingestion');
+          // Clear any previous connection errors using functional state update
+          setError(prev => {
+            if (prev && prev.includes('real-time connection')) {
+              return null;
+            }
+            return prev;
+          });
+        });
 
-    socket.on('ingestion_error', (data: IngestionError) => {
-      console.error('Ingestion error:', data);
-      setError(data.error);
-      setProgress(null);
-      fetchStatus();
-    });
+        socket.on('ingestion_started', (data: { task_id: string; types: string[]; reindex: boolean }) => {
+          console.log('Ingestion started:', data);
+          setProgress(null);
+          setLastResult(null);
+          setError(null);
+          // Refresh status
+          fetchStatus();
+        });
 
-    // Fetch initial status
-    fetchStatus();
+        socket.on('ingestion_progress', (data: IngestionProgress) => {
+          console.log('Ingestion progress:', data);
+          setProgress(data);
+        });
+
+        socket.on('ingestion_phase_complete', (data: { task_id: string; type: string; stats: object }) => {
+          console.log('Ingestion phase complete:', data);
+        });
+
+        socket.on('ingestion_complete', (data: IngestionComplete) => {
+          console.log('Ingestion complete:', data);
+          setLastResult(data);
+          setProgress(null);
+          // Refresh status to get updated collection counts
+          fetchStatus();
+        });
+
+        socket.on('ingestion_cancelled', (data: { task_id: string }) => {
+          console.log('Ingestion cancelled:', data);
+          setProgress(null);
+          fetchStatus();
+        });
+
+        socket.on('ingestion_error', (data: IngestionError) => {
+          console.error('Ingestion error:', data);
+          setError(data.error);
+          setProgress(null);
+          fetchStatus();
+        });
+
+        // Fetch initial status
+        fetchStatus();
+      })
+      .catch(err => {
+        if (err.name === 'AbortError') return;
+        console.error('Socket.IO authentication failed:', err);
+        // Update state to reflect authentication failure
+        setError('Authentication failed. Please log in again to enable real-time updates.');
+        setLoading(false);
+        // Clean up socket reference to avoid leftover connections
+        if (socketRef.current) {
+          socketRef.current.disconnect();
+          socketRef.current = null;
+        }
+      });
 
     return () => {
-      socket.disconnect();
+      abortController.abort();
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
     };
   }, [fetchStatus]);
 

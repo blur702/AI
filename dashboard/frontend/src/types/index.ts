@@ -95,6 +95,7 @@ export interface ResourceSettings {
 export interface CollectionStats {
   exists: boolean;
   object_count: number;
+  entity_counts?: Record<string, number>;
 }
 
 export interface IngestionStatus {
@@ -105,12 +106,13 @@ export interface IngestionStatus {
   collections: {
     documentation: CollectionStats;
     code_entity: CollectionStats;
+    drupal_api: CollectionStats;
   };
 }
 
 export interface IngestionProgress {
   task_id: string;
-  type: 'documentation' | 'code';
+  type: 'documentation' | 'code' | 'drupal';
   phase: 'scanning' | 'processing' | 'indexing' | 'complete' | 'cancelled';
   current: number;
   total: number;
@@ -119,11 +121,13 @@ export interface IngestionProgress {
 
 export interface IngestionPhaseComplete {
   task_id: string;
-  type: 'documentation' | 'code';
+  type: 'documentation' | 'code' | 'drupal';
   stats: {
     files?: number;
     chunks?: number;
     entities?: number;
+    entities_inserted?: number;
+    entities_updated?: number;
     errors?: number;
   };
 }
@@ -134,6 +138,7 @@ export interface IngestionComplete {
   stats: {
     documentation?: { files: number; chunks: number; errors: number };
     code?: { files: number; entities: number; errors: number };
+    drupal?: { entities_inserted: number; entities_updated: number; errors: number };
   };
   duration_seconds: number;
 }
@@ -145,7 +150,51 @@ export interface IngestionError {
 }
 
 export interface IngestionRequest {
-  types: ('documentation' | 'code')[];
+  types: ('documentation' | 'code' | 'drupal')[];
   reindex: boolean;
   code_service?: string;
+  drupal_limit?: number | null;
+}
+
+// Claude Code Execution Types
+
+export type ClaudeSessionStatus = 'starting' | 'running' | 'completed' | 'cancelled' | 'error' | 'timeout';
+
+export interface ClaudeSession {
+  session_id: string;
+  prompt: string;
+  mode: 'normal' | 'yolo';
+  status: ClaudeSessionStatus;
+  start_time: number;
+  end_time: number | null;
+  output_lines: string[];
+  error_message: string | null;
+}
+
+export interface ClaudeStatusUpdate {
+  session_id: string;
+  status: ClaudeSessionStatus;
+  message: string;
+  timestamp: number;
+}
+
+export interface ClaudeOutputLine {
+  session_id: string;
+  line: string;
+  timestamp: number;
+}
+
+export interface ClaudeSessionList {
+  sessions: ClaudeSession[];
+}
+
+export interface ClaudeExecuteRequest {
+  prompt: string;
+}
+
+export interface ClaudeExecuteResponse {
+  success: boolean;
+  session_id?: string;
+  message?: string;
+  error?: string;
 }

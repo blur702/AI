@@ -1,0 +1,11 @@
+{
+  "job_id": "drupal_1765220327",
+  "scraper_type": "drupal",
+  "last_entity_type": "class",
+  "last_entity_name": "ContactPersonalTest",
+  "last_page": 0,
+  "entities_processed": 1830,
+  "entities_inserted": 1536,
+  "errors": 0,
+  "updated_at": "2025-12-08T20:56:05.567649+00:00"
+}

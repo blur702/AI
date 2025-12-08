@@ -76,6 +76,8 @@ WshShell.Run "cmd /c docker start open-webui 2>nul", 0, False
 WshShell.Run "cmd /c sc query Ollama | find ""RUNNING"" >nul || net start Ollama", 0, False
 
 ' Start the dashboard backend (Flask on port 80)
+' IMPORTANT: Requires DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD environment variables
+' Set these via System Properties > Environment Variables or in a .env file in dashboard\backend
 ' Use quoted paths to handle spaces
 WshShell.Run "cmd /c cd /d """ & BackendPath & """ && """ & PythonExe & """ app.py", 0, False
 
