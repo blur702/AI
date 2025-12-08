@@ -2,3 +2,13 @@ api_gateway/services/ingestion_trigger.py
 api_gateway/services/talking_head_schema.py
 dashboard/backend/app.py
 dashboard/backend/claude_manager.py
+dashboard/backend/app.py
+dashboard/backend/services_config.py
+dashboard/frontend/dist/assets/index-B_JftgK9.js
+dashboard/frontend/dist/assets/index-C3AVBdTE.css
+dashboard/frontend/dist/assets/index-Cyw5gEP1.js
+dashboard/frontend/dist/assets/index-D9dl0_ew.css
+dashboard/frontend/src/components/ServiceCard.css
+dashboard/frontend/src/components/ServiceCard.tsx
+dashboard/frontend/src/config/services.ts
+dashboard/frontend/src/types/index.ts

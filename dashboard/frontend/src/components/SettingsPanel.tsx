@@ -191,7 +191,7 @@ export function SettingsPanel() {
                 <div className="progress-bar">
                   <div
                     className="progress-fill"
-                    style={{ width: `${progressPercent}%` }}
+                    data-width={progressPercent}
                   />
                 </div>
                 <div className="progress-details">
