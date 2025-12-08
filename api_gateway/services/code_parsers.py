@@ -609,10 +609,15 @@ class TypeScriptParser(BaseParser):
             )
             return []
 
+        # Handle empty or None output
+        if not result.stdout or not result.stdout.strip():
+            logger.warning("TypeScript parser returned empty output for %s", file_path)
+            return []
+
         try:
             raw_entities = json.loads(result.stdout)
         except json.JSONDecodeError as exc:
-            logger.exception("Failed to parse TypeScript parser output: %s", exc)
+            logger.exception("Failed to parse TypeScript parser output for %s: %s", file_path, exc)
             return []
 
         entities: List[CodeEntity] = []

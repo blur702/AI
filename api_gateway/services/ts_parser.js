@@ -255,7 +255,14 @@ function extractHeritage(node, sourceFile) {
  */
 function parseFile(filePath) {
   const absolutePath = path.resolve(filePath);
-  const fileContent = fs.readFileSync(absolutePath, "utf-8");
+  // Read file with fallback encoding to handle non-UTF-8 files
+  let fileContent;
+  try {
+    fileContent = fs.readFileSync(absolutePath, "utf-8");
+  } catch (e) {
+    // If UTF-8 fails, try reading as latin1 (ISO-8859-1) which accepts any byte sequence
+    fileContent = fs.readFileSync(absolutePath, "latin1");
+  }
   const isTypeScript =
     filePath.endsWith(".ts") || filePath.endsWith(".tsx");
   const language = isTypeScript ? "typescript" : "javascript";
