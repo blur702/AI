@@ -115,7 +115,7 @@ class IngestionManager:
         self,
         types: List[str],
         reindex: bool = False,
-        code_service: str = "core",
+        code_service: str = "all",
     ) -> Dict[str, Any]:
         """
         Start ingestion in the background.
@@ -153,7 +153,7 @@ class IngestionManager:
         self,
         types: List[str],
         reindex: bool = False,
-        code_service: str = "core",
+        code_service: str = "all",
     ) -> None:
         """
         Run the actual ingestion (called from background task).

@@ -149,6 +149,50 @@ Each AI project (alltalk_tts, audiocraft, ComfyUI, DiffRhythm, stable-audio-tool
 - Isolated Python virtual environment (e.g., `audiocraft_env/Scripts/python.exe`)
 - Independent dependencies
 
+## Weaviate Vector Database (Code Reference)
+
+This project maintains a semantic index of all documentation and code in Weaviate. **Query the vector DB BEFORE using Glob/Grep** for faster, more accurate results.
+
+### MCP Tools Available
+
+| Tool | Use Case | Example Query |
+|------|----------|---------------|
+| `search_code` | Find functions, classes, methods, styles | "function that starts a service" |
+| `search_documentation` | Find docs by concept | "how to configure VRAM monitoring" |
+| `search_codebase` | Combined search (docs + code) | "how does authentication work" |
+
+### search_code Filters
+
+- `entity_type`: function, method, class, variable, interface, type, style, animation
+- `service_name`: core, alltalk, audiocraft, comfyui, diffrhythm, musicgpt, stable_audio, wan2gp, yue
+- `language`: python, typescript, javascript, css
+
+### When to Use
+
+1. **"Where is X defined?"** → `search_code(query="X", entity_type="function")`
+2. **"How does X work?"** → `search_codebase(query="X")` (gets both docs and implementation)
+3. **"What does the README say about X?"** → `search_documentation(query="X")`
+4. **"Find all CSS for buttons"** → `search_code(query="button styles", entity_type="style")`
+
+### Database Contents
+
+- **Documentation**: All markdown files from `docs/`, root `.md` files, service READMEs
+- **CodeEntity**: Functions, classes, methods, variables, interfaces, types, CSS styles, animations
+  - Languages: Python, TypeScript, JavaScript, CSS
+  - Services: core (dashboard, api_gateway, tests) + all AI services
+
+### Ingestion Commands
+```bash
+# Check status
+curl http://localhost/api/ingestion/status
+
+# Reindex via dashboard UI (Settings panel)
+# Or via CLI:
+python -m api_gateway.services.doc_ingestion reindex
+python -m api_gateway.services.code_ingestion reindex --service core
+python -m api_gateway.services.code_ingestion reindex --service all
+```
+
 ## Critical Development Notes
 
 1. **Single-Port Architecture**: Flask on port 80 serves both `frontend/dist/` and `/api/*` routes. After frontend changes, run `npm run build` in `dashboard/frontend/`.
@@ -157,3 +201,4 @@ Each AI project (alltalk_tts, audiocraft, ComfyUI, DiffRhythm, stable-audio-tool
 4. **VRAM Management**: Monitor constantly - combinations of services can exhaust 24GB.
 5. **Windows-Specific**: Uses PowerShell, batch scripts, and nvidia-smi.
 6. **Port Conflicts**: Check port availability before starting services.
+7. **Vector DB First**: Query `search_code`/`search_codebase` before using Glob/Grep to find code.

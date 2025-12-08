@@ -515,8 +515,8 @@ def main(argv: Optional[List[str]] = None) -> None:
         "--service",
         "-s",
         choices=service_choices,
-        default="core",
-        help="Service to ingest: 'core' (default), 'all' (all AI services), or specific service name.",
+        default="all",
+        help="Service to ingest: 'all' (default, all AI services), 'core', or specific service name.",
     )
 
     args = parser.parse_args(argv)
