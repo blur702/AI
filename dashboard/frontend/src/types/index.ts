@@ -11,6 +11,7 @@ export interface ServiceConfig {
   section: 'main' | 'music' | 'image';
   external?: boolean;
   proxyId?: string;  // ID for reverse proxy path (e.g., 'n8n' -> /proxy/n8n/)
+  instructions?: string;  // Setup instructions shown when service is running
 }
 
 export interface ServiceState {

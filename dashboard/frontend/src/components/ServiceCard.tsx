@@ -58,6 +58,13 @@ export function ServiceCard({ config, state, onStart, onStop }: ServiceCardProps
 
       <p className="card-description">{config.description}</p>
 
+      {config.instructions && isRunning && (
+        <div className="card-instructions">
+          <span className="instructions-icon">&#9432;</span>
+          <span className="instructions-text">{config.instructions}</span>
+        </div>
+      )}
+
       <div className="card-features">
         {config.tags.map(tag => (
           <span key={tag} className="tag">{tag}</span>

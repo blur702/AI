@@ -71,15 +71,16 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
   },
   {
     id: 'weaviate',
-    name: 'Weaviate',
-    port: 8080,
+    name: 'Weaviate Console',
+    port: 8081,
     icon: '\uD83E\uDDE0',
-    description: 'Vector database for semantic search, RAG, and long-term memory. Stores embeddings via Ollama.',
+    description: 'Vector database explorer for semantic search, RAG, and long-term memory. Query and visualize data.',
     tags: ['Vector DB', 'RAG', 'Memory'],
     cardClass: 'card-weaviate',
     section: 'main',
     external: true,
-    proxyId: 'weaviate'
+    proxyId: 'weaviate-console',
+    instructions: 'Connect to http://localhost:8080 (Weaviate API) to explore collections and query data.'
   },
   {
     id: 'yue',

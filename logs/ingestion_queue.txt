@@ -1,2 +1,4 @@
 api_gateway/services/ingestion_trigger.py
 api_gateway/services/talking_head_schema.py
+dashboard/backend/app.py
+dashboard/backend/claude_manager.py
