@@ -1,4 +1,4 @@
-    """
+"""
 Talking Head schema definitions for Weaviate.
 
 Defines three collections for the talking head system:

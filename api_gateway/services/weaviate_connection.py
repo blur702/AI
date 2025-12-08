@@ -75,6 +75,7 @@ class WeaviateConnection:
 # Collection name constants - shared between ingestion and search
 DOCUMENTATION_COLLECTION_NAME = "Documentation"
 CODE_ENTITY_COLLECTION_NAME = "CodeEntity"
+DRUPAL_API_COLLECTION_NAME = "DrupalAPI"  # Drupal 11.x API reference collection
 
 # Talking head collections
 TALKING_HEAD_PROFILES_COLLECTION_NAME = "TalkingHeadProfiles"
