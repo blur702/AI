@@ -6,7 +6,13 @@ Defines three collections for the talking head system:
 - ConversationMemory: Chat history with semantic search
 - VoiceClones: Voice cloning profiles and metadata
 
-All collections use text2vec-ollama vectorizer for semantic search.
+All collections use manual vectorization via Ollama API for semantic search.
+Use the insertion helper functions (insert_talking_head_profile, insert_conversation_message,
+insert_voice_clone) to ensure embeddings are computed consistently.
+
+Example insertion pattern:
+    profile = TalkingHeadProfile(...)
+    insert_talking_head_profile(client, profile)
 """
 
 from __future__ import annotations
@@ -14,12 +20,14 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
+from uuid import UUID
 
 import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
-from weaviate.classes.config import Configure, DataType, Property
+from weaviate.classes.config import Configure, DataType, Property, VectorDistances
 
 from ..config import settings
+from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
 from .weaviate_connection import (
     TALKING_HEAD_PROFILES_COLLECTION_NAME,
@@ -29,6 +37,59 @@ from .weaviate_connection import (
 )
 
 logger = get_logger("api_gateway.talking_head_schema")
+
+
+# =============================================================================
+# Text Representation Functions
+# =============================================================================
+
+
+def get_profile_text_for_embedding(profile: "TalkingHeadProfile") -> str:
+    """
+    Build text representation of a TalkingHeadProfile for embedding.
+
+    Combines avatar_name, personality_prompt, and memory_context.
+
+    Args:
+        profile: TalkingHeadProfile instance
+
+    Returns:
+        Combined text for embedding
+    """
+    parts = [profile.avatar_name, profile.personality_prompt, profile.memory_context]
+    return "\n\n".join(part for part in parts if part)
+
+
+def get_conversation_text_for_embedding(message: "ConversationMessage") -> str:
+    """
+    Build text representation of a ConversationMessage for embedding.
+
+    Combines user_message, avatar_response, and context_summary.
+
+    Args:
+        message: ConversationMessage instance
+
+    Returns:
+        Combined text for embedding
+    """
+    parts = [message.user_message, message.avatar_response, message.context_summary]
+    return "\n\n".join(part for part in parts if part)
+
+
+def get_voice_text_for_embedding(voice: "VoiceClone") -> str:
+    """
+    Build text representation of a VoiceClone for embedding.
+
+    Combines voice_name and description.
+
+    Args:
+        voice: VoiceClone instance
+
+    Returns:
+        Combined text for embedding
+    """
+    parts = [voice.voice_name, voice.description]
+    return "\n\n".join(part for part in parts if part)
 
 
 # =============================================================================
@@ -165,7 +226,7 @@ def create_talking_head_profiles_collection(
     """
     Create (or recreate) the TalkingHeadProfiles collection.
 
-    Vectorizes: personality_prompt, memory_context
+    Uses manual vectorization. Call get_embedding() before insertion.
 
     Args:
         client: Connected Weaviate client
@@ -183,13 +244,11 @@ def create_talking_head_profiles_collection(
 
     if not exists:
         logger.info("Creating collection '%s'", TALKING_HEAD_PROFILES_COLLECTION_NAME)
-        # Using Weaviate default vector index (HNSW with cosine distance).
-        # This matches the Documentation collection pattern in doc_ingestion.py.
         client.collections.create(
             name=TALKING_HEAD_PROFILES_COLLECTION_NAME,
-            vectorizer_config=Configure.Vectorizer.text2vec_ollama(
-                api_endpoint=settings.OLLAMA_API_ENDPOINT,
-                model=settings.OLLAMA_EMBEDDING_MODEL,
+            vectorizer_config=Configure.Vectorizer.none(),
+            vector_index_config=Configure.VectorIndex.hnsw(
+                distance_metric=VectorDistances.COSINE
             ),
             properties=[
                 Property(name="avatar_id", data_type=DataType.TEXT),
@@ -197,8 +256,8 @@ def create_talking_head_profiles_collection(
                 Property(name="avatar_type", data_type=DataType.TEXT),
                 Property(name="reference_image_path", data_type=DataType.TEXT),
                 Property(name="voice_profile_id", data_type=DataType.TEXT),
-                Property(name="personality_prompt", data_type=DataType.TEXT),  # Vectorized
-                Property(name="memory_context", data_type=DataType.TEXT),  # Vectorized
+                Property(name="personality_prompt", data_type=DataType.TEXT),
+                Property(name="memory_context", data_type=DataType.TEXT),
                 Property(name="created_at", data_type=DataType.TEXT),
                 Property(name="last_used", data_type=DataType.TEXT),
             ],
@@ -219,7 +278,7 @@ def create_conversation_memory_collection(
     """
     Create (or recreate) the ConversationMemory collection.
 
-    Vectorizes: user_message, avatar_response, context_summary
+    Uses manual vectorization. Call get_embedding() before insertion.
 
     Args:
         client: Connected Weaviate client
@@ -237,23 +296,21 @@ def create_conversation_memory_collection(
 
     if not exists:
         logger.info("Creating collection '%s'", CONVERSATION_MEMORY_COLLECTION_NAME)
-        # Using Weaviate default vector index (HNSW with cosine distance).
-        # This matches the Documentation collection pattern in doc_ingestion.py.
         client.collections.create(
             name=CONVERSATION_MEMORY_COLLECTION_NAME,
-            vectorizer_config=Configure.Vectorizer.text2vec_ollama(
-                api_endpoint=settings.OLLAMA_API_ENDPOINT,
-                model=settings.OLLAMA_EMBEDDING_MODEL,
+            vectorizer_config=Configure.Vectorizer.none(),
+            vector_index_config=Configure.VectorIndex.hnsw(
+                distance_metric=VectorDistances.COSINE
             ),
             properties=[
-                Property(name="conversation_id", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="avatar_id", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="user_id", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="timestamp", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="user_message", data_type=DataType.TEXT),  # Vectorized
-                Property(name="avatar_response", data_type=DataType.TEXT),  # Vectorized
-                Property(name="emotion_tags", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="context_summary", data_type=DataType.TEXT),  # Vectorized
+                Property(name="conversation_id", data_type=DataType.TEXT),
+                Property(name="avatar_id", data_type=DataType.TEXT),
+                Property(name="user_id", data_type=DataType.TEXT),
+                Property(name="timestamp", data_type=DataType.TEXT),
+                Property(name="user_message", data_type=DataType.TEXT),
+                Property(name="avatar_response", data_type=DataType.TEXT),
+                Property(name="emotion_tags", data_type=DataType.TEXT),
+                Property(name="context_summary", data_type=DataType.TEXT),
             ],
         )
         logger.info(
@@ -272,7 +329,7 @@ def create_voice_clones_collection(
     """
     Create (or recreate) the VoiceClones collection.
 
-    Vectorizes: description
+    Uses manual vectorization. Call get_embedding() before insertion.
 
     Args:
         client: Connected Weaviate client
@@ -290,22 +347,20 @@ def create_voice_clones_collection(
 
     if not exists:
         logger.info("Creating collection '%s'", VOICE_CLONES_COLLECTION_NAME)
-        # Using Weaviate default vector index (HNSW with cosine distance).
-        # This matches the Documentation collection pattern in doc_ingestion.py.
         client.collections.create(
             name=VOICE_CLONES_COLLECTION_NAME,
-            vectorizer_config=Configure.Vectorizer.text2vec_ollama(
-                api_endpoint=settings.OLLAMA_API_ENDPOINT,
-                model=settings.OLLAMA_EMBEDDING_MODEL,
+            vectorizer_config=Configure.Vectorizer.none(),
+            vector_index_config=Configure.VectorIndex.hnsw(
+                distance_metric=VectorDistances.COSINE
             ),
             properties=[
-                Property(name="voice_id", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="voice_name", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="reference_audio_path", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="model_checkpoint_path", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="description", data_type=DataType.TEXT),  # Vectorized
-                Property(name="language", data_type=DataType.TEXT, skip_vectorization=True),
-                Property(name="created_at", data_type=DataType.TEXT, skip_vectorization=True),
+                Property(name="voice_id", data_type=DataType.TEXT),
+                Property(name="voice_name", data_type=DataType.TEXT),
+                Property(name="reference_audio_path", data_type=DataType.TEXT),
+                Property(name="model_checkpoint_path", data_type=DataType.TEXT),
+                Property(name="description", data_type=DataType.TEXT),
+                Property(name="language", data_type=DataType.TEXT),
+                Property(name="created_at", data_type=DataType.TEXT),
             ],
         )
         logger.info(
@@ -576,6 +631,107 @@ def get_voice_clones_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
             "Failed to get stats for '%s': %s", VOICE_CLONES_COLLECTION_NAME, e
         )
         raise
+
+
+# =============================================================================
+# Insertion Helper Functions
+# =============================================================================
+
+
+def insert_talking_head_profile(
+    client: weaviate.WeaviateClient,
+    profile: TalkingHeadProfile,
+) -> UUID:
+    """
+    Insert a TalkingHeadProfile into the collection with computed embedding.
+
+    Computes the embedding from the profile's text representation and inserts
+    the profile into the TalkingHeadProfiles collection.
+
+    Args:
+        client: Connected Weaviate client
+        profile: TalkingHeadProfile instance to insert
+
+    Returns:
+        UUID of the inserted object
+
+    Raises:
+        Exception: If the collection doesn't exist or insertion fails
+    """
+    collection = client.collections.get(TALKING_HEAD_PROFILES_COLLECTION_NAME)
+    text = get_profile_text_for_embedding(profile)
+    vector = get_embedding(text)
+    result = collection.data.insert(properties=profile.to_properties(), vector=vector)
+    logger.debug(
+        "Inserted TalkingHeadProfile '%s' with UUID %s",
+        profile.avatar_name,
+        result,
+    )
+    return result
+
+
+def insert_conversation_message(
+    client: weaviate.WeaviateClient,
+    message: ConversationMessage,
+) -> UUID:
+    """
+    Insert a ConversationMessage into the collection with computed embedding.
+
+    Computes the embedding from the message's text representation and inserts
+    the message into the ConversationMemory collection.
+
+    Args:
+        client: Connected Weaviate client
+        message: ConversationMessage instance to insert
+
+    Returns:
+        UUID of the inserted object
+
+    Raises:
+        Exception: If the collection doesn't exist or insertion fails
+    """
+    collection = client.collections.get(CONVERSATION_MEMORY_COLLECTION_NAME)
+    text = get_conversation_text_for_embedding(message)
+    vector = get_embedding(text)
+    result = collection.data.insert(properties=message.to_properties(), vector=vector)
+    logger.debug(
+        "Inserted ConversationMessage for conversation '%s' with UUID %s",
+        message.conversation_id,
+        result,
+    )
+    return result
+
+
+def insert_voice_clone(
+    client: weaviate.WeaviateClient,
+    voice: VoiceClone,
+) -> UUID:
+    """
+    Insert a VoiceClone into the collection with computed embedding.
+
+    Computes the embedding from the voice's text representation and inserts
+    the voice clone into the VoiceClones collection.
+
+    Args:
+        client: Connected Weaviate client
+        voice: VoiceClone instance to insert
+
+    Returns:
+        UUID of the inserted object
+
+    Raises:
+        Exception: If the collection doesn't exist or insertion fails
+    """
+    collection = client.collections.get(VOICE_CLONES_COLLECTION_NAME)
+    text = get_voice_text_for_embedding(voice)
+    vector = get_embedding(text)
+    result = collection.data.insert(properties=voice.to_properties(), vector=vector)
+    logger.debug(
+        "Inserted VoiceClone '%s' with UUID %s",
+        voice.voice_name,
+        result,
+    )
+    return result
 
 
 # =============================================================================
