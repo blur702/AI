@@ -8,16 +8,39 @@ export function useSocket() {
   const [services, setServices] = useState<Record<string, ServiceState>>({});
   const socketRef = useRef<Socket | null>(null);
 
+  const fetchStatuses = useCallback(async () => {
+    try {
+      const response = await fetch(`${getApiBase()}/api/services`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        console.error(`Error fetching statuses: ${response.status} ${response.statusText}`);
+        return;
+      }
+      const data: ServicesResponse = await response.json();
+      if (data && data.services) {
+        setServices(data.services);
+      }
+    } catch (error) {
+      console.error('Error fetching statuses:', error);
+    }
+  }, []);
+
   useEffect(() => {
+    const abortController = new AbortController();
+
     // Fetch session token for Socket.IO authentication
     fetch(`${getApiBase()}/api/auth/token`, {
-      credentials: 'include'
+      credentials: 'include',
+      signal: abortController.signal,
     })
       .then(res => {
+        if (abortController.signal.aborted) return;
         if (!res.ok) throw new Error('Authentication required');
         return res.json();
       })
       .then(data => {
+        if (abortController.signal.aborted || !data) return;
         // Connect with token in auth payload
         const socket = io(getApiBase(), {
           transports: ['websocket', 'polling'],
@@ -30,6 +53,8 @@ export function useSocket() {
         socket.on('connect', () => {
           console.log('WebSocket connected');
           setConnected(true);
+          // Fetch initial statuses when connected
+          fetchStatuses();
         });
 
         socket.on('disconnect', () => {
@@ -48,31 +73,22 @@ export function useSocket() {
             }
           }));
         });
-
-        // Fetch initial statuses
-        fetchStatuses();
       })
       .catch(error => {
+        if (error.name === 'AbortError') return;
         console.error('Socket.IO authentication failed:', error);
         setConnected(false);
+        // Still fetch statuses even if WebSocket fails - allows polling fallback
+        fetchStatuses();
       });
 
     return () => {
+      abortController.abort();
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
     };
-  }, []);
-
-  const fetchStatuses = useCallback(async () => {
-    try {
-      const response = await fetch(`${getApiBase()}/api/services`);
-      const data: ServicesResponse = await response.json();
-      setServices(data.services);
-    } catch (error) {
-      console.error('Error fetching statuses:', error);
-    }
-  }, []);
+  }, [fetchStatuses]);
 
   const startService = useCallback(async (serviceId: string) => {
     setServices(prev => ({
