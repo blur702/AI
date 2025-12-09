@@ -112,7 +112,8 @@ export function useSocket() {
 
     try {
       const response = await fetch(`${getApiBase()}/api/services/${serviceId}/start`, {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include'
       });
       const data = await response.json();
 
@@ -151,7 +152,8 @@ export function useSocket() {
 
     try {
       const response = await fetch(`${getApiBase()}/api/services/${serviceId}/stop`, {
-        method: 'POST'
+        method: 'POST',
+        credentials: 'include'
       });
       const data = await response.json();
 

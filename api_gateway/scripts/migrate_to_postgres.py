@@ -20,6 +20,7 @@ Enums: job_status, todo_status, error_severity
 import argparse
 import asyncio
 import sqlite3
+import sys
 from pathlib import Path
 
 import asyncpg

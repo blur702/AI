@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Boolean,
@@ -50,9 +50,9 @@ class Job(Base):
     request_data = Column(JSON, nullable=True)
     result = Column(JSON, nullable=True)
     error = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
     )
     timeout_seconds = Column(Integer, default=300, nullable=False)
 
@@ -62,7 +62,7 @@ class APIKey(Base):
 
     key = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     last_used_at = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
@@ -77,9 +77,9 @@ class Todo(Base):
     priority = Column(Integer, default=0, nullable=False)
     due_date = Column(DateTime, nullable=True)
     tags = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
     )
     completed_at = Column(DateTime, nullable=True)
 
@@ -94,7 +94,7 @@ class Error(Base):
     stack_trace = Column(Text, nullable=True)
     context = Column(JSON, nullable=True)
     job_id = Column(String, nullable=True, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     resolved = Column(Boolean, default=False, nullable=False)
     resolved_at = Column(DateTime, nullable=True)
 
