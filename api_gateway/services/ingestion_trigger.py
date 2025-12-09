@@ -61,7 +61,16 @@ def print_progress(
     total: int,
     message: str,
 ) -> None:
-    """Print progress update to console."""
+    """
+    Print progress update to console.
+
+    Args:
+        ingestion_type: Type identifier (e.g., "doc", "code")
+        phase: Current phase name (e.g., "scanning", "processing")
+        current: Current progress count
+        total: Total items to process
+        message: Status message
+    """
     if total > 0:
         pct = (current / total) * 100
         print(f"[{ingestion_type}] {phase}: {current}/{total} ({pct:.1f}%) - {message}")
@@ -75,7 +84,12 @@ DOC_EXTENSIONS = {".md"}
 
 # Queue file location for deferred ingestion (relative to workspace root)
 def _get_ingestion_queue_file() -> Path:
-    """Get ingestion queue file path, relative to workspace root."""
+    """
+    Get ingestion queue file path, relative to workspace root.
+
+    Returns:
+        Path to logs/ingestion_queue.txt file
+    """
     workspace_root = Path(__file__).resolve().parents[2]
     return workspace_root / "logs" / "ingestion_queue.txt"
 
@@ -83,7 +97,15 @@ INGESTION_QUEUE_FILE = _get_ingestion_queue_file()
 
 
 def _relative_to_workspace(path: Path) -> str:
-    """Convert path to workspace-relative string."""
+    """
+    Convert path to workspace-relative string.
+
+    Args:
+        path: Absolute or relative file path
+
+    Returns:
+        Workspace-relative path string, or absolute path if not within workspace
+    """
     workspace_root = Path(__file__).resolve().parents[2]
     try:
         return str(path.resolve().relative_to(workspace_root))
@@ -267,7 +289,14 @@ def process_queue(dry_run: bool = False) -> int:
 
 
 def show_queue() -> int:
-    """Show the current ingestion queue without processing it."""
+    """
+    Show the current ingestion queue without processing it.
+
+    Displays queued files grouped by type (code/doc) with deduplication.
+
+    Returns:
+        Exit code (0 for success)
+    """
     if not INGESTION_QUEUE_FILE.exists():
         print("No queued files.")
         return 0
@@ -297,7 +326,15 @@ def show_queue() -> int:
 
 
 def run_status() -> int:
-    """Show status of all collections."""
+    """
+    Show status of all collections.
+
+    Displays object counts and entity type breakdowns for Documentation
+    and CodeEntity collections.
+
+    Returns:
+        Exit code (0 for success, 1 for errors)
+    """
     print(f"Weaviate URL: {settings.WEAVIATE_URL}")
     print()
 
@@ -334,7 +371,19 @@ def run_ingestion(
     code_service: str,
     verbose: bool,
 ) -> int:
-    """Run ingestion for specified targets."""
+    """
+    Run ingestion for specified targets.
+
+    Args:
+        targets: List of targets to ingest ("doc", "code", or both)
+        reindex: If True, delete and recreate collections before ingesting
+        dry_run: If True, scan files without ingesting
+        code_service: Service name for code ingestion ("all", "core", or specific service)
+        verbose: Enable verbose logging
+
+    Returns:
+        Exit code (0 for success, 1 for errors)
+    """
     print(f"Weaviate URL: {settings.WEAVIATE_URL}")
     print(f"Targets: {', '.join(targets)}")
     print(f"Reindex: {reindex}")
@@ -413,7 +462,15 @@ def run_ingestion(
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    """CLI entry point."""
+    """
+    CLI entry point for ingestion trigger.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: With exit code (0 for success, 1 for errors)
+    """
     # Build service choices dynamically
     service_choices = ["core", "all"] + sorted(AI_SERVICE_DIRS.values())
 

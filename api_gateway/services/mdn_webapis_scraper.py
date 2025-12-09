@@ -96,7 +96,15 @@ PauseCheck = Callable[[], bool]
 
 
 def get_doc_text_for_embedding(doc: MDNWebAPIDoc) -> str:
-    """Build text representation for embedding computation."""
+    """
+    Build text representation for embedding computation.
+
+    Args:
+        doc: MDN Web API documentation object
+
+    Returns:
+        Combined text from title, section_type, and content (limited to 2000 chars for content)
+    """
     parts = []
     if doc.title:
         parts.append(doc.title)
@@ -123,6 +131,15 @@ class MDNWebAPIsScraper:
         check_cancelled: Optional[CancelCheck] = None,
         check_paused: Optional[PauseCheck] = None,
     ):
+        """
+        Initialize the MDN Web APIs documentation scraper.
+
+        Args:
+            config: Scraping configuration (rate limits, batch size, section filter, etc.)
+            progress_callback: Optional callback for progress updates (phase, current, total, message)
+            check_cancelled: Optional callback to check if scraping should be cancelled
+            check_paused: Optional callback to check if scraping is paused
+        """
         self.config = config or ScrapeConfig()
         self.progress_callback = progress_callback
         self.check_cancelled = check_cancelled
@@ -141,12 +158,23 @@ class MDNWebAPIsScraper:
         self._seen_urls: Set[str] = set()
 
     def __enter__(self) -> "MDNWebAPIsScraper":
+        """Context manager entry."""
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Context manager exit, closes HTTP client."""
         self.client.close()
 
     def _emit_progress(self, phase: str, current: int, total: int, message: str) -> None:
+        """
+        Emit progress update via callback if configured.
+
+        Args:
+            phase: Current phase of scraping
+            current: Current count
+            total: Total expected count (0 if unknown)
+            message: Progress message
+        """
         if self.progress_callback:
             try:
                 self.progress_callback(phase, current, total, message)
@@ -154,6 +182,12 @@ class MDNWebAPIsScraper:
                 pass
 
     def _is_cancelled(self) -> bool:
+        """
+        Check if scraping has been cancelled.
+
+        Returns:
+            True if cancelled, False otherwise
+        """
         if self.check_cancelled:
             try:
                 return self.check_cancelled()
@@ -162,7 +196,12 @@ class MDNWebAPIsScraper:
         return False
 
     def _is_paused(self) -> bool:
-        """Check if paused and wait. Returns True if cancelled during wait."""
+        """
+        Check if scraping is paused and wait if so.
+
+        Returns:
+            True if cancelled during wait, False otherwise
+        """
         if self.check_paused:
             try:
                 return self.check_paused()
@@ -190,7 +229,15 @@ class MDNWebAPIsScraper:
         self._last_request_time = time.time()
 
     def _fetch(self, url: str) -> Optional[BeautifulSoup]:
-        """Fetch URL with rate limiting and error handling."""
+        """
+        Fetch URL with rate limiting and error handling.
+
+        Args:
+            url: URL to fetch
+
+        Returns:
+            BeautifulSoup object if successful, None on error
+        """
         self._rate_limit()
 
         try:
@@ -206,13 +253,29 @@ class MDNWebAPIsScraper:
             return None
 
     def _normalize_url(self, url: str) -> str:
-        """Normalize URL to canonical form."""
+        """
+        Normalize URL to canonical form.
+
+        Args:
+            url: URL to normalize
+
+        Returns:
+            Normalized URL without fragments or query parameters
+        """
         parsed = urlparse(url)
         # Remove fragments and query params for deduplication
         return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
 
     def _get_section_type_from_url(self, url: str) -> str:
-        """Determine section type from URL path."""
+        """
+        Determine section type from URL path.
+
+        Args:
+            url: Page URL
+
+        Returns:
+            Section type (CSS, HTML, or WebAPI)
+        """
         path = urlparse(url).path
 
         if "/docs/Web/CSS" in path:
@@ -225,7 +288,16 @@ class MDNWebAPIsScraper:
             return "WebAPI"  # Default for other Web docs
 
     def _is_valid_doc_url(self, url: str, section_type: str) -> bool:
-        """Check if URL is a valid documentation page for the section."""
+        """
+        Check if URL is a valid documentation page for the section.
+
+        Args:
+            url: URL to validate
+            section_type: Expected section type (CSS, HTML, WebAPI)
+
+        Returns:
+            True if URL is valid for the section type, False otherwise
+        """
         parsed = urlparse(url)
         path = parsed.path
 
@@ -262,7 +334,15 @@ class MDNWebAPIsScraper:
         return True
 
     def _extract_title(self, soup: BeautifulSoup) -> str:
-        """Extract page title from MDN page."""
+        """
+        Extract page title from MDN page.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Page title or empty string
+        """
         # Try the main heading first
         h1 = soup.select_one("h1")
         if h1:
@@ -278,7 +358,15 @@ class MDNWebAPIsScraper:
         return ""
 
     def _extract_content(self, soup: BeautifulSoup) -> str:
-        """Extract main content from MDN page."""
+        """
+        Extract main content from MDN page.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Main content text (limited to 10000 chars) or empty string
+        """
         # MDN uses article.main-page-content for main content
         article = soup.select_one("article.main-page-content, article, main")
         if not article:
@@ -299,7 +387,15 @@ class MDNWebAPIsScraper:
         return text[:10000]
 
     def _extract_last_modified(self, soup: BeautifulSoup) -> str:
-        """Extract last modified date from MDN page metadata."""
+        """
+        Extract last modified date from MDN page metadata.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            ISO 8601 timestamp or current time if not found
+        """
         # Try meta tag
         meta = soup.select_one('meta[property="article:modified_time"]')
         if meta:
@@ -314,7 +410,17 @@ class MDNWebAPIsScraper:
         return datetime.now(timezone.utc).isoformat()
 
     def _extract_links(self, soup: BeautifulSoup, base_url: str, section_type: str) -> List[str]:
-        """Extract links to other documentation pages in the same section."""
+        """
+        Extract links to other documentation pages in the same section.
+
+        Args:
+            soup: Parsed HTML page
+            base_url: Current page URL for resolving relative links
+            section_type: Current section type filter
+
+        Returns:
+            List of absolute URLs to valid documentation pages in the same section
+        """
         links = []
         for a in soup.select("a[href]"):
             href = a.get("href", "")
@@ -339,7 +445,17 @@ class MDNWebAPIsScraper:
     def _parse_page(
         self, soup: BeautifulSoup, url: str, section_type: str
     ) -> Optional[MDNWebAPIDoc]:
-        """Parse a single MDN page and extract documentation from pre-fetched soup."""
+        """
+        Parse a single MDN page and extract documentation from pre-fetched soup.
+
+        Args:
+            soup: Pre-fetched BeautifulSoup object
+            url: Page URL
+            section_type: Section type (CSS, HTML, or WebAPI)
+
+        Returns:
+            MDNWebAPIDoc object or None if insufficient content
+        """
         title = self._extract_title(soup)
         if not title:
             logger.warning("No title found for %s", url)
@@ -369,7 +485,16 @@ class MDNWebAPIsScraper:
     def scrape_section(
         self, section_path: str, section_type: str
     ) -> Generator[MDNWebAPIDoc, None, None]:
-        """Scrape all pages in a documentation section using BFS."""
+        """
+        Scrape all pages in a documentation section using BFS.
+
+        Args:
+            section_path: Full path to section root (e.g., "/en-US/docs/Web/CSS/Reference")
+            section_type: Section type (CSS, HTML, or WebAPI)
+
+        Yields:
+            MDNWebAPIDoc objects for each successfully parsed page
+        """
         start_url = f"{MDN_BASE}{section_path}"
         logger.info("Scraping section: %s (%s)", section_path, section_type)
 
@@ -431,7 +556,12 @@ class MDNWebAPIsScraper:
         logger.info("Finished section %s: %d documents", section_path, entity_count)
 
     def scrape_all(self) -> Generator[MDNWebAPIDoc, None, None]:
-        """Scrape all Web APIs documentation sections."""
+        """
+        Scrape all Web APIs documentation sections defined in WEBAPI_SECTIONS.
+
+        Yields:
+            MDNWebAPIDoc objects from all sections (or filtered sections if config.section_filter is set)
+        """
         for section_path, section_type, description in WEBAPI_SECTIONS:
             if self._is_cancelled():
                 return
@@ -594,6 +724,12 @@ def scrape_mdn_webapis(
 
 
 def _configure_logging(verbose: bool) -> None:
+    """
+    Configure logging level based on verbosity flag.
+
+    Args:
+        verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+    """
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
@@ -603,6 +739,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    """
+    CLI entry point for MDN Web APIs scraper.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On command failure
+    """
     parser = argparse.ArgumentParser(
         description="MDN Web APIs documentation scraper for Weaviate ingestion.",
     )

@@ -51,7 +51,13 @@ ALL_COLLECTIONS = [
 
 
 def get_ollama_models() -> List[str]:
-    """Get list of models available in Ollama."""
+    """
+    Get list of models available in Ollama.
+
+    Returns:
+        List of model name strings from Ollama /api/tags endpoint,
+        or empty list on error
+    """
     try:
         response = httpx.get(
             f"{settings.OLLAMA_API_ENDPOINT}/api/tags",
@@ -66,7 +72,18 @@ def get_ollama_models() -> List[str]:
 
 
 def check_model_available(model_name: str) -> bool:
-    """Check if a model is available in Ollama by trying to generate an embedding."""
+    """
+    Check if a model is available in Ollama by trying to generate an embedding.
+
+    First attempts a direct embedding test (most reliable), then falls back
+    to checking the model list with tag variation handling.
+
+    Args:
+        model_name: Model identifier (e.g., "snowflake-arctic-embed:l")
+
+    Returns:
+        True if model is available and can generate embeddings, False otherwise
+    """
     # First try direct embedding test - most reliable
     try:
         response = httpx.post(
@@ -89,7 +106,15 @@ def check_model_available(model_name: str) -> bool:
 
 
 def get_embedding_dimension(model_name: str) -> Optional[int]:
-    """Get embedding dimension for a model, or None if unknown."""
+    """
+    Get embedding dimension for a model, or None if unknown.
+
+    Args:
+        model_name: Model identifier
+
+    Returns:
+        Expected embedding vector dimension, or None if model is not in known list
+    """
     return EMBEDDING_MODELS.get(model_name)
 
 
@@ -97,11 +122,14 @@ def check_status() -> Dict[str, Any]:
     """
     Check current configuration and collection status.
 
-    Returns dict with:
-        - configured_model: Current model in settings
-        - model_available: Whether model is available in Ollama
-        - model_dimensions: Expected embedding dimensions
-        - collections: Dict of collection -> object_count
+    Queries Ollama for model availability and Weaviate for collection counts.
+
+    Returns:
+        Dict with keys:
+            - configured_model (str): Current model in settings
+            - model_available (bool): Whether model is available in Ollama
+            - model_dimensions (int|None): Expected embedding dimensions
+            - collections (dict): Collection name -> object count (or None if not exists)
     """
     model = settings.OLLAMA_EMBEDDING_MODEL
     available = check_model_available(model)
@@ -132,11 +160,21 @@ def migrate(dry_run: bool = False) -> Dict[str, Any]:
     """
     Perform full migration: delete all collections and re-ingest.
 
+    Deletes all Weaviate collections (Documentation, CodeEntity, DrupalAPIEntity)
+    and re-indexes Documentation and CodeEntity with new embedding model. DrupalAPIEntity
+    collection is recreated empty (requires re-running scraper).
+
     Args:
-        dry_run: If True, only report what would be done
+        dry_run: If True, only report what would be done without making changes
 
     Returns:
-        Dict with migration results
+        Dict with migration results:
+            - success (bool): Whether migration succeeded
+            - model (str): Model used for migration
+            - dry_run (bool): Whether this was a dry run
+            - collections_deleted (list): List of deleted collection names
+            - collections_reindexed (dict): Collection -> reindex stats
+            - error (str, optional): Error message if failed
     """
     # Import ingestion services here to avoid circular imports
     from .doc_ingestion import ingest_documentation
@@ -220,7 +258,8 @@ def _configure_logging(verbose: bool) -> None:
     Configure logging level based on verbosity flag.
 
     Args:
-        verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+        verbose: If True, enable DEBUG logging for all loggers;
+                 otherwise use settings.LOG_LEVEL
     """
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
