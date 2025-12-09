@@ -42,6 +42,18 @@ if %ERRORLEVEL% NEQ 0 (
     goto :EOF
 )
 
+REM Configure n8n for local development
+REM Basic auth only (no user management/email verification)
+set N8N_BASIC_AUTH_ACTIVE=true
+set N8N_BASIC_AUTH_USER=admin
+set N8N_BASIC_AUTH_PASSWORD=admin123
+
+REM Disable user management to skip email verification requirement
+set N8N_USER_MANAGEMENT_DISABLED=true
+
+REM Optional: Set webhook URL for external access
+REM set WEBHOOK_URL=https://ssdd.kevinalthaus.com/n8n/
+
 REM Launch n8n with default configuration.
 REM By default, n8n will:
 REM   - Listen on port 5678
