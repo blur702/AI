@@ -237,7 +237,12 @@ class DashboardAPI:
         """
         result = self._get("/api/services")
         if result and "services" in result:
-            return result["services"]
+            services = result["services"]
+            # API returns services as a dict keyed by service ID
+            # Convert to list of dicts with 'id' field included
+            if isinstance(services, dict):
+                return [{"id": k, **v} for k, v in services.items()]
+            return services
         return []
 
     def start_service(self, service_id: str) -> bool:
