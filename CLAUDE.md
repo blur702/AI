@@ -75,10 +75,54 @@ ollama run <model>                 # Load and run
 ollama stop <model>                # Unload from VRAM
 ```
 
+### Dashboard Persistence & Monitoring
+The dashboard has a Task Scheduler-based persistence system that automatically restarts it if it becomes unresponsive.
+
+**Scripts Location**: `D:\AI\scripts\`
+- `dashboard-monitor.ps1` - Monitors port 80 every 30 seconds, restarts dashboard on failure
+- `setup-task.ps1` - Creates Windows Task Scheduler task (run as Administrator)
+
+**Setup (one-time, run as Administrator):**
+```powershell
+powershell -ExecutionPolicy Bypass -File D:\AI\scripts\setup-task.ps1
+```
+
+**How it works:**
+1. Task Scheduler runs `dashboard-monitor.ps1` on user logon with SYSTEM privileges
+2. Script checks port 80 connectivity every 30 seconds
+3. If port is unresponsive (and no disable flag), executes `start_dashboard.bat`
+4. Coexists with tray app auto-restart (both mechanisms can operate independently)
+
+**Disable/Enable Monitoring:**
+```powershell
+# Disable (create flag file)
+New-Item -ItemType File -Path "D:\AI\scripts\disable.flag" -Force
+
+# Enable (remove flag file)
+Remove-Item -Path "D:\AI\scripts\disable.flag" -Force
+
+# Check status
+Test-Path "D:\AI\scripts\disable.flag"
+```
+
+**Task Management:**
+```powershell
+# View task details
+schtasks /query /tn "AI Dashboard Monitor" /v /fo list
+
+# Delete task
+schtasks /delete /tn "AI Dashboard Monitor" /f
+
+# Run task manually
+schtasks /run /tn "AI Dashboard Monitor"
+
+# View logs: Event Viewer → Applications and Services Logs → Microsoft → Windows → TaskScheduler
+```
+
 ## Architecture
 
 ### Single-Port Deployment
-The dashboard uses a **single-port architecture** where Flask serves both the React frontend and API on port 80. This enables external access via domain without exposing multiple ports.
+The dashboard uses a **single-port architecture** where Flask serves both the React frontend and API on port 80. This enables external access via domain without exposing multiple ports. Persistent monitoring via Task Scheduler ensures the dashboard auto-restarts if it becomes unresponsive.
 
 - Frontend: `http://localhost/` (React SPA from `frontend/dist/`)
 - API: `http://localhost/api/*`
@@ -127,13 +171,27 @@ External HTTPS URLs via `https://ssdd.kevinalthaus.com`:
 GET  /api/services                 # All service statuses
 POST /api/services/<id>/start      # Start a service
 POST /api/services/<id>/stop       # Stop a service
+POST /api/services/<id>/pause      # Pause a running service
+POST /api/services/<id>/resume     # Resume a paused service
 GET  /api/vram/status              # GPU memory info
 GET  /api/models/ollama/list       # All Ollama models
 GET  /api/models/ollama/loaded     # Currently loaded models
 POST /api/models/ollama/load       # Load model to GPU
 POST /api/models/ollama/unload     # Unload model
 
-WebSocket Events: vram_update (every 2s)
+# Ingestion Management
+GET  /api/ingestion/status         # Ingestion status with collection counts
+POST /api/ingestion/start          # Start ingestion (types[], reindex, options)
+POST /api/ingestion/cancel         # Cancel running ingestion
+POST /api/ingestion/pause          # Pause running ingestion
+POST /api/ingestion/resume         # Resume paused ingestion
+POST /api/ingestion/clean          # Delete collections (collections[])
+POST /api/ingestion/reindex        # Force reindex (same params as start)
+
+WebSocket Events:
+- vram_update (every 2s)
+- service_status, service_paused, service_resumed
+- ingestion_progress, ingestion_paused, ingestion_resumed, ingestion_complete
 ```
 
 ### API Gateway (port 1301)
@@ -147,6 +205,56 @@ POST /tts                          # AllTalk text-to-speech
 POST /llm/generate                 # Ollama text generation
 GET  /jobs/{job_id}                # Poll job status
 GET  /ws/jobs/{job_id}             # WebSocket job updates
+```
+
+### PostgreSQL Database
+The API Gateway uses PostgreSQL with asyncpg for persistent storage.
+
+**Tables:**
+- `jobs` - Async job tracking (image/audio/video generation)
+- `api_keys` - API key authentication
+- `todos` - Task management
+- `errors` - Error tracking and monitoring
+
+**Configuration** (in `.env` or environment):
+```bash
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_USER=ai_gateway
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=ai_gateway
+# Or set DATABASE_URL directly:
+# DATABASE_URL=postgresql+asyncpg://user:pass@host:port/db
+```
+
+**Migration Commands:**
+```bash
+# Migrate from SQLite to PostgreSQL
+python -m api_gateway.scripts.migrate_to_postgres
+python -m api_gateway.scripts.migrate_to_postgres --dry-run
+
+# Test PostgreSQL connectivity and CRUD
+python -m api_gateway.scripts.test_postgres_migration
+
+# Rollback to SQLite (if needed)
+python -m api_gateway.scripts.rollback_to_sqlite
+python -m api_gateway.scripts.rollback_to_sqlite --export-data
+```
+
+**PostgreSQL Setup (Windows):**
+```bash
+# Install PostgreSQL (via installer or scoop)
+scoop install postgresql
+
+# Initialize and start
+initdb -D D:\AI\data\postgres
+pg_ctl -D D:\AI\data\postgres start
+
+# Create database and user
+psql -U postgres
+CREATE USER ai_gateway WITH PASSWORD 'your_password';
+CREATE DATABASE ai_gateway OWNER ai_gateway;
+GRANT ALL PRIVILEGES ON DATABASE ai_gateway TO ai_gateway;
 ```
 
 ### Core Components (this repo)
@@ -176,6 +284,11 @@ nginx/                 # Nginx reverse proxy configuration
 ├── ssl/               # SSL certificates
 ├── logs/              # Access and error logs
 └── *.bat              # Management scripts
+
+scripts/               # System monitoring and automation
+├── dashboard-monitor.ps1  # Port 80 monitor with auto-restart
+├── setup-task.ps1         # Task Scheduler setup script
+└── disable.flag           # Create to disable monitoring (on demand)
 
 tests/                 # Playwright test suite
 ├── fixtures/          # Base and service fixtures
@@ -309,3 +422,229 @@ python -m api_gateway.services.scraper_supervisor uninstall-task
 7. **Port Conflicts**: Check port availability before starting services.
 8. **Vector DB First**: Query `search_code`/`search_codebase` before using Glob/Grep to find code.
 9. **SSL Certificates**: Let's Encrypt certificates expire after 90 days. Use `nginx/setup-renewal-task.bat` for auto-renewal.
+10. **Dashboard Auto-Restart**: Stopping the dashboard manually will trigger auto-restart within 30 seconds unless monitoring is disabled. To disable during maintenance: `New-Item -ItemType File -Path "D:\AI\scripts\disable.flag" -Force`
+11. **Dashboard Context**: When started by Task Scheduler monitor, dashboard runs as SYSTEM. When started manually via `start_dashboard.bat`, it runs in user context.
+12. **Auto Code Review**: A PostToolUse hook runs linters (ruff for Python, ESLint for TypeScript) after every file edit. Issues are displayed for immediate fixing. See `.claude/hooks/post-edit-review.ps1`.
+13. **MANDATORY CodeRabbit Review**: All code changes MUST be verified through CodeRabbit before a task is considered complete. See "CodeRabbit Verification Workflow" section below.
+
+## Automatic Code Review (Claude Code Hooks)
+
+This project has automatic code review configured via Claude Code hooks. After every `Edit` or `Write` operation, linters run automatically.
+
+### Current Setup
+
+**Hook Location**: `.claude/hooks/post-edit-review.ps1`
+**Configuration**: `.claude/settings.json`
+
+**What runs automatically:**
+- **Python files (*.py)**: `ruff check` for linting
+- **TypeScript/JavaScript (*.ts, *.tsx, *.js, *.jsx)**: `eslint` for linting
+
+### Adding CodeRabbit CLI (Future Enhancement)
+
+CodeRabbit CLI provides AI-powered code reviews but requires Linux/macOS (or WSL with Ubuntu).
+
+**To install when WSL Ubuntu is available:**
+```bash
+# In WSL Ubuntu
+curl -fsSL https://cli.coderabbit.ai/install.sh | sh
+source ~/.bashrc
+coderabbit auth login
+```
+
+**Then update the hook** (`.claude/hooks/post-edit-review.ps1`):
+```powershell
+# Add CodeRabbit review for comprehensive AI analysis
+$wslPath = $filePath -replace '\\', '/' -replace '^D:', '/mnt/d'
+$crOutput = wsl -d Ubuntu coderabbit review --plain --type uncommitted 2>&1
+if ($crOutput) {
+    $issues += "=== CodeRabbit AI Review ==="
+    $issues += $crOutput
+}
+```
+
+### Manual Review Commands
+
+```bash
+# Python linting
+ruff check <file.py>
+ruff check <file.py> --fix  # Auto-fix
+
+# TypeScript/JavaScript linting
+npx eslint <file.ts>
+npx eslint <file.ts> --fix  # Auto-fix
+
+# Format all code
+npm run format
+npm run lint:fix
+```
+
+## CodeRabbit Integration
+
+This project has full CodeRabbit integration for automated code review and fix application.
+
+### Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `.coderabbit.yaml` | Main CodeRabbit configuration (review profile, tools, path rules) |
+| `.github/workflows/coderabbit-autofix.yml` | GitHub Actions workflow for auto-applying fixes |
+| `.github/scripts/coderabbit_autofix.py` | Python script that parses and applies CodeRabbit suggestions |
+
+### How CodeRabbit Review Works
+
+1. **Create a PR**: Push changes to a branch and create a Pull Request
+2. **Automatic Review**: CodeRabbit automatically reviews the PR (configured in `.coderabbit.yaml`)
+3. **Auto-Fix Workflow**: The GitHub Actions workflow runs automatically:
+   - Parses CodeRabbit review comments
+   - Extracts code suggestions (diff blocks, before/after patterns)
+   - Applies fixes automatically
+   - Runs linters (ruff, black, isort, prettier, eslint)
+   - Commits and pushes fixes
+   - Posts a summary comment on the PR
+
+### Configuration Details
+
+**Review Profile**: `assertive` (detailed feedback)
+**Auto-Review**: Enabled for `master` and `main` branches
+**Tools Enabled**:
+- `ast_grep` - AST-based code analysis
+- `shellcheck` - Bash script linting
+- `ruff` - Python linting
+- `eslint` - JavaScript/TypeScript linting
+- `biome` - JavaScript/TypeScript formatting
+
+**Path-Specific Rules**:
+- Python (`**/*.py`): Type hints, logging, exceptions, security, subprocess calls
+- TypeScript (`**/*.ts`): Proper types, async/await, error handling
+- React (`**/*.tsx`): React patterns, hooks, typed props
+- Tests (`tests/**/*`): Meaningful tests, proper assertions, isolation
+
+### Running CodeRabbit Verification
+
+**Option 1: Via Pull Request (Recommended)**
+```bash
+# Create a branch and push changes
+git checkout -b feature/my-changes
+git add -A
+git commit -m "feat: Description of changes"
+git push -u origin feature/my-changes
+
+# Create PR via GitHub CLI
+gh pr create --title "My changes" --body "Description"
+
+# CodeRabbit will automatically review the PR
+# Auto-fix workflow will apply suggestions and re-run
+```
+
+**Option 2: Manual Trigger**
+```bash
+# Trigger the auto-fix workflow manually for an existing PR
+gh workflow run coderabbit-autofix.yml -f pr_number=123 -f max_iterations=3
+```
+
+**Option 3: Local Linting (Pre-PR Check)**
+```bash
+# Run the same linters CodeRabbit uses locally
+# Python
+ruff check . --fix
+black .
+isort .
+
+# TypeScript/JavaScript
+npx eslint . --ext .ts,.tsx,.js,.jsx --fix
+npx prettier --write .
+```
+
+### Auto-Fix Script Usage
+
+The auto-fix script can be run locally (requires GITHUB_TOKEN):
+```bash
+# Set GitHub token
+export GITHUB_TOKEN=your_token
+
+# Run auto-fix for a specific PR
+python .github/scripts/coderabbit_autofix.py \
+    --repo owner/repo \
+    --pr 123 \
+    --max-iterations 3 \
+    --output-summary summary.md
+```
+
+The script:
+- Fetches CodeRabbit review comments via GitHub API
+- Parses suggestions using regex patterns (diff, before/after, inline)
+- Categorizes fixes: security, performance, bug, typing, style, improvement
+- Applies fixes via exact matching or fuzzy line-based replacement
+- Runs linters for additional auto-fixes
+- Generates markdown summary
+
+## CodeRabbit Verification Workflow (MANDATORY)
+
+**CRITICAL: All code changes MUST be verified through CodeRabbit before a task is considered complete.** This is a non-negotiable requirement for code quality.
+
+### How It Works
+
+1. **User provides verification comments**: After reviewing changes (either manually or via CodeRabbit PR review), the user provides numbered verification comments with specific issues to fix.
+
+2. **Comments format**: Each comment includes:
+   - A title describing the issue
+   - Specific instructions on what to change
+   - File paths and code references
+   - Expected behavior after the fix
+
+3. **Implementation**: Claude must implement ALL verification comments exactly as specified, following the instructions verbatim.
+
+4. **Build verification**: After implementing fixes, run the build to ensure no errors:
+   ```bash
+   # Frontend
+   cd D:\AI\dashboard\frontend && npm run build
+
+   # Python (if applicable)
+   ruff check <modified_files>
+   python -m py_compile <file.py>
+   ```
+
+5. **Task completion**: A task is ONLY complete when:
+   - All verification comments have been addressed
+   - The build passes without errors
+   - No new issues are introduced
+
+### Example Verification Comment Format
+
+```markdown
+## Comment 1: [Issue Title]
+
+In `path/to/file.ext`, [description of the issue].
+
+[Specific instructions on what to change, step by step]
+
+After making these changes, verify [expected behavior].
+
+### Referred Files
+- path/to/file.ext
+```
+
+### Workflow Summary
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  1. Claude implements feature/fix                           │
+│  2. Changes pushed to branch, PR created                    │
+│  3. CodeRabbit automatically reviews PR                     │
+│  4. Auto-fix workflow applies suggestions                   │
+│  5. User reviews remaining issues, provides comments        │
+│  6. Claude implements ALL comments verbatim                 │
+│  7. Claude runs build to verify                             │
+│  8. If build fails → fix and rebuild                        │
+│  9. Task complete only when all comments fixed + build pass │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Important Notes
+
+- **Never skip verification**: Even if changes seem correct, wait for user verification comments
+- **Follow instructions exactly**: Implement comments verbatim, not interpretively
+- **Fix ALL comments**: Do not mark task complete until every comment is addressed
+- **Build must pass**: A failing build means the task is not complete
+- **Report blockers**: If a verification comment cannot be implemented as written, explain why and ask for clarification

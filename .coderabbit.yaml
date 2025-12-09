@@ -1,0 +1,88 @@
+# CodeRabbit Configuration
+# https://docs.coderabbit.ai/guides/configure-coderabbit
+
+language: en-US
+
+reviews:
+  # Enable auto-review on PRs
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - master
+      - main
+
+  # Review profile - assertive for detailed feedback
+  profile: assertive
+
+  # Request changes when issues found
+  request_changes_workflow: true
+
+  # High-level summary in PR comment
+  high_level_summary: true
+
+  # Poem in review (disabled for professional use)
+  poem: false
+
+  # Review status in PR comment
+  review_status: true
+
+  # Collapse walkthrough in PR comment
+  collapse_walkthrough: false
+
+  # Path-based instructions
+  path_instructions:
+    - path: "**/*.py"
+      instructions: |
+        - Check for proper type hints
+        - Ensure logging uses the logger module, not print()
+        - Verify exception handling is appropriate
+        - Check for potential security issues (injection, etc.)
+        - Ensure subprocess calls use proper arguments
+
+    - path: "**/*.ts"
+      instructions: |
+        - Check for proper TypeScript types (avoid 'any')
+        - Ensure async/await is used correctly
+        - Verify error handling in API calls
+
+    - path: "**/*.tsx"
+      instructions: |
+        - Check for proper React patterns
+        - Ensure hooks are used correctly
+        - Verify component props are typed
+
+    - path: "tests/**/*"
+      instructions: |
+        - Ensure tests are meaningful and not just checking for existence
+        - Verify proper assertions are used
+        - Check for proper test isolation
+
+  # Tools configuration
+  tools:
+    # Enable AST-based analysis
+    ast_grep:
+      enabled: true
+
+    # Enable shellcheck for bash scripts
+    shellcheck:
+      enabled: true
+
+    # Enable ruff for Python linting
+    ruff:
+      enabled: true
+
+    # Enable ESLint for JS/TS
+    eslint:
+      enabled: true
+
+    # Enable biome for JS/TS formatting
+    biome:
+      enabled: true
+
+# Chat configuration
+chat:
+  auto_reply: true
+
+# Early access features
+early_access: true

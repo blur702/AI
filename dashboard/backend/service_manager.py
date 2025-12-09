@@ -6,7 +6,9 @@ Provides process management and health checking capabilities.
 """
 
 import logging
+import os
 import platform
+import signal
 import subprocess
 import threading
 import time
@@ -15,6 +17,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Callable, Dict, Optional, Set
 
+import psutil
 import requests
 
 from services_config import DEFAULT_HOST, SERVICES
@@ -27,6 +30,7 @@ class ServiceStatus(Enum):
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
+    PAUSED = "paused"
     STOPPING = "stopping"
     ERROR = "error"
 
@@ -328,6 +332,24 @@ class ServiceManager:
             state = self._services.get(service_id, ServiceState())
             current_status = state.status
 
+        # Skip health checks for paused services - preserve PAUSED state
+        if current_status == ServiceStatus.PAUSED:
+            with self._lock:
+                state = self._services.get(service_id, ServiceState())
+                return {
+                    "service_id": service_id,
+                    "name": config["name"],
+                    "status": state.status.value,
+                    "port": config["port"],
+                    "icon": config["icon"],
+                    "description": config["description"],
+                    "healthy": False,  # Paused services are not responding
+                    "pid": state.pid,
+                    "error": state.error_message,
+                    "external": config.get("external", False),
+                    "manageable": config.get("command") is not None and not config.get("external", False),
+                }
+
         # Perform blocking I/O operations outside the lock
         is_healthy = self._health_check(service_id)
         port_in_use = self._check_port_in_use(config["port"])
@@ -338,7 +360,7 @@ class ServiceManager:
         # Re-acquire lock to update state
         with self._lock:
             state = self._services.get(service_id, ServiceState())
-            
+
             # Only update if state hasn't changed significantly
             if state.status == current_status:
                 # Update status based on actual state
@@ -382,7 +404,14 @@ class ServiceManager:
 
     def get_all_status(self) -> Dict[str, dict]:
         """Get status of all services using concurrent health and port checks."""
-        # Run health checks and port checks concurrently
+        # First, identify paused services to skip health checks
+        paused_services = set()
+        with self._lock:
+            for service_id, state in self._services.items():
+                if state.status == ServiceStatus.PAUSED:
+                    paused_services.add(service_id)
+
+        # Run health checks and port checks concurrently (skip paused services)
         health_results = {}
         port_results = {}
 
@@ -393,8 +422,9 @@ class ServiceManager:
             return service_id, is_healthy, port_in_use
 
         try:
+            services_to_check = [sid for sid in SERVICES if sid not in paused_services]
             with ThreadPoolExecutor(max_workers=10) as executor:
-                futures = [executor.submit(check_service, sid) for sid in SERVICES]
+                futures = [executor.submit(check_service, sid) for sid in services_to_check]
                 for future in as_completed(futures, timeout=10):
                     try:
                         service_id, is_healthy, port_in_use = future.result()
@@ -406,7 +436,7 @@ class ServiceManager:
             logger.error(f"Error in concurrent service checks: {e}")
             # Fallback: mark all as unknown
             for service_id in SERVICES:
-                if service_id not in health_results:
+                if service_id not in health_results and service_id not in paused_services:
                     health_results[service_id] = False
                     port_results[service_id] = False
 
@@ -419,6 +449,24 @@ class ServiceManager:
             for service_id in SERVICES:
                 config = SERVICES[service_id]
                 state = self._services.get(service_id, ServiceState())
+
+                # Skip status updates for paused services - preserve PAUSED state
+                if state.status == ServiceStatus.PAUSED:
+                    result[service_id] = {
+                        "service_id": service_id,
+                        "name": config["name"],
+                        "status": state.status.value,
+                        "port": config["port"],
+                        "icon": config["icon"],
+                        "description": config["description"],
+                        "healthy": False,  # Paused services are not responding
+                        "pid": state.pid,
+                        "error": state.error_message,
+                        "external": config.get("external", False),
+                        "manageable": config.get("command") is not None and not config.get("external", False),
+                    }
+                    continue
+
                 is_healthy = health_results.get(service_id, False)
                 port_in_use = port_results.get(service_id, False)
 
@@ -693,6 +741,148 @@ class ServiceManager:
                 state.status = ServiceStatus.ERROR
                 state.error_message = str(e)
             self._emit_status(service_id, ServiceStatus.ERROR, f"Failed to stop: {e}")
+            return {"success": False, "error": str(e)}
+
+    def pause_service(self, service_id: str) -> dict:
+        """
+        Pause a running service.
+
+        Args:
+            service_id: The service identifier
+
+        Returns:
+            Dictionary with result information
+        """
+        config = SERVICES.get(service_id)
+        if not config:
+            return {"success": False, "error": f"Unknown service: {service_id}"}
+
+        with self._lock:
+            state = self._services[service_id]
+
+            if state.status != ServiceStatus.RUNNING:
+                return {
+                    "success": False,
+                    "error": f"Service {service_id} is not running (current status: {state.status.value})",
+                }
+
+            pid = state.pid
+            if not pid:
+                return {"success": False, "error": "No process ID available for service"}
+
+        try:
+            process = psutil.Process(pid)
+
+            if platform.system() == "Windows":
+                # Windows: suspend all threads
+                process.suspend()
+            else:
+                # Linux/macOS: send SIGSTOP signal
+                os.kill(pid, signal.SIGSTOP)
+
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.PAUSED
+
+            self._emit_status(service_id, ServiceStatus.PAUSED, "Service paused")
+            logger.info(f"Paused service {service_id} (PID {pid})")
+
+            return {"success": True, "message": "Service paused"}
+
+        except psutil.NoSuchProcess:
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.ERROR
+                state.error_message = "Process not found"
+            self._emit_status(service_id, ServiceStatus.ERROR, "Process not found")
+            return {"success": False, "error": "Process not found"}
+
+        except psutil.AccessDenied:
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.ERROR
+                state.error_message = "Permission denied"
+            self._emit_status(service_id, ServiceStatus.ERROR, "Permission denied")
+            return {"success": False, "error": "Permission denied to pause process"}
+
+        except Exception as e:
+            logger.error(f"Error pausing {service_id}: {e}")
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.ERROR
+                state.error_message = str(e)
+            self._emit_status(service_id, ServiceStatus.ERROR, f"Failed to pause: {e}")
+            return {"success": False, "error": str(e)}
+
+    def resume_service(self, service_id: str) -> dict:
+        """
+        Resume a paused service.
+
+        Args:
+            service_id: The service identifier
+
+        Returns:
+            Dictionary with result information
+        """
+        config = SERVICES.get(service_id)
+        if not config:
+            return {"success": False, "error": f"Unknown service: {service_id}"}
+
+        with self._lock:
+            state = self._services[service_id]
+
+            if state.status != ServiceStatus.PAUSED:
+                return {
+                    "success": False,
+                    "error": f"Service {service_id} is not paused (current status: {state.status.value})",
+                }
+
+            pid = state.pid
+            if not pid:
+                return {"success": False, "error": "No process ID available for service"}
+
+        try:
+            process = psutil.Process(pid)
+
+            if platform.system() == "Windows":
+                # Windows: resume all threads
+                process.resume()
+            else:
+                # Linux/macOS: send SIGCONT signal
+                os.kill(pid, signal.SIGCONT)
+
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.RUNNING
+
+            self._emit_status(service_id, ServiceStatus.RUNNING, "Service resumed")
+            logger.info(f"Resumed service {service_id} (PID {pid})")
+
+            return {"success": True, "message": "Service resumed"}
+
+        except psutil.NoSuchProcess:
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.ERROR
+                state.error_message = "Process not found"
+            self._emit_status(service_id, ServiceStatus.ERROR, "Process not found")
+            return {"success": False, "error": "Process not found"}
+
+        except psutil.AccessDenied:
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.ERROR
+                state.error_message = "Permission denied"
+            self._emit_status(service_id, ServiceStatus.ERROR, "Permission denied")
+            return {"success": False, "error": "Permission denied to resume process"}
+
+        except Exception as e:
+            logger.error(f"Error resuming {service_id}: {e}")
+            with self._lock:
+                state = self._services[service_id]
+                state.status = ServiceStatus.ERROR
+                state.error_message = str(e)
+            self._emit_status(service_id, ServiceStatus.ERROR, f"Failed to resume: {e}")
             return {"success": False, "error": str(e)}
 
     def restart_service(self, service_id: str) -> dict:

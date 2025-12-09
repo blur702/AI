@@ -278,6 +278,7 @@ def _batched(
 
 ProgressCallback = Callable[[str, int, int, str], None]
 CancelCheck = Callable[[], bool]
+PauseCheck = Callable[[], bool]
 
 
 def ingest_code_entities(
@@ -287,6 +288,7 @@ def ingest_code_entities(
     service_name: Optional[str] = None,
     progress_callback: Optional[ProgressCallback] = None,
     check_cancelled: Optional[CancelCheck] = None,
+    check_paused: Optional[PauseCheck] = None,
 ) -> Dict[str, int]:
     """
     Ingest source files into Weaviate.
@@ -300,6 +302,7 @@ def ingest_code_entities(
                      or a specific service name (comfyui, alltalk, etc.)
         progress_callback: Optional callback(phase, current, total, message) for progress updates
         check_cancelled: Optional callback() -> bool to check if operation should be cancelled
+        check_paused: Optional callback() -> bool to check if paused and wait. Returns True if cancelled.
 
     Returns:
         Statistics dict with keys:
@@ -322,6 +325,15 @@ def ingest_code_entities(
         if check_cancelled:
             try:
                 return check_cancelled()
+            except Exception:  # noqa: BLE001
+                return False
+        return False
+
+    def is_paused() -> bool:
+        """Check if paused and wait. Returns True if cancelled during wait."""
+        if check_paused:
+            try:
+                return check_paused()
             except Exception:  # noqa: BLE001
                 return False
         return False
@@ -359,6 +371,12 @@ def ingest_code_entities(
                 if is_cancelled():
                     cancelled = True
                     logger.info("Ingestion cancelled by user")
+                    return
+
+                # Check for pause and wait if paused
+                if is_paused():
+                    cancelled = True
+                    logger.info("Ingestion cancelled during pause")
                     return
 
                 try:
@@ -417,6 +435,11 @@ def ingest_code_entities(
         retries = 3
         while retries > 0:
             if is_cancelled():
+                cancelled = True
+                break
+
+            # Check for pause and wait if paused
+            if is_paused():
                 cancelled = True
                 break
 

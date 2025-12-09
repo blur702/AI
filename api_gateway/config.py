@@ -11,7 +11,39 @@ load_dotenv(override=True)
 
 class Settings:
     API_PORT: int = int(os.getenv("API_PORT", "1301"))
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./api_gateway.db")
+
+    # PostgreSQL configuration
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
+    POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", "5432"))
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "ai_gateway")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "ai_gateway")
+
+    # Build DATABASE_URL from components if not explicitly set
+    @staticmethod
+    def _build_database_url() -> str:
+        explicit_url = os.getenv("DATABASE_URL")
+        if explicit_url:
+            return explicit_url
+
+        # Build PostgreSQL URL from components
+        host = os.getenv("POSTGRES_HOST", "localhost")
+        port = os.getenv("POSTGRES_PORT", "5432")
+        user = os.getenv("POSTGRES_USER", "ai_gateway")
+        password = os.getenv("POSTGRES_PASSWORD", "")
+        db = os.getenv("POSTGRES_DB", "ai_gateway")
+
+        if password:
+            return f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}"
+        return f"postgresql+asyncpg://{user}@{host}:{port}/{db}"
+
+    DATABASE_URL: str = _build_database_url.__func__()
+
+    # Database connection pool settings
+    DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", "5"))
+    DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", "10"))
+    DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", "3600"))
+
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
     CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "*").split(",")
     

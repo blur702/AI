@@ -57,6 +57,7 @@ from api_gateway.services.mdn_webapis_scraper import (
 
 
 EmitCallback = Callable[[str, Dict[str, Any]], None]
+PauseCheck = Callable[[], bool]
 
 
 class IngestionManager:
@@ -80,6 +81,7 @@ class IngestionManager:
         """
         self.emit = emit_callback
         self.is_running = False
+        self.paused = False
         self.task_id: Optional[str] = None
         self.current_type: Optional[str] = None
         self.started_at: Optional[float] = None
@@ -155,6 +157,7 @@ class IngestionManager:
 
         return {
             "is_running": self.is_running,
+            "paused": self.paused,
             "task_id": self.task_id,
             "current_type": self.current_type,
             "started_at": self.started_at,
@@ -193,6 +196,7 @@ class IngestionManager:
                 }
 
             self.is_running = True
+            self.paused = False
             self.task_id = str(uuid.uuid4())
             self.cancel_requested = False
             self.started_at = time.time()
@@ -241,7 +245,7 @@ class IngestionManager:
             with WeaviateConnection() as client:
                 # Process documentation
                 if "documentation" in types:
-                    if self.cancel_requested:
+                    if self.cancel_requested or self._wait_if_paused():
                         raise InterruptedError("Cancelled")
 
                     self.current_type = "documentation"
@@ -252,6 +256,7 @@ class IngestionManager:
                             task_id, "documentation", phase, current, total, msg
                         ),
                         check_cancelled=lambda: self.cancel_requested,
+                        check_paused=self.check_paused,
                     )
                     all_stats["documentation"] = doc_stats
 
@@ -266,7 +271,7 @@ class IngestionManager:
 
                 # Process code
                 if "code" in types:
-                    if self.cancel_requested:
+                    if self.cancel_requested or self._wait_if_paused():
                         raise InterruptedError("Cancelled")
 
                     self.current_type = "code"
@@ -278,6 +283,7 @@ class IngestionManager:
                             task_id, "code", phase, current, total, msg
                         ),
                         check_cancelled=lambda: self.cancel_requested,
+                        check_paused=self.check_paused,
                     )
                     all_stats["code"] = code_stats
 
@@ -292,7 +298,7 @@ class IngestionManager:
 
                 # Process Drupal API
                 if "drupal" in types:
-                    if self.cancel_requested:
+                    if self.cancel_requested or self._wait_if_paused():
                         raise InterruptedError("Cancelled")
 
                     self.current_type = "drupal"
@@ -315,6 +321,7 @@ class IngestionManager:
                             task_id, "drupal", phase, current, total, msg
                         ),
                         check_cancelled=lambda: self.cancel_requested,
+                        check_paused=self.check_paused,
                     )
                     all_stats["drupal"] = drupal_stats
 
@@ -329,7 +336,7 @@ class IngestionManager:
 
                 # Process MDN JavaScript
                 if "mdn_javascript" in types:
-                    if self.cancel_requested:
+                    if self.cancel_requested or self._wait_if_paused():
                         raise InterruptedError("Cancelled")
 
                     self.current_type = "mdn_javascript"
@@ -352,6 +359,7 @@ class IngestionManager:
                             task_id, "mdn_javascript", phase, current, total, msg
                         ),
                         check_cancelled=lambda: self.cancel_requested,
+                        check_paused=self.check_paused,
                     )
                     all_stats["mdn_javascript"] = mdn_js_stats
 
@@ -366,7 +374,7 @@ class IngestionManager:
 
                 # Process MDN Web APIs
                 if "mdn_webapis" in types:
-                    if self.cancel_requested:
+                    if self.cancel_requested or self._wait_if_paused():
                         raise InterruptedError("Cancelled")
 
                     self.current_type = "mdn_webapis"
@@ -390,6 +398,7 @@ class IngestionManager:
                             task_id, "mdn_webapis", phase, current, total, msg
                         ),
                         check_cancelled=lambda: self.cancel_requested,
+                        check_paused=self.check_paused,
                     )
                     all_stats["mdn_webapis"] = mdn_web_stats
 
@@ -427,6 +436,7 @@ class IngestionManager:
 
             with self.lock:
                 self.is_running = False
+                self.paused = False
                 self.task_id = None
                 self.current_type = None
                 self.started_at = None
@@ -453,6 +463,74 @@ class IngestionManager:
                 "task_id": self.task_id,
             }
 
+    def pause_ingestion(self) -> Dict[str, Any]:
+        """
+        Pause the current ingestion.
+
+        Returns:
+            Dictionary with success status.
+        """
+        with self.lock:
+            if not self.is_running:
+                return {
+                    "success": False,
+                    "error": "No ingestion in progress",
+                }
+
+            if self.paused:
+                return {
+                    "success": False,
+                    "error": "Ingestion already paused",
+                }
+
+            self.paused = True
+            task_id = self.task_id
+
+        self.emit("ingestion_paused", {
+            "task_id": task_id,
+            "timestamp": time.time(),
+        })
+
+        return {
+            "success": True,
+            "message": "Ingestion paused",
+            "task_id": task_id,
+        }
+
+    def resume_ingestion(self) -> Dict[str, Any]:
+        """
+        Resume a paused ingestion.
+
+        Returns:
+            Dictionary with success status.
+        """
+        with self.lock:
+            if not self.is_running:
+                return {
+                    "success": False,
+                    "error": "No ingestion in progress",
+                }
+
+            if not self.paused:
+                return {
+                    "success": False,
+                    "error": "Ingestion is not paused",
+                }
+
+            self.paused = False
+            task_id = self.task_id
+
+        self.emit("ingestion_resumed", {
+            "task_id": task_id,
+            "timestamp": time.time(),
+        })
+
+        return {
+            "success": True,
+            "message": "Ingestion resumed",
+            "task_id": task_id,
+        }
+
     def _emit_progress(
         self,
         task_id: str,
@@ -470,7 +548,33 @@ class IngestionManager:
             "current": current,
             "total": total,
             "message": message,
+            "paused": self.paused,
         })
+
+    def _wait_if_paused(self) -> bool:
+        """
+        Wait while ingestion is paused.
+
+        Returns:
+            True if cancelled during wait, False otherwise.
+        """
+        while self.paused and not self.cancel_requested:
+            time.sleep(0.5)
+        return self.cancel_requested
+
+    def check_paused(self) -> bool:
+        """
+        Check if paused and wait until resumed.
+
+        This method is intended to be passed as a callback to ingestion/scraper
+        functions so they can cooperatively pause during long-running operations.
+
+        Returns:
+            True if cancelled during pause wait, False otherwise (continue work).
+        """
+        if not self.paused:
+            return self.cancel_requested
+        return self._wait_if_paused()
 
 
 # Singleton instance (initialized by app.py)

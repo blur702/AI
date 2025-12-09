@@ -1,0 +1,13 @@
+.theme-toggle {
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.theme-icon {
+  font-size: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.theme-toggle:hover .theme-icon {
+  transform: rotate(180deg);
+}

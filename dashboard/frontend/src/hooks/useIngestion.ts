@@ -6,6 +6,9 @@ import {
   IngestionComplete,
   IngestionError,
   IngestionRequest,
+  IngestionPaused,
+  IngestionResumed,
+  CleanCollectionsRequest,
 } from '../types';
 import { getApiBase } from '../config/services';
 
@@ -133,6 +136,16 @@ export function useIngestion() {
           fetchStatus();
         });
 
+        socket.on('ingestion_paused', (data: IngestionPaused) => {
+          console.log('Ingestion paused:', data);
+          setStatus(prev => prev ? { ...prev, paused: true } : prev);
+        });
+
+        socket.on('ingestion_resumed', (data: IngestionResumed) => {
+          console.log('Ingestion resumed:', data);
+          setStatus(prev => prev ? { ...prev, paused: false } : prev);
+        });
+
         // Fetch initial status
         fetchStatus();
       })
@@ -206,6 +219,105 @@ export function useIngestion() {
     }
   }, []);
 
+  // Pause ingestion
+  const pauseIngestion = useCallback(async () => {
+    try {
+      const response = await fetch(`${getApiBase()}/api/ingestion/pause`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || data.message || 'Failed to pause ingestion');
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error pausing ingestion:', err);
+      setError('Connection error');
+      return false;
+    }
+  }, []);
+
+  // Resume ingestion
+  const resumeIngestion = useCallback(async () => {
+    try {
+      const response = await fetch(`${getApiBase()}/api/ingestion/resume`, {
+        method: 'POST',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || data.message || 'Failed to resume ingestion');
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error resuming ingestion:', err);
+      setError('Connection error');
+      return false;
+    }
+  }, []);
+
+  // Clean collections
+  const cleanCollections = useCallback(async (request: CleanCollectionsRequest) => {
+    setError(null);
+
+    try {
+      const response = await fetch(`${getApiBase()}/api/ingestion/clean`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.errors?.join(', ') || data.message || 'Failed to clean collections');
+        return false;
+      }
+
+      // Refresh status to get updated collection counts
+      fetchStatus();
+      return true;
+    } catch (err) {
+      console.error('Error cleaning collections:', err);
+      setError('Connection error');
+      return false;
+    }
+  }, [fetchStatus]);
+
+  // Reindex (start with force reindex)
+  const reindexCollections = useCallback(async (request: IngestionRequest) => {
+    setError(null);
+    setLastResult(null);
+
+    try {
+      const response = await fetch(`${getApiBase()}/api/ingestion/reindex`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || data.message || 'Failed to start reindex');
+        return false;
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error starting reindex:', err);
+      setError('Connection error');
+      return false;
+    }
+  }, []);
+
   return {
     status,
     progress,
@@ -214,6 +326,10 @@ export function useIngestion() {
     loading,
     startIngestion,
     cancelIngestion,
+    pauseIngestion,
+    resumeIngestion,
+    cleanCollections,
+    reindexCollections,
     refreshStatus: fetchStatus,
   };
 }

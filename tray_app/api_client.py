@@ -19,7 +19,7 @@ class DashboardAPI:
 
     def __init__(self, base_url: str = "http://localhost"):
         self.base_url = base_url.rstrip("/")
-        self.timeout = 5  # seconds
+        self.timeout = 10  # seconds
 
     def _get(self, endpoint: str) -> Optional[dict]:
         """Make a GET request to the API."""
@@ -51,7 +51,7 @@ class DashboardAPI:
         try:
             response = requests.get(
                 f"{self.base_url}/api/services",
-                timeout=2
+                timeout=5
             )
             return response.status_code == 200
         except requests.RequestException:

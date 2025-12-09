@@ -1,7 +1,8 @@
 fastapi
 uvicorn[standard]
 sqlalchemy
-aiosqlite
+# asyncpg is the async PostgreSQL driver used by SQLAlchemy for all DB operations
+asyncpg
 httpx
 python-dotenv
 pydantic

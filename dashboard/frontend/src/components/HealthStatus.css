@@ -1,0 +1,61 @@
+.health-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  cursor: default;
+}
+
+.health-status.healthy {
+  background: rgba(0, 255, 136, 0.2);
+  color: #00ff88;
+}
+
+.health-status.warning {
+  background: rgba(255, 170, 0, 0.2);
+  color: #ffaa00;
+}
+
+.health-status.error {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+}
+
+.health-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.health-status.healthy .health-indicator {
+  background: #00ff88;
+  animation: health-pulse 2s infinite;
+}
+
+.health-status.warning .health-indicator {
+  background: #ffaa00;
+}
+
+.health-status.error .health-indicator {
+  background: #ff4444;
+}
+
+.health-text {
+  white-space: nowrap;
+}
+
+.health-status.stale {
+  opacity: 0.7;
+}
+
+.health-status.stale .health-indicator {
+  animation: none;
+}
+
+@keyframes health-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
