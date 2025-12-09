@@ -315,7 +315,7 @@ class AutoFixer:
         except Exception as e:
             return FixResult(fix, False, f"Error: {e}")
 
-    def _fuzzy_match(self, text1: str, text2: str, threshold: float = 0.8) -> bool:
+    def _fuzzy_match(self, text1: str, text2: str) -> bool:
         """Check if two strings match approximately (ignoring whitespace differences)."""
         # Normalize whitespace
         norm1 = " ".join(text1.split())
@@ -413,6 +413,7 @@ def run_autofix_loop(
     parser = CodeRabbitParser()
     fixer = AutoFixer(repo_root)
     all_results: list[FixResult] = []
+    iteration = 0  # Initialize to handle edge case where max_iterations <= 0
 
     for iteration in range(1, max_iterations + 1):
         print(f"\n{'='*60}")

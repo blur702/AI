@@ -55,9 +55,15 @@ def get_profile_text_for_embedding(profile: "TalkingHeadProfile") -> str:
 
     Returns:
         Combined text for embedding
+
+    Raises:
+        ValueError: If all profile text fields are empty
     """
     parts = [profile.avatar_name, profile.personality_prompt, profile.memory_context]
-    return "\n\n".join(part for part in parts if part)
+    text = "\n\n".join(part for part in parts if part)
+    if not text:
+        raise ValueError("Cannot generate embedding: all profile text fields are empty")
+    return text
 
 
 def get_conversation_text_for_embedding(message: "ConversationMessage") -> str:
@@ -71,9 +77,15 @@ def get_conversation_text_for_embedding(message: "ConversationMessage") -> str:
 
     Returns:
         Combined text for embedding
+
+    Raises:
+        ValueError: If all conversation text fields are empty
     """
     parts = [message.user_message, message.avatar_response, message.context_summary]
-    return "\n\n".join(part for part in parts if part)
+    text = "\n\n".join(part for part in parts if part)
+    if not text:
+        raise ValueError("Cannot generate embedding: all conversation text fields are empty")
+    return text
 
 
 def get_voice_text_for_embedding(voice: "VoiceClone") -> str:
@@ -87,9 +99,15 @@ def get_voice_text_for_embedding(voice: "VoiceClone") -> str:
 
     Returns:
         Combined text for embedding
+
+    Raises:
+        ValueError: If all voice text fields are empty
     """
     parts = [voice.voice_name, voice.description]
-    return "\n\n".join(part for part in parts if part)
+    text = "\n\n".join(part for part in parts if part)
+    if not text:
+        raise ValueError("Cannot generate embedding: all voice text fields are empty")
+    return text
 
 
 # =============================================================================
