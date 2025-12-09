@@ -64,14 +64,21 @@ export function useSocket() {
 
         socket.on('service_status', (data: ServiceStatusUpdate) => {
           console.log('Service status update:', data);
-          setServices(prev => ({
-            ...prev,
-            [data.service_id]: {
-              ...prev[data.service_id],
-              status: data.status,
-              error: data.message || null
+          setServices(prev => {
+            // Only update if service exists in state
+            if (!prev[data.service_id]) {
+              console.warn(`Service status update for unknown service: ${data.service_id}`);
+              return prev;
             }
-          }));
+            return {
+              ...prev,
+              [data.service_id]: {
+                ...prev[data.service_id],
+                status: data.status,
+                error: data.message || null
+              }
+            };
+          });
         });
 
         // Model download progress events
