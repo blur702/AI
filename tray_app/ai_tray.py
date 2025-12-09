@@ -10,6 +10,7 @@ Features:
     - Ollama model management
     - Dashboard auto-restart with exponential backoff
     - Enhanced notifications for all operations
+    - Graphical dashboard popup on icon click
 """
 
 import logging
@@ -28,6 +29,7 @@ import pystray
 from pystray import MenuItem as Item, Menu
 
 from api_client import DashboardAPI
+from dashboard_window import DashboardWindow
 
 
 # Configuration
@@ -92,6 +94,14 @@ class AITrayApp:
         self.normal_icon = self._create_icon("AI", (76, 175, 80))   # Green
         self.busy_icon = self._create_icon("AI", (255, 152, 0))     # Orange
         self.error_icon = self._create_icon("AI", (244, 67, 54))    # Red
+
+        # Create the graphical dashboard window
+        self.dashboard_window = DashboardWindow(
+            on_start_service=self._start_service,
+            on_stop_service=self._stop_service,
+            on_unload_model=self._unload_model,
+            on_open_dashboard=self._open_dashboard,
+        )
 
         logger.info("AI Tray App initialized")
 
@@ -221,6 +231,11 @@ class AITrayApp:
         """Open the dashboard in the default browser."""
         webbrowser.open(DASHBOARD_URL)
         logger.info("Opened dashboard in browser")
+
+    def _show_dashboard_popup(self) -> None:
+        """Show the graphical dashboard popup window."""
+        logger.info("Showing dashboard popup")
+        self.dashboard_window.show()
 
     def _open_service(self, service_id: str, port: int) -> None:
         """Open a service in the browser.
@@ -499,6 +514,14 @@ class AITrayApp:
                     self.icon.icon = self.normal_icon
                 self.icon.title = self._get_tooltip()
 
+            # Update the dashboard window if it exists
+            self.dashboard_window.update_data(
+                services=services,
+                gpu_info=gpu_info,
+                loaded_models=loaded_models,
+                api_available=api_available,
+            )
+
     def _build_service_submenu(self, service: dict) -> Optional[Menu]:
         """Build submenu for a service.
 
@@ -618,7 +641,8 @@ class AITrayApp:
                     checked=lambda item: self.dashboard_auto_restart,
                 ),
                 Menu.SEPARATOR,
-                Item("Open Dashboard", self._open_dashboard),
+                Item("Show Dashboard", self._show_dashboard_popup),
+                Item("Open in Browser", self._open_dashboard),
                 Item("Refresh", lambda: self._refresh_data()),
                 Menu.SEPARATOR,
                 Item("Exit", self._quit),
@@ -688,6 +712,9 @@ class AITrayApp:
         # Close API session
         self.api.close()
 
+        # Destroy dashboard window
+        self.dashboard_window.destroy()
+
         if self.icon:
             self.icon.stop()
 
@@ -698,7 +725,7 @@ class AITrayApp:
             icon: The tray icon object.
             item: Menu item (unused).
         """
-        self._open_dashboard()
+        self._show_dashboard_popup()
 
     def run(self) -> None:
         """Run the tray application."""
