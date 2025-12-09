@@ -774,6 +774,15 @@ def classify_ollama_error(stderr_text):
     return "UNKNOWN_ERROR"
 
 
+def error_code_to_http_status(error_code: str | None) -> int:
+    """Map Ollama error codes to appropriate HTTP status codes."""
+    if error_code == "MODEL_NOT_FOUND":
+        return 404
+    if error_code in ("OLLAMA_UNAVAILABLE", "OLLAMA_CLI_NOT_FOUND"):
+        return 503
+    return 500
+
+
 def stop_ollama_model(model_name):
     """Stop/unload an Ollama model from memory.
 
@@ -844,6 +853,11 @@ def pull_ollama_model(model_name):
 
         if process.stdout is None:
             logger.error("Failed to capture stdout for ollama pull")
+            try:
+                process.kill()
+            except Exception:
+                pass
+            process.wait()
             socketio.emit("model_download_progress", {
                 "model_name": model_name,
                 "progress": "Failed to capture output",
@@ -1119,7 +1133,7 @@ def api_load_ollama_model():
         )
 
     success, message, error_code = load_ollama_model(model_name)
-    status_code = 200 if success else 500
+    status_code = 200 if success else error_code_to_http_status(error_code)
 
     body = {
         "success": success,
@@ -1156,7 +1170,7 @@ def api_unload_ollama_model():
         )
 
     success, message, error_code = stop_ollama_model(model_name)
-    status_code = 200 if success else 500
+    status_code = 200 if success else error_code_to_http_status(error_code)
 
     body = {
         "success": success,
@@ -1278,7 +1292,7 @@ def api_remove_ollama_model():
         }), 400
 
     success, message, error_code = remove_ollama_model(model_name)
-    status_code = 200 if success else 500
+    status_code = 200 if success else error_code_to_http_status(error_code)
 
     body = {
         "success": success,
