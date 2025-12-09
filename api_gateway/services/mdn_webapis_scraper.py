@@ -39,6 +39,7 @@ import httpx
 from bs4 import BeautifulSoup
 
 from ..config import settings
+from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
 from .mdn_schema import (
     MDNWebAPIDoc,
@@ -92,17 +93,6 @@ class ScrapeConfig:
 ProgressCallback = Callable[[str, int, int, str], None]
 CancelCheck = Callable[[], bool]
 PauseCheck = Callable[[], bool]
-
-
-def get_embedding(text: str) -> List[float]:
-    """Get embedding vector from Ollama API."""
-    response = httpx.post(
-        "http://localhost:11434/api/embeddings",
-        json={"model": settings.OLLAMA_EMBEDDING_MODEL, "prompt": text},
-        timeout=60.0,
-    )
-    response.raise_for_status()
-    return response.json()["embedding"]
 
 
 def get_doc_text_for_embedding(doc: MDNWebAPIDoc) -> str:
