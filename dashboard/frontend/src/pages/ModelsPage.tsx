@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -45,7 +45,7 @@ import type { OllamaModelDetailed } from '../types';
 type FilterType = 'all' | 'loaded' | 'available' | 'downloading';
 type SortType = 'name' | 'size' | 'parameters' | 'vram';
 
-function ModelsPage() {
+const ModelsPage = memo(function ModelsPage() {
   const {
     models,
     loadedModels,
@@ -685,6 +685,6 @@ function ModelsPage() {
       </Snackbar>
     </Container>
   );
-}
+});
 
 export default ModelsPage;
