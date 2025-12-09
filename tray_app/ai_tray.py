@@ -700,14 +700,10 @@ class AITrayApp:
                 else:
                     service_items.append(Item(label, None, enabled=False))
 
-            # Build main menu
+            # Build main menu - Dashboard popup is first and default action
             menu_items = [
-                Item(
-                    "Services",
-                    Menu(*service_items)
-                    if service_items
-                    else Menu(Item("No services found", None, enabled=False)),
-                ),
+                Item("📊 Show Dashboard", self._show_dashboard_popup, default=True),
+                Item("🌐 Open in Browser", self._open_dashboard),
                 Menu.SEPARATOR,
                 Item(self._get_vram_text(), None, enabled=False),
                 Item("Loaded Models", Menu(*self._build_model_submenu())),
@@ -718,14 +714,18 @@ class AITrayApp:
                 ),
                 Menu.SEPARATOR,
                 Item(
+                    "Services",
+                    Menu(*service_items)
+                    if service_items
+                    else Menu(Item("No services found", None, enabled=False)),
+                ),
+                Menu.SEPARATOR,
+                Item(
                     "Auto-restart Dashboard",
                     self._toggle_auto_restart,
                     checked=lambda item: self.dashboard_auto_restart,
                 ),
-                Menu.SEPARATOR,
-                Item("Show Dashboard", self._show_dashboard_popup),
-                Item("Open in Browser", self._open_dashboard),
-                Item("Refresh", lambda: self._refresh_data()),
+                Item("🔄 Refresh", lambda: self._refresh_data()),
                 Menu.SEPARATOR,
                 Item("Exit", self._quit),
             ]
