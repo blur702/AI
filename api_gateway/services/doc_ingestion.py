@@ -157,6 +157,15 @@ def scan_markdown_files(include_service_readmes: bool = True) -> List[Path]:
 
 
 def _relative_to_workspace(path: Path) -> str:
+  """
+  Convert absolute path to path relative to workspace root.
+
+  Args:
+      path: Absolute file path
+
+  Returns:
+      Relative path string, or absolute path if not within workspace
+  """
   workspace_root = Path(__file__).resolve().parents[2]
   try:
     return str(path.resolve().relative_to(workspace_root))
@@ -487,6 +496,12 @@ def collection_status(client: weaviate.WeaviateClient) -> Dict[str, int]:
 
 
 def _configure_logging(verbose: bool) -> None:
+  """
+  Configure logging level based on verbosity flag.
+
+  Args:
+      verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+  """
   if verbose:
     logging.getLogger().setLevel(logging.DEBUG)
     logger.setLevel(logging.DEBUG)
@@ -497,6 +512,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+  """
+  CLI entry point for documentation ingestion.
+
+  Args:
+      argv: Optional command line arguments (for testing)
+
+  Raises:
+      SystemExit: On command failure
+  """
   parser = argparse.ArgumentParser(
     description="Documentation ingestion service for Weaviate.",
   )

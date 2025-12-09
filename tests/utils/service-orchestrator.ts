@@ -256,14 +256,14 @@ export class ServiceOrchestrator {
   /**
    * Get current VRAM status
    */
-  async getVRAMStatus() {
+  async getVRAMStatus(): Promise<any> {
     return this.client.getVRAMStatus();
   }
 
   /**
    * Get all service statuses
    */
-  async getAllServices() {
+  async getAllServices(): Promise<{ services: Record<string, ServiceInfo> }> {
     return this.client.getServices();
   }
 }

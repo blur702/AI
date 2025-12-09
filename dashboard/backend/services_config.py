@@ -7,6 +7,7 @@ Used by the service manager for on-demand service starting.
 
 import os
 from pathlib import Path
+from typing import Any
 
 # Get AI root directory from environment or use platform-aware default
 # Default: ~/AI on Linux/macOS, D:\AI on Windows
@@ -19,11 +20,11 @@ else:
         AI_ROOT_PATH = Path.home() / 'AI'
 
 # Helper function to build platform-agnostic paths
-def _build_path(*parts):
+def _build_path(*parts: str) -> str:
     """Build absolute path from AI root."""
     return str(AI_ROOT_PATH.joinpath(*parts))
 
-def _build_python_path(venv_dir, script_name=None):
+def _build_python_path(venv_dir: str, script_name: str | None = None) -> list[str]:
     """
     Build path to Python executable in virtual environment.
     Always returns a list to allow easy concatenation with additional arguments.
@@ -32,12 +33,12 @@ def _build_python_path(venv_dir, script_name=None):
         python_exe = _build_path(venv_dir, 'Scripts', 'python.exe')
     else:  # Linux/macOS
         python_exe = _build_path(venv_dir, 'bin', 'python')
-    
+
     if script_name:
         return [python_exe, script_name]
     return [python_exe]
 
-SERVICES = {
+SERVICES: dict[str, dict[str, Any]] = {
     "alltalk": {
         "name": "AllTalk TTS",
         "port": 7851,
@@ -210,7 +211,7 @@ SERVICES = {
 }
 
 # Services that use significant GPU VRAM
-GPU_INTENSIVE_SERVICES = [
+GPU_INTENSIVE_SERVICES: list[str] = [
     "wan2gp",
     "yue",
     "diffrhythm",
