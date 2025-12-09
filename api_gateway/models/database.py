@@ -28,6 +28,19 @@ class JobStatus(str, enum.Enum):
     failed = "failed"
 
 
+class TodoStatus(str, enum.Enum):
+    pending = "pending"
+    in_progress = "in_progress"
+    completed = "completed"
+
+
+class ErrorSeverity(str, enum.Enum):
+    info = "info"
+    warning = "warning"
+    error = "error"
+    critical = "critical"
+
+
 class Job(Base):
     __tablename__ = "jobs"
 
@@ -54,7 +67,48 @@ class APIKey(Base):
     is_active = Column(Boolean, default=True, nullable=False)
 
 
-engine: AsyncEngine = create_async_engine(settings.DATABASE_URL, echo=False, future=True)
+class Todo(Base):
+    __tablename__ = "todos"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(Enum(TodoStatus), nullable=False, default=TodoStatus.pending)
+    priority = Column(Integer, default=0, nullable=False)
+    due_date = Column(DateTime, nullable=True)
+    tags = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
+    )
+    completed_at = Column(DateTime, nullable=True)
+
+
+class Error(Base):
+    __tablename__ = "errors"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    service = Column(String(100), nullable=False, index=True)
+    severity = Column(Enum(ErrorSeverity), nullable=False, default=ErrorSeverity.error)
+    message = Column(Text, nullable=False)
+    stack_trace = Column(Text, nullable=True)
+    context = Column(JSON, nullable=True)
+    job_id = Column(String, nullable=True, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    resolved = Column(Boolean, default=False, nullable=False)
+    resolved_at = Column(DateTime, nullable=True)
+
+
+# PostgreSQL connection pool configuration
+engine: AsyncEngine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=False,
+    future=True,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_pre_ping=True,
+    pool_recycle=settings.DB_POOL_RECYCLE,
+)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 

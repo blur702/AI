@@ -306,6 +306,7 @@ def _batched(iterable: Iterable[DocChunk], batch_size: int) -> Iterable[List[Doc
 
 ProgressCallback = Callable[[str, int, int, str], None]
 CancelCheck = Callable[[], bool]
+PauseCheck = Callable[[], bool]
 
 
 def ingest_documentation(
@@ -314,6 +315,7 @@ def ingest_documentation(
   dry_run: bool = False,
   progress_callback: Optional[ProgressCallback] = None,
   check_cancelled: Optional[CancelCheck] = None,
+  check_paused: Optional[PauseCheck] = None,
 ) -> Dict[str, int]:
   """
   Ingest all discovered markdown files into Weaviate.
@@ -324,6 +326,7 @@ def ingest_documentation(
     dry_run: If True, scan files without ingesting
     progress_callback: Optional callback(phase, current, total, message) for progress updates
     check_cancelled: Optional callback() -> bool to check if operation should be cancelled
+    check_paused: Optional callback() -> bool to check if paused and wait. Returns True if cancelled.
 
   Returns statistics dict with keys:
     - files
@@ -354,6 +357,15 @@ def ingest_documentation(
         return False
     return False
 
+  def is_paused() -> bool:
+    """Check if paused and wait. Returns True if cancelled during wait."""
+    if check_paused:
+      try:
+        return check_paused()
+      except Exception:  # noqa: BLE001
+        return False
+    return False
+
   emit_progress("scanning", 0, total_files, f"Found {total_files} markdown files")
 
   def chunk_stream() -> Iterable[DocChunk]:
@@ -362,6 +374,12 @@ def ingest_documentation(
       if is_cancelled():
         cancelled = True
         logger.info("Ingestion cancelled by user")
+        return
+
+      # Check for pause and wait if paused
+      if is_paused():
+        cancelled = True
+        logger.info("Ingestion cancelled during pause")
         return
 
       try:
@@ -409,6 +427,11 @@ def ingest_documentation(
     retries = 3
     while retries > 0:
       if is_cancelled():
+        cancelled = True
+        break
+
+      # Check for pause and wait if paused
+      if is_paused():
         cancelled = True
         break
 

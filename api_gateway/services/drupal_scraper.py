@@ -82,6 +82,7 @@ class ScrapeConfig:
 
 ProgressCallback = Callable[[str, int, int, str], None]
 CancelCheck = Callable[[], bool]
+PauseCheck = Callable[[], bool]
 
 
 def get_embedding(text: str) -> List[float]:
@@ -121,10 +122,12 @@ class DrupalAPIScraper:
         config: Optional[ScrapeConfig] = None,
         progress_callback: Optional[ProgressCallback] = None,
         check_cancelled: Optional[CancelCheck] = None,
+        check_paused: Optional[PauseCheck] = None,
     ):
         self.config = config or ScrapeConfig()
         self.progress_callback = progress_callback
         self.check_cancelled = check_cancelled
+        self.check_paused = check_paused
         self.client = httpx.Client(
             timeout=30.0,
             follow_redirects=True,
@@ -153,6 +156,15 @@ class DrupalAPIScraper:
         if self.check_cancelled:
             try:
                 return self.check_cancelled()
+            except Exception:
+                return False
+        return False
+
+    def _is_paused(self) -> bool:
+        """Check if paused and wait. Returns True if cancelled during wait."""
+        if self.check_paused:
+            try:
+                return self.check_paused()
             except Exception:
                 return False
         return False
@@ -478,6 +490,11 @@ class DrupalAPIScraper:
                 logger.info("Scraping cancelled")
                 return
 
+            # Check for pause and wait if paused
+            if self._is_paused():
+                logger.info("Scraping cancelled during pause")
+                return
+
             if self.config.max_entities and entity_count >= self.config.max_entities:
                 logger.info("Reached max entities limit: %d", self.config.max_entities)
                 return
@@ -495,6 +512,10 @@ class DrupalAPIScraper:
                 seen_urls.add(entity_url)
 
                 if self._is_cancelled():
+                    return
+
+                # Check for pause and wait if paused
+                if self._is_paused():
                     return
 
                 if self.config.max_entities and entity_count >= self.config.max_entities:
@@ -546,6 +567,7 @@ def scrape_drupal_api(
     config: Optional[ScrapeConfig] = None,
     progress_callback: Optional[ProgressCallback] = None,
     check_cancelled: Optional[CancelCheck] = None,
+    check_paused: Optional[PauseCheck] = None,
 ) -> Dict[str, Any]:
     """
     Scrape Drupal API and ingest into Weaviate.
@@ -554,6 +576,7 @@ def scrape_drupal_api(
         config: Scraping configuration
         progress_callback: Optional callback for progress updates
         check_cancelled: Optional callback to check for cancellation
+        check_paused: Optional callback to check if paused and wait. Returns True if cancelled.
 
     Returns:
         Statistics dict with keys: entities, errors, cancelled
@@ -579,6 +602,15 @@ def scrape_drupal_api(
                 return False
         return False
 
+    def is_paused() -> bool:
+        """Check if paused and wait. Returns True if cancelled during wait."""
+        if check_paused:
+            try:
+                return check_paused()
+            except Exception:
+                return False
+        return False
+
     emit_progress("starting", 0, 0, "Connecting to Weaviate")
 
     try:
@@ -595,9 +627,15 @@ def scrape_drupal_api(
                 config=config,
                 progress_callback=progress_callback,
                 check_cancelled=check_cancelled,
+                check_paused=check_paused,
             ) as scraper:
                 for entity in scraper.scrape_all():
                     if is_cancelled():
+                        cancelled = True
+                        break
+
+                    # Check for pause and wait if paused
+                    if is_paused():
                         cancelled = True
                         break
 

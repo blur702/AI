@@ -6,6 +6,9 @@ A Windows system tray utility for managing AI services and VRAM.
 
 import logging
 import os
+import platform
+import shutil
+import subprocess
 import sys
 import threading
 import time
@@ -20,7 +23,8 @@ from api_client import DashboardAPI
 
 
 # Configuration
-DASHBOARD_URL = "http://localhost"
+DASHBOARD_PORT = 80
+DASHBOARD_URL = f"http://localhost:{DASHBOARD_PORT}"
 POLL_INTERVAL = 10  # seconds
 ICON_SIZE = 64
 
@@ -44,6 +48,11 @@ class AITrayApp:
         self.gpu_info = None
         self.loaded_models = []
         self.api_available = False
+
+        # Dashboard auto-restart state
+        self.dashboard_auto_restart = True
+        self.consecutive_failures = 0
+        self.dashboard_process = None
 
         # Create the initial icon
         self.normal_icon = self._create_icon("AI", (76, 175, 80))  # Green
@@ -160,6 +169,153 @@ class AITrayApp:
             logger.error(f"Failed to unload all models: {e}")
             self._show_error("Failed to unload models")
 
+    def _kill_process_on_port(self, port: int) -> bool:
+        """Attempt to terminate a process listening on the given port.
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        try:
+            system = platform.system()
+
+            if system == "Windows":
+                # Use netstat to find PID listening on the port
+                result = subprocess.run(
+                    ["netstat", "-ano"],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if result.returncode != 0:
+                    logger.error("netstat failed while looking up port %s", port)
+                    return False
+
+                pid = None
+                target_port = str(port)
+                for line in result.stdout.splitlines():
+                    # Typical line: TCP    0.0.0.0:80         0.0.0.0:0              LISTENING       1234
+                    parts = line.split()
+                    if len(parts) < 5:
+                        continue
+
+                    # Local address is typically the 2nd column (index 1)
+                    local_address = parts[1]
+
+                    # Extract port by splitting on the last ':' (handles IPv6)
+                    if ':' not in local_address:
+                        continue
+
+                    addr_port = local_address.rsplit(':', 1)[-1]
+
+                    # Check for exact port match
+                    if addr_port == target_port:
+                        # Verify PID is in the last column and is numeric
+                        if parts[-1].isdigit():
+                            pid = parts[-1]
+                            break
+
+                if not pid:
+                    return False
+
+                logger.info("Attempting to kill PID %s for port %s", pid, port)
+                kill_result = subprocess.run(
+                    ["taskkill", "/PID", pid, "/F"],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                if kill_result.returncode != 0:
+                    logger.error(
+                        "taskkill failed for PID %s (port %s): %s",
+                        pid,
+                        port,
+                        kill_result.stderr.strip(),
+                    )
+                    return False
+
+                return True
+
+            # Basic UNIX-like implementation using lsof/kill if available
+            # Check if lsof is available on this system
+            if shutil.which("lsof") is None:
+                logger.warning(
+                    "Port-based process kill is not supported on this platform: "
+                    "lsof command not found"
+                )
+                return False
+
+            result = subprocess.run(
+                ["lsof", "-i", f":{port}", "-t"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if result.returncode != 0 or not result.stdout.strip():
+                return False
+
+            pids = [p.strip() for p in result.stdout.splitlines() if p.strip().isdigit()]
+            if not pids:
+                return False
+
+            for pid in pids:
+                logger.info("Attempting to kill PID %s for port %s", pid, port)
+                subprocess.run(
+                    ["kill", "-9", pid],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+
+            return True
+
+        except Exception as exc:
+            logger.error("Error killing process on port %s: %s", port, exc)
+            return False
+
+    def _restart_dashboard(self):
+        """Restart the dashboard backend."""
+        logger.warning("Dashboard unresponsive, attempting restart...")
+
+        # Kill existing dashboard process on configured port
+        self._kill_process_on_port(DASHBOARD_PORT)
+
+        # Wait for port to be released
+        time.sleep(2)
+
+        # Determine dashboard backend path
+        tray_dir = os.path.dirname(os.path.abspath(__file__))
+        backend_dir = os.path.join(tray_dir, '..', 'dashboard', 'backend')
+        dashboard_path = os.path.join(backend_dir, 'app.py')
+
+        try:
+            # Start new dashboard process
+            creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if platform.system() == 'Windows' else 0
+            process = subprocess.Popen(
+                ['python', dashboard_path],
+                cwd=backend_dir,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                creationflags=creationflags,
+            )
+            self.dashboard_process = process
+            self.consecutive_failures = 0
+
+            if self.icon:
+                self.icon.notify("Dashboard restarted", "AI Tray")
+            logger.info(f"Dashboard restarted with PID {process.pid}")
+        except Exception as e:
+            logger.error(f"Failed to restart dashboard: {e}")
+            if self.icon:
+                self.icon.notify("Failed to restart dashboard", "AI Tray")
+
+    def _toggle_auto_restart(self):
+        """Toggle the dashboard auto-restart feature."""
+        self.dashboard_auto_restart = not self.dashboard_auto_restart
+        status = "enabled" if self.dashboard_auto_restart else "disabled"
+        logger.info(f"Dashboard auto-restart {status}")
+        if self.icon:
+            self.icon.notify(f"Auto-restart {status}", "AI Tray")
+
     def _refresh_data(self):
         """Refresh data from the API."""
         api_available = self.api.is_available()
@@ -267,6 +423,12 @@ class AITrayApp:
                     enabled=len(self.loaded_models) > 0
                 ),
                 Menu.SEPARATOR,
+                Item(
+                    "Auto-restart Dashboard",
+                    self._toggle_auto_restart,
+                    checked=lambda item: self.dashboard_auto_restart
+                ),
+                Menu.SEPARATOR,
                 Item("Open Dashboard", self._open_dashboard),
                 Item("Refresh", lambda: self._refresh_data()),
                 Menu.SEPARATOR,
@@ -280,11 +442,21 @@ class AITrayApp:
         while self.running:
             try:
                 self._refresh_data()
+
+                # Track consecutive failures for auto-restart
+                if not self.api_available:
+                    self.consecutive_failures += 1
+                    logger.debug(f"Dashboard check failed ({self.consecutive_failures}/3)")
+                    if self.consecutive_failures >= 3 and self.dashboard_auto_restart:
+                        self._restart_dashboard()
+                else:
+                    self.consecutive_failures = 0
+
                 # Update menu dynamically
                 if self.icon:
                     self.icon.menu = self._build_menu()
             except Exception as e:
-                print(f"Poll error: {e}")
+                logger.error(f"Poll error: {e}")
 
             # Sleep in small intervals to allow quick exit
             for _ in range(POLL_INTERVAL * 10):
@@ -295,6 +467,21 @@ class AITrayApp:
     def _quit(self):
         """Quit the application."""
         self.running = False
+
+        # Terminate dashboard process if we started it
+        if self.dashboard_process:
+            try:
+                if self.dashboard_process.poll() is None:
+                    logger.info("Terminating dashboard process on exit")
+                    self.dashboard_process.terminate()
+                    try:
+                        self.dashboard_process.wait(timeout=5)
+                    except subprocess.TimeoutExpired:
+                        self.dashboard_process.kill()
+                        logger.warning("Dashboard process killed after timeout")
+            except Exception as e:
+                logger.error(f"Error terminating dashboard process: {e}")
+
         if self.icon:
             self.icon.stop()
 

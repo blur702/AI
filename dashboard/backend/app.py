@@ -8,6 +8,7 @@ from functools import wraps
 from flask import Flask, jsonify, request, send_from_directory, Response
 from flask_cors import CORS
 from flask_socketio import SocketIO
+import psutil
 import requests as http_requests
 
 # Load environment variables from .env file if present
@@ -32,6 +33,9 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Explicit async_mode for compatibility on Windows; threading works well here.
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+
+# Track app start time for uptime calculation
+APP_START_TIME = time.time()
 
 
 logging.basicConfig(
@@ -589,8 +593,52 @@ def api_auth_revoke():
         token = auth_header[7:]
         if revoke_session_token(token):
             return jsonify({"success": True, "message": "Session revoked"})
-    
+
     return jsonify({"success": False, "message": "No valid session to revoke"}), 400
+
+
+@app.route("/api/health", methods=["GET"])
+@require_auth
+def api_health():
+    """Get dashboard health status including uptime, CPU, memory, and services."""
+    # Calculate uptime
+    uptime_seconds = time.time() - APP_START_TIME
+
+    # Get CPU usage
+    cpu_percent = psutil.cpu_percent(interval=0.1)
+
+    # Get memory info
+    memory = psutil.virtual_memory()
+
+    # Get services count
+    statuses = service_manager.get_all_status()
+    running_count = len([s for s in statuses if s.get('status') == 'running'])
+
+    # Determine status based on thresholds
+    if cpu_percent < 80 and memory.percent < 85:
+        status = 'healthy'
+    elif cpu_percent < 90 or memory.percent < 90:
+        status = 'warning'
+    else:
+        status = 'error'
+
+    return jsonify({
+        "status": status,
+        "uptime_seconds": uptime_seconds,
+        "cpu": {
+            "percent": cpu_percent,
+            "count": psutil.cpu_count()
+        },
+        "memory": {
+            "percent": memory.percent,
+            "used_mb": memory.used // (1024 * 1024),
+            "total_mb": memory.total // (1024 * 1024)
+        },
+        "services": {
+            "total": len(statuses),
+            "running": running_count
+        }
+    })
 
 
 @app.route("/api/vram/status", methods=["GET"])
@@ -803,6 +851,36 @@ def api_restart_service(service_id):
     return jsonify(result), status_code
 
 
+@app.route("/api/services/<service_id>/pause", methods=["POST"])
+@require_auth
+def api_pause_service(service_id):
+    """Pause a running service."""
+    result = service_manager.pause_service(service_id)
+    status_code = 200 if result.get("success") else 400
+    if result.get("success"):
+        socketio.emit("service_paused", {
+            "service_id": service_id,
+            "status": "paused",
+            "message": result.get("message", "Service paused"),
+        })
+    return jsonify(result), status_code
+
+
+@app.route("/api/services/<service_id>/resume", methods=["POST"])
+@require_auth
+def api_resume_service(service_id):
+    """Resume a paused service."""
+    result = service_manager.resume_service(service_id)
+    status_code = 200 if result.get("success") else 400
+    if result.get("success"):
+        socketio.emit("service_resumed", {
+            "service_id": service_id,
+            "status": "running",
+            "message": result.get("message", "Service resumed"),
+        })
+    return jsonify(result), status_code
+
+
 @app.route("/api/services/<service_id>/touch", methods=["POST"])
 @require_auth
 def api_touch_service(service_id):
@@ -974,6 +1052,154 @@ def api_ingestion_cancel():
     result = ingestion_manager.cancel_ingestion()
     status_code = 200 if result.get("success") else 400
     return jsonify(result), status_code
+
+
+@app.route("/api/ingestion/pause", methods=["POST"])
+@require_auth
+def api_ingestion_pause():
+    """Pause the current ingestion."""
+    result = ingestion_manager.pause_ingestion()
+    status_code = 200 if result.get("success") else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/ingestion/resume", methods=["POST"])
+@require_auth
+def api_ingestion_resume():
+    """Resume a paused ingestion."""
+    result = ingestion_manager.resume_ingestion()
+    status_code = 200 if result.get("success") else 400
+    return jsonify(result), status_code
+
+
+@app.route("/api/ingestion/clean", methods=["POST"])
+@require_auth
+def api_ingestion_clean():
+    """Delete specified Weaviate collections."""
+    import sys
+    from pathlib import Path
+
+    # Add project root to path for imports
+    project_root = Path(__file__).resolve().parents[2]
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
+
+    from api_gateway.services.weaviate_connection import (
+        WeaviateConnection,
+        DOCUMENTATION_COLLECTION_NAME,
+        CODE_ENTITY_COLLECTION_NAME,
+        DRUPAL_API_COLLECTION_NAME,
+        MDN_JAVASCRIPT_COLLECTION_NAME,
+        MDN_WEBAPIS_COLLECTION_NAME,
+    )
+
+    if not request.is_json:
+        return jsonify({"success": False, "message": "Expected JSON body."}), 400
+
+    data = request.get_json(silent=True) or {}
+    collections = data.get("collections", [])
+
+    if not collections or not isinstance(collections, list):
+        return jsonify({
+            "success": False,
+            "message": "Field 'collections' is required and must be a list.",
+        }), 400
+
+    # Map collection names to Weaviate collection names
+    collection_map = {
+        "documentation": DOCUMENTATION_COLLECTION_NAME,
+        "code_entity": CODE_ENTITY_COLLECTION_NAME,
+        "drupal_api": DRUPAL_API_COLLECTION_NAME,
+        "mdn_javascript": MDN_JAVASCRIPT_COLLECTION_NAME,
+        "mdn_webapis": MDN_WEBAPIS_COLLECTION_NAME,
+    }
+
+    deleted = []
+    errors = []
+
+    try:
+        with WeaviateConnection() as client:
+            for collection_name in collections:
+                if collection_name not in collection_map:
+                    errors.append(f"Unknown collection: {collection_name}")
+                    continue
+
+                weaviate_name = collection_map[collection_name]
+                try:
+                    if client.collections.exists(weaviate_name):
+                        client.collections.delete(weaviate_name)
+                        deleted.append(collection_name)
+                        logger.info(f"Deleted collection: {weaviate_name}")
+                    else:
+                        deleted.append(collection_name)  # Already doesn't exist
+                except Exception as e:
+                    errors.append(f"Error deleting {collection_name}: {str(e)}")
+                    logger.error(f"Error deleting collection {weaviate_name}: {e}")
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Failed to connect to Weaviate: {str(e)}",
+        }), 500
+
+    return jsonify({
+        "success": len(errors) == 0,
+        "deleted": deleted,
+        "errors": errors if errors else None,
+    })
+
+
+@app.route("/api/ingestion/reindex", methods=["POST"])
+@require_auth
+def api_ingestion_reindex():
+    """Start ingestion with forced reindex (delete and recreate collections)."""
+    if not request.is_json:
+        return jsonify({"success": False, "message": "Expected JSON body."}), 400
+
+    data = request.get_json(silent=True) or {}
+
+    # Validate types
+    types = data.get("types", [])
+    if not types or not isinstance(types, list):
+        return jsonify({
+            "success": False,
+            "message": "Field 'types' is required and must be a list.",
+        }), 400
+
+    valid_types = {"documentation", "code", "drupal", "mdn_javascript", "mdn_webapis"}
+    for t in types:
+        if t not in valid_types:
+            return jsonify({
+                "success": False,
+                "message": f"Invalid type '{t}'. Valid types: {valid_types}",
+            }), 400
+
+    # Force reindex=True
+    code_service = data.get("code_service", "core")
+    drupal_limit = data.get("drupal_limit")
+    mdn_limit = data.get("mdn_limit")
+    mdn_section = data.get("mdn_section")
+
+    result = ingestion_manager.start_ingestion(
+        types, reindex=True, code_service=code_service,
+        drupal_limit=drupal_limit, mdn_limit=mdn_limit, mdn_section=mdn_section
+    )
+
+    if not result.get("success"):
+        return jsonify(result), 409  # Conflict - already running
+
+    # Start the actual ingestion in background
+    socketio.start_background_task(
+        ingestion_manager.run_ingestion,
+        types,
+        True,  # reindex=True
+        code_service,
+        drupal_limit,
+        mdn_limit,
+        mdn_section,
+    )
+
+    return jsonify(result)
 
 
 # =============================================================================

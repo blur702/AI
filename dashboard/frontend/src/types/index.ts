@@ -1,4 +1,4 @@
-export type ServiceStatus = 'stopped' | 'starting' | 'running' | 'stopping' | 'error';
+export type ServiceStatus = 'stopped' | 'starting' | 'running' | 'paused' | 'stopping' | 'error';
 
 export interface ServiceConfig {
   id: string;
@@ -100,6 +100,7 @@ export interface CollectionStats {
 
 export interface IngestionStatus {
   is_running: boolean;
+  paused: boolean;
   task_id: string | null;
   current_type: string | null;
   started_at: number | null;
@@ -119,6 +120,7 @@ export interface IngestionProgress {
   current: number;
   total: number;
   message: string;
+  paused: boolean;
 }
 
 export interface IngestionPhaseComplete {
@@ -203,4 +205,56 @@ export interface ClaudeExecuteResponse {
   session_id?: string;
   message?: string;
   error?: string;
+}
+
+export interface HealthStatus {
+  status: 'healthy' | 'warning' | 'error';
+  uptime_seconds: number;
+  cpu: {
+    percent: number;
+    count: number;
+  };
+  memory: {
+    percent: number;
+    used_mb: number;
+    total_mb: number;
+  };
+  services: {
+    total: number;
+    running: number;
+  };
+}
+
+// Pause/Resume Event Types
+
+export interface IngestionPaused {
+  task_id: string;
+  timestamp: number;
+}
+
+export interface IngestionResumed {
+  task_id: string;
+  timestamp: number;
+}
+
+export interface ServicePaused {
+  service_id: string;
+  status: 'paused';
+  message: string;
+}
+
+export interface ServiceResumed {
+  service_id: string;
+  status: 'running';
+  message: string;
+}
+
+export interface CleanCollectionsRequest {
+  collections: ('documentation' | 'code_entity' | 'drupal_api' | 'mdn_javascript' | 'mdn_webapis')[];
+}
+
+export interface CleanCollectionsResponse {
+  success: boolean;
+  deleted: string[];
+  errors: string[] | null;
 }
