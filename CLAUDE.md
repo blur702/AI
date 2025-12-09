@@ -91,7 +91,7 @@ powershell -ExecutionPolicy Bypass -File D:\AI\scripts\setup-task.ps1
 1. Task Scheduler runs `dashboard-monitor.ps1` on user logon with SYSTEM privileges
 2. Script checks port 80 connectivity every 30 seconds
 3. If port is unresponsive (and no disable flag), executes `start_dashboard.bat`
-4. Coexists with tray app auto-restart (both mechanisms can operate independently)
+4. Provides automatic dashboard recovery without manual intervention
 
 **Disable/Enable Monitoring:**
 ```powershell
@@ -351,7 +351,7 @@ async with AsyncSessionLocal() as session:
 # Query errors
 async with AsyncSessionLocal() as session:
     result = await session.execute(
-        select(Error).where(Error.resolved == False).order_by(Error.created_at.desc())
+        select(Error).where(Error.resolved.is_(False)).order_by(Error.created_at.desc())
     )
     unresolved_errors = result.scalars().all()
 
