@@ -5,7 +5,8 @@ from typing import Dict, List
 from dotenv import load_dotenv
 
 
-load_dotenv()
+# Load .env with override to ensure file values take precedence
+load_dotenv(override=True)
 
 
 class Settings:
@@ -48,7 +49,7 @@ class Settings:
             return 50051
     
     WEAVIATE_GRPC_PORT: int = _parse_grpc_port.__func__()
-    OLLAMA_EMBEDDING_MODEL: str = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
+    OLLAMA_EMBEDDING_MODEL: str = os.getenv("OLLAMA_EMBEDDING_MODEL", "snowflake-arctic-embed:l")
     # Ollama API endpoint for embeddings (from Weaviate's perspective)
     # Use host.docker.internal when Weaviate runs in Docker, localhost for native setup
     OLLAMA_API_ENDPOINT: str = os.getenv("OLLAMA_API_ENDPOINT", "http://127.0.0.1:11434")

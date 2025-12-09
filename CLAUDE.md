@@ -248,7 +248,15 @@ python -m api_gateway.services.code_ingestion reindex --service all
 python -m api_gateway.services.drupal_scraper status
 python -m api_gateway.services.drupal_scraper scrape --limit 100
 python -m api_gateway.services.drupal_scraper reindex
+
+# Embedding model migration (when changing models)
+python -m api_gateway.services.migrate_embeddings check
+python -m api_gateway.services.migrate_embeddings migrate --dry-run
+python -m api_gateway.services.migrate_embeddings migrate
 ```
+
+### Embedding Model
+The default embedding model is `snowflake-arctic-embed:l` (1024 dimensions). When changing models, ALL collections must be re-indexed since different models produce incompatible vectors.
 
 ## Scraper Supervisor
 

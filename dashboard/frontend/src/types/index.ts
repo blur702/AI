@@ -107,12 +107,14 @@ export interface IngestionStatus {
     documentation: CollectionStats;
     code_entity: CollectionStats;
     drupal_api: CollectionStats;
+    mdn_javascript: CollectionStats;
+    mdn_webapis: CollectionStats;
   };
 }
 
 export interface IngestionProgress {
   task_id: string;
-  type: 'documentation' | 'code' | 'drupal';
+  type: 'documentation' | 'code' | 'drupal' | 'mdn_javascript' | 'mdn_webapis';
   phase: 'scanning' | 'processing' | 'indexing' | 'complete' | 'cancelled';
   current: number;
   total: number;
@@ -121,7 +123,7 @@ export interface IngestionProgress {
 
 export interface IngestionPhaseComplete {
   task_id: string;
-  type: 'documentation' | 'code' | 'drupal';
+  type: 'documentation' | 'code' | 'drupal' | 'mdn_javascript' | 'mdn_webapis';
   stats: {
     files?: number;
     chunks?: number;
@@ -139,6 +141,8 @@ export interface IngestionComplete {
     documentation?: { files: number; chunks: number; errors: number };
     code?: { files: number; entities: number; errors: number };
     drupal?: { entities_inserted: number; entities_updated: number; errors: number };
+    mdn_javascript?: { entities_inserted: number; entities_updated: number; errors: number };
+    mdn_webapis?: { entities_inserted: number; entities_updated: number; errors: number };
   };
   duration_seconds: number;
 }
@@ -150,10 +154,12 @@ export interface IngestionError {
 }
 
 export interface IngestionRequest {
-  types: ('documentation' | 'code' | 'drupal')[];
+  types: ('documentation' | 'code' | 'drupal' | 'mdn_javascript' | 'mdn_webapis')[];
   reindex: boolean;
   code_service?: string;
   drupal_limit?: number | null;
+  mdn_limit?: number | null;
+  mdn_section?: string | null;  // For mdn_webapis: 'css', 'html', or 'webapi'
 }
 
 // Claude Code Execution Types

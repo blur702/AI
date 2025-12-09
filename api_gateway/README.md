@@ -109,7 +109,7 @@ Error example:
 The API Gateway integrates with Weaviate for long-term memory and RAG capabilities:
 
 - **Weaviate:** `http://localhost:8080` (Docker container)
-- **Embedding Model:** nomic-embed-text (via Ollama)
+- **Embedding Model:** snowflake-arctic-embed:l (via Ollama)
 - **Features:** Conversation history, document RAG, semantic search
 
 ### Starting Weaviate

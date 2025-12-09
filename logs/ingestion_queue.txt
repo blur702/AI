@@ -61,3 +61,6 @@ dashboard/frontend/src/config/services.ts
 dashboard/frontend/src/hooks/useSocket.ts
 nginx/README.md
 nginx/VERIFICATION.md
+tests/config/playwright.config.ts
+tests/fixtures/base.fixture.ts
+tests/utils/wait-helpers.ts

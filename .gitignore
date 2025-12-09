@@ -26,6 +26,12 @@ venv/
 test-results/
 *.log
 
+# Scraper runtime data (checkpoints, job state)
+data/scraper/checkpoints/*.json
+data/scraper/jobs.json
+data/scraper/*_stdout.log
+data/scraper/*_stderr.log
+
 # VSCode workspace settings (machine-specific)
 .vscode/settings.json
 
