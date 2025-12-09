@@ -62,8 +62,12 @@ WshShell.Run "cmd /c cd /d """ & BackendPath & """ && """ & PythonExe & """ app.
 ' Wait a moment for dashboard to initialize
 WScript.Sleep 2000
 
-' Load Ollama model in background (don't wait)
-WshShell.Run "cmd /c ollama run qwen3-coder:30b --keepalive 24h ""exit""", 0, False
+' Load Ollama model with error logging
+' Attempts to load the model and logs any failures
+Dim OllamaLogPath, OllamaCmd
+OllamaLogPath = FSO.BuildPath(ScriptPath, "logs\ollama_startup.log")
+OllamaCmd = "cmd /c (ollama run qwen3-coder:30b --keepalive 24h ""exit"" 2>&1 || (echo %date% %time% - Failed to load model >> """ & OllamaLogPath & """ && ollama pull qwen3-coder:30b >> """ & OllamaLogPath & """ 2>&1))"
+WshShell.Run OllamaCmd, 0, False
 
 ' --- Docker Services (optional, non-blocking) ---
 ' These are started AFTER the dashboard to ensure dashboard always starts
