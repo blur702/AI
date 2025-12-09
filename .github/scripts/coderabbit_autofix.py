@@ -312,7 +312,7 @@ class AutoFixer:
 
             return FixResult(fix, False, "Could not locate code to replace")
 
-        except Exception as e:
+        except (OSError, UnicodeDecodeError, UnicodeEncodeError) as e:
             return FixResult(fix, False, f"Error: {e}")
 
     def _fuzzy_match(self, text1: str, text2: str) -> bool:
@@ -337,62 +337,72 @@ class AutoFixer:
 
         # Run ruff fix for Python
         try:
-            subprocess.run(
+            result = subprocess.run(
                 ["ruff", "check", "--fix", "."],
                 cwd=self.repo_root,
                 capture_output=True,
                 timeout=120,
+                check=False,
             )
-            results["ruff"] = True
-        except Exception:
+            results["ruff"] = result.returncode == 0
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+            print(f"  ruff failed: {e}")
             results["ruff"] = False
 
         # Run black for Python formatting
         try:
-            subprocess.run(
+            result = subprocess.run(
                 ["black", "."],
                 cwd=self.repo_root,
                 capture_output=True,
                 timeout=120,
+                check=False,
             )
-            results["black"] = True
-        except Exception:
+            results["black"] = result.returncode == 0
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+            print(f"  black failed: {e}")
             results["black"] = False
 
         # Run isort for Python imports
         try:
-            subprocess.run(
+            result = subprocess.run(
                 ["isort", "."],
                 cwd=self.repo_root,
                 capture_output=True,
                 timeout=120,
+                check=False,
             )
-            results["isort"] = True
-        except Exception:
+            results["isort"] = result.returncode == 0
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+            print(f"  isort failed: {e}")
             results["isort"] = False
 
         # Run prettier for JS/TS
         try:
-            subprocess.run(
+            result = subprocess.run(
                 ["npx", "prettier", "--write", "."],
                 cwd=self.repo_root,
                 capture_output=True,
                 timeout=120,
+                check=False,
             )
-            results["prettier"] = True
-        except Exception:
+            results["prettier"] = result.returncode == 0
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+            print(f"  prettier failed: {e}")
             results["prettier"] = False
 
         # Run ESLint fix for JS/TS
         try:
-            subprocess.run(
+            result = subprocess.run(
                 ["npx", "eslint", "--fix", "."],
                 cwd=self.repo_root,
                 capture_output=True,
                 timeout=120,
+                check=False,
             )
-            results["eslint"] = True
-        except Exception:
+            results["eslint"] = result.returncode == 0
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
+            print(f"  eslint failed: {e}")
             results["eslint"] = False
 
         return results

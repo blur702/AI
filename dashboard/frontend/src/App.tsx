@@ -55,7 +55,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const serverIp = window.location.hostname || '10.0.0.138';
+  const serverIp = window.location.hostname || 'localhost';
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);

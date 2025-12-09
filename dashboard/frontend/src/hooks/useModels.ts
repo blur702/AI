@@ -47,8 +47,9 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
   const getAuthHeaders = useCallback(() => {
     const username = localStorage.getItem('auth_username') || '';
     const password = localStorage.getItem('auth_password') || '';
+    const credentials = `${username}:${password}`;
     return {
-      'Authorization': `Basic ${btoa(`${username}:${password}`)}`,
+      'Authorization': `Basic ${btoa(credentials)}`,
       'Content-Type': 'application/json',
     };
   }, []);
