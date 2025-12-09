@@ -207,6 +207,32 @@ GET  /jobs/{job_id}                # Poll job status
 GET  /ws/jobs/{job_id}             # WebSocket job updates
 ```
 
+### N8N Workflow Automation (port 5678)
+N8N provides workflow automation for connecting services and automating tasks.
+
+**Access:**
+- Local: http://localhost:5678
+- External: https://ssdd.kevinalthaus.com/n8n/
+
+**Credentials:**
+- Email: `admin@local.host`
+- Password: `admin123`
+
+**API Key Location:**
+- File: `D:\AI\.secrets\n8n_api_key.txt`
+- Usage: Add `X-N8N-API-KEY` header to API requests
+
+**Data Location:**
+- Database: `C:\Users\kevin\.n8n\database.sqlite`
+- Config: `C:\Users\kevin\.n8n\config`
+
+**Commands:**
+```bash
+.\start_n8n.bat                    # Start N8N (port 5678)
+n8n --help                         # List available commands
+n8n user-management:reset          # Reset user management
+```
+
 ### PostgreSQL Database
 The API Gateway uses PostgreSQL with asyncpg for persistent storage.
 

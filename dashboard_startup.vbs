@@ -45,45 +45,50 @@ If DockerDesktopPath = "%DOCKER_DESKTOP_EXE%" Or DockerDesktopPath = "" Then
     DockerDesktopPath = "C:\Program Files\Docker\Docker\Docker Desktop.exe"
 End If
 
-' Validate that Docker Desktop executable exists
-If Not FSO.FileExists(DockerDesktopPath) Then
-    WScript.Echo "ERROR: Docker Desktop executable not found at: " & DockerDesktopPath & vbCrLf & _
-                 "Please install Docker Desktop or set DOCKER_DESKTOP_EXE environment variable to the correct path." & vbCrLf & _
-                 "Docker-dependent services (Open WebUI, Weaviate) will not be available."
-    WScript.Quit 1
-End If
+' Track whether Docker is available
+Dim DockerAvailable
+DockerAvailable = False
 
-' Start Docker Desktop if not running (needed for Open WebUI)
-WshShell.Run "cmd /c docker info >nul 2>&1 || start """" """ & DockerDesktopPath & """", 0, False
-
-' Wait for Docker to be ready (retry up to 30 seconds)
-Dim attempts
-For attempts = 1 To 6
-    WScript.Sleep 5000
-    If WshShell.Run("cmd /c docker info >nul 2>&1", 0, True) = 0 Then Exit For
-Next
-
-' Verify Docker is actually available before proceeding
-If WshShell.Run("cmd /c docker info >nul 2>&1", 0, True) <> 0 Then
-    WScript.Echo "ERROR: Docker failed to start after 30 seconds. Cannot start Docker-dependent services."
-    WScript.Quit 1
-End If
-
-' Start the Open WebUI container if it exists but is stopped
-WshShell.Run "cmd /c docker start open-webui 2>nul", 0, False
-
-' Start Ollama service if not running
+' Start Ollama service if not running (can run without Docker)
 WshShell.Run "cmd /c sc query Ollama | find ""RUNNING"" >nul || net start Ollama", 0, False
 
-' Wait for Ollama to be ready and load qwen3-coder model
-WScript.Sleep 3000
-WshShell.Run "cmd /c ollama run qwen3-coder:30b --keepalive 24h ""exit""", 0, False
-
-' Start the dashboard backend (Flask on port 80)
+' Start the dashboard backend FIRST (Flask on port 80) - critical service
+' This ensures dashboard starts even if Docker/Ollama have issues
 ' IMPORTANT: Requires DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD environment variables
 ' Set these via System Properties > Environment Variables or in a .env file in dashboard\backend
 ' Use quoted paths to handle spaces
 WshShell.Run "cmd /c cd /d """ & BackendPath & """ && """ & PythonExe & """ app.py", 0, False
+
+' Wait a moment for dashboard to initialize
+WScript.Sleep 2000
+
+' Load Ollama model in background (don't wait)
+WshShell.Run "cmd /c ollama run qwen3-coder:30b --keepalive 24h ""exit""", 0, False
+
+' --- Docker Services (optional, non-blocking) ---
+' These are started AFTER the dashboard to ensure dashboard always starts
+
+' Check if Docker Desktop exists before trying to start it
+If FSO.FileExists(DockerDesktopPath) Then
+    ' Start Docker Desktop if not already running
+    WshShell.Run "cmd /c docker info >nul 2>&1 || start """" """ & DockerDesktopPath & """", 0, False
+
+    ' Wait for Docker in background (up to 60 seconds)
+    Dim attempts
+    For attempts = 1 To 12
+        WScript.Sleep 5000
+        If WshShell.Run("cmd /c docker info >nul 2>&1", 0, True) = 0 Then
+            DockerAvailable = True
+            Exit For
+        End If
+    Next
+
+    ' Start Docker-dependent services if Docker is available
+    If DockerAvailable Then
+        ' Start the Open WebUI container if it exists but is stopped
+        WshShell.Run "cmd /c docker start open-webui 2>nul", 0, False
+    End If
+End If
 
 ' Optional: Open browser after a delay
 ' WScript.Sleep 3000
