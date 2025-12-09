@@ -28,7 +28,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, Generator, List, Optional
-from urllib.parse import quote, urljoin, urlparse
+from urllib.parse import urljoin
 
 import httpx
 from bs4 import BeautifulSoup
@@ -37,9 +37,7 @@ from ..config import settings
 from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
 from .drupal_api_schema import (
-    DRUPAL_API_UUID_NAMESPACE,
     DrupalAPIEntity,
-    collection_exists,
     compute_content_hash,
     create_drupal_api_collection,
     generate_stable_uuid,
@@ -87,7 +85,15 @@ PauseCheck = Callable[[], bool]
 
 
 def get_entity_text_for_embedding(entity: DrupalAPIEntity) -> str:
-    """Build text representation for embedding computation."""
+    """
+    Build text representation for embedding computation.
+
+    Args:
+        entity: Drupal API entity
+
+    Returns:
+        Combined text from full_name, signature, and description (limited to 1500 chars for description)
+    """
     parts = []
     if entity.full_name:
         parts.append(entity.full_name)
@@ -114,6 +120,15 @@ class DrupalAPIScraper:
         check_cancelled: Optional[CancelCheck] = None,
         check_paused: Optional[PauseCheck] = None,
     ):
+        """
+        Initialize the Drupal API scraper.
+
+        Args:
+            config: Scraping configuration (rate limits, batch size, etc.)
+            progress_callback: Optional callback for progress updates (phase, current, total, message)
+            check_cancelled: Optional callback to check if scraping should be cancelled
+            check_paused: Optional callback to check if scraping is paused
+        """
         self.config = config or ScrapeConfig()
         self.progress_callback = progress_callback
         self.check_cancelled = check_cancelled
@@ -130,12 +145,23 @@ class DrupalAPIScraper:
         self._last_request_time = 0.0
 
     def __enter__(self) -> "DrupalAPIScraper":
+        """Context manager entry."""
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Context manager exit, closes HTTP client."""
         self.client.close()
 
     def _emit_progress(self, phase: str, current: int, total: int, message: str) -> None:
+        """
+        Emit progress update via callback if configured.
+
+        Args:
+            phase: Current phase of scraping
+            current: Current count
+            total: Total expected count (0 if unknown)
+            message: Progress message
+        """
         if self.progress_callback:
             try:
                 self.progress_callback(phase, current, total, message)
@@ -143,6 +169,12 @@ class DrupalAPIScraper:
                 pass
 
     def _is_cancelled(self) -> bool:
+        """
+        Check if scraping has been cancelled.
+
+        Returns:
+            True if cancelled, False otherwise
+        """
         if self.check_cancelled:
             try:
                 return self.check_cancelled()
@@ -206,14 +238,31 @@ class DrupalAPIScraper:
             return None
 
     def _extract_namespace(self, full_name: str) -> str:
-        """Extract PHP namespace from fully qualified name."""
+        """
+        Extract PHP namespace from fully qualified name.
+
+        Args:
+            full_name: Fully qualified class/interface name (e.g., Drupal\Core\Entity\EntityInterface)
+
+        Returns:
+            Namespace portion (e.g., Drupal\Core\Entity) or empty string
+        """
         if "\\" in full_name:
             parts = full_name.rsplit("\\", 1)
             return parts[0] if len(parts) > 1 else ""
         return ""
 
     def _extract_file_path(self, soup: BeautifulSoup, url: str) -> str:
-        """Extract file path from API page URL or breadcrumb."""
+        """
+        Extract file path from API page URL or breadcrumb.
+
+        Args:
+            soup: Parsed HTML page
+            url: Page URL
+
+        Returns:
+            File path (e.g., core/lib/Drupal.php) or empty string
+        """
         # Try to extract from URL first (most reliable)
         # URL pattern: /api/drupal/path%21to%21file.php/class/ClassName/11.x
         match = re.search(r"/api/drupal/([^/]+\.php)/", url)
@@ -232,7 +281,15 @@ class DrupalAPIScraper:
         return ""
 
     def _extract_line_number(self, soup: BeautifulSoup) -> int:
-        """Extract line number from API page."""
+        """
+        Extract line number from API page.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Line number where entity is defined, or 0 if not found
+        """
         # Look for "line X" text anywhere in the page
         text = soup.get_text()
         match = re.search(r"line\s+(\d+)", text, re.IGNORECASE)
@@ -241,7 +298,15 @@ class DrupalAPIScraper:
         return 0
 
     def _extract_signature(self, soup: BeautifulSoup) -> str:
-        """Extract function/class signature from pre or code blocks."""
+        """
+        Extract function/class signature from pre or code blocks.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Code signature (limited to 500 chars) or empty string
+        """
         # Look for <pre> blocks containing PHP code
         for pre in soup.select("pre"):
             text = pre.get_text(strip=True)
@@ -258,7 +323,15 @@ class DrupalAPIScraper:
         return ""
 
     def _extract_parameters(self, soup: BeautifulSoup) -> str:
-        """Extract parameters as JSON string."""
+        """
+        Extract parameters as JSON string.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            JSON array of parameter objects with name, type, description
+        """
         params = []
         # Look for parameter tables or lists
         # Drupal API shows parameters in tables with Parameter/Description columns
@@ -277,7 +350,15 @@ class DrupalAPIScraper:
         return json.dumps(params)
 
     def _extract_return_type(self, soup: BeautifulSoup) -> str:
-        """Extract return type annotation."""
+        """
+        Extract return type annotation.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Return type (limited to 100 chars) or empty string
+        """
         # Look for "Return value" section
         text = soup.get_text()
         match = re.search(r"Return value\s*[:\n]\s*(\S+)", text)
@@ -286,7 +367,15 @@ class DrupalAPIScraper:
         return ""
 
     def _extract_description(self, soup: BeautifulSoup) -> str:
-        """Extract main description/docblock."""
+        """
+        Extract main description/docblock.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Description text (limited to 2000 chars) or empty string
+        """
         # Get the first substantial paragraph after h1
         h1 = soup.select_one("h1")
         if h1:
@@ -310,7 +399,15 @@ class DrupalAPIScraper:
         return ""
 
     def _extract_deprecated(self, soup: BeautifulSoup) -> str:
-        """Extract deprecation notice if present."""
+        """
+        Extract deprecation notice if present.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Deprecation message (limited to 500 chars) or empty string
+        """
         # Look for deprecation warnings
         text = soup.get_text()
         match = re.search(r"(Deprecated[^.]*\.)", text, re.IGNORECASE)
@@ -319,7 +416,15 @@ class DrupalAPIScraper:
         return ""
 
     def _extract_see_also(self, soup: BeautifulSoup) -> str:
-        """Extract related references as JSON array."""
+        """
+        Extract related references as JSON array.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            JSON array of related entity names (max 20)
+        """
         see_also = []
         # Look for "See also" section
         text = soup.get_text()
@@ -338,7 +443,15 @@ class DrupalAPIScraper:
         return json.dumps(see_also)
 
     def _extract_related_topics(self, soup: BeautifulSoup) -> str:
-        """Extract related topics/tags as JSON array."""
+        """
+        Extract related topics/tags as JSON array.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            JSON array of topic names (max 20)
+        """
         topics = []
         # Look for topic/group links (usually in sidebar or header)
         for link in soup.select("a"):
@@ -354,7 +467,17 @@ class DrupalAPIScraper:
     def _parse_entity_page(
         self, url: str, entity_type: str, name: str
     ) -> Optional[DrupalAPIEntity]:
-        """Parse a single entity page and extract metadata."""
+        """
+        Parse a single entity page and extract metadata.
+
+        Args:
+            url: Entity page URL
+            entity_type: Type of entity (class, function, interface, etc.)
+            name: Entity name
+
+        Returns:
+            DrupalAPIEntity object or None if parsing fails
+        """
         soup = self._fetch(url)
         if not soup:
             return None
@@ -407,7 +530,16 @@ class DrupalAPIScraper:
         )
 
     def _get_listing_url(self, listing_path: str, page: int = 0) -> str:
-        """Generate listing page URL with pagination."""
+        """
+        Generate listing page URL with pagination.
+
+        Args:
+            listing_path: Path segment (e.g., "classes", "functions")
+            page: Page number (0-indexed)
+
+        Returns:
+            Full listing URL with optional ?page= parameter
+        """
         base_url = f"{DRUPAL_API_BASE}/api/drupal/{listing_path}/{DRUPAL_VERSION}"
         if page > 0:
             return f"{base_url}?page={page}"
@@ -464,7 +596,16 @@ class DrupalAPIScraper:
                 yield (entity_url, name, namespace)
 
     def _get_next_page_url(self, soup: BeautifulSoup, current_url: str) -> Optional[str]:
-        """Extract next page URL from pagination if present."""
+        """
+        Extract next page URL from pagination if present.
+
+        Args:
+            soup: Parsed listing page HTML
+            current_url: Current page URL (for resolving relative links)
+
+        Returns:
+            Absolute URL to next page or None if no pagination
+        """
         # Look for "Next >" or pagination links
         next_link = soup.select_one("a[rel='next'], .pager-next a, li.next a")
         if next_link:
@@ -479,7 +620,16 @@ class DrupalAPIScraper:
     def scrape_listing(
         self, listing_path: str, entity_type: str
     ) -> Generator[DrupalAPIEntity, None, None]:
-        """Scrape all entities from a listing type with pagination."""
+        """
+        Scrape all entities from a listing type with pagination.
+
+        Args:
+            listing_path: Path segment (e.g., "classes", "functions")
+            entity_type: Type of entity for this listing
+
+        Yields:
+            DrupalAPIEntity objects for each successfully parsed entity
+        """
         logger.info("Scraping %s entities from api.drupal.org/%s", entity_type, listing_path)
         seen_urls: set[str] = set()
         entity_count = 0
@@ -557,7 +707,12 @@ class DrupalAPIScraper:
         logger.info("Finished scraping %s: %d entities", listing_path, entity_count)
 
     def scrape_all(self) -> Generator[DrupalAPIEntity, None, None]:
-        """Scrape all entity types."""
+        """
+        Scrape all entity types defined in ENTITY_LISTINGS.
+
+        Yields:
+            DrupalAPIEntity objects from all listing types
+        """
         for listing_path, entity_type in ENTITY_LISTINGS.items():
             if self._is_cancelled():
                 return

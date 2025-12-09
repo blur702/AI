@@ -37,6 +37,19 @@ def unified_response(func: Callable[..., Awaitable[Any]]) -> Callable[..., Await
     """
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> JSONResponse:
+        """
+        Wrapper function that executes endpoint and formats response.
+
+        Catches exceptions and converts them to unified error responses.
+        Successful results are wrapped with success=True and timestamp.
+
+        Args:
+            *args: Positional arguments passed to wrapped function
+            **kwargs: Keyword arguments passed to wrapped function
+
+        Returns:
+            JSONResponse with UnifiedResponse format
+        """
         now = datetime.now(timezone.utc).isoformat()
         try:
             result = await func(*args, **kwargs)

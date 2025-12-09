@@ -33,6 +33,16 @@ Base = declarative_base()
 
 
 class JobStatus(str, enum.Enum):
+    """
+    Status values for async job tracking.
+
+    Attributes:
+        pending: Job created but not yet started
+        running: Job currently executing
+        completed: Job finished successfully
+        failed: Job encountered an error and could not complete
+    """
+
     pending = "pending"
     running = "running"
     completed = "completed"
@@ -40,12 +50,31 @@ class JobStatus(str, enum.Enum):
 
 
 class TodoStatus(str, enum.Enum):
+    """
+    Status values for task management.
+
+    Attributes:
+        pending: Task not yet started
+        in_progress: Task currently being worked on
+        completed: Task finished
+    """
+
     pending = "pending"
     in_progress = "in_progress"
     completed = "completed"
 
 
 class ErrorSeverity(str, enum.Enum):
+    """
+    Severity levels for error tracking.
+
+    Attributes:
+        info: Informational message, not an error
+        warning: Warning condition that should be reviewed
+        error: Error condition that prevented an operation from completing
+        critical: Critical failure requiring immediate attention
+    """
+
     info = "info"
     warning = "warning"
     error = "error"
@@ -53,6 +82,25 @@ class ErrorSeverity(str, enum.Enum):
 
 
 class Job(Base):
+    """
+    Async job tracking for long-running generation tasks.
+
+    Tracks status, input parameters, results, and errors for async operations
+    like image/video/audio generation. Used by API Gateway to manage background
+    tasks and provide polling endpoints for clients.
+
+    Attributes:
+        id: UUID primary key
+        service: Service name (e.g., "comfyui", "stable_audio")
+        status: Current job status (pending/running/completed/failed)
+        request_data: Original request parameters as JSON
+        result: Job output data as JSON (e.g., file paths, URLs)
+        error: Error message if job failed
+        created_at: Timestamp when job was created
+        updated_at: Timestamp when job was last updated
+        timeout_seconds: Maximum execution time before job is considered failed
+    """
+
     __tablename__ = "jobs"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -69,6 +117,20 @@ class Job(Base):
 
 
 class APIKey(Base):
+    """
+    API key authentication and usage tracking.
+
+    Stores API keys for client authentication. Keys are indexed for fast lookup
+    during authentication middleware processing.
+
+    Attributes:
+        key: API key string (primary key, indexed)
+        name: Human-readable name for the key
+        created_at: Timestamp when key was created
+        last_used_at: Timestamp of most recent authentication
+        is_active: Whether the key is currently valid for authentication
+    """
+
     __tablename__ = "api_keys"
 
     key = Column(String, primary_key=True, index=True)
@@ -79,6 +141,25 @@ class APIKey(Base):
 
 
 class Todo(Base):
+    """
+    Task management for LLM-based todo tracking.
+
+    Provides structured storage for tasks with status, priority, and tagging.
+    Designed for LLM agents to track and manage their own work items.
+
+    Attributes:
+        id: UUID primary key
+        title: Short task description
+        description: Detailed task description
+        status: Current task status (pending/in_progress/completed)
+        priority: Task priority (0=low, higher=more urgent)
+        due_date: Optional deadline
+        tags: Array of tags as JSON (e.g., ["bug", "feature", "docs"])
+        created_at: Timestamp when task was created
+        updated_at: Timestamp when task was last modified
+        completed_at: Timestamp when task was marked complete
+    """
+
     __tablename__ = "todos"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -96,6 +177,26 @@ class Todo(Base):
 
 
 class Error(Base):
+    """
+    Error tracking and monitoring for all services.
+
+    Captures exceptions, stack traces, and contextual information for debugging.
+    Indexed by service and created_at for efficient querying. Job_id links errors
+    to specific async operations.
+
+    Attributes:
+        id: UUID primary key
+        service: Service that raised the error (indexed)
+        severity: Error severity level (info/warning/error/critical)
+        message: Error message
+        stack_trace: Full exception traceback
+        context: Additional context as JSON (e.g., file paths, input parameters)
+        job_id: Related job ID if error occurred during async operation (indexed)
+        created_at: Timestamp when error occurred (indexed)
+        resolved: Whether the error has been addressed
+        resolved_at: Timestamp when error was marked resolved
+    """
+
     __tablename__ = "errors"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -124,6 +225,13 @@ AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
 async def init_db() -> None:
+    """
+    Initialize database schema by creating all tables.
+
+    Runs CREATE TABLE statements for all models defined in this module.
+    Safe to call multiple times (uses CREATE TABLE IF NOT EXISTS).
+    Should be called once at application startup.
+    """
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

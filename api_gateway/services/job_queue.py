@@ -31,6 +31,20 @@ class JobQueueManager:
         request_data: Dict[str, Any],
         timeout_seconds: int = 300,
     ) -> str:
+        """
+        Create a new async job in the database.
+
+        Args:
+            service: Service name (e.g., "comfyui", "wan2gp", "stable_audio")
+            request_data: Service-specific request payload
+            timeout_seconds: Maximum execution time before job is marked as failed (default: 300)
+
+        Returns:
+            Job ID (UUID string) for tracking status
+
+        Raises:
+            DatabaseError: If job creation fails
+        """
         async with AsyncSessionLocal() as session:
             job = Job(
                 service=service,
@@ -45,6 +59,18 @@ class JobQueueManager:
             return job.id
 
     async def get_job(self, job_id: str) -> Job:
+        """
+        Retrieve a job by ID.
+
+        Args:
+            job_id: UUID string of the job to retrieve
+
+        Returns:
+            Job instance with current status, result, and metadata
+
+        Raises:
+            JobNotFoundError: If job_id does not exist in database
+        """
         async with AsyncSessionLocal() as session:
             job = await session.get(Job, job_id)
             if not job:
@@ -58,6 +84,18 @@ class JobQueueManager:
         result: Optional[Dict[str, Any]] = None,
         error: Optional[str] = None,
     ) -> None:
+        """
+        Update job status and optionally set result or error.
+
+        Args:
+            job_id: UUID string of the job to update
+            status: New status (pending, running, completed, failed)
+            result: Service response data if status is completed
+            error: Error message if status is failed
+
+        Raises:
+            JobNotFoundError: If job_id does not exist in database
+        """
         async with AsyncSessionLocal() as session:
             job = await session.get(Job, job_id)
             if not job:
@@ -70,6 +108,12 @@ class JobQueueManager:
             logger.info(f"Job {job_id} updated to {status}")
 
     async def get_pending_jobs(self) -> List[Job]:
+        """
+        Retrieve all jobs with pending status, ordered by creation time.
+
+        Returns:
+            List of Job instances awaiting processing (oldest first)
+        """
         async with AsyncSessionLocal() as session:
             result = await session.execute(
                 select(Job).where(Job.status == JobStatus.pending).order_by(Job.created_at)
@@ -77,17 +121,40 @@ class JobQueueManager:
             return result.scalars().all()
 
     async def cancel_job(self, job_id: str) -> None:
+        """
+        Cancel a pending or running job by marking it as failed.
+
+        Args:
+            job_id: UUID string of the job to cancel
+
+        Raises:
+            JobNotFoundError: If job_id does not exist in database
+        """
         await self.update_job_status(job_id, JobStatus.failed, error="Job cancelled")
 
 
 class JobWorker:
+    """
+    Background worker that processes async jobs from the queue.
+
+    Polls the database for pending jobs and executes them sequentially,
+    updating status and triggering events for WebSocket notifications.
+    """
+
     def __init__(self) -> None:
+        """Initialize worker with queue manager and event tracking."""
         self._running = False
         self._task: Optional[asyncio.Task] = None
         self.queue_manager = JobQueueManager()
         self._job_events: Dict[str, asyncio.Event] = {}
 
     async def start(self) -> None:
+        """
+        Start the background worker task.
+
+        Idempotent - does nothing if already running. Creates an asyncio task
+        that polls for pending jobs every 2 seconds.
+        """
         if self._running:
             return
         self._running = True
@@ -95,17 +162,41 @@ class JobWorker:
         logger.info("Job worker started")
 
     async def stop(self) -> None:
+        """
+        Stop the background worker gracefully.
+
+        Sets running flag to False and waits for current task to complete.
+        Does not interrupt jobs in progress.
+        """
         self._running = False
         if self._task:
             await self._task
         logger.info("Job worker stopped")
 
     def get_event(self, job_id: str) -> asyncio.Event:
+        """
+        Get or create an asyncio event for a job.
+
+        Used for WebSocket notifications - clients can await this event
+        to be notified when job status changes.
+
+        Args:
+            job_id: UUID string of the job
+
+        Returns:
+            asyncio.Event that is set when job status updates
+        """
         if job_id not in self._job_events:
             self._job_events[job_id] = asyncio.Event()
         return self._job_events[job_id]
 
     async def _run(self) -> None:
+        """
+        Main worker loop that polls for pending jobs.
+
+        Runs continuously while worker is active, checking for pending jobs
+        every 2 seconds and processing them sequentially.
+        """
         async with httpx.AsyncClient() as client:
             while self._running:
                 pending_jobs = await self.queue_manager.get_pending_jobs()
@@ -114,6 +205,21 @@ class JobWorker:
                 await asyncio.sleep(2)
 
     async def _process_job(self, job: Job, client: httpx.AsyncClient) -> None:
+        """
+        Execute a single job by forwarding request to the target service.
+
+        Handles VRAM management, timeout enforcement, status updates, and
+        event notifications for WebSocket clients.
+
+        Args:
+            job: Job instance to process
+            client: Reusable HTTP client for service requests
+
+        Raises:
+            JobTimeoutError: If job exceeds configured timeout
+            ServiceUnavailableError: If service returns 5xx status
+            VRAMConflictError: If GPU resources are insufficient
+        """
         logger.info(f"Processing job {job.id} for service {job.service}")
         await self.queue_manager.update_job_status(job.id, JobStatus.running)
         event = self.get_event(job.id)

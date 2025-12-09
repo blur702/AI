@@ -12,6 +12,12 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
       },
+      globals: {
+        // Browser-like globals used in fixtures
+        fetch: 'readonly',
+        RequestInit: 'readonly',
+        setTimeout: 'readonly',
+      },
     },
     plugins: {
       '@typescript-eslint': tseslint,
@@ -35,6 +41,14 @@ export default [
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
+      globals: {
+        // Node/browser globals used in fixtures and tools
+        require: 'readonly',
+        module: 'readonly',
+        console: 'readonly',
+        fetch: 'readonly',
+        setTimeout: 'readonly',
+      },
     },
     rules: {
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
@@ -60,6 +74,8 @@ export default [
       '**/open-webui/**',
       '**/MusicGPT/**',
       '**/nginx/**',
+      // Test/parser fixtures that intentionally use globals and unused symbols
+      'api_gateway/services/tests/fixtures/**',
       '**/*.min.js',
       '**/coverage/**',
       '**/reports/**',

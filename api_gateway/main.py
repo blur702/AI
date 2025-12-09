@@ -28,7 +28,6 @@ Usage:
     python -m api_gateway.main
     # or via start_gateway.bat
 """
-import asyncio
 from datetime import datetime
 
 import uvicorn
@@ -65,6 +64,19 @@ worker = None
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
+    """
+    HTTP middleware for request/response logging with timing.
+
+    Logs incoming request details (method, path, headers, body size) and outgoing
+    response details (status code, duration). Redacts X-API-Key header for security.
+
+    Args:
+        request: Incoming FastAPI request
+        call_next: Next middleware/handler in chain
+
+    Returns:
+        Response from downstream handler
+    """
     start = datetime.utcnow()
     body = await request.body()
     redacted_headers = {
@@ -85,6 +97,15 @@ async def logging_middleware(request: Request, call_next):
 
 @app.get("/metrics")
 async def metrics() -> PlainTextResponse:
+    """
+    Prometheus metrics endpoint.
+
+    Returns basic gateway health metrics in Prometheus text format.
+    Currently exports api_gateway_up gauge (1 = running).
+
+    Returns:
+        PlainTextResponse with Prometheus-formatted metrics
+    """
     lines = [
         "# HELP api_gateway_up API Gateway up status",
         "# TYPE api_gateway_up gauge",
@@ -95,6 +116,16 @@ async def metrics() -> PlainTextResponse:
 
 @app.on_event("startup")
 async def on_startup() -> None:
+    """
+    Application startup event handler.
+
+    Initializes database schema and starts background job worker.
+    Failures are logged but don't prevent the gateway from starting,
+    allowing graceful degradation of optional features.
+
+    Raises:
+        Exceptions are caught and logged; startup always succeeds
+    """
     global worker
     # Initialize database (later-phase). Failure here should not prevent
     # the base gateway from starting.
@@ -119,6 +150,15 @@ async def on_startup() -> None:
 
 @app.on_event("shutdown")
 async def on_shutdown() -> None:
+    """
+    Application shutdown event handler.
+
+    Gracefully stops background job worker. Failures are logged but don't
+    prevent shutdown from completing.
+
+    Raises:
+        Exceptions are caught and logged; shutdown always succeeds
+    """
     global worker
     if worker is not None:
         try:
@@ -172,6 +212,19 @@ app.include_router(health_routes.router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler for unhandled errors.
+
+    Catches all exceptions that weren't handled by route-specific handlers
+    and returns a unified error response with 500 status code.
+
+    Args:
+        request: Request that caused the exception
+        exc: Exception that was raised
+
+    Returns:
+        JSONResponse with unified error format and 500 status
+    """
     from .models.schemas import UnifiedError, UnifiedResponse
 
     logger.exception("Global exception handler caught an error")
@@ -187,6 +240,12 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 def run() -> None:
+    """
+    Start the API Gateway server with uvicorn.
+
+    Binds to all interfaces (0.0.0.0) on the configured API_PORT.
+    Auto-reload is disabled for production use.
+    """
     uvicorn.run("api_gateway.main:app", host="0.0.0.0", port=settings.API_PORT, reload=False)
 
 

@@ -300,7 +300,13 @@ gpu_info_error = False
 
 
 def emit_service_status(service_id: str, status: str, message: str = ""):
-    """Callback for service manager to emit status updates via WebSocket."""
+    """Callback for service manager to emit status updates via WebSocket.
+
+    Args:
+        service_id: Service identifier
+        status: Current service status (running, stopped, error, etc.)
+        message: Optional status message
+    """
     socketio.emit(
         "service_status",
         {
@@ -316,7 +322,12 @@ service_manager = get_service_manager(emit_service_status)
 
 
 def emit_ingestion_event(event_name: str, data: dict):
-    """Callback for ingestion manager to emit events via WebSocket."""
+    """Callback for ingestion manager to emit events via WebSocket.
+
+    Args:
+        event_name: WebSocket event name (e.g., 'ingestion_progress')
+        data: Event payload dictionary
+    """
     socketio.emit(event_name, data)
 
 
@@ -328,7 +339,14 @@ claude_manager = get_claude_manager(emit_ingestion_event, socketio.start_backgro
 
 
 def run_command(command: list[str]) -> tuple[bool, str, str]:
-    """Run a system command and return (success, stdout, stderr)."""
+    """Run a system command and return (success, stdout, stderr).
+
+    Args:
+        command: Command and arguments as list (e.g., ['ollama', 'list'])
+
+    Returns:
+        Tuple of (success, stdout, stderr) where success is True if returncode == 0
+    """
     try:
         result = subprocess.run(
             command,
@@ -356,6 +374,9 @@ def get_gpu_info() -> dict[str, Any] | None:
     """Get GPU memory information using nvidia-smi.
 
     Reuses logic from vram_manager.get_gpu_info().
+
+    Returns:
+        Dictionary with GPU info (name, total_mb, used_mb, free_mb, utilization) or None on error
     """
     try:
         success, stdout, stderr = run_command(
@@ -397,6 +418,9 @@ def get_gpu_processes() -> list[dict[str, str]]:
     """Get processes using the GPU via nvidia-smi.
 
     Reuses logic from vram_manager.get_gpu_processes().
+
+    Returns:
+        List of process dicts with pid, name, memory fields
     """
     try:
         success, stdout, stderr = run_command(
@@ -437,6 +461,9 @@ def get_available_ollama_models() -> list[dict[str, str]]:
     """Get list of all available Ollama models.
 
     Reuses logic from vram_manager.get_available_ollama_models().
+
+    Returns:
+        List of model dicts with name, id, size fields
     """
     try:
         success, stdout, stderr = run_command(["ollama", "list"])
@@ -471,6 +498,9 @@ def get_loaded_ollama_models() -> list[dict[str, str]]:
     """Get list of models currently loaded in Ollama.
 
     Reuses logic from vram_manager.get_ollama_models().
+
+    Returns:
+        List of loaded model dicts with name, id, size, processor fields
     """
     try:
         success, stdout, stderr = run_command(["ollama", "ps"])
@@ -569,6 +599,13 @@ def estimate_model_vram(size_gb: float, quantization: str) -> int:
     - FP32: ~200% of model size
 
     Add ~500MB overhead for context and KV cache.
+
+    Args:
+        size_gb: Model size in GB
+        quantization: Quantization method (Q4, Q5, Q6, Q8, FP16, FP32)
+
+    Returns:
+        Estimated VRAM usage in MB
     """
     quant_lower = quantization.lower()
 
@@ -593,7 +630,14 @@ def estimate_model_vram(size_gb: float, quantization: str) -> int:
 
 
 def parse_model_size(size_str: str) -> float:
-    """Parse model size string (e.g., '19GB', '4.7G') to float GB."""
+    """Parse model size string (e.g., '19GB', '4.7G') to float GB.
+
+    Args:
+        size_str: Size string from ollama list (e.g., '19GB', '4.7G', '500M')
+
+    Returns:
+        Size in GB as float, or 0.0 on parse error
+    """
     if not size_str:
         return 0.0
 
@@ -615,7 +659,14 @@ def parse_model_size(size_str: str) -> float:
 
 
 def get_model_family(model_name: str) -> str:
-    """Extract model family from model name."""
+    """Extract model family from model name.
+
+    Args:
+        model_name: Full model name (e.g., 'llama3.1:32b-instruct-q4')
+
+    Returns:
+        Model family identifier (e.g., 'llama3.1', 'qwen2.5')
+    """
     # Remove tag (e.g., ':latest', ':32b-instruct-q4_K_M')
     base_name = model_name.split(":")[0].lower()
 
@@ -658,7 +709,11 @@ def _parse_ollama_verbose_output(stdout: str) -> dict:
     - Parameters: top_k, top_p, temperature, etc.
     - Metadata: detailed key-value pairs
 
-    Returns dict with extracted fields.
+    Args:
+        stdout: Raw output from ollama show --verbose command
+
+    Returns:
+        Dictionary with extracted fields (parameters, quantization, format, architecture, context_length)
     """
     result = {
         "parameters": "",
@@ -807,7 +862,11 @@ def get_ollama_model_info(
 def remove_ollama_model(model_name: str) -> tuple[bool, str, str | None]:
     """Remove an Ollama model from disk.
 
-    Returns (success, message, error_code).
+    Args:
+        model_name: Name of model to remove
+
+    Returns:
+        Tuple of (success, message, error_code)
     """
     try:
         success, _stdout, stderr = run_command(["ollama", "rm", model_name])
@@ -831,7 +890,14 @@ def remove_ollama_model(model_name: str) -> tuple[bool, str, str | None]:
 
 
 def classify_ollama_error(stderr_text: str | None) -> str:
-    """Classify Ollama stderr into a stable error code."""
+    """Classify Ollama stderr into a stable error code.
+
+    Args:
+        stderr_text: Error text from ollama command stderr
+
+    Returns:
+        Error code: MODEL_NOT_FOUND, OLLAMA_UNAVAILABLE, OLLAMA_CLI_NOT_FOUND, or UNKNOWN_ERROR
+    """
     text = (stderr_text or "").lower()
     if "no such model" in text or "model not found" in text:
         return "MODEL_NOT_FOUND"
@@ -850,7 +916,14 @@ def classify_ollama_error(stderr_text: str | None) -> str:
 
 
 def error_code_to_http_status(error_code: str | None) -> int:
-    """Map Ollama error codes to appropriate HTTP status codes."""
+    """Map Ollama error codes to appropriate HTTP status codes.
+
+    Args:
+        error_code: Error code from classify_ollama_error()
+
+    Returns:
+        HTTP status code (404, 503, or 500)
+    """
     if error_code == "MODEL_NOT_FOUND":
         return 404
     if error_code in ("OLLAMA_UNAVAILABLE", "OLLAMA_CLI_NOT_FOUND"):
@@ -862,7 +935,12 @@ def stop_ollama_model(model_name: str) -> tuple[bool, str, str | None]:
     """Stop/unload an Ollama model from memory.
 
     Reuses logic from vram_manager.stop_ollama_model().
-    Returns (success, message, error_code).
+
+    Args:
+        model_name: Name of model to unload
+
+    Returns:
+        Tuple of (success, message, error_code)
     """
     try:
         success, _stdout, stderr = run_command(["ollama", "stop", model_name])
@@ -883,7 +961,12 @@ def load_ollama_model(model_name: str) -> tuple[bool, str, str | None]:
     """Load an Ollama model into memory.
 
     Executes: `ollama run <model_name> --keepalive 0`.
-    Returns (success, message, error_code).
+
+    Args:
+        model_name: Name of model to load
+
+    Returns:
+        Tuple of (success, message, error_code)
     """
     command = ["ollama", "run", model_name, "--keepalive", "0"]
     try:
@@ -906,6 +989,13 @@ def load_ollama_model_with_progress(model_name: str, expected_vram_mb: int) -> t
 
     Emits `model_load_progress` WebSocket events with payload:
     { "model_name": "...", "progress": 0-100, "status": "loading|complete|error", "action": "load" }
+
+    Args:
+        model_name: Name of model to load
+        expected_vram_mb: Expected VRAM usage in MB for progress calculation
+
+    Returns:
+        Tuple of (success, message, error_code)
     """
     # Get initial VRAM state
     gpu_info = get_gpu_info()
@@ -997,6 +1087,13 @@ def unload_ollama_model_with_progress(model_name: str, expected_vram_mb: int) ->
 
     Emits `model_load_progress` WebSocket events with payload:
     { "model_name": "...", "progress": 0-100, "status": "unloading|complete|error", "action": "unload" }
+
+    Args:
+        model_name: Name of model to unload
+        expected_vram_mb: Expected VRAM to be freed in MB for progress calculation
+
+    Returns:
+        Tuple of (success, message, error_code)
     """
     # Get initial VRAM state
     gpu_info = get_gpu_info()
@@ -1087,6 +1184,9 @@ def pull_ollama_model(model_name: str) -> None:
 
     Emits `model_download_progress` events with payload:
     { "model_name": "...", "progress": "...", "status": "downloading|complete|error" }.
+
+    Args:
+        model_name: Name of model to download
     """
     command = ["ollama", "pull", model_name]
 
@@ -1188,7 +1288,11 @@ def pull_ollama_model(model_name: str) -> None:
 
 @app.route("/api/auth/check", methods=["GET"])
 def api_auth_check():
-    """Verify authentication status."""
+    """Verify authentication status.
+
+    Returns:
+        JSON with authenticated status and username if valid
+    """
     auth = request.authorization
     if not auth or not check_auth(auth.username, auth.password):
         return authenticate()
@@ -1197,7 +1301,11 @@ def api_auth_check():
 
 @app.route("/api/auth/token", methods=["GET"])
 def api_auth_token():
-    """Generate a session token for Socket.IO authentication."""
+    """Generate a session token for Socket.IO authentication.
+
+    Returns:
+        JSON with session token and username if credentials valid
+    """
     auth = request.authorization
     if not auth:
         return authenticate()
@@ -1211,7 +1319,11 @@ def api_auth_token():
 
 @app.route("/api/auth/revoke", methods=["POST"])
 def api_auth_revoke():
-    """Revoke the current session token."""
+    """Revoke the current session token.
+
+    Returns:
+        JSON with success status
+    """
     # Extract token from Authorization header (if sent as Bearer token)
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
@@ -1269,6 +1381,11 @@ def api_health():
 @app.route("/api/vram/status", methods=["GET"])
 @require_auth
 def api_vram_status():
+    """Get current GPU VRAM status and processes.
+
+    Returns:
+        JSON with gpu info and processes list
+    """
     gpu = get_gpu_info()
     processes = get_gpu_processes()
 
@@ -1359,6 +1476,11 @@ def api_list_ollama_models():
 @app.route("/api/models/ollama/loaded", methods=["GET"])
 @require_auth
 def api_loaded_ollama_models():
+    """Get list of currently loaded Ollama models.
+
+    Returns:
+        JSON with models array and count
+    """
     models = get_loaded_ollama_models()
     return jsonify(
         {
@@ -1371,6 +1493,15 @@ def api_loaded_ollama_models():
 @app.route("/api/models/ollama/load", methods=["POST"])
 @require_auth
 def api_load_ollama_model():
+    """Load an Ollama model into GPU memory with progress tracking.
+
+    Request JSON:
+        model_name: Name of model to load
+        expected_vram_mb: (optional) Expected VRAM usage
+
+    Returns:
+        202 Accepted with session info, progress sent via WebSocket
+    """
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
 
@@ -1420,6 +1551,15 @@ def api_load_ollama_model():
 @app.route("/api/models/ollama/unload", methods=["POST"])
 @require_auth
 def api_unload_ollama_model():
+    """Unload an Ollama model from GPU memory with progress tracking.
+
+    Request JSON:
+        model_name: Name of model to unload
+        expected_vram_mb: (optional) Expected VRAM to be freed
+
+    Returns:
+        202 Accepted with session info, progress sent via WebSocket
+    """
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
 
@@ -1469,6 +1609,14 @@ def api_unload_ollama_model():
 @app.route("/api/models/ollama/download", methods=["POST"])
 @require_auth
 def api_download_ollama_model():
+    """Download an Ollama model from registry with progress tracking.
+
+    Request JSON:
+        model_name: Name of model to download (e.g., 'llama3.1:latest')
+
+    Returns:
+        JSON with success status, progress sent via WebSocket
+    """
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
 
@@ -1674,7 +1822,14 @@ def api_get_service(service_id):
 @app.route("/api/services/<service_id>/start", methods=["POST"])
 @require_auth
 def api_start_service(service_id):
-    """Start a service."""
+    """Start a service.
+
+    Args:
+        service_id: Service identifier from SERVICES config
+
+    Returns:
+        JSON with success status and message
+    """
     result = service_manager.start_service(service_id)
     status_code = 200 if result.get("success") else 400
     return jsonify(result), status_code
@@ -1683,7 +1838,14 @@ def api_start_service(service_id):
 @app.route("/api/services/<service_id>/stop", methods=["POST"])
 @require_auth
 def api_stop_service(service_id):
-    """Stop a service."""
+    """Stop a service.
+
+    Args:
+        service_id: Service identifier from SERVICES config
+
+    Returns:
+        JSON with success status and message
+    """
     result = service_manager.stop_service(service_id)
     status_code = 200 if result.get("success") else 400
     return jsonify(result), status_code
@@ -1692,7 +1854,14 @@ def api_stop_service(service_id):
 @app.route("/api/services/<service_id>/restart", methods=["POST"])
 @require_auth
 def api_restart_service(service_id):
-    """Restart a service."""
+    """Restart a service (stop then start).
+
+    Args:
+        service_id: Service identifier from SERVICES config
+
+    Returns:
+        JSON with success status and message
+    """
     result = service_manager.restart_service(service_id)
     status_code = 200 if result.get("success") else 400
     return jsonify(result), status_code
@@ -1701,7 +1870,14 @@ def api_restart_service(service_id):
 @app.route("/api/services/<service_id>/pause", methods=["POST"])
 @require_auth
 def api_pause_service(service_id):
-    """Pause a running service."""
+    """Pause a running service (suspend process).
+
+    Args:
+        service_id: Service identifier from SERVICES config
+
+    Returns:
+        JSON with success status, emits service_paused event on success
+    """
     result = service_manager.pause_service(service_id)
     status_code = 200 if result.get("success") else 400
     if result.get("success"):
@@ -1716,7 +1892,14 @@ def api_pause_service(service_id):
 @app.route("/api/services/<service_id>/resume", methods=["POST"])
 @require_auth
 def api_resume_service(service_id):
-    """Resume a paused service."""
+    """Resume a paused service (resume process).
+
+    Args:
+        service_id: Service identifier from SERVICES config
+
+    Returns:
+        JSON with success status, emits service_resumed event on success
+    """
     result = service_manager.resume_service(service_id)
     status_code = 200 if result.get("success") else 400
     if result.get("success"):
@@ -1731,7 +1914,14 @@ def api_resume_service(service_id):
 @app.route("/api/services/<service_id>/touch", methods=["POST"])
 @require_auth
 def api_touch_service(service_id):
-    """Update last activity timestamp for a service."""
+    """Update last activity timestamp for a service.
+
+    Args:
+        service_id: Service identifier from SERVICES config
+
+    Returns:
+        JSON with success status
+    """
     if service_id not in SERVICES:
         return jsonify({"error": "Service not found"}), 404
     service_manager.touch_activity(service_id)
@@ -1772,7 +1962,11 @@ def api_test_clear_error(service_id):
 @app.route("/api/resources/summary", methods=["GET"])
 @require_auth
 def api_resource_summary():
-    """Get summary of resource usage across all services."""
+    """Get summary of resource usage across all services.
+
+    Returns:
+        JSON with gpu, gpu_processes, ollama_models, and services summary
+    """
     gpu = get_gpu_info()
     processes = get_gpu_processes()
     ollama_models = get_loaded_ollama_models()
@@ -1789,7 +1983,11 @@ def api_resource_summary():
 @app.route("/api/resources/settings", methods=["GET"])
 @require_auth
 def api_resource_settings():
-    """Get current resource management settings."""
+    """Get current resource management settings.
+
+    Returns:
+        JSON with auto_stop_enabled, idle_timeout_seconds, idle_timeout_minutes
+    """
     return jsonify({
         "auto_stop_enabled": service_manager.is_auto_stop_enabled(),
         "idle_timeout_seconds": service_manager.get_idle_timeout(),
@@ -1800,7 +1998,15 @@ def api_resource_settings():
 @app.route("/api/resources/settings", methods=["POST"])
 @require_auth
 def api_update_resource_settings():
-    """Update resource management settings."""
+    """Update resource management settings.
+
+    Request JSON:
+        auto_stop_enabled: (optional) Enable/disable auto-stop for idle services
+        idle_timeout_minutes: (optional) Idle timeout in minutes
+
+    Returns:
+        JSON with updated settings
+    """
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
 
@@ -2243,9 +2449,11 @@ EXCLUDED_HEADERS = [
 
 
 def check_proxy_auth() -> tuple[bool, tuple[Response, int] | None]:
-    """
-    Check if request is authorized to use the proxy.
-    Returns (authorized: bool, error_response: tuple or None).
+    """Check if request is authorized to use the proxy.
+
+    Returns:
+        Tuple of (authorized, error_response). error_response is None if authorized,
+        otherwise a tuple of (Response, status_code) to return to client.
     """
     if not PROXY_AUTH_ENABLED:
         return True, None
@@ -2265,13 +2473,18 @@ def check_proxy_auth() -> tuple[bool, tuple[Response, int] | None]:
 
 
 def proxy_request(target_url: str) -> Response | tuple[Response, int]:
-    """
-    Proxy a request to the target URL and return the response.
+    """Proxy a request to the target URL and return the response.
 
     Security features:
     - Optional token-based authentication
     - Request size limiting
     - Configurable timeout
+
+    Args:
+        target_url: Full URL to proxy the request to
+
+    Returns:
+        Flask Response object with proxied content, or error tuple
     """
     # Authentication check
     authorized, error_response = check_proxy_auth()
@@ -2340,7 +2553,15 @@ def proxy_request(target_url: str) -> Response | tuple[Response, int]:
 @app.route("/proxy/<service_id>/<path:path>")
 @require_auth
 def proxy_service(service_id: str, path: str) -> Response | tuple[Response, int]:
-    """Reverse proxy requests to backend services."""
+    """Reverse proxy requests to backend services.
+
+    Args:
+        service_id: Service identifier from SERVICE_PROXY_MAP
+        path: Request path to forward
+
+    Returns:
+        Proxied response from backend service
+    """
     if service_id not in SERVICE_PROXY_MAP:
         return jsonify({"error": f"Unknown service: {service_id}"}), 404
 
@@ -2362,14 +2583,25 @@ def proxy_service(service_id: str, path: str) -> Response | tuple[Response, int]
 @app.route("/")
 @require_auth
 def serve_index():
-    """Serve the React app index.html."""
+    """Serve the React app index.html.
+
+    Returns:
+        index.html from frontend build directory
+    """
     return send_from_directory(FRONTEND_DIST, "index.html")
 
 
 @app.route("/<path:path>")
 @require_auth
 def serve_static(path):
-    """Serve static files, fall back to index.html for SPA routing."""
+    """Serve static files, fall back to index.html for SPA routing.
+
+    Args:
+        path: Requested file path
+
+    Returns:
+        Static file if exists, otherwise index.html for client-side routing
+    """
     # Don't catch API routes
     if path.startswith("api/") or path.startswith("socket.io/"):
         return jsonify({"error": "Not found"}), 404

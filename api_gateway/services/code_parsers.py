@@ -52,7 +52,15 @@ logger = get_logger("api_gateway.code_parsers")
 
 
 def _relative_to_workspace(path: Path) -> str:
-    """Convert absolute path to workspace-relative path."""
+    """
+    Convert absolute path to workspace-relative path.
+
+    Args:
+        path: Absolute file path
+
+    Returns:
+        Workspace-relative path string, or absolute path if not within workspace
+    """
     workspace_root = Path(__file__).resolve().parents[2]
     try:
         return str(path.resolve().relative_to(workspace_root))
@@ -65,6 +73,14 @@ def _build_full_name(
 ) -> str:
     """
     Build fully qualified name for an entity.
+
+    Args:
+        file_path: Path to source file containing entity
+        entity_name: Name of the entity (function, class, etc.)
+        parent: Optional parent entity name (for nested entities)
+
+    Returns:
+        Fully qualified dotted name (e.g., module.path.ClassName.method_name)
 
     Format: module.path.ClassName.method_name or module.path.function_name
     """
@@ -86,17 +102,42 @@ def _build_full_name(
 
 
 def _serialize_parameters(params: List[Dict[str, Any]]) -> str:
-    """Convert parameter list to JSON string."""
+    """
+    Convert parameter list to JSON string.
+
+    Args:
+        params: List of parameter dictionaries with name, type, default, kind keys
+
+    Returns:
+        JSON string representation of parameter list
+    """
     return json.dumps(params)
 
 
 def _serialize_decorators(decorators: List[str]) -> str:
-    """Convert decorator list to JSON array string."""
+    """
+    Convert decorator list to JSON array string.
+
+    Args:
+        decorators: List of decorator strings (e.g., ["@property", "@staticmethod"])
+
+    Returns:
+        JSON array string
+    """
     return json.dumps(decorators)
 
 
 def _count_line_number(text: str, position: int) -> int:
-    """Count line number (1-indexed) for a character position in text."""
+    """
+    Count line number (1-indexed) for a character position in text.
+
+    Args:
+        text: Source text
+        position: Character position (0-indexed)
+
+    Returns:
+        Line number (1-indexed)
+    """
     return text[:position].count("\n") + 1
 
 
@@ -106,7 +147,12 @@ def _count_line_number(text: str, position: int) -> int:
 
 
 class BaseParser(ABC):
-    """Abstract base class for language-specific parsers."""
+    """
+    Abstract base class for language-specific parsers.
+
+    Subclasses must implement parse_file() and language property to handle
+    specific programming languages.
+    """
 
     @abstractmethod
     def parse_file(self, file_path: Path) -> List[CodeEntity]:
@@ -124,7 +170,12 @@ class BaseParser(ABC):
     @property
     @abstractmethod
     def language(self) -> str:
-        """Return the language identifier for entities from this parser."""
+        """
+        Return the language identifier for entities from this parser.
+
+        Returns:
+            Language identifier string (e.g., "python", "typescript", "javascript", "css")
+        """
         pass
 
 
@@ -134,14 +185,29 @@ class BaseParser(ABC):
 
 
 class PythonParser(BaseParser):
-    """Parser for Python source files using the built-in ast module."""
+    """
+    Parser for Python source files using the built-in ast module.
+
+    Extracts functions, methods, classes, and module-level variables with
+    comprehensive metadata including parameters (positional, *args, kwonly, **kwargs),
+    return types, decorators, and docstrings.
+    """
 
     @property
     def language(self) -> str:
+        """Return language identifier."""
         return "python"
 
     def parse_file(self, file_path: Path) -> List[CodeEntity]:
-        """Parse a Python file and extract code entities."""
+        """
+        Parse a Python file and extract code entities.
+
+        Args:
+            file_path: Path to Python source file
+
+        Returns:
+            List of CodeEntity objects (functions, methods, classes, variables)
+        """
         logger.info("Parsing Python file: %s", _relative_to_workspace(file_path))
 
         try:
@@ -253,7 +319,15 @@ class PythonParser(BaseParser):
         return entities
 
     def _extract_imports(self, tree: ast.Module) -> List[str]:
-        """Extract all import statements from a Python AST."""
+        """
+        Extract all import statements from a Python AST.
+
+        Args:
+            tree: Parsed Python AST module
+
+        Returns:
+            List of imported module/package names
+        """
         imports: List[str] = []
 
         for node in ast.walk(tree):
@@ -278,7 +352,21 @@ class PythonParser(BaseParser):
         is_async: bool = False,
         is_method: bool = False,
     ) -> CodeEntity:
-        """Extract a function or method entity."""
+        """
+        Extract a function or method entity from AST node.
+
+        Args:
+            node: AST FunctionDef or AsyncFunctionDef node
+            file_path: Source file path
+            source_lines: Lines of source code for extracting text
+            imports: List of imported modules
+            parent: Parent entity name (for nested functions/methods)
+            is_async: Whether function is async
+            is_method: Whether function is a class method
+
+        Returns:
+            CodeEntity object with complete function/method metadata
+        """
         name = node.name
 
         # Parameters - extract all categories
@@ -406,7 +494,19 @@ class PythonParser(BaseParser):
         imports: List[str],
         parent: Optional[str] = None,
     ) -> CodeEntity:
-        """Extract a class entity."""
+        """
+        Extract a class entity from AST node.
+
+        Args:
+            node: AST ClassDef node
+            file_path: Source file path
+            source_lines: Lines of source code for extracting text
+            imports: List of imported modules
+            parent: Parent entity name (for nested classes)
+
+        Returns:
+            CodeEntity object with class metadata including base classes
+        """
         name = node.name
 
         # Base classes

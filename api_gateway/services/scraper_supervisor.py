@@ -257,10 +257,7 @@ def run_drupal_scraper(
     checkpoint_manager: CheckpointManager,
 ) -> Dict[str, Any]:
     """Run the Drupal API scraper with checkpoint support."""
-    from .drupal_api_schema import (
-        create_drupal_api_collection,
-        get_collection_stats,
-    )
+    from .drupal_api_schema import create_drupal_api_collection
     from .drupal_scraper import (
         DrupalAPIScraper,
         ScrapeConfig,
@@ -420,10 +417,7 @@ def run_mdn_javascript_scraper(
     checkpoint_manager: CheckpointManager,
 ) -> Dict[str, Any]:
     """Run the MDN JavaScript documentation scraper with checkpoint support."""
-    from .mdn_schema import (
-        create_mdn_javascript_collection,
-        get_mdn_javascript_stats,
-    )
+    from .mdn_schema import create_mdn_javascript_collection
     from .mdn_javascript_scraper import (
         MDNJavaScriptScraper,
         ScrapeConfig,
@@ -559,10 +553,7 @@ def run_mdn_webapis_scraper(
     checkpoint_manager: CheckpointManager,
 ) -> Dict[str, Any]:
     """Run the MDN Web APIs documentation scraper with checkpoint support."""
-    from .mdn_schema import (
-        create_mdn_webapis_collection,
-        get_mdn_webapis_stats,
-    )
+    from .mdn_schema import create_mdn_webapis_collection
     from .mdn_webapis_scraper import (
         MDNWebAPIsScraper,
         ScrapeConfig,

@@ -1,3 +1,10 @@
+"""
+Authentication routes for API key management.
+
+Provides endpoints for creating, listing, and deactivating API keys used for
+authenticating requests to the API Gateway. Keys are stored in PostgreSQL
+and validated via middleware on protected routes.
+"""
 import secrets
 from datetime import datetime, timezone
 from typing import List
@@ -15,6 +22,12 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 async def get_session() -> AsyncSession:
+    """
+    Dependency that provides a database session for route handlers.
+
+    Yields:
+        AsyncSession: Active PostgreSQL database session with automatic cleanup.
+    """
     async with AsyncSessionLocal() as session:
         yield session
 
@@ -24,6 +37,20 @@ async def get_session() -> AsyncSession:
 async def create_api_key(
     payload: CreateAPIKeyRequest, session: AsyncSession = Depends(get_session)
 ) -> dict:
+    """
+    Create a new API key for authenticating requests.
+
+    Generates a cryptographically secure 32-byte URL-safe token and stores it
+    in the database with the provided name. The key value is only returned once
+    at creation time and should be stored securely by the client.
+
+    Args:
+        payload: Request containing the name for the new API key.
+        session: Database session injected by FastAPI dependency.
+
+    Returns:
+        dict: Contains key (token string), name, and created_at timestamp.
+    """
     key_value = secrets.token_urlsafe(32)
     api_key = APIKey(
         key=key_value,
@@ -45,6 +72,20 @@ async def create_api_key(
 async def list_api_keys(
     session: AsyncSession = Depends(get_session),
 ) -> dict:
+    """
+    List all API keys with metadata (excludes actual key values).
+
+    Returns metadata for all API keys in the system including name, creation time,
+    last usage time, and active status. The actual key tokens are never returned
+    after initial creation for security.
+
+    Args:
+        session: Database session injected by FastAPI dependency.
+
+    Returns:
+        dict: Contains 'keys' array with name, created_at, last_used_at, and is_active
+              for each key.
+    """
     result = await session.execute(select(APIKey))
     items: List[APIKey] = result.scalars().all()
     keys = [
@@ -64,6 +105,20 @@ async def list_api_keys(
 async def deactivate_api_key(
     key: str, session: AsyncSession = Depends(get_session)
 ) -> dict:
+    """
+    Deactivate an API key to prevent further use.
+
+    Marks the specified API key as inactive in the database. The key record
+    is retained for audit purposes but will fail authentication checks.
+    Silently succeeds even if the key doesn't exist.
+
+    Args:
+        key: The API key token to deactivate.
+        session: Database session injected by FastAPI dependency.
+
+    Returns:
+        dict: Contains 'success': True regardless of whether key was found.
+    """
     api_key = await session.get(APIKey, key)
     if api_key:
         api_key.is_active = False

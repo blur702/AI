@@ -254,7 +254,16 @@ def scan_all_services() -> Dict[str, List[Path]]:
 def _batched(
     iterable: Iterable[CodeEntity], batch_size: int
 ) -> Iterable[List[CodeEntity]]:
-    """Yield successive batches from an iterable."""
+    """
+    Yield successive batches from an iterable.
+
+    Args:
+        iterable: Iterable of CodeEntity objects
+        batch_size: Maximum number of items per batch
+
+    Yields:
+        Lists of up to batch_size items
+    """
     batch: List[CodeEntity] = []
     for item in iterable:
         batch.append(item)
@@ -304,6 +313,7 @@ def ingest_code_entities(
     cancelled = False
 
     def emit_progress(phase: str, current: int, total: int, message: str) -> None:
+        """Call progress_callback if provided, suppressing any errors."""
         if progress_callback:
             try:
                 progress_callback(phase, current, total, message)
@@ -311,6 +321,7 @@ def ingest_code_entities(
                 pass  # Don't let callback errors stop ingestion
 
     def is_cancelled() -> bool:
+        """Check if operation should be cancelled, suppressing callback errors."""
         if check_cancelled:
             try:
                 return check_cancelled()
@@ -319,7 +330,12 @@ def ingest_code_entities(
         return False
 
     def is_paused() -> bool:
-        """Check if paused and wait. Returns True if cancelled during wait."""
+        """
+        Check if paused and wait. Returns True if cancelled during wait.
+
+        Returns:
+            True if operation was cancelled during pause, False otherwise
+        """
         if check_paused:
             try:
                 return check_paused()
@@ -354,6 +370,12 @@ def ingest_code_entities(
     processed_files = 0
 
     def entity_stream() -> Iterable[CodeEntity]:
+        """
+        Stream CodeEntity objects from all source files, respecting cancel/pause callbacks.
+
+        Yields:
+            CodeEntity objects for each code entity found in source files
+        """
         nonlocal total_files, total_entities, errors, cancelled, processed_files
         for svc_name, files in files_by_service.items():
             for path in files:

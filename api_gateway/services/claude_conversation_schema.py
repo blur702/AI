@@ -70,7 +70,12 @@ class ClaudeConversationTurn:
     tags: Optional[str] = None  # JSON array
 
     def to_properties(self) -> Dict[str, Any]:
-        """Convert to dictionary for Weaviate insertion."""
+        """
+        Convert to dictionary for Weaviate insertion.
+
+        Returns:
+            Dictionary with all fields formatted for Weaviate insertion
+        """
         return {
             "session_id": self.session_id,
             "timestamp": self.timestamp,
@@ -110,6 +115,9 @@ def create_claude_conversation_collection(
     Args:
         client: Connected Weaviate client
         force_reindex: If True, delete existing collection before creating
+
+    Raises:
+        WeaviateBaseError: If collection creation fails
     """
     exists = client.collections.exists(CLAUDE_CONVERSATION_COLLECTION_NAME)
 
@@ -203,11 +211,20 @@ def search_conversations(
     Args:
         client: Connected Weaviate client
         query: Search query text
-        limit: Maximum results to return
-        session_id: Optional filter by session
+        limit: Maximum results to return (default: 10)
+        session_id: Optional filter by session ID
 
     Returns:
-        List of matching conversation turns with metadata
+        List of dictionaries containing conversation turn data:
+        - uuid: Object UUID
+        - session_id: Session identifier
+        - timestamp: ISO 8601 timestamp
+        - user_message: User's prompt
+        - assistant_response: Claude's response
+        - tool_calls: JSON array of tool calls
+        - file_paths: JSON array of file paths
+        - tags: JSON array of tags
+        - distance: Similarity distance (lower = more similar)
     """
     if not client.collections.exists(CLAUDE_CONVERSATION_COLLECTION_NAME):
         logger.warning("Collection '%s' does not exist", CLAUDE_CONVERSATION_COLLECTION_NAME)
@@ -251,7 +268,11 @@ def get_conversation_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
     """
     Get statistics for ClaudeConversation collection.
 
+    Args:
+        client: Connected Weaviate client
+
     Returns:
+        Dictionary with statistics:
         - exists: Whether collection exists
         - object_count: Total number of conversation turns
         - session_count: Number of unique sessions

@@ -32,6 +32,23 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
     PUBLIC_PREFIXES = ("/jobs", "/llm/models")
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        """
+        Process request and validate API key authentication.
+
+        Skips authentication for public endpoints (health, metrics, docs) and
+        read-only GET requests on certain prefixes. For protected endpoints,
+        validates X-API-Key header against database and updates last_used_at.
+
+        Args:
+            request: Incoming FastAPI request
+            call_next: Next middleware/handler in chain
+
+        Returns:
+            Response from downstream handler
+
+        Raises:
+            InvalidAPIKeyError: If API key is missing, invalid, or inactive
+        """
         # Skip auth for public endpoints
         if request.url.path in self.PUBLIC_PATHS:
             return await call_next(request)
