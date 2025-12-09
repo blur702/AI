@@ -1,11 +1,13 @@
 # Post-Message Store Hook for Claude Code
 # Stores conversation turns in Weaviate for semantic retrieval
 #
-# Input: JSON from stdin with conversation data
-# Output: Result JSON to stdout
+# Input: JSON from stdin with:
+#   - session_id: Session identifier
+#   - prompt: The user's prompt text
+#   - transcript_path: Path to session transcript
+#   - cwd: Current working directory
 #
-# This hook is triggered after user prompts are submitted
-# It extracts the conversation context and stores it in Weaviate
+# This hook is triggered when user submits a prompt (UserPromptSubmit event)
 
 param(
     [Parameter(ValueFromPipeline=$true)]
@@ -29,34 +31,13 @@ try {
     exit 0
 }
 
-# Extract relevant data from the hook input
-# The structure depends on the hook type (PreToolUse, PostToolUse, etc.)
-$sessionId = $env:CLAUDE_SESSION_ID
+# Extract the prompt from UserPromptSubmit event
+$userMessage = $data.prompt
+$sessionId = $data.session_id
+
+# Generate session ID if not provided
 if (-not $sessionId) {
     $sessionId = [guid]::NewGuid().ToString()
-}
-
-# For user-prompt-submit-hook, extract the prompt
-$userMessage = ""
-$assistantResponse = ""
-$toolCalls = @()
-$filePaths = @()
-
-# Try to extract from different possible input structures
-if ($data.prompt) {
-    $userMessage = $data.prompt
-}
-if ($data.user_message) {
-    $userMessage = $data.user_message
-}
-if ($data.message) {
-    $userMessage = $data.message
-}
-if ($data.tool_input) {
-    # This might be from a tool use event
-    if ($data.tool_input.prompt) {
-        $userMessage = $data.tool_input.prompt
-    }
 }
 
 # Skip if no user message found
