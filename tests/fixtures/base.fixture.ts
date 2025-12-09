@@ -52,7 +52,17 @@ export const test = base.extend<{
     const url = process.env.DASHBOARD_API_URL || 'http://localhost';
     // Allow insecure connections for self-signed certs in test environments
     const allowInsecure = process.env.ALLOW_INSECURE_CONNECTIONS === 'true';
-    await use(new DashboardAPIClient(url, { allowInsecureConnections: allowInsecure }));
+
+    // Build headers with Basic Auth if credentials are provided
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const username = process.env.DASHBOARD_AUTH_USERNAME;
+    const password = process.env.DASHBOARD_AUTH_PASSWORD;
+    if (username && password) {
+      const credentials = Buffer.from(`${username}:${password}`).toString('base64');
+      headers['Authorization'] = `Basic ${credentials}`;
+    }
+
+    await use(new DashboardAPIClient(url, { allowInsecureConnections: allowInsecure, headers }));
   },
 
   gatewayAPI: async ({}, use) => {

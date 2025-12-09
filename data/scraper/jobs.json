@@ -1,18 +1,18 @@
 {
-  "drupal_1765220327": {
-    "job_id": "drupal_1765220327",
+  "drupal_1765255836": {
+    "job_id": "drupal_1765255836",
     "scraper_type": "drupal",
     "status": "running",
     "config": {
       "max_entities": null,
       "dry_run": false
     },
-    "created_at": "2025-12-08T18:58:47.531958+00:00",
-    "started_at": "2025-12-08T19:04:43.757303+00:00",
+    "created_at": "2025-12-09T04:50:36.704011+00:00",
+    "started_at": "2025-12-09T04:51:25.079610+00:00",
     "completed_at": "",
     "last_heartbeat": "",
-    "pid": 4360,
-    "error_message": "",
+    "pid": 75016,
+    "error_message": "Process died or heartbeat timeout",
     "retry_count": 0,
     "max_retries": 3
   }

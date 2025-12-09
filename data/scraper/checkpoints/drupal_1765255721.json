@@ -1,0 +1,11 @@
+{
+  "job_id": "drupal_1765255721",
+  "scraper_type": "drupal",
+  "last_entity_type": "class",
+  "last_entity_name": "AjaxResponse",
+  "last_page": 0,
+  "entities_processed": 170,
+  "entities_inserted": 170,
+  "errors": 0,
+  "updated_at": "2025-12-09T05:00:45.758711+00:00"
+}
