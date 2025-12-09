@@ -1,9 +1,9 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, memo } from 'react';
 import { useClaude } from '../hooks/useClaude';
 import { ClaudeSession } from '../types';
 import './ClaudePanel.css';
 
-export function ClaudePanel() {
+export const ClaudePanel = memo(function ClaudePanel() {
   const {
     sessions,
     activeSessionId,
@@ -304,4 +304,4 @@ export function ClaudePanel() {
       )}
     </div>
   );
-}
+});

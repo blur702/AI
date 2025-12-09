@@ -121,19 +121,34 @@ class JobRegistry:
         self._lock = threading.Lock()
 
     def _load(self) -> Dict[str, ScraperJob]:
+        """Load jobs from JSON file."""
         if not self.jobs_file.exists():
             return {}
         try:
             with open(self.jobs_file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 return {k: ScraperJob.from_dict(v) for k, v in data.items()}
+        except json.JSONDecodeError as e:
+            logger.warning("Invalid JSON in jobs file: %s", e)
+            return {}
+        except OSError as e:
+            logger.warning("Failed to read jobs file: %s", e)
+            return {}
         except Exception as e:
-            logger.warning("Failed to load jobs file: %s", e)
+            logger.warning("Unexpected error loading jobs file: %s", e)
             return {}
 
     def _save(self, jobs: Dict[str, ScraperJob]) -> None:
-        with open(self.jobs_file, "w", encoding="utf-8") as f:
-            json.dump({k: v.to_dict() for k, v in jobs.items()}, f, indent=2)
+        """Save jobs to JSON file."""
+        try:
+            with open(self.jobs_file, "w", encoding="utf-8") as f:
+                json.dump({k: v.to_dict() for k, v in jobs.items()}, f, indent=2)
+        except OSError as e:
+            logger.error("Failed to write jobs file: %s", e)
+            raise
+        except Exception as e:
+            logger.error("Unexpected error saving jobs file: %s", e)
+            raise
 
     def get(self, job_id: str) -> Optional[ScraperJob]:
         with self._lock:
@@ -181,13 +196,22 @@ class CheckpointManager:
         return self.checkpoints_dir / f"{job_id}.json"
 
     def save(self, checkpoint: JobCheckpoint) -> None:
+        """Save checkpoint to JSON file."""
         checkpoint.updated_at = datetime.now(timezone.utc).isoformat()
         path = self._get_path(checkpoint.job_id)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(checkpoint.to_dict(), f, indent=2)
-        logger.debug("Saved checkpoint for job %s", checkpoint.job_id)
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(checkpoint.to_dict(), f, indent=2)
+            logger.debug("Saved checkpoint for job %s", checkpoint.job_id)
+        except OSError as e:
+            logger.error("Failed to write checkpoint for %s: %s", checkpoint.job_id, e)
+            raise
+        except Exception as e:
+            logger.error("Unexpected error saving checkpoint for %s: %s", checkpoint.job_id, e)
+            raise
 
     def load(self, job_id: str) -> Optional[JobCheckpoint]:
+        """Load checkpoint from JSON file."""
         path = self._get_path(job_id)
         if not path.exists():
             return None
@@ -195,8 +219,14 @@ class CheckpointManager:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 return JobCheckpoint.from_dict(data)
+        except json.JSONDecodeError as e:
+            logger.warning("Invalid JSON in checkpoint for %s: %s", job_id, e)
+            return None
+        except OSError as e:
+            logger.warning("Failed to read checkpoint for %s: %s", job_id, e)
+            return None
         except Exception as e:
-            logger.warning("Failed to load checkpoint for %s: %s", job_id, e)
+            logger.warning("Unexpected error loading checkpoint for %s: %s", job_id, e)
             return None
 
     def delete(self, job_id: str) -> bool:
@@ -870,7 +900,15 @@ class ScraperSupervisor:
 
 
 def install_windows_task(interval_minutes: int = 5) -> None:
-    """Install a Windows Scheduled Task to run the supervisor check."""
+    """
+    Install a Windows Scheduled Task to run the supervisor check.
+
+    Args:
+        interval_minutes: Interval in minutes between health checks (default: 5)
+
+    Raises:
+        subprocess.CalledProcessError: If task creation fails
+    """
     task_name = "ScraperSupervisor"
     python_exe = sys.executable
     script_path = Path(__file__).resolve()
@@ -890,10 +928,14 @@ def install_windows_task(interval_minutes: int = 5) -> None:
     ]
 
     try:
-        result = subprocess.run(schtasks_cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(schtasks_cmd, capture_output=True, text=True, check=True, timeout=30)
         logger.info("Scheduled task created: %s", task_name)
         print(f"Created scheduled task '{task_name}' to run every {interval_minutes} minutes")
         print(f"Command: {cmd}")
+    except subprocess.TimeoutExpired as e:
+        logger.error("Timeout creating scheduled task after 30 seconds")
+        print("Error: Task creation timed out")
+        raise
     except subprocess.CalledProcessError as e:
         logger.error("Failed to create scheduled task: %s", e.stderr)
         print(f"Error creating task: {e.stderr}")
@@ -901,22 +943,38 @@ def install_windows_task(interval_minutes: int = 5) -> None:
 
 
 def uninstall_windows_task() -> None:
-    """Remove the Windows Scheduled Task."""
+    """
+    Remove the Windows Scheduled Task.
+
+    Raises:
+        subprocess.CalledProcessError: If task removal fails
+    """
     task_name = "ScraperSupervisor"
 
     try:
         subprocess.run(
             ["schtasks", "/delete", "/tn", task_name, "/f"],
-            capture_output=True, text=True, check=True,
+            capture_output=True, text=True, check=True, timeout=30,
         )
         logger.info("Scheduled task removed: %s", task_name)
         print(f"Removed scheduled task '{task_name}'")
+    except subprocess.TimeoutExpired as e:
+        logger.error("Timeout removing scheduled task after 30 seconds")
+        print("Error: Task removal timed out")
+        raise
     except subprocess.CalledProcessError as e:
         logger.error("Failed to remove scheduled task: %s", e.stderr)
         print(f"Error removing task: {e.stderr}")
+        raise
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    """
+    CLI entry point for scraper supervisor.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+    """
     parser = argparse.ArgumentParser(
         description="Scraper Supervisor - Monitor and manage scraping jobs",
     )

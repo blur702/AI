@@ -164,8 +164,17 @@ def insert_conversation_turn(
         UUID of inserted object as string
 
     Raises:
+        ValueError: If required fields are empty or invalid
         Exception: If collection doesn't exist or insertion fails
     """
+    # Validate required fields
+    if not turn.session_id or not turn.session_id.strip():
+        raise ValueError("session_id cannot be empty")
+    if not turn.timestamp or not turn.timestamp.strip():
+        raise ValueError("timestamp cannot be empty")
+    if not turn.user_message and not turn.assistant_response:
+        raise ValueError("At least one of user_message or assistant_response must be provided")
+
     # Ensure collection exists
     if not client.collections.exists(CLAUDE_CONVERSATION_COLLECTION_NAME):
         create_claude_conversation_collection(client)
@@ -322,7 +331,15 @@ def store_from_stdin() -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    """CLI interface for Claude conversation management."""
+    """
+    CLI interface for Claude conversation management.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On command failure
+    """
     parser = argparse.ArgumentParser(
         description="Claude Code conversation storage for Weaviate.",
     )

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import { HealthStatus as HealthStatusType } from '../types';
 import { getApiBase } from '../config/services';
 import './HealthStatus.css';
@@ -23,7 +23,7 @@ function getStatusClass(status: HealthStatusType['status']): string {
   return statusMap[status] || 'error';
 }
 
-export function HealthStatus() {
+export const HealthStatus = memo(function HealthStatus() {
   const [health, setHealth] = useState<HealthStatusType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -90,4 +90,4 @@ export function HealthStatus() {
       </span>
     </div>
   );
-}
+});

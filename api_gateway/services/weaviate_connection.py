@@ -8,7 +8,8 @@ used by both doc_ingestion and MCP documentation search server.
 from __future__ import annotations
 
 import logging
-from typing import Any, Optional
+from types import TracebackType
+from typing import Any, Optional, Type
 from urllib.parse import urlparse
 
 import weaviate
@@ -66,7 +67,20 @@ class WeaviateConnection:
             self._logger.warning("Weaviate did not report ready() == True")
         return self.client
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        """
+        Exit context manager and close client connection.
+
+        Args:
+            exc_type: Exception type if an exception occurred
+            exc_val: Exception value if an exception occurred
+            exc_tb: Exception traceback if an exception occurred
+        """
         if self.client is not None:
             self._logger.info("Closing Weaviate client")
             self.client.close()
