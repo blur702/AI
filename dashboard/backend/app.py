@@ -95,7 +95,7 @@ if not BASIC_AUTH_USERNAME or not BASIC_AUTH_PASSWORD:
 logger.info("Dashboard authentication enabled for user: %s", BASIC_AUTH_USERNAME)
 
 
-def check_auth(username, password):
+def check_auth(username: str, password: str) -> bool:
     """Check if the provided credentials are valid."""
     return username == BASIC_AUTH_USERNAME and password == BASIC_AUTH_PASSWORD
 
@@ -123,9 +123,9 @@ def _cleanup_expired_sessions():
         logger.debug("Cleaned up %d expired sessions", len(expired_tokens))
 
 
-def generate_session_token(username, password):
+def generate_session_token(username: str, password: str) -> str | None:
     """Generate a secure session token after validating credentials.
-    
+
     Returns token string if credentials valid, None otherwise.
     Creates a cryptographically secure random token and stores session metadata.
     """
@@ -152,9 +152,9 @@ def generate_session_token(username, password):
     return token
 
 
-def validate_session_token(token):
+def validate_session_token(token: str) -> bool:
     """Validate a session token and return whether it's valid.
-    
+
     Returns True if token is valid and not expired, False otherwise.
     Automatically cleans up expired sessions during validation.
     """
@@ -178,9 +178,9 @@ def validate_session_token(token):
         return True
 
 
-def revoke_session_token(token):
+def revoke_session_token(token: str) -> bool:
     """Revoke a session token, removing it from storage.
-    
+
     Returns True if token was found and revoked, False otherwise.
     """
     if not token:
@@ -728,7 +728,7 @@ def get_ollama_model_info(model_name: str) -> dict:
         return info
 
 
-def remove_ollama_model(model_name: str) -> tuple:
+def remove_ollama_model(model_name: str) -> tuple[bool, str, str | None]:
     """Remove an Ollama model from disk.
 
     Returns (success, message, error_code).
