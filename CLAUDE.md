@@ -167,7 +167,7 @@ External HTTPS URLs via `https://ssdd.kevinalthaus.com`:
 | `/weaviate/` | Weaviate | 8080 |
 
 ### Dashboard API (port 80)
-```
+```text
 GET  /api/services                 # All service statuses
 POST /api/services/<id>/start      # Start a service
 POST /api/services/<id>/stop       # Stop a service
@@ -252,7 +252,8 @@ pg_ctl -D D:\AI\data\postgres start
 
 # Create database and user
 psql -U postgres
-CREATE USER ai_gateway WITH PASSWORD 'your_password';
+-- ⚠️  IMPORTANT: Replace with a strong, unique password (use environment variables or secret manager)
+CREATE USER ai_gateway WITH PASSWORD 'REPLACE_WITH_SECURE_PASSWORD';
 CREATE DATABASE ai_gateway OWNER ai_gateway;
 GRANT ALL PRIVILEGES ON DATABASE ai_gateway TO ai_gateway;
 ```
@@ -831,7 +832,7 @@ After making these changes, verify [expected behavior].
 
 ### Workflow Summary
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │  1. Claude implements feature/fix                           │
 │  2. Changes pushed to branch, PR created                    │
