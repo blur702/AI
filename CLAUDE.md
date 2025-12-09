@@ -257,6 +257,95 @@ CREATE DATABASE ai_gateway OWNER ai_gateway;
 GRANT ALL PRIVILEGES ON DATABASE ai_gateway TO ai_gateway;
 ```
 
+### PostgreSQL Storage for LLMs (Errors & Todos)
+
+The PostgreSQL database stores structured data that should NOT be vectorized - things like errors, todos, and job tracking. Use this for:
+- **Errors**: Exception tracking with service, severity, stack traces, resolution status
+- **Todos**: Task management with status, priority, due dates, tags
+- **Jobs**: Async job tracking for long-running operations
+
+**Schema (api_gateway/models/database.py):**
+```python
+# Error tracking
+class Error(Base):
+    id: str            # UUID
+    service: str       # Service that raised the error
+    severity: Enum     # info, warning, error, critical
+    message: str       # Error message
+    stack_trace: str   # Full traceback
+    context: JSON      # Additional context (file paths, inputs)
+    job_id: str        # Related job if any
+    created_at: datetime
+    resolved: bool
+    resolved_at: datetime
+
+# Task management
+class Todo(Base):
+    id: str            # UUID
+    title: str         # Short description
+    description: str   # Detailed description
+    status: Enum       # pending, in_progress, completed
+    priority: int      # 0=low, higher=more urgent
+    due_date: datetime
+    tags: JSON         # ["feature", "bug", "docs"]
+    created_at: datetime
+    completed_at: datetime
+```
+
+**Python API for LLMs:**
+```python
+from api_gateway.models.database import AsyncSessionLocal, Error, Todo, ErrorSeverity, TodoStatus
+from datetime import datetime, timezone
+
+# Store an error
+async with AsyncSessionLocal() as session:
+    error = Error(
+        service="code_ingestion",
+        severity=ErrorSeverity.error,
+        message="Failed to parse file",
+        stack_trace=traceback.format_exc(),
+        context={"file": "path/to/file.py", "line": 42},
+    )
+    session.add(error)
+    await session.commit()
+
+# Create a todo
+async with AsyncSessionLocal() as session:
+    todo = Todo(
+        title="Fix authentication bug",
+        description="Users are getting logged out unexpectedly",
+        status=TodoStatus.pending,
+        priority=2,
+        tags=["bug", "auth"],
+    )
+    session.add(todo)
+    await session.commit()
+
+# Query errors
+async with AsyncSessionLocal() as session:
+    result = await session.execute(
+        select(Error).where(Error.resolved == False).order_by(Error.created_at.desc())
+    )
+    unresolved_errors = result.scalars().all()
+
+# Query todos
+async with AsyncSessionLocal() as session:
+    result = await session.execute(
+        select(Todo).where(Todo.status != TodoStatus.completed)
+    )
+    active_todos = result.scalars().all()
+```
+
+**When to use PostgreSQL vs Weaviate:**
+| Data Type | Storage | Why |
+|-----------|---------|-----|
+| Errors | PostgreSQL | Structured, filterable, no semantic search needed |
+| Todos | PostgreSQL | Structured, status tracking, no semantic search |
+| Jobs | PostgreSQL | Tracking state, not content-based queries |
+| Conversations | Weaviate | Semantic search over past conversations |
+| Documentation | Weaviate | Semantic search by concept |
+| Code entities | Weaviate | Find similar functions/classes |
+
 ### Core Components (this repo)
 ```
 dashboard/
@@ -314,6 +403,8 @@ This project maintains a semantic index of documentation, code, and external API
 | `Documentation` | Markdown docs, READMEs | Local `docs/`, `.md` files |
 | `CodeEntity` | Functions, classes, methods, styles | Local Python/TS/JS/CSS |
 | `DrupalAPI` | Drupal 11.x API reference | Scraped from api.drupal.org |
+| `ClaudeConversation` | Claude Code session history | Hook captures prompts |
+| `ConversationMemory` | Talking head chat history | Talking head system |
 
 ### MCP Tools Available
 
@@ -370,6 +461,111 @@ python -m api_gateway.services.migrate_embeddings migrate
 
 ### Embedding Model
 The default embedding model is `snowflake-arctic-embed:l` (1024 dimensions). When changing models, ALL collections must be re-indexed since different models produce incompatible vectors.
+
+### Claude Conversation Storage
+
+Claude Code conversations are automatically stored in Weaviate via a hook that triggers on user prompts. This enables semantic search over past conversations.
+
+**Automatic Storage (Hook):**
+A `UserPromptSubmit` hook in `.claude/settings.json` captures each user prompt and stores it in the `ClaudeConversation` collection:
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [{
+      "matcher": ".*",
+      "hooks": [{
+        "type": "command",
+        "command": "powershell -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/post-message-store.ps1\""
+      }]
+    }]
+  }
+}
+```
+
+**Manual Storage:**
+```bash
+# Store a conversation turn
+python -m api_gateway.services.claude_conversation_schema store \
+    --session-id "session-123" \
+    --user-message "How do I add a new service?" \
+    --assistant-response "To add a new service, you need to..."
+
+# Store from stdin (JSON)
+echo '{"session_id":"abc","user_message":"hello","assistant_response":"Hi!"}' | \
+    python -m api_gateway.services.claude_conversation_schema store-stdin
+```
+
+**Search Past Conversations:**
+```bash
+# Semantic search
+python -m api_gateway.services.claude_conversation_schema search \
+    --query "adding new services"
+
+# Filter by session
+python -m api_gateway.services.claude_conversation_schema search \
+    --query "error handling" \
+    --session-id "session-123"
+```
+
+**Python API for Retrieval:**
+```python
+from api_gateway.services.claude_conversation_schema import (
+    search_conversations,
+    ClaudeConversationTurn,
+    insert_conversation_turn,
+)
+from api_gateway.services.weaviate_connection import WeaviateConnection
+
+with WeaviateConnection() as client:
+    # Search for similar conversations
+    results = search_conversations(
+        client,
+        query="How do I configure VRAM?",
+        limit=5,
+    )
+    for r in results:
+        print(f"User: {r['user_message'][:50]}...")
+        print(f"Response: {r['assistant_response'][:50]}...")
+        print(f"Similarity: {1 - r['distance']:.2f}")
+
+    # Store a new conversation
+    turn = ClaudeConversationTurn(
+        session_id="my-session",
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        user_message="What is vectorization?",
+        assistant_response="Vectorization is the process of...",
+    )
+    uuid = insert_conversation_turn(client, turn)
+```
+
+**Collection Stats:**
+```bash
+python -m api_gateway.services.claude_conversation_schema stats
+```
+
+### Storing Custom Data in Weaviate
+
+For any semantic content that needs search, use manual vectorization with the shared embedding utility:
+
+```python
+from api_gateway.utils.embeddings import get_embedding
+from api_gateway.services.weaviate_connection import WeaviateConnection
+
+with WeaviateConnection() as client:
+    collection = client.collections.get("YourCollection")
+
+    # Build text representation
+    text = f"{title}\n\n{content}"
+
+    # Get embedding vector
+    vector = get_embedding(text)
+
+    # Insert with vector
+    uuid = collection.data.insert(
+        properties={"title": title, "content": content},
+        vector=vector,
+    )
+```
 
 ## Scraper Supervisor
 
