@@ -593,6 +593,18 @@ def scrape_mdn_javascript(
             create_mdn_javascript_collection(client, force_reindex=False)
             collection = client.collections.get(MDN_JAVASCRIPT_COLLECTION_NAME)
 
+            # Load existing UUIDs for deduplication
+            emit_progress("setup", 0, 0, "Loading existing UUIDs for deduplication")
+            existing_uuids: Set[str] = set()
+            try:
+                logger.info("Loading existing entity UUIDs for deduplication...")
+                for obj in collection.iterator(include_vector=False):
+                    if obj.uuid:
+                        existing_uuids.add(str(obj.uuid))
+                logger.info("Loaded %d existing UUIDs", len(existing_uuids))
+            except Exception as e:
+                logger.warning("Could not load existing UUIDs: %s", e)
+
             if config.dry_run:
                 logger.info("Dry run mode - not inserting into Weaviate")
 
@@ -622,6 +634,12 @@ def scrape_mdn_javascript(
                         entities_processed,
                         doc.title,
                     )
+
+                    # Skip if document already exists (deduplication)
+                    doc_uuid_str = str(doc.uuid)
+                    if doc_uuid_str in existing_uuids:
+                        logger.debug("Skipping duplicate: %s (UUID: %s)", doc.title, doc_uuid_str)
+                        continue
 
                     if config.dry_run:
                         logger.info("[DRY RUN] Would insert: %s", doc.title)
