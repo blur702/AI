@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, memo } from 'react';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -74,7 +74,7 @@ const COLLECTION_OPTIONS = [
 type IngestionType = 'documentation' | 'code' | 'drupal' | 'mdn_javascript' | 'mdn_webapis';
 type CollectionType = 'documentation' | 'code_entity' | 'drupal_api' | 'mdn_javascript' | 'mdn_webapis';
 
-export function SettingsPanel() {
+export const SettingsPanel = memo(function SettingsPanel() {
   const {
     status,
     progress,
@@ -578,4 +578,4 @@ export function SettingsPanel() {
       </Dialog>
     </>
   );
-}
+});

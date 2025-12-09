@@ -674,8 +674,17 @@ def insert_talking_head_profile(
         UUID of the inserted object
 
     Raises:
+        ValueError: If required fields are empty or invalid
         Exception: If the collection doesn't exist or insertion fails
     """
+    # Validate required fields
+    if not profile.avatar_id or not profile.avatar_id.strip():
+        raise ValueError("avatar_id cannot be empty")
+    if not profile.avatar_name or not profile.avatar_name.strip():
+        raise ValueError("avatar_name cannot be empty")
+    if not profile.avatar_type or not profile.avatar_type.strip():
+        raise ValueError("avatar_type cannot be empty")
+
     collection = client.collections.get(TALKING_HEAD_PROFILES_COLLECTION_NAME)
     text = get_profile_text_for_embedding(profile)
     vector = get_embedding(text)
@@ -706,8 +715,19 @@ def insert_conversation_message(
         UUID of the inserted object
 
     Raises:
+        ValueError: If required fields are empty or invalid
         Exception: If the collection doesn't exist or insertion fails
     """
+    # Validate required fields
+    if not message.conversation_id or not message.conversation_id.strip():
+        raise ValueError("conversation_id cannot be empty")
+    if not message.avatar_id or not message.avatar_id.strip():
+        raise ValueError("avatar_id cannot be empty")
+    if not message.user_id or not message.user_id.strip():
+        raise ValueError("user_id cannot be empty")
+    if not message.timestamp or not message.timestamp.strip():
+        raise ValueError("timestamp cannot be empty")
+
     collection = client.collections.get(CONVERSATION_MEMORY_COLLECTION_NAME)
     text = get_conversation_text_for_embedding(message)
     vector = get_embedding(text)
@@ -738,8 +758,17 @@ def insert_voice_clone(
         UUID of the inserted object
 
     Raises:
+        ValueError: If required fields are empty or invalid
         Exception: If the collection doesn't exist or insertion fails
     """
+    # Validate required fields
+    if not voice.voice_id or not voice.voice_id.strip():
+        raise ValueError("voice_id cannot be empty")
+    if not voice.voice_name or not voice.voice_name.strip():
+        raise ValueError("voice_name cannot be empty")
+    if not voice.language or not voice.language.strip():
+        raise ValueError("language cannot be empty")
+
     collection = client.collections.get(VOICE_CLONES_COLLECTION_NAME)
     text = get_voice_text_for_embedding(voice)
     vector = get_embedding(text)

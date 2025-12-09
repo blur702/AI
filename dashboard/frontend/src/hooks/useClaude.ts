@@ -8,7 +8,23 @@ import {
 } from '../types';
 import { getApiBase } from '../config/services';
 
-export function useClaude() {
+interface UseClaudeReturn {
+  sessions: ClaudeSession[];
+  activeSessionId: string | null;
+  setActiveSessionId: (id: string | null) => void;
+  outputLines: Map<string, string[]>;
+  error: string | null;
+  loading: boolean;
+  executeNormal: (prompt: string) => Promise<ClaudeExecuteResponse>;
+  executeYolo: (prompt: string) => Promise<ClaudeExecuteResponse>;
+  cancelSession: (sessionId: string) => Promise<boolean>;
+  getSessionOutput: (sessionId: string) => string[];
+  fetchSessionOutput: (sessionId: string) => Promise<ClaudeSession | null>;
+  fetchSessions: () => Promise<void>;
+  clearError: () => void;
+}
+
+export function useClaude(): UseClaudeReturn {
   const [sessions, setSessions] = useState<ClaudeSession[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
   const [outputLines, setOutputLines] = useState<Map<string, string[]>>(new Map());

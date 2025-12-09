@@ -123,31 +123,66 @@ class GitHubAPI:
 
 
 class CodeRabbitParser:
-    """Parses CodeRabbit review comments to extract fix suggestions."""
+    """Parses CodeRabbit review comments to extract fix suggestions.
+
+    This parser handles multiple comment formats from CodeRabbit:
+    1. Diff-style blocks with +/- markers
+    2. Before/After code block comparisons
+    3. Inline diff suggestions
+    """
 
     # Pattern to match diff-style code blocks
+    # Matches: ```diff or ```suggestion followed by content with +/- markers
+    # Example:
+    #   ```diff
+    #   -old_line
+    #   +new_line
+    #   ```
     DIFF_PATTERN = re.compile(
-        r"```(?:diff|suggestion)?\s*\n"
-        r"([\s\S]*?)"
-        r"\n```",
+        r"```(?:diff|suggestion)?\s*\n"  # Opening fence with optional language
+        r"([\s\S]*?)"                     # Capture all content (including newlines)
+        r"\n```",                          # Closing fence
         re.MULTILINE,
     )
 
     # Pattern to match before/after code blocks
+    # Matches CodeRabbit comments with "Before/Current/Old" and "After/Suggested/New" sections
+    # Example:
+    #   Before:
+    #   ```python
+    #   old_code()
+    #   ```
+    #   After:
+    #   ```python
+    #   new_code()
+    #   ```
     BEFORE_AFTER_PATTERN = re.compile(
-        r"(?:Before|Current|Old).*?```[\w]*\s*\n([\s\S]*?)\n```"
-        r"[\s\S]*?"
-        r"(?:After|Suggested|New|Fixed).*?```[\w]*\s*\n([\s\S]*?)\n```",
+        r"(?:Before|Current|Old).*?"      # "Before" label (case-insensitive)
+        r"```[\w]*\s*\n"                  # Opening fence with optional language
+        r"([\s\S]*?)"                     # Capture old code
+        r"\n```"                          # Closing fence
+        r"[\s\S]*?"                       # Any text between blocks
+        r"(?:After|Suggested|New|Fixed).*?"  # "After" label (case-insensitive)
+        r"```[\w]*\s*\n"                  # Opening fence with optional language
+        r"([\s\S]*?)"                     # Capture new code
+        r"\n```",                          # Closing fence
         re.IGNORECASE | re.MULTILINE,
     )
 
     # Pattern to match inline suggestions with - and + markers
+    # Matches consecutive lines starting with - (removal) and + (addition)
+    # Example:
+    #   -old_line
+    #   +new_line
     INLINE_DIFF_PATTERN = re.compile(
-        r"^-\s*(.+)$\n^\+\s*(.+)$",
+        r"^-\s*(.+)$\n"                   # Line starting with - (removal)
+        r"^\+\s*(.+)$",                   # Line starting with + (addition)
         re.MULTILINE,
     )
 
     # Pattern to extract file path from comment
+    # Matches file paths in backticks with file extensions
+    # Example: `path/to/file.py`
     FILE_PATH_PATTERN = re.compile(r"`([^`]+\.[a-zA-Z]+)`")
 
     def __init__(self):
@@ -276,22 +311,49 @@ class AutoFixer:
         self.applied_fixes: list[FixResult] = []
 
     def apply_fix(self, fix: CodeFix) -> FixResult:
-        """Apply a single fix to a file."""
+        """Apply a single fix to a file.
+
+        Args:
+            fix: The CodeFix to apply
+
+        Returns:
+            FixResult indicating success or failure
+        """
         file_path = self.repo_root / fix.file_path
 
+        # Validate file exists
         if not file_path.exists():
             return FixResult(fix, False, f"File not found: {fix.file_path}")
 
+        # Validate file is within repo root (security check)
         try:
-            content = file_path.read_text(encoding="utf-8")
+            file_path.resolve().relative_to(self.repo_root.resolve())
+        except ValueError:
+            return FixResult(fix, False, f"File path outside repository: {fix.file_path}")
 
+        try:
+            # Read file with proper encoding handling
+            content = file_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            try:
+                # Fallback to latin-1 for files with mixed encoding
+                content = file_path.read_text(encoding="latin-1")
+            except Exception as e:
+                return FixResult(fix, False, f"Failed to read file: {e}")
+        except OSError as e:
+            return FixResult(fix, False, f"OS error reading file: {e}")
+
+        try:
             # Try exact match replacement
             if fix.old_code in content:
                 new_content = content.replace(fix.old_code, fix.new_code, 1)
-                file_path.write_text(new_content, encoding="utf-8")
-                result = FixResult(fix, True, "Applied exact match")
-                self.applied_fixes.append(result)
-                return result
+                try:
+                    file_path.write_text(new_content, encoding="utf-8")
+                    result = FixResult(fix, True, "Applied exact match")
+                    self.applied_fixes.append(result)
+                    return result
+                except OSError as e:
+                    return FixResult(fix, False, f"Failed to write file: {e}")
 
             # Try line-based replacement
             lines = content.split("\n")
@@ -303,17 +365,21 @@ class AutoFixer:
 
                 # Check if old code matches approximately
                 if self._fuzzy_match(old_section, fix.old_code):
-                    lines[start_idx:end_idx] = fix.new_code.split("\n")
-                    new_content = "\n".join(lines)
-                    file_path.write_text(new_content, encoding="utf-8")
-                    result = FixResult(fix, True, "Applied line-based match")
-                    self.applied_fixes.append(result)
-                    return result
+                    try:
+                        lines[start_idx:end_idx] = fix.new_code.split("\n")
+                        new_content = "\n".join(lines)
+                        file_path.write_text(new_content, encoding="utf-8")
+                        result = FixResult(fix, True, "Applied line-based match")
+                        self.applied_fixes.append(result)
+                        return result
+                    except OSError as e:
+                        return FixResult(fix, False, f"Failed to write file: {e}")
 
             return FixResult(fix, False, "Could not locate code to replace")
 
-        except (OSError, UnicodeDecodeError, UnicodeEncodeError) as e:
-            return FixResult(fix, False, f"Error: {e}")
+        except Exception as e:
+            # Catch any unexpected errors
+            return FixResult(fix, False, f"Unexpected error: {type(e).__name__}: {e}")
 
     def _fuzzy_match(self, text1: str, text2: str) -> bool:
         """Check if two strings match approximately (ignoring whitespace differences)."""
@@ -515,53 +581,98 @@ def generate_summary(
     return summary
 
 
-def main():
-    parser = argparse.ArgumentParser(description="CodeRabbit Auto-Fix Script")
-    parser.add_argument("--repo", required=True, help="Repository (owner/repo)")
-    parser.add_argument("--pr", required=True, type=int, help="PR number")
-    parser.add_argument(
-        "--max-iterations", type=int, default=3, help="Maximum fix iterations"
+def main() -> None:
+    """Main entry point for the CodeRabbit auto-fix script."""
+    parser = argparse.ArgumentParser(
+        description="CodeRabbit Auto-Fix Script - Automatically apply CodeRabbit suggestions to PRs",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s --repo owner/repo --pr 123
+  %(prog)s --repo owner/repo --pr 123 --max-iterations 5
+  %(prog)s --repo owner/repo --pr 123 --output-summary summary.md
+
+Environment Variables:
+  GITHUB_TOKEN: GitHub personal access token (required)
+        """
     )
-    parser.add_argument("--output-summary", help="Path to write summary markdown")
+    parser.add_argument("--repo", required=True, help="Repository in format owner/repo")
+    parser.add_argument("--pr", required=True, type=int, help="Pull request number")
+    parser.add_argument(
+        "--max-iterations",
+        type=int,
+        default=3,
+        help="Maximum number of fix iterations (default: 3)"
+    )
+    parser.add_argument(
+        "--output-summary",
+        help="Path to write summary markdown file"
+    )
     args = parser.parse_args()
+
+    # Validate arguments
+    if args.max_iterations < 1:
+        print("Error: --max-iterations must be at least 1", file=sys.stderr)
+        sys.exit(1)
+
+    if "/" not in args.repo:
+        print("Error: --repo must be in format owner/repo", file=sys.stderr)
+        sys.exit(1)
 
     # Get GitHub token
     token = os.environ.get("GITHUB_TOKEN")
     if not token:
-        print("Error: GITHUB_TOKEN environment variable not set")
+        print("Error: GITHUB_TOKEN environment variable not set", file=sys.stderr)
+        print("Please set GITHUB_TOKEN to your GitHub personal access token", file=sys.stderr)
         sys.exit(1)
 
     # Initialize
-    github_api = GitHubAPI(token, args.repo)
-    repo_root = Path.cwd()
+    try:
+        github_api = GitHubAPI(token, args.repo)
+        repo_root = Path.cwd()
 
-    print(f"Repository: {args.repo}")
-    print(f"PR Number: {args.pr}")
-    print(f"Max Iterations: {args.max_iterations}")
-    print(f"Repo Root: {repo_root}")
+        print(f"Repository: {args.repo}")
+        print(f"PR Number: {args.pr}")
+        print(f"Max Iterations: {args.max_iterations}")
+        print(f"Repo Root: {repo_root}")
+        print("")
 
-    # Run the auto-fix loop
-    iterations, results = run_autofix_loop(
-        github_api, args.pr, args.max_iterations, repo_root
-    )
+        # Run the auto-fix loop
+        iterations, results = run_autofix_loop(
+            github_api, args.pr, args.max_iterations, repo_root
+        )
 
-    # Generate summary
-    output_path = Path(args.output_summary) if args.output_summary else None
-    summary = generate_summary(iterations, results, output_path)
+        # Generate summary
+        output_path = Path(args.output_summary) if args.output_summary else None
+        summary = generate_summary(iterations, results, output_path)
 
-    print("\n" + "=" * 60)
-    print("SUMMARY")
-    print("=" * 60)
-    print(summary)
+        print("\n" + "=" * 60)
+        print("SUMMARY")
+        print("=" * 60)
+        print(summary)
 
-    # Set output for GitHub Actions
-    successful = [r for r in results if r.success]
-    if successful:
-        # Set output variable for GitHub Actions
-        github_output = os.environ.get("GITHUB_OUTPUT")
-        if github_output:
-            with open(github_output, "a") as f:
-                f.write("fixes_applied=true\n")
+        # Set output for GitHub Actions
+        successful = [r for r in results if r.success]
+        if successful:
+            # Set output variable for GitHub Actions
+            github_output = os.environ.get("GITHUB_OUTPUT")
+            if github_output:
+                try:
+                    with open(github_output, "a", encoding="utf-8") as f:
+                        f.write("fixes_applied=true\n")
+                except OSError as e:
+                    print(f"Warning: Failed to write GitHub output: {e}", file=sys.stderr)
+
+        sys.exit(0)
+
+    except requests.exceptions.RequestException as e:
+        print(f"Error: GitHub API request failed: {e}", file=sys.stderr)
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error: Unexpected error: {type(e).__name__}: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 
 if __name__ == "__main__":

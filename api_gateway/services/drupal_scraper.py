@@ -179,12 +179,20 @@ class DrupalAPIScraper:
         self._last_request_time = time.time()
 
     def _fetch(self, url: str) -> Optional[BeautifulSoup]:
-        """Fetch URL with rate limiting and error handling."""
+        """
+        Fetch URL with rate limiting and error handling.
+
+        Args:
+            url: URL to fetch
+
+        Returns:
+            BeautifulSoup object if successful, None on error
+        """
         self._rate_limit()
 
         try:
             logger.debug("Fetching: %s", url)
-            response = self.client.get(url)
+            response = self.client.get(url, timeout=60.0)
             response.raise_for_status()
             return BeautifulSoup(response.text, "html.parser")
         except httpx.HTTPStatusError as e:
@@ -192,6 +200,9 @@ class DrupalAPIScraper:
             return None
         except httpx.RequestError as e:
             logger.warning("Request error for %s: %s", url, e)
+            return None
+        except httpx.TimeoutException as e:
+            logger.warning("Timeout error for %s: %s", url, e)
             return None
 
     def _extract_namespace(self, full_name: str) -> str:
@@ -671,6 +682,20 @@ def scrape_drupal_api(
                             )
                             logger.info("Inserted %d entities so far", entities_inserted)
 
+                    except httpx.TimeoutException as e:
+                        errors += 1
+                        logger.warning(
+                            "Timeout inserting %s: %s",
+                            entity.full_name,
+                            e,
+                        )
+                    except httpx.RequestError as e:
+                        errors += 1
+                        logger.warning(
+                            "Request error inserting %s: %s",
+                            entity.full_name,
+                            e,
+                        )
                     except Exception as e:
                         errors += 1
                         logger.warning(
@@ -706,6 +731,12 @@ def scrape_drupal_api(
 
 
 def _configure_logging(verbose: bool) -> None:
+    """
+    Configure logging level based on verbosity flag.
+
+    Args:
+        verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+    """
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
@@ -715,6 +746,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    """
+    CLI entry point for Drupal API scraper.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On command failure
+    """
     parser = argparse.ArgumentParser(
         description="Drupal API scraper for Weaviate ingestion.",
     )

@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -216,6 +217,12 @@ def migrate(dry_run: bool = False) -> Dict[str, Any]:
 
 
 def _configure_logging(verbose: bool) -> None:
+    """
+    Configure logging level based on verbosity flag.
+
+    Args:
+        verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+    """
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
@@ -225,6 +232,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    """
+    CLI entry point for embedding model migration.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On error or when model is not available
+    """
     parser = argparse.ArgumentParser(
         description="Embedding model migration for Weaviate collections.",
         epilog="""
@@ -261,6 +277,7 @@ Examples:
 
     if args.command == "check":
         status = check_status()
+        logger.info("Embedding migration status: %s", status)
         print("\n=== Embedding Migration Status ===\n")
         print(f"Configured model:    {status['configured_model']}")
         print(f"Model available:     {'[OK] Yes' if status['model_available'] else '[X] No'}")
@@ -273,6 +290,7 @@ Examples:
                 print(f"  {coll}: {count} objects")
 
         if not status["model_available"]:
+            logger.error("Model '%s' is not available in Ollama", status['configured_model'])
             print(f"\n[!] Model not available. Run: ollama pull {status['configured_model']}")
             sys.exit(1)
 
@@ -280,14 +298,22 @@ Examples:
         print("\n=== Embedding Migration ===\n")
 
         if not args.dry_run:
+            logger.warning("About to DELETE all Weaviate collections and re-ingest data")
             print("[!] WARNING: This will DELETE all Weaviate collections and re-ingest data.")
             print("   - Documentation: Will be re-indexed from markdown files")
             print("   - CodeEntity: Will be re-indexed from source code")
             print("   - DrupalAPIEntity: Collection recreated (requires re-running scraper)")
             print("")
-            confirm = input("Type 'yes' to proceed: ")
+            try:
+                confirm = input("Type 'yes' to proceed: ")
+            except (EOFError, KeyboardInterrupt):
+                print("\nMigration cancelled.")
+                logger.info("Migration cancelled by user")
+                sys.exit(0)
+
             if confirm.lower() != "yes":
                 print("Migration cancelled.")
+                logger.info("Migration cancelled by user (incorrect confirmation)")
                 sys.exit(0)
 
         results = migrate(dry_run=args.dry_run)

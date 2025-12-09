@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, memo } from 'react';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -48,7 +48,7 @@ function getVramColor(percent: number): 'success' | 'warning' | 'error' {
   return 'success';
 }
 
-export function ResourceManager({ onUnloadModel }: ResourceManagerProps) {
+export const ResourceManager = memo(function ResourceManager({ onUnloadModel }: ResourceManagerProps) {
   const [summary, setSummary] = useState<ResourceSummary | null>(null);
   const [settings, setSettings] = useState<ResourceSettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -405,4 +405,4 @@ export function ResourceManager({ onUnloadModel }: ResourceManagerProps) {
       </AccordionDetails>
     </Accordion>
   );
-}
+});
