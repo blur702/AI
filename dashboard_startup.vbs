@@ -75,6 +75,10 @@ WshShell.Run "cmd /c docker start open-webui 2>nul", 0, False
 ' Start Ollama service if not running
 WshShell.Run "cmd /c sc query Ollama | find ""RUNNING"" >nul || net start Ollama", 0, False
 
+' Wait for Ollama to be ready and load qwen3-coder model
+WScript.Sleep 3000
+WshShell.Run "cmd /c ollama run qwen3-coder:30b --keepalive 24h ""exit""", 0, False
+
 ' Start the dashboard backend (Flask on port 80)
 ' IMPORTANT: Requires DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD environment variables
 ' Set these via System Properties > Environment Variables or in a .env file in dashboard\backend
