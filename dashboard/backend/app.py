@@ -111,9 +111,25 @@ _session_lock = threading.Lock()
 SESSION_EXPIRY_HOURS = int(os.environ.get("SESSION_EXPIRY_HOURS", "24"))
 
 
+# Track last cleanup time for periodic cleanup instead of every validation
+_last_session_cleanup = datetime.now(timezone.utc)
+_SESSION_CLEANUP_INTERVAL_SECONDS = 60  # Only cleanup at most once per minute
+
+
 def _cleanup_expired_sessions():
-    """Remove expired sessions from storage (called during validation)."""
+    """Remove expired sessions from storage (called periodically during validation).
+
+    Only runs if at least _SESSION_CLEANUP_INTERVAL_SECONDS have passed since last cleanup
+    to avoid lock contention from scanning all sessions on every validation.
+    """
+    global _last_session_cleanup
     now = datetime.now(timezone.utc)
+
+    # Skip cleanup if we ran recently
+    if (now - _last_session_cleanup).total_seconds() < _SESSION_CLEANUP_INTERVAL_SECONDS:
+        return
+
+    _last_session_cleanup = now
     expired_tokens = [
         token for token, data in _session_store.items()
         if data["expires_at"] <= now
@@ -642,11 +658,19 @@ def _parse_ollama_verbose_output(stdout: str) -> dict:
     return result
 
 
-def get_ollama_model_info(model_name: str) -> dict:
+def get_ollama_model_info(
+    model_name: str,
+    available_models: list[dict[str, object]] | None = None,
+) -> dict:
     """Get detailed model information via `ollama show --verbose`.
 
     Uses the structured verbose output format which provides consistent
     key-value pairs organized by section (Model, Capabilities, Parameters, etc.).
+
+    Args:
+        model_name: Name of the Ollama model to query.
+        available_models: Optional pre-fetched list from get_available_ollama_models()
+            to avoid redundant subprocess calls when querying multiple models.
 
     Returns dict with: name, family, parameters, quantization, size_gb,
     format, template, estimated_vram_mb, capability_description.
@@ -700,8 +724,8 @@ def get_ollama_model_info(model_name: str) -> dict:
         if parsed.get("architecture"):
             info["format"] = parsed["architecture"]
 
-        # Get size from ollama list
-        models = get_available_ollama_models()
+        # Get size from ollama list (reuse pre-fetched list if provided)
+        models = available_models if available_models is not None else get_available_ollama_models()
         for m in models:
             if m["name"] == model_name:
                 info["size_gb"] = parse_model_size(m.get("size", ""))
@@ -1076,7 +1100,7 @@ def api_list_ollama_models():
                 })
                 continue
 
-            info = get_ollama_model_info(model["name"])
+            info = get_ollama_model_info(model["name"], available_models=models)
             detailed_models.append({
                 **model,
                 **info,
@@ -1250,7 +1274,7 @@ def api_ollama_models_detailed():
             })
             continue
 
-        info = get_ollama_model_info(model["name"])
+        info = get_ollama_model_info(model["name"], available_models=models)
         detailed_models.append({
             **model,
             **info,
