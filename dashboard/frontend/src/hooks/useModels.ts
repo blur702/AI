@@ -98,8 +98,9 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
           setGpuInfo(data.gpu);
         }
       }
-    } catch {
-      // Silently fail for GPU info - not critical
+    } catch (err) {
+      // GPU info is not critical, but log for debugging
+      console.debug('Failed to fetch GPU info:', err);
     }
   }, [getAuthHeaders]);
 
@@ -251,9 +252,13 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
       if (progress.status === 'complete' || progress.status === 'error') {
         // Remove from downloading and refresh models
         const { [progress.model_name]: _, ...rest } = prev;
-        // Trigger refresh after download completes
+        // Trigger refresh after download completes (with unmount guard)
         if (progress.status === 'complete') {
-          setTimeout(() => refresh(), 1000);
+          setTimeout(() => {
+            if (mountedRef.current) {
+              refresh();
+            }
+          }, 1000);
         }
         return rest;
       }
@@ -270,9 +275,13 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
       if (progress.status === 'complete' || progress.status === 'error') {
         // Remove from loading and refresh models
         const { [progress.model_name]: _, ...rest } = prev;
-        // Trigger refresh after load/unload completes
+        // Trigger refresh after load/unload completes (with unmount guard)
         if (progress.status === 'complete') {
-          setTimeout(() => refresh(), 500);
+          setTimeout(() => {
+            if (mountedRef.current) {
+              refresh();
+            }
+          }, 500);
         }
         return rest;
       }
