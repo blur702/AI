@@ -10,6 +10,7 @@ from functools import wraps
 from flask import Flask, jsonify, request, send_from_directory, Response
 from flask_cors import CORS
 from flask_socketio import SocketIO
+from werkzeug.security import safe_join
 import psutil
 import requests as http_requests
 
@@ -1972,7 +1973,9 @@ def proxy_request(target_url):
             size = int(content_length)
             if size > MAX_PROXY_REQUEST_SIZE:
                 logger.warning(
-                    f"Proxy request rejected: Body size {size} exceeds limit {MAX_PROXY_REQUEST_SIZE}"
+                    "Proxy request rejected: Body size %d exceeds limit %d",
+                    size,
+                    MAX_PROXY_REQUEST_SIZE
                 )
                 return jsonify({
                     "error": f"Request body too large (max {MAX_PROXY_REQUEST_SIZE // (1024 * 1024)}MB)"
@@ -2056,8 +2059,6 @@ def serve_index():
 @require_auth
 def serve_static(path):
     """Serve static files, fall back to index.html for SPA routing."""
-    from werkzeug.security import safe_join
-    
     # Don't catch API routes
     if path.startswith("api/") or path.startswith("socket.io/"):
         return jsonify({"error": "Not found"}), 404
