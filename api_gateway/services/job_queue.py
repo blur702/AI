@@ -1,3 +1,9 @@
+"""
+Async job queue management for long-running generation tasks.
+
+Provides job creation, status tracking, and background processing
+for AI generation requests that may take extended time to complete.
+"""
 import asyncio
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -13,6 +19,12 @@ from .vram_service import VRAMService
 
 
 class JobQueueManager:
+    """
+    Manages job lifecycle in the database.
+
+    Provides CRUD operations for async jobs with status tracking
+    and error handling.
+    """
     async def create_job(
         self,
         service: str,

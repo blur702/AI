@@ -1,3 +1,9 @@
+"""
+API Key authentication middleware for FastAPI.
+
+Validates X-API-Key header against stored API keys in the database.
+Certain paths (health, metrics, docs) are public and bypass authentication.
+"""
 from datetime import datetime
 from typing import Callable
 
@@ -10,6 +16,16 @@ from ..utils.logger import logger
 
 
 class APIKeyMiddleware(BaseHTTPMiddleware):
+    """
+    Middleware for API key authentication.
+
+    Checks for X-API-Key header on protected endpoints and validates
+    against the database. Updates last_used_at timestamp on successful auth.
+
+    Attributes:
+        PUBLIC_PATHS: Endpoints that don't require authentication.
+        PUBLIC_PREFIXES: Path prefixes that allow unauthenticated GET requests.
+    """
     # Endpoints that don't require authentication
     PUBLIC_PATHS = {"/health", "/metrics", "/docs", "/openapi.json", "/redoc"}
     # Path prefixes that are public (read-only endpoints)

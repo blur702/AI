@@ -1,3 +1,14 @@
+"""
+Database models and connection setup for API Gateway.
+
+Defines SQLAlchemy ORM models for:
+    - Job: Async job tracking for generation tasks
+    - APIKey: API key authentication and tracking
+    - Todo: Task management for LLM use
+    - Error: Error tracking and monitoring
+
+Uses PostgreSQL with asyncpg driver for async operations.
+"""
 import enum
 import uuid
 from datetime import datetime, timezone

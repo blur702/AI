@@ -1,3 +1,9 @@
+"""
+Unified response middleware for API Gateway.
+
+Provides a decorator that wraps endpoint responses in a standard format
+with success/error handling and consistent JSON structure.
+"""
 from datetime import datetime, timezone
 from functools import wraps
 from typing import Any, Awaitable, Callable, Dict
@@ -17,6 +23,18 @@ from ..utils.logger import logger
 
 
 def unified_response(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
+    """
+    Decorator that wraps endpoint results in a unified response format.
+
+    Catches known exceptions and returns appropriate error responses.
+    Successful responses are wrapped with success=True and the result in data field.
+
+    Args:
+        func: Async endpoint function to wrap
+
+    Returns:
+        Wrapped function that returns JSONResponse with unified format
+    """
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> JSONResponse:
         now = datetime.now(timezone.utc).isoformat()

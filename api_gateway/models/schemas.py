@@ -1,3 +1,9 @@
+"""
+Pydantic schemas for API request/response models.
+
+Defines data transfer objects for API Gateway endpoints including
+generation requests, job status responses, and unified response format.
+"""
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -5,11 +11,15 @@ from pydantic import BaseModel, Field
 
 
 class UnifiedError(BaseModel):
+    """Error object within unified response."""
+
     code: str
     message: str
 
 
 class UnifiedResponse(BaseModel):
+    """Standard API response format with success/error handling."""
+
     success: bool
     data: Optional[Dict[str, Any]] = None
     error: Optional[UnifiedError] = None

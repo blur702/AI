@@ -1,3 +1,9 @@
+"""
+Health check endpoint for API Gateway.
+
+Provides system health status including database connectivity and GPU status.
+Used by monitoring systems and load balancers to verify service availability.
+"""
 from datetime import datetime, timezone
 
 from fastapi import APIRouter

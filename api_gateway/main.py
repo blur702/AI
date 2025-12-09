@@ -1,3 +1,33 @@
+"""
+AI API Gateway - FastAPI Unified Interface.
+
+Central REST/WebSocket interface for external clients (mobile apps, integrations)
+to access AI generation services. Provides unified endpoints for image, video,
+audio, music generation, TTS, and LLM text generation.
+
+Features:
+- API key authentication via X-API-Key header
+- Async job management with status polling and WebSocket updates
+- CORS support for cross-origin requests
+- Request/response logging with timing
+- Prometheus metrics endpoint
+
+Endpoints:
+    POST /generate/image - ComfyUI image generation
+    POST /generate/video - Wan2GP video generation
+    POST /generate/audio - Stable Audio / AudioCraft
+    POST /generate/music - YuE / DiffRhythm / MusicGPT
+    POST /tts - AllTalk text-to-speech
+    POST /llm/generate - Ollama text generation
+    GET /jobs/{job_id} - Poll job status
+    GET /ws/jobs/{job_id} - WebSocket job updates
+    GET /health - Health check
+    GET /metrics - Prometheus metrics
+
+Usage:
+    python -m api_gateway.main
+    # or via start_gateway.bat
+"""
 import asyncio
 from datetime import datetime
 

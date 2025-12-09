@@ -1,3 +1,38 @@
+"""
+AI Dashboard Backend Application.
+
+Flask-based REST API and WebSocket server that provides:
+- HTTP Basic Authentication with session tokens
+- Service lifecycle management (start/stop/pause/resume)
+- Ollama model management (load/unload/download)
+- Real-time VRAM monitoring
+- Weaviate ingestion control
+- Claude Code execution session management
+- Static file serving for React frontend
+
+Endpoints:
+    /api/services - Service status and control
+    /api/vram/status - GPU memory monitoring
+    /api/models/ollama/* - Ollama model management
+    /api/ingestion/* - Weaviate ingestion control
+    /api/claude/* - Claude Code session management
+    /health - Health check endpoint
+
+WebSocket Events:
+    vram_update - GPU memory updates (every 2s)
+    service_status - Service state changes
+    ingestion_progress - Ingestion progress updates
+    claude_output - Claude execution output streaming
+
+Configuration:
+    DASHBOARD_AUTH_USERNAME - Basic auth username (required)
+    DASHBOARD_AUTH_PASSWORD - Basic auth password (required)
+    FLASK_HOST - Server bind address (default: 127.0.0.1)
+    FLASK_PORT - Server port (default: 80)
+
+Usage:
+    python app.py
+"""
 import logging
 import os
 import secrets
