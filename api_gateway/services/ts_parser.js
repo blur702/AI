@@ -259,7 +259,7 @@ function parseFile(filePath) {
   let fileContent;
   try {
     fileContent = fs.readFileSync(absolutePath, "utf-8");
-  } catch (e) {
+  } catch (_e) {
     // If UTF-8 fails, try reading as latin1 (ISO-8859-1) which accepts any byte sequence
     fileContent = fs.readFileSync(absolutePath, "latin1");
   }

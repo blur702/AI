@@ -30,17 +30,63 @@ _vram_manager = _load_vram_manager()
 
 
 class VRAMService:
+    """
+    GPU resource monitoring and management service.
+
+    Provides static methods for checking GPU status, loaded models,
+    and ensuring services have sufficient VRAM before execution.
+    """
+
     @staticmethod
     def get_gpu_status() -> Dict[str, Any]:
+        """
+        Get current GPU status including VRAM usage and processes.
+
+        Returns:
+            Dictionary with GPU info:
+                - total_vram: Total GPU memory in MB
+                - used_vram: Currently used GPU memory in MB
+                - free_vram: Available GPU memory in MB
+                - utilization: GPU utilization percentage
+                - processes: List of GPU processes with PID, name, memory
+
+        Raises:
+            RuntimeError: If nvidia-smi is unavailable or GPU not detected
+        """
         info = _vram_manager.get_gpu_info()
         return info
 
     @staticmethod
     def get_loaded_models() -> List[Dict[str, Any]]:
+        """
+        Get list of currently loaded Ollama models in VRAM.
+
+        Returns:
+            List of model dictionaries with:
+                - name: Model name (e.g., "llama2:latest")
+                - size: Model size in bytes
+                - modified: Last modified timestamp
+        """
         return _vram_manager.get_ollama_models()
 
     @staticmethod
     async def ensure_service_ready(service_name: str) -> None:
+        """
+        Prepare GPU resources and verify service availability before job execution.
+
+        For GPU-intensive services (comfyui, wan2gp, yue, diffrhythm, stable_audio, musicgen),
+        this will:
+        1. Check for conflicting GPU processes
+        2. Stop any loaded Ollama models to free VRAM
+        3. Verify service health via HTTP endpoint
+
+        Args:
+            service_name: Service identifier (e.g., "comfyui", "ollama")
+
+        Raises:
+            VRAMConflictError: If GPU is busy with another process
+            ServiceUnavailableError: If service is not responding
+        """
         gpu_intensive = [
             "comfyui",
             "wan2gp",
@@ -75,6 +121,15 @@ class VRAMService:
 
     @staticmethod
     async def check_service_health(service_url: str) -> bool:
+        """
+        Check if a service is responding to HTTP requests.
+
+        Args:
+            service_url: Service HTTP endpoint (e.g., "http://localhost:8188")
+
+        Returns:
+            True if service responds with status < 500, False otherwise
+        """
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(service_url, timeout=5)

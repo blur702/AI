@@ -46,6 +46,18 @@ class WeaviateConnection:
         self._logger = custom_logger or logger
 
     def __enter__(self) -> weaviate.WeaviateClient:
+        """
+        Enter context manager and establish Weaviate connection.
+
+        Parses WEAVIATE_URL from settings to extract host and port,
+        then creates a local Weaviate client with HTTP and gRPC endpoints.
+
+        Returns:
+            Connected WeaviateClient instance ready for queries
+
+        Raises:
+            ConnectionError: If unable to connect to Weaviate
+        """
         parsed = urlparse(settings.WEAVIATE_URL)
         host = parsed.hostname or "localhost"
         port = parsed.port or 8080

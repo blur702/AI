@@ -1,8 +1,29 @@
 """
-Service Registry Configuration
+Service Registry Configuration.
 
 Defines all AI services with their startup commands, ports, and health check settings.
 Used by the service manager for on-demand service starting.
+
+Key Components:
+    SERVICES: Main service registry dictionary mapping service IDs to configuration
+    GPU_INTENSIVE_SERVICES: List of service IDs that use significant VRAM
+    DEFAULT_HOST: Default host for health checks (127.0.0.1)
+
+Service Configuration Schema:
+    name: Display name for the service
+    port: Port number the service binds to
+    icon: Emoji icon for UI display
+    description: Short description of service functionality
+    working_dir: Working directory for process execution
+    command: Command list to start the service (None for external services)
+    health_endpoint: HTTP endpoint for health checks
+    startup_timeout: Max seconds to wait for service to become healthy
+    gradio: Whether service uses Gradio interface
+    external: Whether service is managed externally (not started by dashboard)
+    auto_start_with: List of services to auto-start when this service comes online
+
+Environment Variables:
+    AI_ROOT_DIR: Override default AI root directory path
 """
 
 import os
@@ -21,13 +42,27 @@ else:
 
 # Helper function to build platform-agnostic paths
 def _build_path(*parts: str) -> str:
-    """Build absolute path from AI root."""
+    """Build absolute path from AI root.
+
+    Args:
+        *parts: Path components to join (e.g., 'ComfyUI', 'venv')
+
+    Returns:
+        Absolute path string
+    """
     return str(AI_ROOT_PATH.joinpath(*parts))
 
 def _build_python_path(venv_dir: str, script_name: str | None = None) -> list[str]:
-    """
-    Build path to Python executable in virtual environment.
+    """Build path to Python executable in virtual environment.
+
     Always returns a list to allow easy concatenation with additional arguments.
+
+    Args:
+        venv_dir: Virtual environment directory (e.g., 'ComfyUI/venv')
+        script_name: Optional script name to append (e.g., 'main.py')
+
+    Returns:
+        List with Python executable path, optionally followed by script name
     """
     if os.name == 'nt':  # Windows
         python_exe = _build_path(venv_dir, 'Scripts', 'python.exe')

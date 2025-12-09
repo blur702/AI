@@ -7,12 +7,15 @@ WebSocket events for real-time progress updates.
 
 from __future__ import annotations
 
+import logging
 import sys
 import threading
 import time
 import uuid
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 # Add project root to path for imports
 project_root = Path(__file__).resolve().parents[2]
