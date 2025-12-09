@@ -50,13 +50,16 @@ if ($extension -in ".ts", ".tsx", ".js", ".jsx") {
 
     if (Test-Path $localEslint) {
         $eslintOutput = & $localEslint $filePath --format stylish 2>&1
+        if ($LASTEXITCODE -ne 0 -and $eslintOutput) {
+            $issues += "=== ESLint (TypeScript/JavaScript) Issues ==="
+            $issues += $eslintOutput
+        }
     } elseif (Get-Command npx -ErrorAction SilentlyContinue) {
         $eslintOutput = & npx eslint $filePath --format stylish 2>&1
-    }
-
-    if ($eslintOutput -and $LASTEXITCODE -ne 0) {
-        $issues += "=== ESLint (TypeScript/JavaScript) Issues ==="
-        $issues += $eslintOutput
+        if ($LASTEXITCODE -ne 0 -and $eslintOutput) {
+            $issues += "=== ESLint (TypeScript/JavaScript) Issues ==="
+            $issues += $eslintOutput
+        }
     }
 }
 

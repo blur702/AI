@@ -23,6 +23,9 @@ function getStatusClass(status: HealthStatusType['status']): string {
     case 'error':
       return 'error';
     default:
+      // Exhaustive check - this should never happen
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _exhaustiveCheck: never = status;
       return 'error';
   }
 }

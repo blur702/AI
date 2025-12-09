@@ -74,7 +74,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const contextValue = useMemo(
     () => ({ mode, toggleTheme }),
-    [mode]
+    [mode, toggleTheme]
   );
 
   return (

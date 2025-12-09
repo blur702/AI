@@ -46,13 +46,12 @@ if (-not $userMessage -or $userMessage.Trim() -eq "") {
 }
 
 # Build the conversation data for storage
+# Note: assistant_response will be populated by future enhancement
+# Currently only storing user prompts
 $conversationData = @{
     session_id = $sessionId
     user_message = $userMessage
-    assistant_response = $assistantResponse
-    tool_calls = $toolCalls
-    file_paths = $filePaths
-    tags = @()
+    assistant_response = ""
 }
 
 $jsonPayload = $conversationData | ConvertTo-Json -Compress

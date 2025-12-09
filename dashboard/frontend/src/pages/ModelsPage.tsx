@@ -185,13 +185,14 @@ function ModelsPage() {
   const handleDownloadModel = async () => {
     if (!downloadModelName.trim()) return;
 
+    const modelName = downloadModelName.trim();
     setDownloadDialogOpen(false);
-    const result = await downloadModel(downloadModelName.trim());
+    const result = await downloadModel(modelName);
     setDownloadModelName('');
 
     setNotification({
       open: true,
-      message: result.success ? `Download started for "${downloadModelName}"` : result.message,
+      message: result.success ? `Download started for "${modelName}"` : result.message,
       severity: result.success ? 'info' : 'error',
     });
   };
@@ -199,15 +200,16 @@ function ModelsPage() {
   const handleRemoveModel = async () => {
     if (!modelToRemove) return;
 
+    const modelName = modelToRemove;
     setRemoveDialogOpen(false);
-    setActionLoading(prev => ({ ...prev, [modelToRemove]: true }));
-    const result = await removeModel(modelToRemove);
-    setActionLoading(prev => ({ ...prev, [modelToRemove]: false }));
+    setActionLoading(prev => ({ ...prev, [modelName]: true }));
+    const result = await removeModel(modelName);
+    setActionLoading(prev => ({ ...prev, [modelName]: false }));
     setModelToRemove(null);
 
     setNotification({
       open: true,
-      message: result.success ? `Model "${modelToRemove}" removed successfully` : result.message,
+      message: result.success ? `Model "${modelName}" removed successfully` : result.message,
       severity: result.success ? 'success' : 'error',
     });
   };
@@ -324,7 +326,7 @@ function ModelsPage() {
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => {}}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
