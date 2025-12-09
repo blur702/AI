@@ -932,7 +932,7 @@ def api_health():
 
     # Get services count
     statuses = service_manager.get_all_status()
-    running_count = len([s for s in statuses if s.get('status') == 'running'])
+    running_count = len([s for s in statuses.values() if s.get('status') == 'running'])
 
     # Determine status based on thresholds
     if cpu_percent < 80 and memory.percent < 85:
@@ -1297,11 +1297,11 @@ def api_model_services(model_name):
     statuses = service_manager.get_all_status()
     running_services = []
 
-    for status in statuses:
-        if status.get("id") in llm_services and status.get("status") == "running":
+    for service_id, status in statuses.items():
+        if service_id in llm_services and status.get("status") == "running":
             running_services.append({
-                "id": status.get("id"),
-                "name": status.get("name", status.get("id")),
+                "id": service_id,
+                "name": status.get("name", service_id),
                 "status": status.get("status"),
                 "usage": "potential",  # Indicates coarse association, not active binding
             })

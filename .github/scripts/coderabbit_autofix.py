@@ -8,7 +8,6 @@ issues are found or max iterations reached.
 """
 
 import argparse
-import json
 import os
 import re
 import subprocess

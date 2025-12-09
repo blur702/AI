@@ -9,6 +9,11 @@ param(
     [string]$InputJson
 )
 
+# Ensure we read all input if piped
+if (-not $InputJson) {
+    $InputJson = $input | Out-String
+}
+
 # Parse the JSON input to get file path
 try {
     $data = $InputJson | ConvertFrom-Json
@@ -38,13 +43,20 @@ if ($extension -eq ".py") {
 
 # TypeScript/JavaScript files - run ESLint
 if ($extension -in ".ts", ".tsx", ".js", ".jsx") {
-    $eslintPath = Get-Command npx -ErrorAction SilentlyContinue
-    if ($eslintPath) {
+    # Check for local ESLint first, then fall back to npx
+    $fileDir = Split-Path $filePath -Parent
+    $localEslint = Join-Path $fileDir "node_modules\.bin\eslint.cmd"
+    $eslintOutput = $null
+
+    if (Test-Path $localEslint) {
+        $eslintOutput = & $localEslint $filePath --format stylish 2>&1
+    } elseif (Get-Command npx -ErrorAction SilentlyContinue) {
         $eslintOutput = & npx eslint $filePath --format stylish 2>&1
-        if ($LASTEXITCODE -ne 0 -and $eslintOutput) {
-            $issues += "=== ESLint (TypeScript/JavaScript) Issues ==="
-            $issues += $eslintOutput
-        }
+    }
+
+    if ($eslintOutput -and $LASTEXITCODE -ne 0) {
+        $issues += "=== ESLint (TypeScript/JavaScript) Issues ==="
+        $issues += $eslintOutput
     }
 }
 

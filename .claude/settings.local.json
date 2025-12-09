@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(Select-Object -First 30 -ExpandProperty FullName)",
       "Bash(powershell -Command:*)",
       "mcp__documentation__search_code",
       "Bash(timeout:*)",

@@ -94,7 +94,7 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          git add -A
+          git add -u
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
@@ -154,7 +154,7 @@ jobs:
 
       - name: Install linters
         run: |
-          pip install ruff black isort mypy
+          pip install ruff black isort
           npm ci --ignore-scripts || npm install --ignore-scripts
 
       - name: Run Python linters
