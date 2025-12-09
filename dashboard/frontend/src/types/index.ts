@@ -12,6 +12,7 @@ export interface ServiceConfig {
   external?: boolean;
   proxyId?: string;  // ID for reverse proxy path (e.g., 'n8n' -> /proxy/n8n/)
   instructions?: string;  // Setup instructions shown when service is running
+  models?: string[];  // Model names this service uses ('*' for any Ollama model)
 }
 
 export interface ServiceState {
@@ -58,6 +59,60 @@ export interface OllamaModel {
   id: string;
   size: string;
   processor?: string;
+}
+
+export interface OllamaModelDetailed extends OllamaModel {
+  family: string;
+  parameters: string; // e.g., "32B"
+  quantization: string; // e.g., "Q4_K_M"
+  size_gb: number;
+  format: string;
+  template?: string;
+  estimated_vram_mb: number;
+  capability_description: string;
+  is_loaded: boolean;
+  detailed?: boolean; // Whether full details were fetched
+}
+
+export interface ModelDownloadProgress {
+  model_name: string;
+  progress: string;
+  status: 'downloading' | 'complete' | 'error';
+}
+
+export interface ModelServiceInfo {
+  id: string;
+  name: string;
+  status: string;
+}
+
+export interface ModelsListResponse {
+  models: OllamaModel[];
+  count: number;
+}
+
+export interface ModelsDetailedResponse {
+  models: OllamaModelDetailed[];
+  count: number;
+  loaded_count: number;
+}
+
+export interface ModelInfoResponse extends OllamaModelDetailed {}
+
+export interface ModelActionResponse {
+  success: boolean;
+  message: string;
+  model_name: string;
+  error?: {
+    code: string;
+    details: string;
+  };
+}
+
+export interface ModelServicesResponse {
+  model_name: string;
+  services: ModelServiceInfo[];
+  count: number;
 }
 
 export interface RunningServiceInfo {

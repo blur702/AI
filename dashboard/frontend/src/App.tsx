@@ -1,11 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -19,15 +18,14 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ImageIcon from '@mui/icons-material/Image';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import SettingsIcon from '@mui/icons-material/Settings';
+import MemoryIcon from '@mui/icons-material/Memory';
 import ComputerIcon from '@mui/icons-material/Computer';
-import { ServiceCard } from './components/ServiceCard';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { HealthStatus } from './components/HealthStatus';
-import { ResourceManager } from './components/ResourceManager';
-import { SettingsPanel } from './components/SettingsPanel';
 import { ThemeToggle } from './components/ThemeToggle';
 import { useSocket } from './hooks/useSocket';
-import { SERVICES_CONFIG, getApiBase } from './config/services';
+import DashboardHome from './pages/DashboardHome';
+import ModelsPage from './pages/ModelsPage';
 import './App.css';
 
 const DRAWER_WIDTH = 240;
@@ -36,24 +34,26 @@ interface NavItem {
   id: string;
   label: string;
   icon: React.ReactNode;
+  path: string;
+  isSection?: boolean; // For scroll-to-section navigation on dashboard
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'main', label: 'Main Services', icon: <DashboardIcon /> },
-  { id: 'image', label: 'Image Generation', icon: <ImageIcon /> },
-  { id: 'music', label: 'Music Generation', icon: <MusicNoteIcon /> },
-  { id: 'settings', label: 'Settings', icon: <SettingsIcon /> },
+  { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+  { id: 'models', label: 'Models', icon: <MemoryIcon />, path: '/models' },
+  { id: 'main', label: 'Main Services', icon: <DashboardIcon />, path: '/', isSection: true },
+  { id: 'image', label: 'Image Generation', icon: <ImageIcon />, path: '/', isSection: true },
+  { id: 'music', label: 'Music Generation', icon: <MusicNoteIcon />, path: '/', isSection: true },
+  { id: 'settings', label: 'Settings', icon: <SettingsIcon />, path: '/', isSection: true },
 ];
 
 function App() {
-  const { connected, services, startService, stopService } = useSocket();
+  const { connected } = useSocket();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  const mainServices = SERVICES_CONFIG.filter(s => s.section === 'main');
-  const imageServices = SERVICES_CONFIG.filter(s => s.section === 'image');
-  const musicServices = SERVICES_CONFIG.filter(s => s.section === 'music');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const serverIp = window.location.hostname || '10.0.0.138';
 
@@ -61,41 +61,36 @@ function App() {
     setMobileOpen(!mobileOpen);
   };
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
+  const handleNavClick = (item: NavItem) => {
+    if (item.isSection) {
+      // If we're not on the dashboard, navigate there first
+      if (location.pathname !== '/') {
+        navigate('/');
+        // Use setTimeout to wait for navigation before scrolling
+        setTimeout(() => {
+          const element = document.getElementById(item.id);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      } else {
+        const element = document.getElementById(item.id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    } else {
+      navigate(item.path);
     }
     if (isMobile) {
       setMobileOpen(false);
     }
   };
 
-  const handlePauseService = useCallback(async (id: string) => {
-    try {
-      const response = await fetch(`${getApiBase()}/api/services/${id}/pause`, {
-        method: 'POST',
-      });
-      if (!response.ok) {
-        console.error('Failed to pause service:', await response.text());
-      }
-    } catch (err) {
-      console.error('Error pausing service:', err);
-    }
-  }, []);
-
-  const handleResumeService = useCallback(async (id: string) => {
-    try {
-      const response = await fetch(`${getApiBase()}/api/services/${id}/resume`, {
-        method: 'POST',
-      });
-      if (!response.ok) {
-        console.error('Failed to resume service:', await response.text());
-      }
-    } catch (err) {
-      console.error('Error resuming service:', err);
-    }
-  }, []);
+  const isActiveRoute = (item: NavItem) => {
+    if (item.isSection) return false;
+    return location.pathname === item.path;
+  };
 
   const drawerContent = (
     <Box sx={{ overflow: 'auto' }}>
@@ -108,11 +103,29 @@ function App() {
       <List>
         {NAV_ITEMS.map((item) => (
           <ListItem key={item.id} disablePadding>
-            <ListItemButton onClick={() => scrollToSection(item.id)}>
-              <ListItemIcon sx={{ color: 'primary.main' }}>
+            <ListItemButton
+              onClick={() => handleNavClick(item)}
+              selected={isActiveRoute(item)}
+              sx={{
+                pl: item.isSection ? 4 : 2, // Indent section items
+                '&.Mui-selected': {
+                  bgcolor: 'action.selected',
+                  '&:hover': {
+                    bgcolor: 'action.selected',
+                  },
+                },
+              }}
+            >
+              <ListItemIcon sx={{ color: isActiveRoute(item) ? 'primary.main' : 'text.secondary', minWidth: 40 }}>
                 {item.icon}
               </ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{
+                  fontSize: item.isSection ? '0.875rem' : '1rem',
+                  color: item.isSection ? 'text.secondary' : 'text.primary',
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
@@ -217,85 +230,11 @@ function App() {
           minHeight: 'calc(100vh - 64px)',
         }}
       >
-        <Container maxWidth="lg" sx={{ py: 4 }}>
-          {/* Resource Manager */}
-          <ResourceManager />
-
-          {/* Settings Panel */}
-          <Box id="settings">
-            <SettingsPanel />
-          </Box>
-
-          {/* Main Services Grid */}
-          <Box id="main" sx={{ mb: 4, scrollMarginTop: '80px' }}>
-            <Typography variant="h5" color="text.secondary" sx={{ mb: 3 }}>
-              Main Services
-            </Typography>
-            <Grid container spacing={3}>
-              {mainServices.map(config => (
-                <Grid item xs={12} sm={6} lg={4} key={config.id}>
-                  <ServiceCard
-                    config={config}
-                    state={services[config.id]}
-                    onStart={startService}
-                    onStop={stopService}
-                    onPause={handlePauseService}
-                    onResume={handleResumeService}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-
-          {/* Image Generation Section */}
-          <Box id="image" sx={{ mb: 4, scrollMarginTop: '80px' }}>
-            <Typography variant="h5" color="text.secondary" sx={{ mb: 3 }}>
-              Image Generation
-            </Typography>
-            <Grid container spacing={3}>
-              {imageServices.map(config => (
-                <Grid item xs={12} sm={6} lg={4} key={config.id}>
-                  <ServiceCard
-                    config={config}
-                    state={services[config.id]}
-                    onStart={startService}
-                    onStop={stopService}
-                    onPause={handlePauseService}
-                    onResume={handleResumeService}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-
-          {/* Music Generation Section */}
-          <Box id="music" sx={{ mb: 4, scrollMarginTop: '80px' }}>
-            <Typography variant="h5" color="text.secondary" sx={{ mb: 3 }}>
-              Music Generation
-            </Typography>
-            <Grid container spacing={3}>
-              {musicServices.map(config => (
-                <Grid item xs={12} sm={6} lg={4} key={config.id}>
-                  <ServiceCard
-                    config={config}
-                    state={services[config.id]}
-                    onStart={startService}
-                    onStop={stopService}
-                    onPause={handlePauseService}
-                    onResume={handleResumeService}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-
-          {/* Footer */}
-          <Box sx={{ textAlign: 'center', mt: 6 }}>
-            <Typography variant="body2" color="text.secondary">
-              RTX 3090 (24GB) - Ryzen 9 5900X - 64GB RAM
-            </Typography>
-          </Box>
-        </Container>
+        <Routes>
+          <Route path="/" element={<DashboardHome />} />
+          <Route path="/models" element={<ModelsPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
 
         {/* Connection Status */}
         <ConnectionStatus connected={connected} />

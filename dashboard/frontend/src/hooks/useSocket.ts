@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { ServiceStatus, ServiceState, ServicesResponse, ServiceStatusUpdate } from '../types';
+import { ServiceStatus, ServiceState, ServicesResponse, ServiceStatusUpdate, ModelDownloadProgress } from '../types';
 import { getApiBase } from '../config/services';
 
 export function useSocket() {
@@ -72,6 +72,16 @@ export function useSocket() {
               error: data.message || null
             }
           }));
+        });
+
+        // Model download progress events
+        socket.on('model_download_progress', (data: ModelDownloadProgress) => {
+          console.log('Model download progress:', data);
+          // Notify the useModels hook via window callback
+          const updateFn = (window as unknown as { __updateModelDownloadProgress?: (p: ModelDownloadProgress) => void }).__updateModelDownloadProgress;
+          if (updateFn) {
+            updateFn(data);
+          }
         });
       })
       .catch(error => {
