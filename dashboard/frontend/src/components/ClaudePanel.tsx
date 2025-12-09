@@ -145,7 +145,14 @@ export function ClaudePanel() {
 
   return (
     <div className={`claude-panel ${expanded ? 'expanded' : 'collapsed'}`}>
-      <div className="claude-header" onClick={() => setExpanded(!expanded)}>
+      <div
+        className="claude-header"
+        onClick={() => setExpanded(!expanded)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(!expanded); } }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={expanded}
+      >
         <div className="claude-title">
           <span className="claude-icon">&gt;_</span>
           <span>Claude Code CLI</span>
@@ -173,6 +180,7 @@ export function ClaudePanel() {
               />
               <div className="prompt-actions">
                 <button
+                  type="button"
                   className="btn-execute"
                   onClick={() => handleExecute('normal')}
                   disabled={!prompt.trim() || isSubmitting}
@@ -181,6 +189,7 @@ export function ClaudePanel() {
                   {isSubmitting ? 'Starting...' : 'Execute'}
                 </button>
                 <button
+                  type="button"
                   className="btn-execute-yolo"
                   onClick={() => handleExecute('yolo')}
                   disabled={!prompt.trim() || isSubmitting}
@@ -200,7 +209,7 @@ export function ClaudePanel() {
           {error && (
             <div className="claude-error">
               <strong>Error:</strong> {error}
-              <button className="btn-dismiss" onClick={clearError}>&times;</button>
+              <button type="button" className="btn-dismiss" onClick={clearError} aria-label="Dismiss error">&times;</button>
             </div>
           )}
 
@@ -217,6 +226,9 @@ export function ClaudePanel() {
                       key={session.session_id}
                       className={`session-item ${activeSessionId === session.session_id ? 'active' : ''} ${getStatusClass(session.status)}`}
                       onClick={() => setActiveSessionId(session.session_id)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveSessionId(session.session_id); } }}
+                      role="button"
+                      tabIndex={0}
                     >
                       <div className="session-header">
                         <span className="session-status-icon">{getStatusIcon(session.status)}</span>
@@ -238,6 +250,7 @@ export function ClaudePanel() {
                   ))}
                   {sessions.length > visibleSessionCount && (
                     <button
+                      type="button"
                       className="btn-show-more"
                       onClick={() => setVisibleSessionCount(sessions.length)}
                       aria-label={`Show ${sessions.length - visibleSessionCount} more sessions`}
@@ -256,7 +269,7 @@ export function ClaudePanel() {
               <div className="terminal-header">
                 <h4>Output</h4>
                 {isRunning && (
-                  <button className="btn-cancel" onClick={handleCancel}>
+                  <button type="button" className="btn-cancel" onClick={handleCancel}>
                     Cancel
                   </button>
                 )}

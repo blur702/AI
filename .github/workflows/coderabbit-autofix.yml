@@ -63,8 +63,11 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.pr_number }}" ]; then
             echo "number=${{ github.event.inputs.pr_number }}" >> $GITHUB_OUTPUT
-          else
+          elif [ -n "${{ github.event.pull_request.number }}" ]; then
             echo "number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          else
+            echo "::error::PR number not available"
+            exit 1
           fi
 
       - name: Run Auto-Fix Loop
@@ -102,7 +105,7 @@ jobs:
 
           Applied automated fixes from CodeRabbit review.
 
-          $(cat autofix_summary.md 2>/dev/null || echo 'See workflow run for details.')
+          $(head -c 500 autofix_summary.md 2>/dev/null || echo 'See workflow run for details.')
 
           🤖 Generated with CodeRabbit Auto-Fix"
             git push

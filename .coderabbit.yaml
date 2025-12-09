@@ -61,7 +61,7 @@ reviews:
   # Tools configuration
   tools:
     # Enable AST-based analysis
-    ast_grep:
+    ast-grep:
       enabled: true
 
     # Enable shellcheck for bash scripts

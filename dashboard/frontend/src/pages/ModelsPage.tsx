@@ -120,8 +120,14 @@ function ModelsPage() {
       switch (sortBy) {
         case 'size':
           return b.size_gb - a.size_gb;
-        case 'parameters':
-          return (b.parameters || '').localeCompare(a.parameters || '');
+        case 'parameters': {
+          // Parse numeric portion for proper sorting (e.g., "7B" -> 7, "70B" -> 70)
+          const parseParams = (p: string) => {
+            const match = p.match(/^(\d+(?:\.\d+)?)/);
+            return match ? parseFloat(match[1]) : 0;
+          };
+          return parseParams(b.parameters || '') - parseParams(a.parameters || '');
+        }
         case 'vram':
           return b.estimated_vram_mb - a.estimated_vram_mb;
         default:
@@ -600,7 +606,7 @@ function ModelsPage() {
 
       {/* Model Info Dialog */}
       <Dialog open={infoDialogOpen} onClose={() => setInfoDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedModel?.name}</DialogTitle>
+        <DialogTitle>{selectedModel?.name ?? 'Model Info'}</DialogTitle>
         <DialogContent>
           {selectedModel && (
             <Box>
