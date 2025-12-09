@@ -154,6 +154,7 @@ class IngestionManager:
         except Exception as exc:
             # Return status even if Weaviate is unavailable
             collections["error"] = str(exc)
+            logger.error("Error fetching collection status: %s", exc)
 
         return {
             "is_running": self.is_running,
@@ -417,6 +418,7 @@ class IngestionManager:
 
         except Exception as exc:
             success = False
+            logger.error("Ingestion error for task %s: %s", task_id, exc)
             self.emit("ingestion_error", {
                 "task_id": task_id,
                 "error": str(exc),
