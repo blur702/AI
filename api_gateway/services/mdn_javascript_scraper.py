@@ -528,7 +528,7 @@ def scrape_mdn_javascript(
 
                     except Exception as e:
                         errors += 1
-                        logger.warning("Failed to insert %s: %s", doc.title, e)
+                        logger.exception("Failed to insert %s: %s", doc.title, e)
 
         if cancelled:
             emit_progress("cancelled", entities_processed, 0, "Scraping cancelled")

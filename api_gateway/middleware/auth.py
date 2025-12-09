@@ -4,7 +4,7 @@ API Key authentication middleware for FastAPI.
 Validates X-API-Key header against stored API keys in the database.
 Certain paths (health, metrics, docs) are public and bypass authentication.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable
 
 from fastapi import Request, Response
@@ -49,11 +49,13 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
             if not api_key or not api_key.is_active:
                 raise InvalidAPIKeyError("Invalid or inactive API key")
 
-            api_key.last_used_at = datetime.utcnow()
+            api_key.last_used_at = datetime.now(timezone.utc)
             await session.commit()
 
         request.state.api_key = api_key_value
-        logger.debug(f"Authenticated request with API key: {api_key_value}")
+        # Log only the first 8 characters of the API key for security
+        masked_key = f"{api_key_value[:8]}..." if len(api_key_value) > 8 else "***"
+        logger.debug(f"Authenticated request with API key: {masked_key}")
         response = await call_next(request)
         return response
 

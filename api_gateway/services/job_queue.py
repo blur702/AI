@@ -5,7 +5,7 @@ Provides job creation, status tracking, and background processing
 for AI generation requests that may take extended time to complete.
 """
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -65,7 +65,7 @@ class JobQueueManager:
             job.status = status
             job.result = result
             job.error = error
-            job.updated_at = datetime.utcnow()
+            job.updated_at = datetime.now(timezone.utc)
             await session.commit()
             logger.info(f"Job {job_id} updated to {status}")
 
@@ -144,9 +144,9 @@ class JobWorker:
                     )
                 return response.json()
 
-            start = datetime.utcnow()
+            start = datetime.now(timezone.utc)
             result = await asyncio.wait_for(execute(), timeout=timeout)
-            elapsed = (datetime.utcnow() - start).total_seconds()
+            elapsed = (datetime.now(timezone.utc) - start).total_seconds()
             logger.info(f"Job {job.id} completed in {elapsed:.2f}s")
             await self.queue_manager.update_job_status(
                 job.id, JobStatus.completed, result=result
