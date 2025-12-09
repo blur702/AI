@@ -7,6 +7,7 @@ Includes connection pooling and retry mechanisms for improved reliability.
 
 import logging
 import os
+from pathlib import Path
 import time
 from typing import Optional, Tuple
 
@@ -15,9 +16,31 @@ from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from urllib3.util.retry import Retry
 
+# Load environment variables from dashboard backend's .env file
+# This ensures tray app uses the same credentials as the dashboard
+try:
+    from dotenv import load_dotenv
+
+    # Try to find the dashboard .env file relative to this file's location
+    _this_dir = Path(__file__).resolve().parent
+    _dashboard_env = _this_dir.parent / "dashboard" / "backend" / ".env"
+    if _dashboard_env.exists():
+        load_dotenv(_dashboard_env)
+    else:
+        # Fallback: try from TRAY_APP_HOME environment variable
+        _tray_home = os.environ.get("TRAY_APP_HOME")
+        if _tray_home:
+            _dashboard_env = Path(_tray_home).parent / "dashboard" / "backend" / ".env"
+            if _dashboard_env.exists():
+                load_dotenv(_dashboard_env)
+except ImportError:
+    # dotenv not installed - will rely on environment variables
+    pass
+
 logger = logging.getLogger(__name__)
 
-# Default credentials (can be overridden via environment variables)
+# Default credentials (can be overridden via environment variables or .env)
+# NOTE: These defaults are only used if environment variables aren't set
 DEFAULT_AUTH_USERNAME = "admin"
 DEFAULT_AUTH_PASSWORD = "admin"
 
