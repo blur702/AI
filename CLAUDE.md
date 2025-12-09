@@ -520,6 +520,14 @@ This project has full CodeRabbit integration for automated code review and fix a
 - React (`**/*.tsx`): React patterns, hooks, typed props
 - Tests (`tests/**/*`): Meaningful tests, proper assertions, isolation
 
+### GitHub CLI
+
+GitHub CLI (`gh`) is installed at `C:\Program Files\GitHub CLI\gh.exe`. If `gh` is not in PATH, use the full path:
+```bash
+"C:\Program Files\GitHub CLI\gh.exe" pr create --title "Title" --body "Body"
+"C:\Program Files\GitHub CLI\gh.exe" pr view 123
+```
+
 ### Running CodeRabbit Verification
 
 **Option 1: Via Pull Request (Recommended)**
