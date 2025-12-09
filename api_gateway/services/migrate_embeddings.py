@@ -190,11 +190,16 @@ def migrate(dry_run: bool = False) -> Dict[str, Any]:
             # and note that the scraper needs to be re-run
             logger.info("Creating empty DrupalAPIEntity collection (requires re-scraping)...")
             try:
-                from .drupal_entity_schema import create_drupal_entity_collection
-                create_drupal_entity_collection(client, force_reindex=True)
+                from .drupal_api_schema import create_drupal_api_collection
+                create_drupal_api_collection(client, force_reindex=True)
                 results["collections_reindexed"]["DrupalAPIEntity"] = {
                     "note": "Collection created. Run scraper to re-populate.",
                     "command": "python -m api_gateway.services.drupal_scraper scrape",
+                }
+            except ImportError as e:
+                logger.error("Could not import drupal_api_schema module: %s", e)
+                results["collections_reindexed"]["DrupalAPIEntity"] = {
+                    "error": f"Import error: {e}"
                 }
             except Exception as e:
                 logger.warning("Could not create DrupalAPIEntity collection: %s", e)

@@ -38,7 +38,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional
 
 from ..utils.logger import get_logger
 
@@ -234,10 +234,10 @@ def run_drupal_scraper(
     from .drupal_scraper import (
         DrupalAPIScraper,
         ScrapeConfig,
-        get_embedding,
-        get_entity_text_for_embedding,
         ENTITY_LISTINGS,
+        get_entity_text_for_embedding,
     )
+    from ..utils.embeddings import get_embedding
     from .weaviate_connection import DRUPAL_API_COLLECTION_NAME, WeaviateConnection
 
     config = job.config
@@ -397,9 +397,9 @@ def run_mdn_javascript_scraper(
     from .mdn_javascript_scraper import (
         MDNJavaScriptScraper,
         ScrapeConfig,
-        get_embedding,
         get_doc_text_for_embedding,
     )
+    from ..utils.embeddings import get_embedding
     from .weaviate_connection import MDN_JAVASCRIPT_COLLECTION_NAME, WeaviateConnection
 
     config = job.config
@@ -536,9 +536,9 @@ def run_mdn_webapis_scraper(
     from .mdn_webapis_scraper import (
         MDNWebAPIsScraper,
         ScrapeConfig,
-        get_embedding,
         get_doc_text_for_embedding,
     )
+    from ..utils.embeddings import get_embedding
     from .weaviate_connection import MDN_WEBAPIS_COLLECTION_NAME, WeaviateConnection
 
     config = job.config

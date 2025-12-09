@@ -15,19 +15,12 @@ function formatUptime(seconds: number): string {
 }
 
 function getStatusClass(status: HealthStatusType['status']): string {
-  switch (status) {
-    case 'healthy':
-      return 'healthy';
-    case 'warning':
-      return 'warning';
-    case 'error':
-      return 'error';
-    default:
-      // Exhaustive check - this should never happen
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const _exhaustiveCheck: never = status;
-      return 'error';
-  }
+  const statusMap: Record<HealthStatusType['status'], string> = {
+    healthy: 'healthy',
+    warning: 'warning',
+    error: 'error',
+  };
+  return statusMap[status] || 'error';
 }
 
 export function HealthStatus() {

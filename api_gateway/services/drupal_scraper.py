@@ -515,9 +515,9 @@ class DrupalAPIScraper:
                 if entity:
                     # Override namespace if we extracted it from listing
                     if namespace and not entity.namespace:
-                        entity = DrupalAPIEntity(
-                            **{**entity.to_properties(), "namespace": namespace}
-                        )
+                        props = entity.to_properties()
+                        props["namespace"] = namespace
+                        entity = DrupalAPIEntity(**props)
                     entity_count += 1
                     logger.info(
                         "Parsed entity: %s (%s) - desc=%d chars",
@@ -657,6 +657,7 @@ def scrape_drupal_api(
                         vector = get_embedding(text)
                         collection.data.insert(
                             entity.to_properties(),
+                            uuid=entity.uuid,
                             vector=vector,
                         )
                         entities_inserted += 1
