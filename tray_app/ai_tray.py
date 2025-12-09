@@ -97,9 +97,10 @@ class AITrayApp:
 
         # Create the graphical dashboard window
         self.dashboard_window = DashboardWindow(
-            on_start_service=self._start_service,
-            on_stop_service=self._stop_service,
-            on_unload_model=self._unload_model,
+            on_start_service=self._start_service_with_notify,
+            on_stop_service=self._stop_service_with_notify,
+            on_unload_model=self._unload_model_with_notify,
+            on_unload_all_models=self._unload_all_models_with_notify,
             on_open_dashboard=self._open_dashboard,
         )
 
@@ -323,6 +324,87 @@ class AITrayApp:
                 self._notify_info("No models to unload")
         except Exception as e:
             logger.exception("Failed to unload all models: %s", e)
+            self._notify_error("Failed to unload models")
+        finally:
+            self._pending_operation = False
+
+    # =========================================================================
+    # Dashboard Window Callbacks (with in-window notifications)
+    # =========================================================================
+
+    def _start_service_with_notify(self, service_id: str, service_name: str) -> None:
+        """Start a service and notify the dashboard window."""
+        self._pending_operation = True
+        try:
+            logger.info("User requested start: %s", service_id)
+            if self.api.start_service(service_id):
+                self.dashboard_window.show_status(f"✓ Started {service_name}", is_error=False)
+                self._notify_success(f"Started {service_name}")
+            else:
+                self.dashboard_window.show_status(f"✗ Failed to start {service_name}", is_error=True)
+                self._notify_error(f"Failed to start {service_name}")
+            self._refresh_data()
+        except Exception as e:
+            logger.exception("Failed to start service '%s': %s", service_id, e)
+            self.dashboard_window.show_status(f"✗ Error: {e}", is_error=True)
+            self._notify_error(f"Failed to start {service_name}: {e}")
+        finally:
+            self._pending_operation = False
+
+    def _stop_service_with_notify(self, service_id: str, service_name: str) -> None:
+        """Stop a service and notify the dashboard window."""
+        self._pending_operation = True
+        try:
+            logger.info("User requested stop: %s", service_id)
+            if self.api.stop_service(service_id):
+                self.dashboard_window.show_status(f"✓ Stopped {service_name}", is_error=False)
+                self._notify_success(f"Stopped {service_name}")
+            else:
+                self.dashboard_window.show_status(f"✗ Failed to stop {service_name}", is_error=True)
+                self._notify_error(f"Failed to stop {service_name}")
+            self._refresh_data()
+        except Exception as e:
+            logger.exception("Failed to stop service '%s': %s", service_id, e)
+            self.dashboard_window.show_status(f"✗ Error: {e}", is_error=True)
+            self._notify_error(f"Failed to stop {service_name}: {e}")
+        finally:
+            self._pending_operation = False
+
+    def _unload_model_with_notify(self, model_name: str) -> None:
+        """Unload an Ollama model and notify the dashboard window."""
+        self._pending_operation = True
+        try:
+            logger.info("User requested unload: %s", model_name)
+            if self.api.unload_model(model_name):
+                self.dashboard_window.show_status(f"✓ Unloaded {model_name}", is_error=False)
+                self._notify_success(f"Unloaded {model_name}")
+            else:
+                self.dashboard_window.show_status(f"✗ Failed to unload {model_name}", is_error=True)
+                self._notify_error(f"Failed to unload {model_name}")
+            self._refresh_data()
+        except Exception as e:
+            logger.exception("Failed to unload model '%s': %s", model_name, e)
+            self.dashboard_window.show_status(f"✗ Error: {e}", is_error=True)
+            self._notify_error(f"Failed to unload {model_name}: {e}")
+        finally:
+            self._pending_operation = False
+
+    def _unload_all_models_with_notify(self) -> None:
+        """Unload all Ollama models and notify the dashboard window."""
+        self._pending_operation = True
+        try:
+            logger.info("User requested unload all models")
+            count = self.api.unload_all_models()
+            self._refresh_data()
+            if count > 0:
+                self.dashboard_window.show_status(f"✓ Unloaded {count} model(s)", is_error=False)
+                self._notify_success(f"Unloaded {count} model(s)")
+            else:
+                self.dashboard_window.show_status("No models to unload", is_error=False)
+                self._notify_info("No models to unload")
+        except Exception as e:
+            logger.exception("Failed to unload all models: %s", e)
+            self.dashboard_window.show_status(f"✗ Error: {e}", is_error=True)
             self._notify_error("Failed to unload models")
         finally:
             self._pending_operation = False
