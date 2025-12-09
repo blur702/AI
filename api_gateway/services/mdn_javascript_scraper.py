@@ -172,8 +172,8 @@ class MDNJavaScriptScraper:
         if self.progress_callback:
             try:
                 self.progress_callback(phase, current, total, message)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Progress callback error: %s", exc)
 
     def _is_cancelled(self) -> bool:
         """
@@ -185,7 +185,8 @@ class MDNJavaScriptScraper:
         if self.check_cancelled:
             try:
                 return self.check_cancelled()
-            except Exception:
+            except Exception as exc:
+                logger.debug("Check cancelled callback error: %s", exc)
                 return False
         return False
 
@@ -199,7 +200,8 @@ class MDNJavaScriptScraper:
         if self.check_paused:
             try:
                 return self.check_paused()
-            except Exception:
+            except Exception as exc:
+                logger.debug("Check paused callback error: %s", exc)
                 return False
         return False
 
