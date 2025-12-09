@@ -53,7 +53,10 @@ ALL_COLLECTIONS = [
 def get_ollama_models() -> List[str]:
     """Get list of models available in Ollama."""
     try:
-        response = httpx.get("http://localhost:11434/api/tags", timeout=30.0)
+        response = httpx.get(
+            f"{settings.OLLAMA_API_ENDPOINT}/api/tags",
+            timeout=30.0,
+        )
         response.raise_for_status()
         models = response.json().get("models", [])
         return [m["name"] for m in models]
@@ -67,7 +70,7 @@ def check_model_available(model_name: str) -> bool:
     # First try direct embedding test - most reliable
     try:
         response = httpx.post(
-            "http://localhost:11434/api/embeddings",
+            f"{settings.OLLAMA_API_ENDPOINT}/api/embeddings",
             json={"model": model_name, "prompt": "test"},
             timeout=60.0,
         )
