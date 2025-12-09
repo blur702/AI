@@ -2,7 +2,7 @@ import { ServiceCard } from './components/ServiceCard';
 import { ConnectionStatus } from './components/ConnectionStatus';
 import { ResourceManager } from './components/ResourceManager';
 import { SettingsPanel } from './components/SettingsPanel';
-import { ClaudePanel } from './components/ClaudePanel';
+// ClaudePanel available for future use: import { ClaudePanel } from './components/ClaudePanel';
 import { useSocket } from './hooks/useSocket';
 import { SERVICES_CONFIG } from './config/services';
 import './App.css';
@@ -27,7 +27,7 @@ function App() {
 
       <ResourceManager />
 
-      <ClaudePanel />
+      {/* ClaudePanel removed - component available in components/ClaudePanel.tsx for future use */}
 
       <SettingsPanel />
 

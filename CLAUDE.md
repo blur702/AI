@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **local AI development workspace** featuring an integrated ecosystem of AI generation tools (audio, image, music, video, text-to-speech, and LLM) designed for RTX 3090 (24GB VRAM). The architecture follows a **master-satellite pattern** where a central dashboard orchestrates independent AI services.
 
-**External access**: `http://ssdd.kevinalthaus.com` (port 80 only exposed)
+**External access**: `https://ssdd.kevinalthaus.com` (HTTPS via nginx reverse proxy)
 
 ## Key Commands
 
@@ -16,6 +16,17 @@ This is a **local AI development workspace** featuring an integrated ecosystem o
 .\start_n8n.bat                    # Launch N8N workflow automation (port 5678)
 python vram_manager.py             # GPU VRAM monitoring CLI
 .\vram.bat                         # Quick VRAM check
+```
+
+### Nginx Reverse Proxy (HTTPS)
+```bash
+cd D:\AI\nginx
+.\start-nginx.bat                  # Start nginx (HTTPS on 443)
+.\stop-nginx.bat                   # Stop nginx
+.\reload-nginx.bat                 # Reload config without restart
+.\test-nginx.bat                   # Test configuration syntax
+.\setup-letsencrypt.bat            # Get Let's Encrypt certificate
+.\generate-self-signed-cert.bat    # Create self-signed cert (testing)
 ```
 
 ### Dashboard Frontend (React + TypeScript + Vite)
@@ -76,6 +87,7 @@ The dashboard uses a **single-port architecture** where Flask serves both the Re
 ### Service Port Allocation
 | Port | Service |
 |------|---------|
+| 443 | Nginx HTTPS reverse proxy (external entry point) |
 | 80 | Dashboard (Flask serves React + API + WebSocket) |
 | 1301 | API Gateway (FastAPI) |
 | 5678 | N8N workflow automation |
@@ -90,6 +102,25 @@ The dashboard uses a **single-port architecture** where Flask serves both the Re
 | 7872 | MusicGen |
 | 7873 | Stable Audio |
 | 11434 | Ollama API |
+
+### Nginx Path-Based Routing
+External HTTPS URLs via `https://ssdd.kevinalthaus.com`:
+| Path | Service | Backend Port |
+|------|---------|--------------|
+| `/` | Dashboard | 80 |
+| `/api/` | Dashboard API | 80 |
+| `/socket.io/` | WebSocket | 80 |
+| `/comfyui/` | ComfyUI | 8188 |
+| `/n8n/` | N8N | 5678 |
+| `/openwebui/` | Open WebUI | 3000 |
+| `/alltalk/` | AllTalk TTS | 7851 |
+| `/wan2gp/` | Wan2GP | 7860 |
+| `/yue/` | YuE Music | 7870 |
+| `/diffrhythm/` | DiffRhythm | 7871 |
+| `/musicgen/` | MusicGen | 7872 |
+| `/stable-audio/` | Stable Audio | 7873 |
+| `/ollama/` | Ollama API | 11434 |
+| `/weaviate/` | Weaviate | 8080 |
 
 ### Dashboard API (port 80)
 ```
@@ -137,6 +168,14 @@ api_gateway/           # FastAPI unified API (port 1301)
 ├── routes/            # Endpoint handlers
 ├── services/          # Backend service clients
 └── models/            # Pydantic models
+
+nginx/                 # Nginx reverse proxy configuration
+├── nginx.conf         # Main configuration
+├── conf.d/
+│   └── ssdd.conf      # Site-specific config (HTTPS, routing)
+├── ssl/               # SSL certificates
+├── logs/              # Access and error logs
+└── *.bat              # Management scripts
 
 tests/                 # Playwright test suite
 ├── fixtures/          # Base and service fixtures
@@ -253,10 +292,12 @@ python -m api_gateway.services.scraper_supervisor uninstall-task
 
 ## Critical Development Notes
 
-1. **Single-Port Architecture**: Flask on port 80 serves both `frontend/dist/` and `/api/*` routes. After frontend changes, run `npm run build` in `dashboard/frontend/`.
-2. **Frontend API Config**: `dashboard/frontend/src/config/services.ts` uses `window.location.origin` for API base URL (same-origin requests).
-3. **Virtual Environments**: Always activate the project-specific venv before running any AI tool.
-4. **VRAM Management**: Monitor constantly - combinations of services can exhaust 24GB.
-5. **Windows-Specific**: Uses PowerShell, batch scripts, and nvidia-smi.
-6. **Port Conflicts**: Check port availability before starting services.
-7. **Vector DB First**: Query `search_code`/`search_codebase` before using Glob/Grep to find code.
+1. **Nginx HTTPS Proxy**: External access via `https://ssdd.kevinalthaus.com` is handled by nginx (port 443). Flask binds to `127.0.0.1:80` and only accepts connections from localhost/nginx.
+2. **Single-Port Architecture**: Flask on port 80 serves both `frontend/dist/` and `/api/*` routes. After frontend changes, run `npm run build` in `dashboard/frontend/`.
+3. **Frontend API Config**: `dashboard/frontend/src/config/services.ts` uses `window.location.origin` for API base URL (same-origin requests).
+4. **Virtual Environments**: Always activate the project-specific venv before running any AI tool.
+5. **VRAM Management**: Monitor constantly - combinations of services can exhaust 24GB.
+6. **Windows-Specific**: Uses PowerShell, batch scripts, and nvidia-smi.
+7. **Port Conflicts**: Check port availability before starting services.
+8. **Vector DB First**: Query `search_code`/`search_codebase` before using Glob/Grep to find code.
+9. **SSL Certificates**: Let's Encrypt certificates expire after 90 days. Use `nginx/setup-renewal-task.bat` for auto-renewal.

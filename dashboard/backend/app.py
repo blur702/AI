@@ -1308,5 +1308,6 @@ def serve_static(path):
 
 if __name__ == "__main__":
     # Run on port 80 for single-port deployment
+    # Bind to 127.0.0.1 since nginx handles external traffic (HTTPS on 443)
     # debug=False to avoid the reloader spawning multiple processes
-    socketio.run(app, host="0.0.0.0", port=80, debug=False)
+    socketio.run(app, host="127.0.0.1", port=80, debug=False)

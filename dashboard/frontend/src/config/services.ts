@@ -172,8 +172,8 @@ export const getServiceUrl = (port: number, proxyId?: string): string => {
                       window.location.hostname === '127.0.0.1';
 
   if (proxyId && !isLocalhost) {
-    // Use reverse proxy path for external access
-    return `${window.location.origin}/proxy/${proxyId}/`;
+    // Use nginx direct path for external access (matches nginx location blocks)
+    return `${window.location.origin}/${proxyId}/`;
   }
 
   // Direct port access for local network

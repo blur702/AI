@@ -175,7 +175,7 @@ SERVICES = {
         "description": "AUTOMATIC1111 Stable Diffusion Web UI",
         "working_dir": _build_path("stability-matrix/Packages/Stable Diffusion WebUI"),
         "command": _build_python_path("stability-matrix/Packages/Stable Diffusion WebUI/venv") + [
-            "launch.py", "--listen", "--port", "7861"
+            "launch.py", "--listen", "--port", "7861", "--api"
         ],
         "health_endpoint": "/",
         "startup_timeout": 180,

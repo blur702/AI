@@ -33,3 +33,4 @@ test-results/
 nul
 .DS_Store
 Thumbs.db
+.secrets/
