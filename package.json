@@ -9,6 +9,7 @@
     "@playwright/test": "^1.57.0",
     "@types/node": "^22.8.1",
     "@types/ws": "^8.18.1",
+    "cross-env": "^7.0.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.3"
   },
@@ -34,6 +35,14 @@
     "test:serial": "npx playwright test --config=tests/config/playwright.config.ts --workers=1",
     "test:chrome": "npx playwright test --config=tests/config/playwright.config.ts --project=chromium",
     "test:firefox": "npx playwright test --config=tests/config/playwright.config.ts --project=firefox",
-    "test:webkit": "npx playwright test --config=tests/config/playwright.config.ts --project=webkit"
+    "test:webkit": "npx playwright test --config=tests/config/playwright.config.ts --project=webkit",
+    "test:vps": "cross-env TEST_ENVIRONMENT=vps npx playwright test --config=tests/config/vps.config.ts",
+    "test:vps:smoke": "cross-env TEST_ENVIRONMENT=vps npx playwright test --config=tests/config/vps.config.ts tests/tests/smoke",
+    "test:vps:api": "cross-env TEST_ENVIRONMENT=vps npx playwright test --config=tests/config/vps.config.ts tests/tests/api",
+    "test:vps:ui": "cross-env TEST_ENVIRONMENT=vps npx playwright test --config=tests/config/vps.config.ts tests/tests/ui",
+    "vps:setup": "npx ts-node tests/vps-runner.ts",
+    "deploy:vps": "bash tests/scripts/deploy-to-vps.sh",
+    "deploy:vps:win": "powershell -ExecutionPolicy Bypass -File tests/scripts/deploy-to-vps.ps1",
+    "run:vps": "bash tests/scripts/run-vps-tests.sh"
   }
 }

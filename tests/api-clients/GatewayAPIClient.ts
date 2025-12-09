@@ -45,6 +45,13 @@ export class GatewayAPIClient extends BaseAPIClient {
     return this.get<UnifiedResponse>('/health');
   }
 
+  /**
+   * Alias for getHealth for consistency with other clients
+   */
+  healthCheck(): Promise<UnifiedResponse> {
+    return this.getHealth();
+  }
+
   generateImage(request: any): Promise<UnifiedResponse> {
     return this.post<UnifiedResponse>('/generate/image', request);
   }
