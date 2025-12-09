@@ -390,7 +390,7 @@ export function ResourceManager({ onUnloadModel }: ResourceManagerProps) {
                 <Select
                   value={settings.idle_timeout_minutes}
                   label="Timeout"
-                  onChange={(e) => handleTimeoutChange(e.target.value as number)}
+                  onChange={(e) => handleTimeoutChange(Number(e.target.value))}
                 >
                   <MenuItem value={5}>5 minutes</MenuItem>
                   <MenuItem value={15}>15 minutes</MenuItem>

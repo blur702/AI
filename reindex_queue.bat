@@ -9,8 +9,8 @@ echo  Weaviate Ingestion Queue Processor
 echo ========================================
 echo.
 
-REM Check if queue file exists
-if not exist "D:\AI\logs\ingestion_queue.txt" (
+REM Check if queue file exists (relative to script location)
+if not exist "%~dp0logs\ingestion_queue.txt" (
     echo No queued files to process.
     echo.
     echo The queue is populated by git commits. Make some commits with

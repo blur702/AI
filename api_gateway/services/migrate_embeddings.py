@@ -20,7 +20,7 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -125,7 +125,7 @@ def check_status() -> Dict[str, Any]:
     }
 
 
-def migrate(dry_run: bool = False) -> Dict[str, any]:
+def migrate(dry_run: bool = False) -> Dict[str, Any]:
     """
     Perform full migration: delete all collections and re-ingest.
 

@@ -26,6 +26,9 @@ venv/
 test-results/
 *.log
 
+# Runtime queue files
+logs/ingestion_queue.txt
+
 # Scraper runtime data (checkpoints, job state)
 data/scraper/checkpoints/*.json
 data/scraper/jobs.json

@@ -73,8 +73,13 @@ def print_progress(
 CODE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css"}
 DOC_EXTENSIONS = {".md"}
 
-# Queue file location for deferred ingestion
-INGESTION_QUEUE_FILE = Path("D:/AI/logs/ingestion_queue.txt")
+# Queue file location for deferred ingestion (relative to workspace root)
+def _get_ingestion_queue_file() -> Path:
+    """Get ingestion queue file path, relative to workspace root."""
+    workspace_root = Path(__file__).resolve().parents[2]
+    return workspace_root / "logs" / "ingestion_queue.txt"
+
+INGESTION_QUEUE_FILE = _get_ingestion_queue_file()
 
 
 def _relative_to_workspace(path: Path) -> str:

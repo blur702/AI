@@ -239,6 +239,7 @@ export function ServiceCard({ config, state, onStart, onStop, onPause, onResume 
       {/* Loading/Error Overlay */}
       {(isStarting || isStopping || isError) && (
         <Box
+          aria-hidden="true"
           sx={{
             position: 'absolute',
             top: 0,

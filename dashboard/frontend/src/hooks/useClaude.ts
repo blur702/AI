@@ -19,7 +19,9 @@ export function useClaude() {
   // Fetch sessions list
   const fetchSessions = useCallback(async () => {
     try {
-      const response = await fetch(`${getApiBase()}/api/claude/sessions`);
+      const response = await fetch(`${getApiBase()}/api/claude/sessions`, {
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -37,7 +39,9 @@ export function useClaude() {
   // Fetch session with output
   const fetchSessionOutput = useCallback(async (sessionId: string) => {
     try {
-      const response = await fetch(`${getApiBase()}/api/claude/sessions/${sessionId}?include_output=true`);
+      const response = await fetch(`${getApiBase()}/api/claude/sessions/${sessionId}?include_output=true`, {
+        credentials: 'include',
+      });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -138,6 +142,7 @@ export function useClaude() {
       const response = await fetch(`${getApiBase()}/api/claude/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ prompt }),
       });
 
@@ -178,6 +183,7 @@ export function useClaude() {
       const response = await fetch(`${getApiBase()}/api/claude/execute-yolo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ prompt }),
       });
 
@@ -215,6 +221,7 @@ export function useClaude() {
     try {
       const response = await fetch(`${getApiBase()}/api/claude/sessions/${sessionId}/cancel`, {
         method: 'POST',
+        credentials: 'include',
       });
 
       const data = await response.json();
