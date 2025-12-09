@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import https from 'https';
 
 export class APIError extends Error {
   status?: number;
@@ -30,6 +31,13 @@ export interface BaseAPIClientOptions {
   timeoutMs?: number;
   headers?: Record<string, string>;
   maxRetries?: number;
+  /**
+   * Allow connections to servers with invalid/self-signed SSL certificates.
+   * WARNING: This disables SSL certificate validation and should only be used
+   * in test environments with self-signed certificates.
+   * @default false
+   */
+  allowInsecureConnections?: boolean;
 }
 
 export class BaseAPIClient {
@@ -38,17 +46,26 @@ export class BaseAPIClient {
   protected readonly baseUrl: string;
   protected readonly timeoutMs: number;
   protected readonly headers: Record<string, string>;
+  protected readonly allowInsecureConnections: boolean;
 
   constructor(baseUrl: string, options: BaseAPIClientOptions = {}) {
     this.baseUrl = baseUrl.replace(/\/+$/, '');
     this.maxRetries = options.maxRetries ?? 3;
     this.timeoutMs = options.timeoutMs ?? 30_000;
     this.headers = options.headers ?? { 'Content-Type': 'application/json' };
+    this.allowInsecureConnections = options.allowInsecureConnections ?? false;
+
+    // Configure HTTPS agent based on security settings
+    // Only disable certificate validation when explicitly opted in
+    const httpsAgent = new https.Agent({
+      rejectUnauthorized: !this.allowInsecureConnections
+    });
 
     this.client = axios.create({
       baseURL: this.baseUrl,
       timeout: this.timeoutMs,
-      headers: this.headers
+      headers: this.headers,
+      httpsAgent
     });
   }
 
@@ -60,7 +77,8 @@ export class BaseAPIClient {
     return {
       timeoutMs: this.timeoutMs,
       maxRetries: this.maxRetries,
-      headers: { ...this.headers }
+      headers: { ...this.headers },
+      allowInsecureConnections: this.allowInsecureConnections
     };
   }
 
