@@ -407,6 +407,326 @@ def get_loaded_ollama_models():
         return []
 
 
+# =============================================================================
+# Model Capabilities Database
+# =============================================================================
+
+MODEL_CAPABILITIES = {
+    "qwen": "Multilingual LLM with strong coding and reasoning. Supports 128K context.",
+    "qwen2": "Qwen 2nd generation with improved multilingual and coding capabilities.",
+    "qwen2.5": "Latest Qwen with enhanced instruction following and extended context.",
+    "llama": "Meta's open-source foundation model. Excellent for chat and instruction following.",
+    "llama2": "Meta's Llama 2 with improved safety and helpfulness.",
+    "llama3": "Meta's Llama 3 with state-of-the-art performance across benchmarks.",
+    "llama3.1": "Meta's Llama 3.1 with 128K context and improved capabilities.",
+    "llama3.2": "Meta's Llama 3.2 with multimodal vision capabilities.",
+    "mistral": "Efficient model with strong performance. Good for general tasks.",
+    "mixtral": "Mixture of Experts model with 8x7B parameters. High quality, efficient inference.",
+    "codellama": "Meta's code-specialized Llama. Optimized for code generation and completion.",
+    "deepseek": "DeepSeek's foundation model with strong coding abilities.",
+    "deepseek-coder": "DeepSeek model optimized specifically for code tasks.",
+    "phi": "Microsoft's small but capable model. Efficient for constrained environments.",
+    "phi3": "Microsoft's Phi-3 with improved reasoning in a small package.",
+    "gemma": "Google's lightweight open model. Good balance of quality and efficiency.",
+    "gemma2": "Google's Gemma 2 with improved performance and safety.",
+    "starcoder": "BigCode's model trained on permissive code. Great for code completion.",
+    "starcoder2": "Updated StarCoder with better performance on coding benchmarks.",
+    "wizardcoder": "Code-focused model with strong instruction following.",
+    "codestral": "Mistral AI's code-specialized model with excellent completion.",
+    "command-r": "Cohere's Command model optimized for RAG and tool use.",
+    "yi": "01.AI's bilingual model with strong Chinese and English support.",
+    "solar": "Upstage's high-quality model with strong reasoning abilities.",
+    "dolphin": "Fine-tuned uncensored model for unrestricted assistance.",
+    "nous-hermes": "Nous Research model fine-tuned for helpful responses.",
+    "openhermes": "Community model known for high quality general assistance.",
+    "neural-chat": "Intel's optimized chat model for consumer hardware.",
+    "orca-mini": "Microsoft research model with reasoning capabilities.",
+    "vicuna": "LMSYS model fine-tuned on conversation data.",
+    "zephyr": "HuggingFace model with strong chat capabilities.",
+    "openchat": "Community-trained chat model with good performance.",
+    "tinyllama": "Compact 1.1B model. Very fast, good for simple tasks.",
+    "stable-lm": "Stability AI's language model for general use.",
+    "falcon": "TII's efficient large language model.",
+    "mpt": "MosaicML's pretrained transformer with strong performance.",
+    "nomic-embed-text": "Text embedding model for semantic search.",
+    "snowflake-arctic-embed": "Snowflake's embedding model with high accuracy.",
+    "all-minilm": "Sentence transformer for fast embeddings.",
+    "bge": "BAAI General Embedding model for semantic similarity.",
+    "llava": "Large Language and Vision Assistant for image understanding.",
+    "bakllava": "BakLLaVA multimodal model based on Mistral.",
+}
+
+# Cache for model info (TTL: 5 minutes)
+_model_info_cache = {}
+_model_info_cache_lock = threading.Lock()
+MODEL_INFO_CACHE_TTL = 300  # 5 minutes
+
+
+def estimate_model_vram(size_gb: float, quantization: str) -> int:
+    """Estimate VRAM usage in MB based on model size and quantization.
+
+    Uses heuristics:
+    - Q4: ~60% of model size
+    - Q5: ~70% of model size
+    - Q6: ~80% of model size
+    - Q8: ~90% of model size
+    - FP16: ~100% of model size
+    - FP32: ~200% of model size
+
+    Add ~500MB overhead for context and KV cache.
+    """
+    quant_lower = quantization.lower()
+
+    if "q4" in quant_lower or "q3" in quant_lower:
+        factor = 0.6
+    elif "q5" in quant_lower:
+        factor = 0.7
+    elif "q6" in quant_lower:
+        factor = 0.8
+    elif "q8" in quant_lower:
+        factor = 0.9
+    elif "fp16" in quant_lower or "f16" in quant_lower:
+        factor = 1.0
+    elif "fp32" in quant_lower or "f32" in quant_lower:
+        factor = 2.0
+    else:
+        # Default to Q4 assumption for unknown quantization
+        factor = 0.6
+
+    vram_mb = int(size_gb * 1024 * factor) + 500  # Add 500MB overhead
+    return vram_mb
+
+
+def parse_model_size(size_str: str) -> float:
+    """Parse model size string (e.g., '19GB', '4.7G') to float GB."""
+    if not size_str:
+        return 0.0
+
+    size_str = size_str.strip().upper()
+
+    try:
+        if size_str.endswith("GB"):
+            return float(size_str[:-2])
+        elif size_str.endswith("G"):
+            return float(size_str[:-1])
+        elif size_str.endswith("MB"):
+            return float(size_str[:-2]) / 1024
+        elif size_str.endswith("M"):
+            return float(size_str[:-1]) / 1024
+        else:
+            return float(size_str)
+    except ValueError:
+        return 0.0
+
+
+def get_model_family(model_name: str) -> str:
+    """Extract model family from model name."""
+    # Remove tag (e.g., ':latest', ':32b-instruct-q4_K_M')
+    base_name = model_name.split(":")[0].lower()
+
+    # Common family patterns
+    families = [
+        "qwen2.5", "qwen2", "qwen",
+        "llama3.2", "llama3.1", "llama3", "llama2", "llama",
+        "mistral", "mixtral",
+        "codellama", "deepseek-coder", "deepseek",
+        "phi3", "phi",
+        "gemma2", "gemma",
+        "starcoder2", "starcoder",
+        "wizardcoder", "codestral",
+        "command-r",
+        "yi", "solar",
+        "dolphin", "nous-hermes", "openhermes",
+        "neural-chat", "orca-mini",
+        "vicuna", "zephyr", "openchat",
+        "tinyllama", "stable-lm",
+        "falcon", "mpt",
+        "nomic-embed-text", "snowflake-arctic-embed",
+        "all-minilm", "bge",
+        "llava", "bakllava",
+    ]
+
+    for family in families:
+        if family in base_name:
+            return family
+
+    # Return base name if no family matched
+    return base_name.split("-")[0]
+
+
+def _parse_ollama_verbose_output(stdout: str) -> dict:
+    """Parse the structured output from `ollama show --verbose`.
+
+    The verbose output has clearly defined sections:
+    - Model: architecture, parameters, context length, embedding length, quantization
+    - Capabilities: completion, tools, embedding, etc.
+    - Parameters: top_k, top_p, temperature, etc.
+    - Metadata: detailed key-value pairs
+
+    Returns dict with extracted fields.
+    """
+    result = {
+        "parameters": "",
+        "quantization": "",
+        "format": "",
+        "architecture": "",
+        "context_length": 0,
+    }
+
+    current_section = None
+    lines = stdout.strip().splitlines()
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+
+        # Detect section headers (lines without leading whitespace that end with known section names)
+        if not line.startswith(" ") and not line.startswith("\t"):
+            section_lower = stripped.lower()
+            if section_lower in ("model", "capabilities", "parameters", "metadata", "tensors", "license"):
+                current_section = section_lower
+                continue
+
+        # Parse key-value pairs within sections
+        # Format: "    key    value" (indented, with spaces/tabs between key and value)
+        if current_section and (line.startswith(" ") or line.startswith("\t")):
+            # Split on multiple spaces or tabs
+            parts = stripped.split()
+            if len(parts) >= 2:
+                key = parts[0].lower()
+                value = " ".join(parts[1:])
+
+                if current_section == "model":
+                    if key == "parameters":
+                        result["parameters"] = value
+                    elif key == "quantization":
+                        result["quantization"] = value
+                    elif key == "architecture":
+                        result["architecture"] = value
+                    elif key == "context" and len(parts) >= 3:
+                        # "context length    40960"
+                        try:
+                            result["context_length"] = int(parts[2])
+                        except (ValueError, IndexError):
+                            pass
+
+    return result
+
+
+def get_ollama_model_info(model_name: str) -> dict:
+    """Get detailed model information via `ollama show --verbose`.
+
+    Uses the structured verbose output format which provides consistent
+    key-value pairs organized by section (Model, Capabilities, Parameters, etc.).
+
+    Returns dict with: name, family, parameters, quantization, size_gb,
+    format, template, estimated_vram_mb, capability_description.
+
+    Logs warnings when expected keys are missing to help detect
+    regressions in future Ollama versions.
+    """
+    # Check cache
+    cache_key = model_name
+    with _model_info_cache_lock:
+        if cache_key in _model_info_cache:
+            cached, timestamp = _model_info_cache[cache_key]
+            if time.time() - timestamp < MODEL_INFO_CACHE_TTL:
+                return cached
+
+    info = {
+        "name": model_name,
+        "family": get_model_family(model_name),
+        "parameters": "",
+        "quantization": "",
+        "size_gb": 0.0,
+        "format": "",
+        "template": "",
+        "estimated_vram_mb": 0,
+        "capability_description": "",
+    }
+
+    try:
+        # Use --verbose flag for structured output
+        success, stdout, stderr = run_command(["ollama", "show", model_name, "--verbose"])
+        if not success:
+            logger.warning("Failed to get model info for %s: %s", model_name, stderr)
+            # Still return basic info
+            info["capability_description"] = MODEL_CAPABILITIES.get(info["family"], "")
+            return info
+
+        # Parse the structured verbose output
+        parsed = _parse_ollama_verbose_output(stdout)
+
+        # Apply parsed values
+        if parsed.get("parameters"):
+            info["parameters"] = parsed["parameters"]
+        else:
+            logger.debug("Model %s: 'parameters' not found in ollama show output", model_name)
+
+        if parsed.get("quantization"):
+            info["quantization"] = parsed["quantization"]
+        else:
+            logger.debug("Model %s: 'quantization' not found in ollama show output", model_name)
+
+        if parsed.get("architecture"):
+            info["format"] = parsed["architecture"]
+
+        # Get size from ollama list
+        models = get_available_ollama_models()
+        for m in models:
+            if m["name"] == model_name:
+                info["size_gb"] = parse_model_size(m.get("size", ""))
+                break
+
+        # Estimate VRAM
+        if info["size_gb"] > 0:
+            info["estimated_vram_mb"] = estimate_model_vram(
+                info["size_gb"],
+                info["quantization"] or "q4"
+            )
+
+        # Get capability description
+        info["capability_description"] = MODEL_CAPABILITIES.get(info["family"], "")
+
+        # Cache result
+        with _model_info_cache_lock:
+            _model_info_cache[cache_key] = (info, time.time())
+
+        return info
+
+    except Exception as exc:
+        logger.error("Error getting model info for %s: %s", model_name, exc)
+        info["capability_description"] = MODEL_CAPABILITIES.get(info["family"], "")
+        return info
+
+
+def remove_ollama_model(model_name: str) -> tuple:
+    """Remove an Ollama model from disk.
+
+    Returns (success, message, error_code).
+    """
+    try:
+        success, _stdout, stderr = run_command(["ollama", "rm", model_name])
+        if not success:
+            stderr_text = (stderr or "").strip()
+            code = classify_ollama_error(stderr_text)
+            message = stderr_text or "Failed to remove model."
+            logger.error("Error removing Ollama model '%s': %s", model_name, message)
+            return False, message, code
+
+        # Invalidate cache
+        with _model_info_cache_lock:
+            if model_name in _model_info_cache:
+                del _model_info_cache[model_name]
+
+        return True, "", None
+    except Exception as exc:
+        message = f"Error removing Ollama model '{model_name}': {exc}"
+        logger.error(message)
+        return False, message, "UNKNOWN_ERROR"
+
+
 def classify_ollama_error(stderr_text):
     """Classify Ollama stderr into a stable error code."""
     text = (stderr_text or "").lower()
@@ -670,6 +990,58 @@ def api_vram_status():
 @app.route("/api/models/ollama/list", methods=["GET"])
 @require_auth
 def api_list_ollama_models():
+    """Get list of all available Ollama models.
+
+    Query Parameters:
+        detailed (bool): If true, returns detailed model information including
+            parameters, quantization, VRAM estimates, and capability descriptions.
+            Default is false for backward compatibility.
+        limit (int): When detailed=true, limits the number of models to fetch
+            full details for. Remaining models return basic info only.
+
+    Returns:
+        Basic response (detailed=false):
+            {"models": [...], "count": N}
+
+        Detailed response (detailed=true):
+            {"models": [...], "count": N, "loaded_count": N}
+    """
+    detailed = request.args.get("detailed", "").lower() in ("true", "1", "yes")
+
+    if detailed:
+        # Return detailed response matching /api/models/ollama/detailed
+        limit = request.args.get("limit", type=int)
+        models = get_available_ollama_models()
+        loaded = get_loaded_ollama_models()
+        loaded_names = {m["name"] for m in loaded}
+
+        detailed_models = []
+        for i, model in enumerate(models):
+            if limit and i >= limit:
+                # For remaining models, just return basic info
+                detailed_models.append({
+                    **model,
+                    "family": get_model_family(model["name"]),
+                    "is_loaded": model["name"] in loaded_names,
+                    "detailed": False,
+                })
+                continue
+
+            info = get_ollama_model_info(model["name"])
+            detailed_models.append({
+                **model,
+                **info,
+                "is_loaded": model["name"] in loaded_names,
+                "detailed": True,
+            })
+
+        return jsonify({
+            "models": detailed_models,
+            "count": len(detailed_models),
+            "loaded_count": len(loaded_names),
+        })
+
+    # Default: return basic model list
     models = get_available_ollama_models()
     return jsonify(
         {
@@ -794,6 +1166,152 @@ def api_download_ollama_model():
             "model_name": model_name,
         }
     )
+
+
+@app.route("/api/models/ollama/info/<path:model_name>", methods=["GET"])
+@require_auth
+def api_ollama_model_info(model_name):
+    """Get detailed information about a specific Ollama model."""
+    info = get_ollama_model_info(model_name)
+    return jsonify(info)
+
+
+@app.route("/api/models/ollama/detailed", methods=["GET"])
+@require_auth
+def api_ollama_models_detailed():
+    """Get list of all Ollama models with detailed information.
+
+    This endpoint fetches detailed info for each model which may be slower.
+    Consider using ?limit=N to limit the number of models to fetch details for.
+    """
+    limit = request.args.get("limit", type=int)
+    models = get_available_ollama_models()
+    loaded = get_loaded_ollama_models()
+    loaded_names = {m["name"] for m in loaded}
+
+    detailed_models = []
+    for i, model in enumerate(models):
+        if limit and i >= limit:
+            # For remaining models, just return basic info
+            detailed_models.append({
+                **model,
+                "family": get_model_family(model["name"]),
+                "is_loaded": model["name"] in loaded_names,
+                "detailed": False,
+            })
+            continue
+
+        info = get_ollama_model_info(model["name"])
+        detailed_models.append({
+            **model,
+            **info,
+            "is_loaded": model["name"] in loaded_names,
+            "detailed": True,
+        })
+
+    return jsonify({
+        "models": detailed_models,
+        "count": len(detailed_models),
+        "loaded_count": len(loaded_names),
+    })
+
+
+@app.route("/api/models/ollama/remove", methods=["POST"])
+@require_auth
+def api_remove_ollama_model():
+    """Remove an Ollama model from disk.
+
+    Requires confirmation: {"model_name": "...", "confirm": true}
+    """
+    if not request.is_json:
+        return jsonify({"success": False, "message": "Expected JSON body."}), 400
+
+    data = request.get_json(silent=True) or {}
+    model_name = data.get("model_name")
+    confirm = data.get("confirm", False)
+
+    if not model_name or not isinstance(model_name, str):
+        return jsonify({
+            "success": False,
+            "message": "Field 'model_name' is required.",
+        }), 400
+
+    if not confirm:
+        return jsonify({
+            "success": False,
+            "message": "Field 'confirm' must be true to remove model.",
+        }), 400
+
+    success, message, error_code = remove_ollama_model(model_name)
+    status_code = 200 if success else 500
+
+    body = {
+        "success": success,
+        "message": message or "Model removed successfully.",
+        "model_name": model_name,
+    }
+    if not success:
+        body["error"] = {
+            "code": error_code or "UNKNOWN_ERROR",
+            "details": message,
+        }
+
+    return jsonify(body), status_code
+
+
+@app.route("/api/models/ollama/<path:model_name>/services", methods=["GET"])
+@require_auth
+def api_model_services(model_name):
+    """Get list of LLM-capable services that could potentially use the specified model.
+
+    NOTE: This endpoint returns services that are LLM-capable and currently running,
+    NOT services that are definitively using the specified model. True model-level
+    attribution is not yet available. The frontend should treat this as
+    "Services that can use this model" rather than "Services actively using this model".
+
+    When model-level attribution becomes available, this endpoint will be extended
+    to filter by actual model usage while maintaining backward compatibility.
+
+    Args:
+        model_name: The Ollama model name (included in response for reference)
+
+    Returns:
+        {
+            "model_name": "...",
+            "services": [
+                {
+                    "id": "...",
+                    "name": "...",
+                    "status": "running",
+                    "usage": "potential"  # Indicates this is a potential association
+                }
+            ],
+            "count": N,
+            "note": "Services shown are LLM-capable and running, not necessarily using this specific model."
+        }
+    """
+    # Services that can use Ollama models
+    llm_services = ["openwebui", "ollama"]
+
+    # Get running services
+    statuses = service_manager.get_all_status()
+    running_services = []
+
+    for status in statuses:
+        if status.get("id") in llm_services and status.get("status") == "running":
+            running_services.append({
+                "id": status.get("id"),
+                "name": status.get("name", status.get("id")),
+                "status": status.get("status"),
+                "usage": "potential",  # Indicates coarse association, not active binding
+            })
+
+    return jsonify({
+        "model_name": model_name,
+        "services": running_services,
+        "count": len(running_services),
+        "note": "Services shown are LLM-capable and running, not necessarily using this specific model.",
+    })
 
 
 # =============================================================================

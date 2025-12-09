@@ -11,7 +11,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     cardClass: 'card-openwebui',
     section: 'main',
     external: true,
-    proxyId: 'openwebui'
+    proxyId: 'openwebui',
+    models: ['*'], // Uses any Ollama model
   },
   {
     id: 'comfyui',
@@ -45,7 +46,8 @@ export const SERVICES_CONFIG: ServiceConfig[] = [
     cardClass: 'card-ollama',
     section: 'main',
     external: true,
-    proxyId: 'ollama'
+    proxyId: 'ollama',
+    models: ['*'], // Uses any Ollama model
   },
   {
     id: 'wan2gp',
