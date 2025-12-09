@@ -132,8 +132,15 @@ logger.info("Dashboard authentication enabled for user: %s", BASIC_AUTH_USERNAME
 
 
 def check_auth(username: str, password: str) -> bool:
-    """Check if the provided credentials are valid."""
-    return username == BASIC_AUTH_USERNAME and password == BASIC_AUTH_PASSWORD
+    """Check if the provided credentials are valid.
+
+    Uses constant-time comparison to prevent timing attacks.
+    """
+    import hmac
+    # Use constant-time comparison to prevent timing attacks
+    username_match = hmac.compare_digest(username, BASIC_AUTH_USERNAME)
+    password_match = hmac.compare_digest(password, BASIC_AUTH_PASSWORD)
+    return username_match and password_match
 
 
 # Session management with secure random tokens
