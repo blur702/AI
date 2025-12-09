@@ -5,6 +5,7 @@ A popup window that displays service status, VRAM usage, and loaded models
 in a compact, visually appealing format.
 """
 
+import threading
 import tkinter as tk
 from typing import Callable, Optional
 
@@ -56,6 +57,11 @@ class DashboardWindow:
         self.loaded_models: list = []
         self.api_available = False
 
+        # Thread-safe flag to track window open state
+        # Set in main thread only, read from any thread
+        self._window_open = False
+        self._data_lock = threading.Lock()
+
         # Status message for notifications
         self._status_label: Optional[tk.Label] = None
         self._status_message: str = ""
@@ -89,7 +95,10 @@ class DashboardWindow:
         loaded_models: list,
         api_available: bool,
     ) -> None:
-        """Update the dashboard data.
+        """Update the dashboard data (thread-safe).
+
+        This method can be called from any thread. It stores data and signals
+        the main thread to refresh if the window is open.
 
         Args:
             services: List of service dictionaries.
@@ -97,26 +106,34 @@ class DashboardWindow:
             loaded_models: List of loaded model dictionaries.
             api_available: Whether the API is available.
         """
-        self.services = services
-        self.gpu_info = gpu_info
-        self.loaded_models = loaded_models
-        self.api_available = api_available
+        # Store data with lock for thread safety
+        with self._data_lock:
+            self.services = services
+            self.gpu_info = gpu_info
+            self.loaded_models = loaded_models
+            self.api_available = api_available
 
-        # Refresh display if window is open
-        if self.window and self.window.winfo_exists():
-            self._refresh_display()
+        # Check flag (thread-safe read) - don't call any tkinter methods here!
+        # The window will refresh via its own periodic update if open
+        # No action needed - data is stored and window polls it
 
     def show(self) -> None:
         """Show the dashboard window."""
-        if self.window and self.window.winfo_exists():
-            self.window.lift()
-            self.window.focus_force()
-            return
+        if self._window_open and self.window:
+            try:
+                if self.window.winfo_exists():
+                    self.window.lift()
+                    self.window.focus_force()
+                    return
+            except tk.TclError:
+                # Window was destroyed unexpectedly
+                self._window_open = False
 
         self._create_window()
 
     def hide(self) -> None:
         """Hide the dashboard window."""
+        self._window_open = False
         if self.window:
             self.window.destroy()
             self.window = None
@@ -153,6 +170,10 @@ class DashboardWindow:
         self._build_ui()
         self.window.focus_force()
 
+        # Mark window as open and start periodic refresh
+        self._window_open = True
+        self._schedule_refresh()
+
     def _build_ui(self) -> None:
         """Build the complete UI."""
         self._create_header()
@@ -161,6 +182,20 @@ class DashboardWindow:
         self._create_services_section()
         self._create_status_bar()
         self._create_footer()
+
+    def _schedule_refresh(self) -> None:
+        """Schedule periodic UI refresh (runs in main thread via tkinter.after)."""
+        if not self._window_open or not self.window:
+            return
+
+        try:
+            # Refresh display with latest data
+            self._refresh_display()
+            # Schedule next refresh in 2 seconds
+            self.window.after(2000, self._schedule_refresh)
+        except tk.TclError:
+            # Window was destroyed
+            self._window_open = False
 
     def _create_header(self) -> None:
         """Create the header section."""
@@ -535,7 +570,7 @@ class DashboardWindow:
         close_btn.pack(side=tk.RIGHT)
 
     def _refresh_display(self) -> None:
-        """Refresh the entire display."""
+        """Refresh the entire display (must be called from main thread)."""
         if not self.window or not self.window.winfo_exists():
             return
         if not self.main_frame:
