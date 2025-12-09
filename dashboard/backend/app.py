@@ -1,8 +1,10 @@
 import logging
 import os
+import secrets
 import subprocess
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 
 from flask import Flask, jsonify, request, send_from_directory, Response
@@ -23,6 +25,33 @@ from service_manager import get_service_manager, ServiceStatus
 from services_config import SERVICES
 from ingestion_manager import get_ingestion_manager
 from claude_manager import get_claude_manager
+
+# Add project root to path for api_gateway imports (done at module load time)
+import sys
+from pathlib import Path
+_project_root = Path(__file__).resolve().parents[2]
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
+# Import Weaviate connection for collection management
+try:
+    from api_gateway.services.weaviate_connection import (
+        WeaviateConnection,
+        DOCUMENTATION_COLLECTION_NAME,
+        CODE_ENTITY_COLLECTION_NAME,
+        DRUPAL_API_COLLECTION_NAME,
+        MDN_JAVASCRIPT_COLLECTION_NAME,
+        MDN_WEBAPIS_COLLECTION_NAME,
+    )
+    WEAVIATE_AVAILABLE = True
+except ImportError:
+    WEAVIATE_AVAILABLE = False
+    WeaviateConnection = None
+    DOCUMENTATION_COLLECTION_NAME = "Documentation"
+    CODE_ENTITY_COLLECTION_NAME = "CodeEntity"
+    DRUPAL_API_COLLECTION_NAME = "DrupalAPI"
+    MDN_JAVASCRIPT_COLLECTION_NAME = "MDNJavaScript"
+    MDN_WEBAPIS_COLLECTION_NAME = "MDNWebAPIs"
 
 # Path to React build output
 FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
@@ -62,7 +91,7 @@ if not BASIC_AUTH_USERNAME or not BASIC_AUTH_PASSWORD:
     )
     raise SystemExit(1)
 
-logger.info(f"Dashboard authentication enabled for user: {BASIC_AUTH_USERNAME}")
+logger.info("Dashboard authentication enabled for user: %s", BASIC_AUTH_USERNAME)
 
 
 def check_auth(username, password):
@@ -71,9 +100,6 @@ def check_auth(username, password):
 
 
 # Session management with secure random tokens
-import secrets
-from datetime import datetime, timedelta
-
 # In-memory session storage (use Redis/database in production)
 # Structure: {token: {"username": str, "created_at": datetime, "expires_at": datetime}}
 _session_store = {}
@@ -85,7 +111,7 @@ SESSION_EXPIRY_HOURS = int(os.environ.get("SESSION_EXPIRY_HOURS", "24"))
 
 def _cleanup_expired_sessions():
     """Remove expired sessions from storage (called during validation)."""
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     expired_tokens = [
         token for token, data in _session_store.items()
         if data["expires_at"] <= now
@@ -110,7 +136,7 @@ def generate_session_token(username, password):
     token = secrets.token_urlsafe(32)  # 256 bits of entropy
     
     # Set expiration
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     expires_at = now + timedelta(hours=SESSION_EXPIRY_HOURS)
     
     # Store session
@@ -144,7 +170,7 @@ def validate_session_token(token):
             return False
         
         # Check expiration (redundant after cleanup, but explicit)
-        if session["expires_at"] <= datetime.utcnow():
+        if session["expires_at"] <= datetime.now(timezone.utc):
             del _session_store[token]
             return False
         
@@ -1594,22 +1620,11 @@ def api_ingestion_resume():
 @require_auth
 def api_ingestion_clean():
     """Delete specified Weaviate collections."""
-    import sys
-    from pathlib import Path
-
-    # Add project root to path for imports
-    project_root = Path(__file__).resolve().parents[2]
-    if str(project_root) not in sys.path:
-        sys.path.insert(0, str(project_root))
-
-    from api_gateway.services.weaviate_connection import (
-        WeaviateConnection,
-        DOCUMENTATION_COLLECTION_NAME,
-        CODE_ENTITY_COLLECTION_NAME,
-        DRUPAL_API_COLLECTION_NAME,
-        MDN_JAVASCRIPT_COLLECTION_NAME,
-        MDN_WEBAPIS_COLLECTION_NAME,
-    )
+    if not WEAVIATE_AVAILABLE:
+        return jsonify({
+            "success": False,
+            "message": "Weaviate connection module not available."
+        }), 500
 
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
@@ -1647,12 +1662,12 @@ def api_ingestion_clean():
                     if client.collections.exists(weaviate_name):
                         client.collections.delete(weaviate_name)
                         deleted.append(collection_name)
-                        logger.info(f"Deleted collection: {weaviate_name}")
+                        logger.info("Deleted collection: %s", weaviate_name)
                     else:
                         deleted.append(collection_name)  # Already doesn't exist
                 except Exception as e:
                     errors.append(f"Error deleting {collection_name}: {str(e)}")
-                    logger.error(f"Error deleting collection {weaviate_name}: {e}")
+                    logger.error("Error deleting collection %s: %s", weaviate_name, e)
 
     except Exception as e:
         return jsonify({
@@ -1997,13 +2012,13 @@ def proxy_request(target_url):
             content_type=resp.headers.get('content-type'),
         )
     except http_requests.exceptions.ConnectionError:
-        logger.error(f"Proxy connection error to {target_url}")
+        logger.error("Proxy connection error to %s", target_url)
         return jsonify({"error": "Service not available"}), 503
     except http_requests.exceptions.Timeout:
-        logger.error(f"Proxy timeout to {target_url} (timeout={PROXY_TIMEOUT_SECONDS}s)")
+        logger.error("Proxy timeout to %s (timeout=%ds)", target_url, PROXY_TIMEOUT_SECONDS)
         return jsonify({"error": "Service timeout"}), 504
     except Exception as e:
-        logger.error(f"Proxy error to {target_url}: {e}")
+        logger.error("Proxy error to %s: %s", target_url, e)
         return jsonify({"error": str(e)}), 500
 
 
