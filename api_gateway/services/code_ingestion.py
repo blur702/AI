@@ -22,10 +22,10 @@ import logging
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
 
-import httpx
 import weaviate
 
 from ..config import settings
+from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
 from .code_entity_schema import (
     CodeEntity,
@@ -34,26 +34,6 @@ from .code_entity_schema import (
 )
 from .code_parsers import CodeParser
 from .weaviate_connection import WeaviateConnection, CODE_ENTITY_COLLECTION_NAME
-
-
-def get_embedding(text: str) -> List[float]:
-    """
-    Get embedding vector from Ollama.
-
-    Args:
-        text: Text to embed
-
-    Returns:
-        Embedding vector as list of floats
-    """
-    # Use localhost directly since we're calling from the host machine
-    response = httpx.post(
-        "http://localhost:11434/api/embeddings",
-        json={"model": settings.OLLAMA_EMBEDDING_MODEL, "prompt": text},
-        timeout=30.0,
-    )
-    response.raise_for_status()
-    return response.json()["embedding"]
 
 
 def get_entity_text_for_embedding(entity: CodeEntity) -> str:

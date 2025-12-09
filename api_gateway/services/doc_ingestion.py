@@ -23,27 +23,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
 
-import httpx
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property, VectorDistances
 
 from ..config import settings
+from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
 from .weaviate_connection import WeaviateConnection, DOCUMENTATION_COLLECTION_NAME
 
 
 logger = get_logger("api_gateway.doc_ingestion")
-
-
-def get_embedding(text: str) -> List[float]:
-    """Get embedding vector from Ollama API."""
-    response = httpx.post(
-        f"{settings.OLLAMA_API_ENDPOINT}/api/embeddings",
-        json={"model": settings.OLLAMA_EMBEDDING_MODEL, "prompt": text},
-        timeout=30.0,
-    )
-    response.raise_for_status()
-    return response.json()["embedding"]
 
 
 def get_doc_text_for_embedding(chunk: "DocChunk") -> str:
