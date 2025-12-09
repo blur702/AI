@@ -9,7 +9,6 @@ Usage:
 import asyncio
 import sys
 import uuid
-from datetime import datetime
 
 from sqlalchemy import text
 
@@ -52,7 +51,7 @@ async def test_sqlalchemy_engine():
 
     try:
         async with engine.begin() as conn:
-            result = await conn.execute(text("SELECT 1"))
+            await conn.execute(text("SELECT 1"))
             print("  Engine connection: PASSED")
         return True
     except Exception as e:

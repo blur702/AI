@@ -5,7 +5,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useThemeMode } from '../theme/ThemeContext';
 import './ThemeToggle.css';
 
-export function ThemeToggle() {
+export function ThemeToggle(): JSX.Element {
   const { mode, toggleTheme } = useThemeMode();
 
   const tooltipTitle = mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';

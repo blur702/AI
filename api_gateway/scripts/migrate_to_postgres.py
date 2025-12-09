@@ -39,7 +39,7 @@ async def get_postgres_connection() -> asyncpg.Connection:
     )
 
 
-def get_sqlite_connection() -> sqlite3.Connection:
+def get_sqlite_connection() -> sqlite3.Connection | None:
     """Open the SQLite database.
 
     Looks for api_gateway.db in the project root (D:\\AI) when run via:

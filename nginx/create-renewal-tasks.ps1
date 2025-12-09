@@ -3,7 +3,9 @@
 
 $TaskName = "CertbotRenewal"
 $TaskNamePM = "CertbotRenewal_PM"
-$ScriptPath = "D:\AI\nginx\renew-certificates.bat"
+# Derive script path relative to this script's location
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptPath = Join-Path $ScriptDir "renew-certificates.bat"
 
 # Remove existing tasks if they exist
 Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
@@ -20,12 +22,22 @@ $TriggerPM = New-ScheduledTaskTrigger -Daily -At 3:00PM
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 
 # Register AM task (as current user, no elevation)
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $TriggerAM -Settings $Settings -Description "Let's Encrypt certificate renewal (3:00 AM)"
-Write-Host "Created task: $TaskName"
+try {
+    Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $TriggerAM -Settings $Settings -Description "Let's Encrypt certificate renewal (3:00 AM)" -ErrorAction Stop | Out-Null
+    Write-Host "Created task: $TaskName"
+} catch {
+    Write-Host "Failed to create task ${TaskName}: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
 
 # Register PM task (as current user, no elevation)
-Register-ScheduledTask -TaskName $TaskNamePM -Action $Action -Trigger $TriggerPM -Settings $Settings -Description "Let's Encrypt certificate renewal (3:00 PM)"
-Write-Host "Created task: $TaskNamePM"
+try {
+    Register-ScheduledTask -TaskName $TaskNamePM -Action $Action -Trigger $TriggerPM -Settings $Settings -Description "Let's Encrypt certificate renewal (3:00 PM)" -ErrorAction Stop | Out-Null
+    Write-Host "Created task: $TaskNamePM"
+} catch {
+    Write-Host "Failed to create task ${TaskNamePM}: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
+}
 
 # Verify
 Write-Host "`nVerifying tasks:"

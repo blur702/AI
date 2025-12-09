@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 from typing import Dict, List
+from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 
@@ -34,7 +35,9 @@ class Settings:
         db = os.getenv("POSTGRES_DB", "ai_gateway")
 
         if password:
-            return f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}"
+            # URL-encode password to handle special characters like @, /, %
+            encoded_password = quote_plus(password)
+            return f"postgresql+asyncpg://{user}:{encoded_password}@{host}:{port}/{db}"
         return f"postgresql+asyncpg://{user}@{host}:{port}/{db}"
 
     DATABASE_URL: str = _build_database_url.__func__()
