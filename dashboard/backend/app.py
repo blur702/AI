@@ -850,6 +850,193 @@ def load_ollama_model(model_name):
         return False, message, "UNKNOWN_ERROR"
 
 
+def load_ollama_model_with_progress(model_name: str, expected_vram_mb: int):
+    """Load an Ollama model with VRAM progress monitoring.
+
+    Emits `model_load_progress` WebSocket events with payload:
+    { "model_name": "...", "progress": 0-100, "status": "loading|complete|error", "action": "load" }
+    """
+    import threading
+
+    # Get initial VRAM state
+    gpu_info = get_gpu_info()
+    initial_vram = gpu_info["used_mb"] if gpu_info else 0
+
+    # Emit starting event
+    socketio.emit("model_load_progress", {
+        "model_name": model_name,
+        "progress": 0,
+        "status": "loading",
+        "action": "load",
+    })
+
+    # Track progress in a separate monitoring thread
+    progress_data = {"current": 0, "done": False, "success": False, "message": ""}
+    stop_monitoring = threading.Event()
+
+    def monitor_vram():
+        """Monitor VRAM usage and emit progress updates."""
+        last_progress = 0
+        while not stop_monitoring.is_set():
+            gpu_info = get_gpu_info()
+            if gpu_info and expected_vram_mb > 0:
+                current_vram = gpu_info["used_mb"]
+                vram_loaded = current_vram - initial_vram
+                progress = min(100, max(0, int((vram_loaded / expected_vram_mb) * 100)))
+
+                if progress != last_progress:
+                    last_progress = progress
+                    progress_data["current"] = progress
+                    socketio.emit("model_load_progress", {
+                        "model_name": model_name,
+                        "progress": progress,
+                        "status": "loading",
+                        "action": "load",
+                    })
+
+            stop_monitoring.wait(0.3)  # Check every 300ms
+
+    # Start monitoring thread
+    monitor_thread = threading.Thread(target=monitor_vram, daemon=True)
+    monitor_thread.start()
+
+    try:
+        # Run the actual load command
+        command = ["ollama", "run", model_name, "--keepalive", "0"]
+        success, _stdout, stderr = run_command(command)
+
+        stop_monitoring.set()
+        monitor_thread.join(timeout=1)
+
+        if not success:
+            stderr_text = (stderr or "").strip()
+            code = classify_ollama_error(stderr_text)
+            message = stderr_text or "Failed to load model."
+            logger.error("Error loading Ollama model '%s': %s", model_name, message)
+            socketio.emit("model_load_progress", {
+                "model_name": model_name,
+                "progress": 0,
+                "status": "error",
+                "action": "load",
+                "message": message,
+            })
+            return False, message, code
+
+        # Success - emit 100% completion
+        socketio.emit("model_load_progress", {
+            "model_name": model_name,
+            "progress": 100,
+            "status": "complete",
+            "action": "load",
+        })
+        return True, "", None
+
+    except Exception as exc:  # noqa: BLE001
+        stop_monitoring.set()
+        message = f"Error loading Ollama model '{model_name}': {exc}"
+        logger.error(message)
+        socketio.emit("model_load_progress", {
+            "model_name": model_name,
+            "progress": 0,
+            "status": "error",
+            "action": "load",
+            "message": message,
+        })
+        return False, message, "UNKNOWN_ERROR"
+
+
+def unload_ollama_model_with_progress(model_name: str, expected_vram_mb: int):
+    """Unload an Ollama model with VRAM progress monitoring.
+
+    Emits `model_load_progress` WebSocket events with payload:
+    { "model_name": "...", "progress": 0-100, "status": "unloading|complete|error", "action": "unload" }
+    """
+    import threading
+
+    # Get initial VRAM state
+    gpu_info = get_gpu_info()
+    initial_vram = gpu_info["used_mb"] if gpu_info else 0
+
+    # Emit starting event
+    socketio.emit("model_load_progress", {
+        "model_name": model_name,
+        "progress": 0,
+        "status": "unloading",
+        "action": "unload",
+    })
+
+    # Track progress in a separate monitoring thread
+    stop_monitoring = threading.Event()
+
+    def monitor_vram():
+        """Monitor VRAM usage and emit progress updates."""
+        last_progress = 0
+        while not stop_monitoring.is_set():
+            gpu_info = get_gpu_info()
+            if gpu_info and expected_vram_mb > 0:
+                current_vram = gpu_info["used_mb"]
+                vram_freed = initial_vram - current_vram
+                progress = min(100, max(0, int((vram_freed / expected_vram_mb) * 100)))
+
+                if progress != last_progress:
+                    last_progress = progress
+                    socketio.emit("model_load_progress", {
+                        "model_name": model_name,
+                        "progress": progress,
+                        "status": "unloading",
+                        "action": "unload",
+                    })
+
+            stop_monitoring.wait(0.3)  # Check every 300ms
+
+    # Start monitoring thread
+    monitor_thread = threading.Thread(target=monitor_vram, daemon=True)
+    monitor_thread.start()
+
+    try:
+        # Run the actual unload command
+        success, _stdout, stderr = run_command(["ollama", "stop", model_name])
+
+        stop_monitoring.set()
+        monitor_thread.join(timeout=1)
+
+        if not success:
+            stderr_text = (stderr or "").strip()
+            code = classify_ollama_error(stderr_text)
+            message = stderr_text or "Failed to stop model."
+            logger.error("Error stopping Ollama model '%s': %s", model_name, message)
+            socketio.emit("model_load_progress", {
+                "model_name": model_name,
+                "progress": 0,
+                "status": "error",
+                "action": "unload",
+                "message": message,
+            })
+            return False, message, code
+
+        # Success - emit 100% completion
+        socketio.emit("model_load_progress", {
+            "model_name": model_name,
+            "progress": 100,
+            "status": "complete",
+            "action": "unload",
+        })
+        return True, "", None
+
+    except Exception as exc:  # noqa: BLE001
+        stop_monitoring.set()
+        message = f"Error stopping Ollama model '{model_name}': {exc}"
+        logger.error(message)
+        socketio.emit("model_load_progress", {
+            "model_name": model_name,
+            "progress": 0,
+            "status": "error",
+            "action": "unload",
+            "message": message,
+        })
+        return False, message, "UNKNOWN_ERROR"
+
+
 def pull_ollama_model(model_name):
     """Download an Ollama model and emit progress via WebSocket.
 
@@ -1156,21 +1343,33 @@ def api_load_ollama_model():
             400,
         )
 
-    success, message, error_code = load_ollama_model(model_name)
-    status_code = 200 if success else error_code_to_http_status(error_code)
+    # Get estimated VRAM for progress tracking
+    expected_vram_mb = data.get("expected_vram_mb", 0)
+    if not expected_vram_mb:
+        # Try to get from model info
+        models = get_available_ollama_models()
+        for model in models:
+            if model.get("name") == model_name:
+                size_str = model.get("size", "0")
+                size_gb = parse_model_size(size_str)
+                expected_vram_mb = estimate_model_vram(size_gb, "q4")  # Default assumption
+                break
 
-    body = {
-        "success": success,
-        "message": message or "Model loaded successfully.",
+    # Run load with progress monitoring in a background thread
+    import threading
+
+    def run_load():
+        load_ollama_model_with_progress(model_name, expected_vram_mb)
+
+    thread = threading.Thread(target=run_load, daemon=True)
+    thread.start()
+
+    # Return immediately - progress will be sent via WebSocket
+    return jsonify({
+        "success": True,
+        "message": "Model loading started. Progress will be sent via WebSocket.",
         "model_name": model_name,
-    }
-    if not success:
-        body["error"] = {
-            "code": error_code or "UNKNOWN_ERROR",
-            "details": message,
-        }
-
-    return jsonify(body), status_code
+    }), 202  # 202 Accepted
 
 
 @app.route("/api/models/ollama/unload", methods=["POST"])
@@ -1193,21 +1392,33 @@ def api_unload_ollama_model():
             400,
         )
 
-    success, message, error_code = stop_ollama_model(model_name)
-    status_code = 200 if success else error_code_to_http_status(error_code)
+    # Get estimated VRAM for progress tracking
+    expected_vram_mb = data.get("expected_vram_mb", 0)
+    if not expected_vram_mb:
+        # Try to get from model info
+        models = get_available_ollama_models()
+        for model in models:
+            if model.get("name") == model_name:
+                size_str = model.get("size", "0")
+                size_gb = parse_model_size(size_str)
+                expected_vram_mb = estimate_model_vram(size_gb, "q4")  # Default assumption
+                break
 
-    body = {
-        "success": success,
-        "message": message or "Model unloaded successfully.",
+    # Run unload with progress monitoring in a background thread
+    import threading
+
+    def run_unload():
+        unload_ollama_model_with_progress(model_name, expected_vram_mb)
+
+    thread = threading.Thread(target=run_unload, daemon=True)
+    thread.start()
+
+    # Return immediately - progress will be sent via WebSocket
+    return jsonify({
+        "success": True,
+        "message": "Model unloading started. Progress will be sent via WebSocket.",
         "model_name": model_name,
-    }
-    if not success:
-        body["error"] = {
-            "code": error_code or "UNKNOWN_ERROR",
-            "details": message,
-        }
-
-    return jsonify(body), status_code
+    }), 202  # 202 Accepted
 
 
 @app.route("/api/models/ollama/download", methods=["POST"])

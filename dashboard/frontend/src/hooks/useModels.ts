@@ -5,6 +5,7 @@ import type {
   ModelsDetailedResponse,
   ModelActionResponse,
   ModelDownloadProgress,
+  ModelLoadProgress,
   GpuInfo,
 } from '../types';
 
@@ -18,14 +19,15 @@ interface UseModelsReturn {
   loadedModels: OllamaModelDetailed[];
   availableModels: OllamaModelDetailed[];
   downloadingModels: Record<string, ModelDownloadProgress>;
+  loadingModels: Record<string, ModelLoadProgress>;
   gpuInfo: GpuInfo | null;
   loading: boolean;
   error: string | null;
   totalCount: number;
   loadedCount: number;
   refresh: () => Promise<void>;
-  loadModel: (modelName: string) => Promise<ModelActionResponse>;
-  unloadModel: (modelName: string) => Promise<ModelActionResponse>;
+  loadModel: (modelName: string, expectedVramMb?: number) => Promise<ModelActionResponse>;
+  unloadModel: (modelName: string, expectedVramMb?: number) => Promise<ModelActionResponse>;
   downloadModel: (modelName: string) => Promise<ModelActionResponse>;
   removeModel: (modelName: string) => Promise<ModelActionResponse>;
   getModelInfo: (modelName: string) => Promise<OllamaModelDetailed | null>;
@@ -36,6 +38,7 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
 
   const [models, setModels] = useState<OllamaModelDetailed[]>([]);
   const [downloadingModels, setDownloadingModels] = useState<Record<string, ModelDownloadProgress>>({});
+  const [loadingModels, setLoadingModels] = useState<Record<string, ModelLoadProgress>>({});
   const [gpuInfo, setGpuInfo] = useState<GpuInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,18 +107,27 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
     await Promise.all([fetchModels(), fetchGpuInfo()]);
   }, [fetchModels, fetchGpuInfo]);
 
-  const loadModel = useCallback(async (modelName: string): Promise<ModelActionResponse> => {
+  const loadModel = useCallback(async (modelName: string, expectedVramMb?: number): Promise<ModelActionResponse> => {
     try {
       const response = await fetch(`${getApiBase()}/api/models/ollama/load`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ model_name: modelName }),
+        body: JSON.stringify({ model_name: modelName, expected_vram_mb: expectedVramMb }),
       });
 
       const data: ModelActionResponse = await response.json();
 
       if (data.success) {
-        await refresh();
+        // Add to loading models - progress will be updated via WebSocket
+        setLoadingModels(prev => ({
+          ...prev,
+          [modelName]: {
+            model_name: modelName,
+            progress: 0,
+            status: 'loading',
+            action: 'load',
+          },
+        }));
       }
 
       return data;
@@ -126,20 +138,29 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
         model_name: modelName,
       };
     }
-  }, [getAuthHeaders, refresh]);
+  }, [getAuthHeaders]);
 
-  const unloadModel = useCallback(async (modelName: string): Promise<ModelActionResponse> => {
+  const unloadModel = useCallback(async (modelName: string, expectedVramMb?: number): Promise<ModelActionResponse> => {
     try {
       const response = await fetch(`${getApiBase()}/api/models/ollama/unload`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ model_name: modelName }),
+        body: JSON.stringify({ model_name: modelName, expected_vram_mb: expectedVramMb }),
       });
 
       const data: ModelActionResponse = await response.json();
 
       if (data.success) {
-        await refresh();
+        // Add to loading models - progress will be updated via WebSocket
+        setLoadingModels(prev => ({
+          ...prev,
+          [modelName]: {
+            model_name: modelName,
+            progress: 0,
+            status: 'unloading',
+            action: 'unload',
+          },
+        }));
       }
 
       return data;
@@ -150,7 +171,7 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
         model_name: modelName,
       };
     }
-  }, [getAuthHeaders, refresh]);
+  }, [getAuthHeaders]);
 
   const downloadModel = useCallback(async (modelName: string): Promise<ModelActionResponse> => {
     try {
@@ -243,6 +264,25 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
     });
   }, [refresh]);
 
+  // Update loading/unloading models from WebSocket events
+  const updateLoadProgress = useCallback((progress: ModelLoadProgress) => {
+    setLoadingModels(prev => {
+      if (progress.status === 'complete' || progress.status === 'error') {
+        // Remove from loading and refresh models
+        const { [progress.model_name]: _, ...rest } = prev;
+        // Trigger refresh after load/unload completes
+        if (progress.status === 'complete') {
+          setTimeout(() => refresh(), 500);
+        }
+        return rest;
+      }
+      return {
+        ...prev,
+        [progress.model_name]: progress,
+      };
+    });
+  }, [refresh]);
+
   // Initial fetch
   useEffect(() => {
     mountedRef.current = true;
@@ -279,6 +319,16 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
     };
   }, [updateDownloadProgress]);
 
+  // Expose load progress updater for WebSocket integration
+  useEffect(() => {
+    // Store the updater function on window for WebSocket access
+    (window as unknown as { __updateModelLoadProgress?: (p: ModelLoadProgress) => void }).__updateModelLoadProgress = updateLoadProgress;
+
+    return () => {
+      delete (window as unknown as { __updateModelLoadProgress?: (p: ModelLoadProgress) => void }).__updateModelLoadProgress;
+    };
+  }, [updateLoadProgress]);
+
   const loadedModels = models.filter(m => m.is_loaded);
   const availableModels = models.filter(m => !m.is_loaded);
 
@@ -287,6 +337,7 @@ export function useModels(options: UseModelsOptions = {}): UseModelsReturn {
     loadedModels,
     availableModels,
     downloadingModels,
+    loadingModels,
     gpuInfo,
     loading,
     error,
