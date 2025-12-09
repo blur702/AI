@@ -6,14 +6,20 @@ Includes connection pooling and retry mechanisms for improved reliability.
 """
 
 import logging
+import os
 import time
-from typing import Optional
+from typing import Optional, Tuple
 
 import requests
 from requests.adapters import HTTPAdapter
+from requests.auth import HTTPBasicAuth
 from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
+
+# Default credentials (can be overridden via environment variables)
+DEFAULT_AUTH_USERNAME = "admin"
+DEFAULT_AUTH_PASSWORD = "admin"
 
 
 class DashboardAPI:
@@ -23,6 +29,7 @@ class DashboardAPI:
     Features:
         - Connection pooling via requests.Session
         - Automatic retries with exponential backoff
+        - HTTP Basic Authentication support
         - Detailed error logging
 
     Args:
@@ -31,6 +38,10 @@ class DashboardAPI:
                   Defaults to "http://localhost" (port 80).
         timeout: Request timeout in seconds. Defaults to 10.
         max_retries: Maximum number of retry attempts. Defaults to 3.
+        auth: Optional tuple of (username, password) for HTTP Basic Auth.
+              If not provided, reads from environment variables
+              DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD,
+              or falls back to defaults.
     """
 
     def __init__(
@@ -38,13 +49,27 @@ class DashboardAPI:
         base_url: str = "http://localhost",
         timeout: int = 10,
         max_retries: int = 3,
+        auth: Optional[Tuple[str, str]] = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.max_retries = max_retries
 
+        # Set up authentication
+        if auth:
+            self._auth = HTTPBasicAuth(auth[0], auth[1])
+        else:
+            username = os.environ.get(
+                "DASHBOARD_AUTH_USERNAME", DEFAULT_AUTH_USERNAME
+            )
+            password = os.environ.get(
+                "DASHBOARD_AUTH_PASSWORD", DEFAULT_AUTH_PASSWORD
+            )
+            self._auth = HTTPBasicAuth(username, password)
+
         # Create session with connection pooling
         self._session = requests.Session()
+        self._session.auth = self._auth
 
         # Configure retry strategy with exponential backoff
         retry_strategy = Retry(
