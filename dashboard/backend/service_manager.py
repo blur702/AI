@@ -27,6 +27,13 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceStatus(Enum):
+    """
+    Enumeration of possible service lifecycle states.
+
+    Used to track the current operational status of managed AI services
+    throughout their lifecycle from startup to shutdown.
+    """
+
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -37,12 +44,27 @@ class ServiceStatus(Enum):
 
 @dataclass
 class ServiceState:
+    """
+    Tracks the runtime state of a managed service.
+
+    Stores process information, status, timing data, and error details
+    for services managed by the ServiceManager.
+
+    Attributes:
+        status: Current lifecycle status of the service.
+        process: Subprocess handle if started by dashboard.
+        error_message: Error details if status is ERROR.
+        start_time: Unix timestamp when service was started.
+        pid: Process ID of the running service.
+        last_activity: Unix timestamp of last API access (for idle detection).
+    """
+
     status: ServiceStatus = ServiceStatus.STOPPED
     process: Optional[subprocess.Popen] = None
     error_message: Optional[str] = None
     start_time: Optional[float] = None
     pid: Optional[int] = None
-    last_activity: Optional[float] = None  # Last time service was accessed/used
+    last_activity: Optional[float] = None
 
 
 class ServiceManager:
