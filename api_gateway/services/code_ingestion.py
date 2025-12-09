@@ -130,8 +130,17 @@ AI_SERVICE_VENVS = {
 }
 
 
-def _is_excluded(path: Path, extra_excludes: Optional[set] = None) -> bool:
-    """Check if any parent directory of the path is in excluded_dirs."""
+def _is_excluded(path: Path, extra_excludes: Optional[set[str]] = None) -> bool:
+    """
+    Check if any parent directory of the path is in excluded_dirs.
+
+    Args:
+        path: Path to check
+        extra_excludes: Additional directory names to exclude (optional)
+
+    Returns:
+        True if path should be excluded, False otherwise
+    """
     excluded = EXCLUDED_DIRS | (extra_excludes or set())
     for parent in path.resolve().parents:
         if parent.name in excluded:
@@ -478,7 +487,12 @@ def collection_status(client: weaviate.WeaviateClient) -> Dict[str, int]:
 
 
 def _configure_logging(verbose: bool) -> None:
-    """Configure logging level based on verbosity flag."""
+    """
+    Configure logging level based on verbosity flag.
+
+    Args:
+        verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+    """
     if verbose:
         logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
@@ -489,7 +503,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    """CLI entry point for code ingestion."""
+    """
+    CLI entry point for code ingestion.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On command failure
+    """
     # Build service choices dynamically
     service_choices = ["core", "all"] + sorted(AI_SERVICE_DIRS.values())
 
