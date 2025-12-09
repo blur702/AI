@@ -1,7 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(powershell -Command:*)",
       "mcp__documentation__search_code",
       "Bash(timeout:*)",
       "Bash(ollama show:*)",
@@ -11,6 +10,8 @@
       "Bash(python -m api_gateway.services.ingestion_trigger:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [
+      "Bash(powershell -Command:*)"
+    ]
   }
 }

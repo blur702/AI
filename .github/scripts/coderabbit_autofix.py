@@ -58,9 +58,24 @@ class GitHubAPI:
     def get_pr_reviews(self, pr_number: int) -> list[dict]:
         """Fetch all reviews for a PR."""
         url = f"{self.base_url}/repos/{self.repo}/pulls/{pr_number}/reviews"
-        response = requests.get(url, headers=self.headers, timeout=30)
-        response.raise_for_status()
-        return response.json()
+        all_reviews = []
+        page = 1
+
+        while True:
+            response = requests.get(
+                url,
+                headers=self.headers,
+                params={"per_page": 100, "page": page},
+                timeout=30,
+            )
+            response.raise_for_status()
+            reviews = response.json()
+            if not reviews:
+                break
+            all_reviews.extend(reviews)
+            page += 1
+
+        return all_reviews
 
     def get_pr_review_comments(self, pr_number: int) -> list[dict]:
         """Fetch all review comments for a PR."""
@@ -87,9 +102,24 @@ class GitHubAPI:
     def get_pr_issue_comments(self, pr_number: int) -> list[dict]:
         """Fetch issue-level comments (including CodeRabbit summary)."""
         url = f"{self.base_url}/repos/{self.repo}/issues/{pr_number}/comments"
-        response = requests.get(url, headers=self.headers, timeout=30)
-        response.raise_for_status()
-        return response.json()
+        all_comments = []
+        page = 1
+
+        while True:
+            response = requests.get(
+                url,
+                headers=self.headers,
+                params={"per_page": 100, "page": page},
+                timeout=30,
+            )
+            response.raise_for_status()
+            comments = response.json()
+            if not comments:
+                break
+            all_comments.extend(comments)
+            page += 1
+
+        return all_comments
 
 
 class CodeRabbitParser:
