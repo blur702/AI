@@ -92,70 +92,6 @@ Shortcut installed at: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\
 
 ---
 
-## 5. System Tray Utility
-
-A lightweight Windows system tray application for quick access to AI services and VRAM management.
-
-### Features
-- **Service Control**: Start/Stop services directly from the tray menu
-- **VRAM Monitoring**: View current GPU memory usage in the menu
-- **Model Management**: See loaded Ollama models and unload them individually or all at once
-- **Quick Access**: Left-click opens the dashboard in browser
-- **Live Updates**: Polls the dashboard API every 10 seconds for status updates
-- **Visual Status**: Icon color indicates connection status (green = connected, red = offline)
-
-### Menu Structure
-```
-AI Services Manager
-├── Services ►
-│   ├── AllTalk TTS [Running] ► Stop | Open in Browser
-│   ├── ComfyUI [Stopped] ► Start
-│   └── (other services...)
-├── ─────────────
-├── VRAM: 5.2 GB / 24 GB (21%)
-├── Loaded Models ►
-│   ├── qwen2.5:7b (4.5 GB) ► Unload
-│   └── snowflake-arctic-embed:l ► Unload
-├── Unload All Models
-├── ─────────────
-├── Open Dashboard
-├── Refresh
-├── ─────────────
-└── Exit
-```
-
-### Files
-| File | Purpose |
-|------|---------|
-| `tray_app/ai_tray.py` | Main tray application using pystray |
-| `tray_app/api_client.py` | HTTP client wrapper for dashboard API |
-| `tray_app/requirements.txt` | Dependencies (pystray, Pillow, requests) |
-| `start_tray.bat` | Visible launcher (shows console) |
-| `start_tray.vbs` | Silent launcher (no console window) |
-| `create_tray_shortcut.ps1` | Creates Windows Startup shortcut |
-
-### Installation
-1. Install dependencies:
-   ```bash
-   cd tray_app
-   pip install -r requirements.txt
-   ```
-
-2. Create startup shortcut (auto-start on login):
-   ```powershell
-   .\create_tray_shortcut.ps1
-   ```
-
-### Manual Launch
-```bash
-.\start_tray.bat       # With console window
-.\start_tray.vbs       # Silent (no window)
-```
-
-### Startup Location
-Shortcut installed at: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\AI Tray.lnk`
-
----
 
 ## 6. Firewall Configuration
 
@@ -213,29 +149,15 @@ npm run test:smoke       # Smoke tests
 
 ---
 
-## 8. File Summary
+## 7. File Summary
 
 ### Configuration Scripts
 | File | Purpose |
 |------|---------|
 | `configure_firewall.ps1` | Windows Firewall rules (run as admin) |
 | `create_startup_shortcut.ps1` | Create dashboard Windows Startup shortcut |
-| `create_tray_shortcut.ps1` | Create tray app Windows Startup shortcut |
 | `dashboard_startup.vbs` | Silent dashboard startup script |
 | `start_dashboard.bat` | Manual dashboard launcher |
-| `start_tray.bat` | Manual tray app launcher (with console) |
-| `start_tray.vbs` | Silent tray app launcher |
-
-### System Tray App
-| File | Purpose |
-|------|---------|
-| `tray_app/ai_tray.py` | Main tray application |
-| `tray_app/api_client.py` | Dashboard API client wrapper |
-| `tray_app/requirements.txt` | Python dependencies |
-
-### Backend
-| File | Purpose |
-|------|---------|
 | `dashboard/backend/app.py` | Flask app with API routes |
 | `dashboard/backend/service_manager.py` | Service lifecycle + idle tracking |
 | `dashboard/backend/services_config.py` | Service definitions |
@@ -251,7 +173,6 @@ npm run test:smoke       # Smoke tests
 ---
 
 ## 9. Quick Start
-
 ### First-Time Setup
 1. Configure firewall (as Administrator):
    ```powershell
@@ -270,19 +191,7 @@ npm run test:smoke       # Smoke tests
    npm run build
    ```
 
-4. Install and configure system tray utility:
-   ```bash
-   cd tray_app
-   pip install -r requirements.txt
-   cd ..
-   .\create_tray_shortcut.ps1
-   ```
-
-### Manual Start
-```bash
-.\start_dashboard.bat   # Start dashboard
-.\start_tray.bat        # Start system tray utility
-```
+4. (reserved for future use)
 
 ### Access
 - **Local**: http://localhost
@@ -291,7 +200,6 @@ npm run test:smoke       # Smoke tests
 ---
 
 ## 10. Known Fixes
-
 ### MusicGen Compatibility
 MusicGen requires `accelerate==0.24.1` due to compatibility issues with newer versions:
 ```bash
