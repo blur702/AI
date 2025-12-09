@@ -932,7 +932,7 @@ def api_ingestion_start():
             "message": "Field 'types' is required and must be a list.",
         }), 400
 
-    valid_types = {"documentation", "code", "drupal"}
+    valid_types = {"documentation", "code", "drupal", "mdn_javascript", "mdn_webapis"}
     for t in types:
         if t not in valid_types:
             return jsonify({
@@ -943,8 +943,12 @@ def api_ingestion_start():
     reindex = bool(data.get("reindex", False))
     code_service = data.get("code_service", "core")
     drupal_limit = data.get("drupal_limit")  # Optional: max entities for Drupal
+    mdn_limit = data.get("mdn_limit")  # Optional: max documents for MDN
+    mdn_section = data.get("mdn_section")  # Optional: section filter for mdn_webapis
 
-    result = ingestion_manager.start_ingestion(types, reindex, code_service, drupal_limit)
+    result = ingestion_manager.start_ingestion(
+        types, reindex, code_service, drupal_limit, mdn_limit, mdn_section
+    )
 
     if not result.get("success"):
         return jsonify(result), 409  # Conflict - already running
@@ -956,6 +960,8 @@ def api_ingestion_start():
         reindex,
         code_service,
         drupal_limit,
+        mdn_limit,
+        mdn_section,
     )
 
     return jsonify(result)

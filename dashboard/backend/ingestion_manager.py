@@ -24,6 +24,8 @@ from api_gateway.services.weaviate_connection import (
     DOCUMENTATION_COLLECTION_NAME,
     CODE_ENTITY_COLLECTION_NAME,
     DRUPAL_API_COLLECTION_NAME,
+    MDN_JAVASCRIPT_COLLECTION_NAME,
+    MDN_WEBAPIS_COLLECTION_NAME,
 )
 from api_gateway.services.doc_ingestion import (
     ingest_documentation,
@@ -39,6 +41,18 @@ from api_gateway.services.drupal_api_schema import (
 from api_gateway.services.drupal_scraper import (
     scrape_drupal_api,
     ScrapeConfig as DrupalScrapeConfig,
+)
+from api_gateway.services.mdn_schema import (
+    get_mdn_javascript_stats,
+    get_mdn_webapis_stats,
+)
+from api_gateway.services.mdn_javascript_scraper import (
+    scrape_mdn_javascript,
+    ScrapeConfig as MdnJsScrapeConfig,
+)
+from api_gateway.services.mdn_webapis_scraper import (
+    scrape_mdn_webapis,
+    ScrapeConfig as MdnWebScrapeConfig,
 )
 
 
@@ -89,6 +103,8 @@ class IngestionManager:
             "documentation": {"exists": False, "object_count": 0},
             "code_entity": {"exists": False, "object_count": 0},
             "drupal_api": {"exists": False, "object_count": 0, "entity_counts": {}},
+            "mdn_javascript": {"exists": False, "object_count": 0},
+            "mdn_webapis": {"exists": False, "object_count": 0},
         }
 
         try:
@@ -117,6 +133,22 @@ class IngestionManager:
                         "object_count": drupal_stats.get("object_count", 0),
                         "entity_counts": drupal_stats.get("entity_counts", {}),
                     }
+
+                # MDN JavaScript collection
+                if client.collections.exists(MDN_JAVASCRIPT_COLLECTION_NAME):
+                    mdn_js_stats = get_mdn_javascript_stats(client)
+                    collections["mdn_javascript"] = {
+                        "exists": mdn_js_stats.get("exists", True),
+                        "object_count": mdn_js_stats.get("object_count", 0),
+                    }
+
+                # MDN Web APIs collection
+                if client.collections.exists(MDN_WEBAPIS_COLLECTION_NAME):
+                    mdn_web_stats = get_mdn_webapis_stats(client)
+                    collections["mdn_webapis"] = {
+                        "exists": mdn_web_stats.get("exists", True),
+                        "object_count": mdn_web_stats.get("object_count", 0),
+                    }
         except Exception as exc:
             # Return status even if Weaviate is unavailable
             collections["error"] = str(exc)
@@ -135,15 +167,19 @@ class IngestionManager:
         reindex: bool = False,
         code_service: str = "all",
         drupal_limit: Optional[int] = None,
+        mdn_limit: Optional[int] = None,
+        mdn_section: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Start ingestion in the background.
 
         Args:
-            types: List of types to ingest ("documentation", "code", "drupal")
+            types: List of types to ingest ("documentation", "code", "drupal", "mdn_javascript", "mdn_webapis")
             reindex: If True, delete existing collections before ingesting
             code_service: For code ingestion: "core", "all", or specific service
             drupal_limit: For drupal ingestion: max entities to scrape (None = unlimited)
+            mdn_limit: For MDN ingestion: max documents to scrape (None = unlimited)
+            mdn_section: For mdn_webapis: filter by section ("css", "html", "webapi")
 
         Returns:
             Dictionary with success status and task_id or error message.
@@ -175,6 +211,8 @@ class IngestionManager:
         reindex: bool = False,
         code_service: str = "all",
         drupal_limit: Optional[int] = None,
+        mdn_limit: Optional[int] = None,
+        mdn_section: Optional[str] = None,
     ) -> None:
         """
         Run the actual ingestion (called from background task).
@@ -184,6 +222,8 @@ class IngestionManager:
             reindex: Whether to force reindex
             code_service: Code service target
             drupal_limit: Max entities for Drupal scraper
+            mdn_limit: Max documents for MDN scrapers
+            mdn_section: Section filter for mdn_webapis
         """
         task_id = self.task_id
         start_time = self.started_at or time.time()
@@ -285,6 +325,81 @@ class IngestionManager:
                     })
 
                     if drupal_stats.get("cancelled"):
+                        raise InterruptedError("Cancelled")
+
+                # Process MDN JavaScript
+                if "mdn_javascript" in types:
+                    if self.cancel_requested:
+                        raise InterruptedError("Cancelled")
+
+                    self.current_type = "mdn_javascript"
+
+                    # Configure MDN JavaScript scraper
+                    mdn_js_config = MdnJsScrapeConfig(
+                        max_entities=mdn_limit,
+                    )
+
+                    # For reindex, delete existing collection first
+                    if reindex:
+                        from api_gateway.services.mdn_schema import (
+                            create_mdn_javascript_collection,
+                        )
+                        create_mdn_javascript_collection(client, force_reindex=True)
+
+                    mdn_js_stats = scrape_mdn_javascript(
+                        config=mdn_js_config,
+                        progress_callback=lambda phase, current, total, msg: self._emit_progress(
+                            task_id, "mdn_javascript", phase, current, total, msg
+                        ),
+                        check_cancelled=lambda: self.cancel_requested,
+                    )
+                    all_stats["mdn_javascript"] = mdn_js_stats
+
+                    self.emit("ingestion_phase_complete", {
+                        "task_id": task_id,
+                        "type": "mdn_javascript",
+                        "stats": mdn_js_stats,
+                    })
+
+                    if mdn_js_stats.get("cancelled"):
+                        raise InterruptedError("Cancelled")
+
+                # Process MDN Web APIs
+                if "mdn_webapis" in types:
+                    if self.cancel_requested:
+                        raise InterruptedError("Cancelled")
+
+                    self.current_type = "mdn_webapis"
+
+                    # Configure MDN Web APIs scraper
+                    mdn_web_config = MdnWebScrapeConfig(
+                        max_entities=mdn_limit,
+                        section_filter=mdn_section if mdn_section else None,
+                    )
+
+                    # For reindex, delete existing collection first
+                    if reindex:
+                        from api_gateway.services.mdn_schema import (
+                            create_mdn_webapis_collection,
+                        )
+                        create_mdn_webapis_collection(client, force_reindex=True)
+
+                    mdn_web_stats = scrape_mdn_webapis(
+                        config=mdn_web_config,
+                        progress_callback=lambda phase, current, total, msg: self._emit_progress(
+                            task_id, "mdn_webapis", phase, current, total, msg
+                        ),
+                        check_cancelled=lambda: self.cancel_requested,
+                    )
+                    all_stats["mdn_webapis"] = mdn_web_stats
+
+                    self.emit("ingestion_phase_complete", {
+                        "task_id": task_id,
+                        "type": "mdn_webapis",
+                        "stats": mdn_web_stats,
+                    })
+
+                    if mdn_web_stats.get("cancelled"):
                         raise InterruptedError("Cancelled")
 
         except InterruptedError:

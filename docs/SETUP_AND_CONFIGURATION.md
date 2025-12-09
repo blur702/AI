@@ -115,7 +115,7 @@ AI Services Manager
 ├── VRAM: 5.2 GB / 24 GB (21%)
 ├── Loaded Models ►
 │   ├── qwen2.5:7b (4.5 GB) ► Unload
-│   └── nomic-embed-text ► Unload
+│   └── snowflake-arctic-embed:l ► Unload
 ├── Unload All Models
 ├── ─────────────
 ├── Open Dashboard

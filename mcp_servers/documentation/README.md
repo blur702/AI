@@ -9,7 +9,7 @@ This server provides a `search_documentation` tool that performs semantic simila
 ## Prerequisites
 
 1. **Weaviate** running on localhost:8080 (or configured URL)
-2. **Ollama** running with the `nomic-embed-text` model (or configured model)
+2. **Ollama** running with the `snowflake-arctic-embed:l` model (or configured model)
 3. **Documentation ingested** via `api_gateway/services/doc_ingestion.py`
 
 ## Installation
@@ -34,7 +34,7 @@ Environment variables:
 | `WEAVIATE_URL` | `http://localhost:8080` | Weaviate HTTP endpoint |
 | `WEAVIATE_GRPC_HOST` | `localhost` | Weaviate gRPC host |
 | `WEAVIATE_GRPC_PORT` | `50051` | Weaviate gRPC port |
-| `OLLAMA_EMBEDDING_MODEL` | `nomic-embed-text` | Embedding model name |
+| `OLLAMA_EMBEDDING_MODEL` | `snowflake-arctic-embed:l` | Embedding model name |
 | `LOG_LEVEL` | `INFO` | Logging level |
 
 ## Running

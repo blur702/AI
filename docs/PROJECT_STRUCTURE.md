@@ -197,7 +197,7 @@ Root Files:
 **Purpose:** Long-term memory and RAG for LLM applications
 **Technology:** Weaviate with text2vec-ollama module
 **Deployment:** Docker container (port 8080 HTTP, 50051 gRPC)
-**Embedding Model:** nomic-embed-text via Ollama
+**Embedding Model:** snowflake-arctic-embed:l via Ollama
 **Status:** ✅ Configured and ready for integration
 
 **Key Features:**

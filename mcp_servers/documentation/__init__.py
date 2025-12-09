@@ -37,7 +37,7 @@ class Settings:
             return 50051
 
     WEAVIATE_GRPC_PORT: int = _parse_grpc_port.__func__()
-    OLLAMA_EMBEDDING_MODEL: str = os.getenv("OLLAMA_EMBEDDING_MODEL", "nomic-embed-text")
+    OLLAMA_EMBEDDING_MODEL: str = os.getenv("OLLAMA_EMBEDDING_MODEL", "snowflake-arctic-embed:l")
     OLLAMA_API_ENDPOINT: str = os.getenv("OLLAMA_API_ENDPOINT", "http://127.0.0.1:11434")
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 

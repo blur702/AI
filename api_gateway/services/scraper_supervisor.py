@@ -332,6 +332,7 @@ def run_drupal_scraper(
                                 vector = get_embedding(text)
                                 collection.data.insert(
                                     entity.to_properties(),
+                                    uuid=entity.uuid,
                                     vector=vector,
                                 )
                                 entities_inserted += 1
@@ -368,6 +369,293 @@ def run_drupal_scraper(
     except Exception as e:
         logger.exception("Drupal scraper failed: %s", e)
         # Save checkpoint on failure
+        checkpoint.entities_processed = entities_processed
+        checkpoint.entities_inserted = entities_inserted
+        checkpoint.errors = errors
+        checkpoint_manager.save(checkpoint)
+
+        return {
+            "success": False,
+            "error": str(e),
+            "entities_processed": entities_processed,
+            "entities_inserted": entities_inserted,
+            "errors": errors,
+        }
+
+
+@register_scraper("mdn_javascript")
+def run_mdn_javascript_scraper(
+    job: ScraperJob,
+    checkpoint: Optional[JobCheckpoint],
+    checkpoint_manager: CheckpointManager,
+) -> Dict[str, Any]:
+    """Run the MDN JavaScript documentation scraper with checkpoint support."""
+    from .mdn_schema import (
+        create_mdn_javascript_collection,
+        get_mdn_javascript_stats,
+    )
+    from .mdn_javascript_scraper import (
+        MDNJavaScriptScraper,
+        ScrapeConfig,
+        get_embedding,
+        get_doc_text_for_embedding,
+    )
+    from .weaviate_connection import MDN_JAVASCRIPT_COLLECTION_NAME, WeaviateConnection
+
+    config = job.config
+    scrape_config = ScrapeConfig(
+        request_delay=config.get("request_delay", 1.0),
+        batch_size=config.get("batch_size", 20),
+        batch_delay=config.get("batch_delay", 3.0),
+        max_entities=config.get("max_entities"),
+        dry_run=config.get("dry_run", False),
+    )
+
+    # Initialize checkpoint if resuming
+    if checkpoint:
+        entities_processed = checkpoint.entities_processed
+        entities_inserted = checkpoint.entities_inserted
+        errors = checkpoint.errors
+        skip_until_name = checkpoint.last_entity_name if checkpoint.last_entity_name else None
+        logger.info(
+            "Resuming from checkpoint: processed=%d, inserted=%d, skip_until=%s",
+            entities_processed, entities_inserted, skip_until_name,
+        )
+    else:
+        entities_processed = 0
+        entities_inserted = 0
+        errors = 0
+        skip_until_name = None
+        checkpoint = JobCheckpoint(
+            job_id=job.job_id,
+            scraper_type="mdn_javascript",
+        )
+
+    try:
+        with WeaviateConnection() as client:
+            # Create collection if needed
+            create_mdn_javascript_collection(client, force_reindex=False)
+            collection = client.collections.get(MDN_JAVASCRIPT_COLLECTION_NAME)
+
+            # Get existing URLs to skip duplicates
+            logger.info("Loading existing document URLs for deduplication...")
+            existing_urls = set()
+            try:
+                for obj in collection.iterator(include_vector=False):
+                    props = obj.properties
+                    if props and "url" in props:
+                        existing_urls.add(props["url"])
+            except Exception as e:
+                logger.warning("Could not load existing URLs: %s", e)
+            logger.info("Found %d existing documents", len(existing_urls))
+
+            with MDNJavaScriptScraper(config=scrape_config) as scraper:
+                for doc in scraper.scrape_all():
+                    # Skip entities until we pass the resume point
+                    if skip_until_name:
+                        if doc.title == skip_until_name:
+                            skip_until_name = None  # Found it, start processing next
+                        logger.debug("Skipping %s (resuming after %s)", doc.title, checkpoint.last_entity_name)
+                        continue
+
+                    entities_processed += 1
+
+                    # Check max entities limit
+                    if scrape_config.max_entities and entities_processed >= scrape_config.max_entities:
+                        logger.info("Reached max entities limit: %d", scrape_config.max_entities)
+                        break
+
+                    # Skip if already in collection
+                    if doc.url in existing_urls:
+                        logger.debug("Skipping existing doc: %s", doc.title)
+                        continue
+
+                    # Insert into Weaviate
+                    if not scrape_config.dry_run:
+                        try:
+                            text = get_doc_text_for_embedding(doc)
+                            vector = get_embedding(text)
+                            collection.data.insert(
+                                doc.to_properties(),
+                                uuid=doc.uuid,
+                                vector=vector,
+                            )
+                            entities_inserted += 1
+                            existing_urls.add(doc.url)
+
+                        except Exception as e:
+                            errors += 1
+                            logger.warning("Failed to insert %s: %s", doc.title, e)
+
+                    # Update checkpoint every 10 entities
+                    if entities_processed % 10 == 0:
+                        checkpoint.last_entity_name = doc.title
+                        checkpoint.entities_processed = entities_processed
+                        checkpoint.entities_inserted = entities_inserted
+                        checkpoint.errors = errors
+                        checkpoint_manager.save(checkpoint)
+                        logger.info(
+                            "Checkpoint: processed=%d, inserted=%d, errors=%d",
+                            entities_processed, entities_inserted, errors,
+                        )
+
+        return {
+            "success": True,
+            "entities_processed": entities_processed,
+            "entities_inserted": entities_inserted,
+            "errors": errors,
+        }
+
+    except Exception as e:
+        logger.exception("MDN JavaScript scraper failed: %s", e)
+        checkpoint.entities_processed = entities_processed
+        checkpoint.entities_inserted = entities_inserted
+        checkpoint.errors = errors
+        checkpoint_manager.save(checkpoint)
+
+        return {
+            "success": False,
+            "error": str(e),
+            "entities_processed": entities_processed,
+            "entities_inserted": entities_inserted,
+            "errors": errors,
+        }
+
+
+@register_scraper("mdn_webapis")
+def run_mdn_webapis_scraper(
+    job: ScraperJob,
+    checkpoint: Optional[JobCheckpoint],
+    checkpoint_manager: CheckpointManager,
+) -> Dict[str, Any]:
+    """Run the MDN Web APIs documentation scraper with checkpoint support."""
+    from .mdn_schema import (
+        create_mdn_webapis_collection,
+        get_mdn_webapis_stats,
+    )
+    from .mdn_webapis_scraper import (
+        MDNWebAPIsScraper,
+        ScrapeConfig,
+        get_embedding,
+        get_doc_text_for_embedding,
+    )
+    from .weaviate_connection import MDN_WEBAPIS_COLLECTION_NAME, WeaviateConnection
+
+    config = job.config
+    scrape_config = ScrapeConfig(
+        request_delay=config.get("request_delay", 1.0),
+        batch_size=config.get("batch_size", 20),
+        batch_delay=config.get("batch_delay", 3.0),
+        max_entities=config.get("max_entities"),
+        dry_run=config.get("dry_run", False),
+        section_filter=config.get("section_filter"),
+    )
+
+    # Initialize checkpoint if resuming
+    if checkpoint:
+        entities_processed = checkpoint.entities_processed
+        entities_inserted = checkpoint.entities_inserted
+        errors = checkpoint.errors
+        skip_until_name = checkpoint.last_entity_name if checkpoint.last_entity_name else None
+        skip_until_type = checkpoint.last_entity_type if checkpoint.last_entity_type else None
+        logger.info(
+            "Resuming from checkpoint: processed=%d, inserted=%d, skip_until=%s [%s]",
+            entities_processed, entities_inserted, skip_until_name, skip_until_type,
+        )
+    else:
+        entities_processed = 0
+        entities_inserted = 0
+        errors = 0
+        skip_until_name = None
+        skip_until_type = None
+        checkpoint = JobCheckpoint(
+            job_id=job.job_id,
+            scraper_type="mdn_webapis",
+        )
+
+    try:
+        with WeaviateConnection() as client:
+            # Create collection if needed
+            create_mdn_webapis_collection(client, force_reindex=False)
+            collection = client.collections.get(MDN_WEBAPIS_COLLECTION_NAME)
+
+            # Get existing URLs to skip duplicates
+            logger.info("Loading existing document URLs for deduplication...")
+            existing_urls = set()
+            try:
+                for obj in collection.iterator(include_vector=False):
+                    props = obj.properties
+                    if props and "url" in props:
+                        existing_urls.add(props["url"])
+            except Exception as e:
+                logger.warning("Could not load existing URLs: %s", e)
+            logger.info("Found %d existing documents", len(existing_urls))
+
+            with MDNWebAPIsScraper(config=scrape_config) as scraper:
+                for doc in scraper.scrape_all():
+                    # Skip entities until we pass the resume point
+                    if skip_until_name:
+                        # Match both name and type if type was recorded
+                        if doc.title == skip_until_name:
+                            if skip_until_type is None or doc.section_type == skip_until_type:
+                                skip_until_name = None  # Found it, start processing next
+                                skip_until_type = None
+                        logger.debug("Skipping %s [%s] (resuming after %s [%s])",
+                                   doc.title, doc.section_type,
+                                   checkpoint.last_entity_name, checkpoint.last_entity_type)
+                        continue
+
+                    entities_processed += 1
+
+                    # Check max entities limit
+                    if scrape_config.max_entities and entities_processed >= scrape_config.max_entities:
+                        logger.info("Reached max entities limit: %d", scrape_config.max_entities)
+                        break
+
+                    # Skip if already in collection
+                    if doc.url in existing_urls:
+                        logger.debug("Skipping existing doc: %s", doc.title)
+                        continue
+
+                    # Insert into Weaviate
+                    if not scrape_config.dry_run:
+                        try:
+                            text = get_doc_text_for_embedding(doc)
+                            vector = get_embedding(text)
+                            collection.data.insert(
+                                doc.to_properties(),
+                                uuid=doc.uuid,
+                                vector=vector,
+                            )
+                            entities_inserted += 1
+                            existing_urls.add(doc.url)
+
+                        except Exception as e:
+                            errors += 1
+                            logger.warning("Failed to insert %s: %s", doc.title, e)
+
+                    # Update checkpoint every 10 entities
+                    if entities_processed % 10 == 0:
+                        checkpoint.last_entity_name = doc.title
+                        checkpoint.last_entity_type = doc.section_type
+                        checkpoint.entities_processed = entities_processed
+                        checkpoint.entities_inserted = entities_inserted
+                        checkpoint.errors = errors
+                        checkpoint_manager.save(checkpoint)
+                        logger.info(
+                            "Checkpoint [%s]: processed=%d, inserted=%d, errors=%d",
+                            doc.section_type, entities_processed, entities_inserted, errors,
+                        )
+
+        return {
+            "success": True,
+            "entities_processed": entities_processed,
+            "entities_inserted": entities_inserted,
+            "errors": errors,
+        }
+
+    except Exception as e:
+        logger.exception("MDN Web APIs scraper failed: %s", e)
         checkpoint.entities_processed = entities_processed
         checkpoint.entities_inserted = entities_inserted
         checkpoint.errors = errors
@@ -651,6 +939,7 @@ def main(argv: Optional[List[str]] = None) -> None:
     start_parser = subparsers.add_parser("start", help="Start a new scraper job")
     start_parser.add_argument("scraper_type", choices=list(SCRAPER_REGISTRY.keys()))
     start_parser.add_argument("--limit", type=int, help="Max entities to scrape")
+    start_parser.add_argument("--section", type=str, choices=["css", "html", "webapi"], help="Section filter for mdn_webapis")
     start_parser.add_argument("--dry-run", action="store_true", help="Don't insert into DB")
     start_parser.add_argument("--foreground", "-f", action="store_true", help="Run in foreground")
 
@@ -704,6 +993,9 @@ def main(argv: Optional[List[str]] = None) -> None:
             "max_entities": args.limit,
             "dry_run": args.dry_run,
         }
+        # Add section filter for mdn_webapis
+        if hasattr(args, 'section') and args.section:
+            config["section_filter"] = args.section
         job = supervisor.start_job(args.scraper_type, config)
         print(f"Created job: {job.job_id}")
 

@@ -77,6 +77,10 @@ DOCUMENTATION_COLLECTION_NAME = "Documentation"
 CODE_ENTITY_COLLECTION_NAME = "CodeEntity"
 DRUPAL_API_COLLECTION_NAME = "DrupalAPI"  # Drupal 11.x API reference collection
 
+# MDN documentation collections
+MDN_JAVASCRIPT_COLLECTION_NAME = "MDNJavaScript"
+MDN_WEBAPIS_COLLECTION_NAME = "MDNWebAPIs"
+
 # Talking head collections
 TALKING_HEAD_PROFILES_COLLECTION_NAME = "TalkingHeadProfiles"
 CONVERSATION_MEMORY_COLLECTION_NAME = "ConversationMemory"

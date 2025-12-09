@@ -16,6 +16,15 @@ const CODE_SERVICES = [
   { value: 'yue', label: 'YuE' },
 ];
 
+const MDN_SECTIONS = [
+  { value: '', label: 'All sections' },
+  { value: 'css', label: 'CSS only' },
+  { value: 'html', label: 'HTML only' },
+  { value: 'webapi', label: 'Web APIs only' },
+];
+
+type IngestionType = 'documentation' | 'code' | 'drupal' | 'mdn_javascript' | 'mdn_webapis';
+
 export function SettingsPanel() {
   const {
     status,
@@ -28,14 +37,16 @@ export function SettingsPanel() {
   } = useIngestion();
 
   const [expanded, setExpanded] = useState(false);
-  const [selectedTypes, setSelectedTypes] = useState<Set<'documentation' | 'code' | 'drupal'>>(
+  const [selectedTypes, setSelectedTypes] = useState<Set<IngestionType>>(
     new Set(['documentation', 'code'])
   );
   const [codeService, setCodeService] = useState('all');
   const [reindex, setReindex] = useState(false);
   const [drupalLimit, setDrupalLimit] = useState<number | null>(null);
+  const [mdnLimit, setMdnLimit] = useState<number | null>(100);
+  const [mdnSection, setMdnSection] = useState<string>('');
 
-  const handleTypeToggle = useCallback((type: 'documentation' | 'code' | 'drupal') => {
+  const handleTypeToggle = useCallback((type: IngestionType) => {
     setSelectedTypes(prev => {
       const next = new Set(prev);
       if (next.has(type)) {
@@ -50,15 +61,18 @@ export function SettingsPanel() {
   const handleStart = useCallback(async () => {
     if (selectedTypes.size === 0) return;
 
+    const hasMdn = selectedTypes.has('mdn_javascript') || selectedTypes.has('mdn_webapis');
     const request: IngestionRequest = {
       types: Array.from(selectedTypes),
       reindex,
       code_service: codeService,
       drupal_limit: selectedTypes.has('drupal') ? drupalLimit : undefined,
+      mdn_limit: hasMdn ? mdnLimit : undefined,
+      mdn_section: selectedTypes.has('mdn_webapis') && mdnSection ? mdnSection : undefined,
     };
 
     await startIngestion(request);
-  }, [selectedTypes, reindex, codeService, drupalLimit, startIngestion]);
+  }, [selectedTypes, reindex, codeService, drupalLimit, mdnLimit, mdnSection, startIngestion]);
 
   const handleCancel = useCallback(async () => {
     await cancelIngestion();
@@ -72,6 +86,8 @@ export function SettingsPanel() {
   const docCount = status?.collections?.documentation?.object_count ?? 0;
   const codeCount = status?.collections?.code_entity?.object_count ?? 0;
   const drupalCount = status?.collections?.drupal_api?.object_count ?? 0;
+  const mdnJsCount = status?.collections?.mdn_javascript?.object_count ?? 0;
+  const mdnWebCount = status?.collections?.mdn_webapis?.object_count ?? 0;
 
   // Calculate progress percentage
   let progressPercent = 0;
@@ -108,6 +124,14 @@ export function SettingsPanel() {
                 <span className="stat-label">Drupal API:</span>
                 <span className="stat-value">{drupalCount.toLocaleString()} entities</span>
               </div>
+              <div className="stat-item">
+                <span className="stat-label">MDN JavaScript:</span>
+                <span className="stat-value">{mdnJsCount.toLocaleString()} docs</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">MDN Web APIs:</span>
+                <span className="stat-value">{mdnWebCount.toLocaleString()} docs</span>
+              </div>
             </div>
           </div>
 
@@ -143,6 +167,24 @@ export function SettingsPanel() {
                   disabled={isRunning}
                 />
                 Drupal API (Web Scrape)
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={selectedTypes.has('mdn_javascript')}
+                  onChange={() => handleTypeToggle('mdn_javascript')}
+                  disabled={isRunning}
+                />
+                MDN JavaScript (Web Scrape)
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={selectedTypes.has('mdn_webapis')}
+                  onChange={() => handleTypeToggle('mdn_webapis')}
+                  disabled={isRunning}
+                />
+                MDN Web APIs (CSS/HTML/WebAPI)
               </label>
             </div>
 
@@ -185,6 +227,45 @@ export function SettingsPanel() {
               </div>
             )}
 
+            {/* MDN Limit Selector */}
+            {(selectedTypes.has('mdn_javascript') || selectedTypes.has('mdn_webapis')) && (
+              <div className="service-selector">
+                <label htmlFor="mdn-limit-select">MDN document limit:</label>
+                <select
+                  id="mdn-limit-select"
+                  value={mdnLimit ?? 'unlimited'}
+                  onChange={(e) => setMdnLimit(e.target.value === 'unlimited' ? null : parseInt(e.target.value))}
+                  disabled={isRunning}
+                >
+                  <option value="50">50 documents</option>
+                  <option value="100">100 documents</option>
+                  <option value="250">250 documents</option>
+                  <option value="500">500 documents</option>
+                  <option value="unlimited">Unlimited (full scrape)</option>
+                </select>
+                <span className="help-text">Note: MDN scraping is rate-limited to respect their servers</span>
+              </div>
+            )}
+
+            {/* MDN Section Filter (for Web APIs only) */}
+            {selectedTypes.has('mdn_webapis') && (
+              <div className="service-selector">
+                <label htmlFor="mdn-section-select">MDN Web APIs section:</label>
+                <select
+                  id="mdn-section-select"
+                  value={mdnSection}
+                  onChange={(e) => setMdnSection(e.target.value)}
+                  disabled={isRunning}
+                >
+                  {MDN_SECTIONS.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Reindex Option */}
             <div className="reindex-option">
               <label className="checkbox-label warning">
@@ -221,7 +302,10 @@ export function SettingsPanel() {
                 <div className="progress-header">
                   <span className="progress-type">
                     {progress.type === 'documentation' ? 'Documentation' :
-                     progress.type === 'code' ? 'Code' : 'Drupal API'}
+                     progress.type === 'code' ? 'Code' :
+                     progress.type === 'drupal' ? 'Drupal API' :
+                     progress.type === 'mdn_javascript' ? 'MDN JavaScript' :
+                     progress.type === 'mdn_webapis' ? 'MDN Web APIs' : progress.type}
                   </span>
                   <span className="progress-phase">{progress.phase}</span>
                 </div>
@@ -281,6 +365,26 @@ export function SettingsPanel() {
                       {lastResult.stats.drupal.errors > 0 && (
                         <span className="error-count">
                           ({lastResult.stats.drupal.errors} errors)
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {lastResult.stats.mdn_javascript && (
+                    <span>
+                      MDN JS: {lastResult.stats.mdn_javascript.entities_inserted} docs
+                      {lastResult.stats.mdn_javascript.errors > 0 && (
+                        <span className="error-count">
+                          ({lastResult.stats.mdn_javascript.errors} errors)
+                        </span>
+                      )}
+                    </span>
+                  )}
+                  {lastResult.stats.mdn_webapis && (
+                    <span>
+                      MDN Web: {lastResult.stats.mdn_webapis.entities_inserted} docs
+                      {lastResult.stats.mdn_webapis.errors > 0 && (
+                        <span className="error-count">
+                          ({lastResult.stats.mdn_webapis.errors} errors)
                         </span>
                       )}
                     </span>

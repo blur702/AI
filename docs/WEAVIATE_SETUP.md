@@ -55,7 +55,7 @@ docker-compose --version
 Ollama should already be installed. Download the embedding model:
 
 ```powershell
-ollama pull nomic-embed-text
+ollama pull snowflake-arctic-embed:l
 ```
 
 Verify Ollama is running:
@@ -130,7 +130,7 @@ Add these to your `.env` file (copy from `.env.example`):
 WEAVIATE_URL=http://localhost:8080
 WEAVIATE_GRPC_HOST=localhost
 WEAVIATE_GRPC_PORT=50051
-OLLAMA_EMBEDDING_MODEL=nomic-embed-text
+OLLAMA_EMBEDDING_MODEL=snowflake-arctic-embed:l
 ```
 
 | Variable | Description | Default |
@@ -138,7 +138,7 @@ OLLAMA_EMBEDDING_MODEL=nomic-embed-text
 | `WEAVIATE_URL` | HTTP endpoint for Weaviate | `http://localhost:8080` |
 | `WEAVIATE_GRPC_HOST` | gRPC host for high-performance connections | `localhost` |
 | `WEAVIATE_GRPC_PORT` | gRPC port | `50051` |
-| `OLLAMA_EMBEDDING_MODEL` | Default embedding model | `nomic-embed-text` |
+| `OLLAMA_EMBEDDING_MODEL` | Default embedding model | `snowflake-arctic-embed:l` |
 
 ### Customizing the Embedding Model
 
@@ -155,8 +155,9 @@ To use a different embedding model:
    ```
 
 **Popular Embedding Models:**
-- `nomic-embed-text` - Good balance of speed and quality (recommended)
-- `mxbai-embed-large` - Higher quality, slower
+- `snowflake-arctic-embed:l` - State-of-the-art retrieval quality, 1024 dims (recommended)
+- `nomic-embed-text` - Good balance of speed and quality, 768 dims
+- `mxbai-embed-large` - Higher quality, slower, 1024 dims
 - `all-minilm` - Fast, smaller model
 
 ### Authentication
@@ -215,7 +216,7 @@ This allows the Weaviate container to reach Ollama running natively on the Windo
 
 1. Client sends text to Weaviate
 2. Weaviate calls Ollama via `host.docker.internal:11434`
-3. Ollama generates embedding using `nomic-embed-text`
+3. Ollama generates embedding using configured model (default: `snowflake-arctic-embed:l`)
 4. Weaviate stores the text + embedding vector
 5. Future queries use vector similarity for semantic search
 
@@ -308,7 +309,7 @@ try:
             name="TestCollection",
             vectorizer_config=Configure.Vectorizer.text2vec_ollama(
                 api_endpoint="http://host.docker.internal:11434",
-                model="nomic-embed-text"
+                model="snowflake-arctic-embed:l"
             ),
             properties=[
                 Property(name="text", data_type=DataType.TEXT),
@@ -351,7 +352,7 @@ curl -X POST http://localhost:8080/v1/schema -H "Content-Type: application/json"
   "moduleConfig": {
     "text2vec-ollama": {
       "apiEndpoint": "http://host.docker.internal:11434",
-      "model": "nomic-embed-text"
+      "model": "snowflake-arctic-embed:l"
     }
   },
   "properties": [
@@ -397,7 +398,7 @@ The API Gateway includes a standalone documentation ingestion service that:
 
 - Scans markdown files in the workspace (`docs/` and selected root `.md` files)
 - Chunks content by markdown headers for semantic coherence
-- Ingests chunks into a `Documentation` collection in Weaviate using `text2vec-ollama` with the configured embedding model (default: `nomic-embed-text`)
+- Ingests chunks into a `Documentation` collection in Weaviate using `text2vec-ollama` with the configured embedding model (default: `snowflake-arctic-embed:l`)
 
 **Service Location**
 
@@ -445,7 +446,7 @@ Use this to quickly verify that documents have been ingested.
 
 - Ensure Weaviate is running (`start_weaviate.bat` / `docker-compose up -d`)
 - Ensure Ollama is running with the configured embedding model:
-  - `ollama pull nomic-embed-text`
+  - `ollama pull snowflake-arctic-embed:l`
   - `ollama ps` / `ollama list`
 - Check `api_gateway.log` for detailed ingestion and connection logs
 
@@ -455,6 +456,70 @@ Use this to quickly verify that documents have been ingested.
 - **Python Client:** https://weaviate.io/developers/weaviate/client-libraries/python
 - **Ollama Embedding Models:** https://ollama.ai/library?category=embedding
 - **text2vec-ollama Module:** https://weaviate.io/developers/weaviate/modules/retriever-vectorizer-modules/text2vec-ollama
+
+---
+
+## Embedding Model Migration
+
+When changing embedding models (e.g., from `nomic-embed-text` to `snowflake-arctic-embed:l`), you **must re-embed the entire corpus**. Different models produce vectors with different dimensions and semantics that cannot be mixed.
+
+### Why Migration is Required
+
+| Model | Dimensions | Context |
+|-------|-----------|---------|
+| nomic-embed-text | 768 | 8192 |
+| snowflake-arctic-embed:l | 1024 | 512 |
+| mxbai-embed-large | 1024 | 512 |
+
+Vectors from different models are incompatible - you cannot query embeddings created by one model using vectors from another.
+
+### Migration Steps
+
+1. **Verify the new model is available:**
+   ```powershell
+   ollama pull snowflake-arctic-embed:l
+   ollama list
+   ```
+
+2. **Update environment configuration:**
+   ```powershell
+   # Edit .env (both root and api_gateway/.env)
+   OLLAMA_EMBEDDING_MODEL=snowflake-arctic-embed:l
+   ```
+
+3. **Check current status:**
+   ```powershell
+   python -m api_gateway.services.migrate_embeddings check
+   ```
+
+4. **Preview migration (dry run):**
+   ```powershell
+   python -m api_gateway.services.migrate_embeddings migrate --dry-run
+   ```
+
+5. **Perform full migration:**
+   ```powershell
+   python -m api_gateway.services.migrate_embeddings migrate
+   ```
+
+   This will:
+   - Delete all existing collections (Documentation, CodeEntity, DrupalAPIEntity)
+   - Re-ingest Documentation from markdown files
+   - Re-ingest CodeEntity from source code
+   - Create empty DrupalAPIEntity collection
+
+6. **Re-populate Drupal data (if needed):**
+   ```powershell
+   python -m api_gateway.services.drupal_scraper scrape
+   ```
+
+### Migration Script Reference
+
+| Command | Description |
+|---------|-------------|
+| `migrate_embeddings check` | Show configured model and collection status |
+| `migrate_embeddings migrate --dry-run` | Preview what would be deleted/re-indexed |
+| `migrate_embeddings migrate` | Perform full migration (interactive confirmation) |
 
 ---
 
