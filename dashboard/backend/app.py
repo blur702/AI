@@ -6,6 +6,7 @@ import threading
 import time
 from datetime import datetime, timedelta, timezone
 from functools import wraps
+from typing import Any, Callable
 
 from flask import Flask, jsonify, request, send_from_directory, Response
 from flask_cors import CORS
@@ -152,7 +153,7 @@ def generate_session_token(username: str, password: str) -> str | None:
     return token
 
 
-def validate_session_token(token: str) -> bool:
+def validate_session_token(token: str | None) -> bool:
     """Validate a session token and return whether it's valid.
 
     Returns True if token is valid and not expired, False otherwise.
@@ -178,7 +179,7 @@ def validate_session_token(token: str) -> bool:
         return True
 
 
-def revoke_session_token(token: str) -> bool:
+def revoke_session_token(token: str | None) -> bool:
     """Revoke a session token, removing it from storage.
 
     Returns True if token was found and revoked, False otherwise.
@@ -194,7 +195,7 @@ def revoke_session_token(token: str) -> bool:
         return False
 
 
-def authenticate():
+def authenticate() -> Response:
     """Return a 401 JSON response that prompts for Basic Auth credentials."""
     response = jsonify({"error": "Authentication required"})
     response.status_code = 401
@@ -202,10 +203,10 @@ def authenticate():
     return response
 
 
-def require_auth(f):
+def require_auth(f: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator that requires HTTP Basic Authentication for a route."""
     @wraps(f)
-    def decorated(*args, **kwargs):
+    def decorated(*args: Any, **kwargs: Any) -> Any:
         auth = request.authorization
         if not auth or not check_auth(auth.username, auth.password):
             return authenticate()
