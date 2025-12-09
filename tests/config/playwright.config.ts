@@ -49,7 +49,9 @@ export default defineConfig({
     video: 'on-first-retry',
     headless,
     // Longer action timeout for VPS (network latency)
-    actionTimeout: isVPS ? 30000 : 15000
+    actionTimeout: isVPS ? 30000 : 15000,
+    // Accept self-signed certificates for external testing
+    ignoreHTTPSErrors: true
   },
   projects: [
     {

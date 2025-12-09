@@ -1,13 +1,20 @@
 import axios from 'axios';
+import https from 'https';
 import { Page } from '@playwright/test';
 import { BaseAPIClient } from '../api-clients/BaseAPIClient';
+
+// Create HTTPS agent that allows self-signed certificates when configured
+const allowInsecure = process.env.ALLOW_INSECURE_CONNECTIONS === 'true';
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: !allowInsecure
+});
 
 /**
  * Check if a service is reachable (quick check, no retry)
  */
 export async function isServiceAvailable(url: string, timeoutMs = 3000): Promise<boolean> {
   try {
-    const response = await axios.get(url, { timeout: timeoutMs, validateStatus: () => true });
+    const response = await axios.get(url, { timeout: timeoutMs, validateStatus: () => true, httpsAgent });
     return response.status < 500;
   } catch {
     return false;
@@ -18,7 +25,7 @@ export async function waitForServiceReady(url: string, timeoutMs = 30_000): Prom
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     try {
-      const response = await axios.get(url, { timeout: 5000, validateStatus: () => true });
+      const response = await axios.get(url, { timeout: 5000, validateStatus: () => true, httpsAgent });
       if (response.status < 500) {
         return;
       }

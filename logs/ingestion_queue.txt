@@ -49,3 +49,15 @@ tests/utils/service-orchestrator.ts
 tests/utils/vps-helpers.ts
 tests/vps-runner.ts
 tests/vps-setup.ts
+CLAUDE.md
+dashboard/backend/app.py
+dashboard/backend/services_config.py
+dashboard/frontend/dist/assets/index-BOwIMgJL.js
+dashboard/frontend/dist/assets/index-CcfUfNEJ.js
+dashboard/frontend/dist/assets/index-CqBeQVtI.css
+dashboard/frontend/dist/assets/index-D9dl0_ew.css
+dashboard/frontend/src/App.tsx
+dashboard/frontend/src/config/services.ts
+dashboard/frontend/src/hooks/useSocket.ts
+nginx/README.md
+nginx/VERIFICATION.md
