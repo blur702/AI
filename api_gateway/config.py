@@ -1,3 +1,31 @@
+"""
+API Gateway Configuration Module.
+
+Centralized configuration management using environment variables with sensible
+defaults. Loads configuration from .env file and provides a Settings class
+with all configurable options.
+
+Configuration Categories:
+    - API Server: Port, CORS origins, log level
+    - PostgreSQL: Database connection settings
+    - Weaviate: Vector database connection
+    - Ollama: LLM and embedding model settings
+    - Service Endpoints: AI service URLs
+
+Environment Variables:
+    API_PORT: API gateway port (default: 1301)
+    DATABASE_URL: Full PostgreSQL URL (overrides component settings)
+    POSTGRES_HOST/PORT/USER/PASSWORD/DB: PostgreSQL components
+    WEAVIATE_URL: Weaviate HTTP endpoint
+    WEAVIATE_GRPC_PORT: Weaviate gRPC port
+    OLLAMA_API_ENDPOINT: Ollama API base URL
+    OLLAMA_EMBEDDING_MODEL: Model for embeddings
+
+Usage:
+    from api_gateway.config import settings
+    print(settings.API_PORT)
+    print(settings.WEAVIATE_URL)
+"""
 import os
 from pathlib import Path
 from typing import Dict, List

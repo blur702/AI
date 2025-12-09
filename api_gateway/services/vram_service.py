@@ -1,3 +1,9 @@
+"""
+VRAM monitoring and management service.
+
+Provides GPU status, loaded model tracking, and VRAM conflict detection
+for AI services that require GPU resources.
+"""
 import importlib.util
 from typing import Any, Dict, List
 
@@ -9,6 +15,7 @@ from ..utils.logger import logger
 
 
 def _load_vram_manager():
+    """Load the vram_manager module dynamically from configured path."""
     spec = importlib.util.spec_from_file_location(
         "vram_manager", settings.VRAM_MANAGER_PATH
     )
