@@ -509,6 +509,8 @@ export function SettingsPanel() {
                 {lastResult.stats.documentation && ` | Docs: ${lastResult.stats.documentation.chunks} chunks`}
                 {lastResult.stats.code && ` | Code: ${lastResult.stats.code.entities} entities`}
                 {lastResult.stats.drupal && ` | Drupal: ${lastResult.stats.drupal.entities_inserted} entities`}
+                {lastResult.stats.mdn_javascript && ` | MDN JS: ${lastResult.stats.mdn_javascript.entities_inserted} entities`}
+                {lastResult.stats.mdn_webapis && ` | MDN Web APIs: ${lastResult.stats.mdn_webapis.entities_inserted} entities`}
               </Typography>
             </Alert>
           )}
