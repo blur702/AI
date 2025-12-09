@@ -841,7 +841,14 @@ def pull_ollama_model(model_name):
             text=True,
         )
 
-        assert process.stdout is not None
+        if process.stdout is None:
+            logger.error("Failed to capture stdout for ollama pull")
+            socketio.emit("model_download_progress", {
+                "model_name": model_name,
+                "progress": "Failed to capture output",
+                "status": "error",
+            })
+            return
         for line in process.stdout:
             line = line.strip()
             if not line:
@@ -1780,6 +1787,12 @@ def api_claude_execute_yolo():
             "success": False,
             "error": "Field 'prompt' is required and must be a string",
         }), 400
+
+    # Audit log YOLO mode usage for security tracking
+    logger.warning(
+        "YOLO mode execution requested - prompt length: %d chars",
+        len(prompt)
+    )
 
     result = claude_manager.execute_claude(prompt, "yolo")
 
