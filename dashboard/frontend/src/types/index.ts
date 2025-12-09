@@ -80,6 +80,14 @@ export interface ModelDownloadProgress {
   status: 'downloading' | 'complete' | 'error';
 }
 
+export interface ModelLoadProgress {
+  model_name: string;
+  progress: number; // 0-100 percentage
+  status: 'loading' | 'unloading' | 'complete' | 'error';
+  action: 'load' | 'unload';
+  message?: string;
+}
+
 export interface ModelServiceInfo {
   id: string;
   name: string;

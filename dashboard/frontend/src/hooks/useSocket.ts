@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { ServiceStatus, ServiceState, ServicesResponse, ServiceStatusUpdate, ModelDownloadProgress } from '../types';
+import { ServiceStatus, ServiceState, ServicesResponse, ServiceStatusUpdate, ModelDownloadProgress, ModelLoadProgress } from '../types';
 import { getApiBase } from '../config/services';
 
 export function useSocket() {
@@ -79,6 +79,16 @@ export function useSocket() {
           console.log('Model download progress:', data);
           // Notify the useModels hook via window callback
           const updateFn = (window as unknown as { __updateModelDownloadProgress?: (p: ModelDownloadProgress) => void }).__updateModelDownloadProgress;
+          if (updateFn) {
+            updateFn(data);
+          }
+        });
+
+        // Model load/unload progress events
+        socket.on('model_load_progress', (data: ModelLoadProgress) => {
+          console.log('Model load progress:', data);
+          // Notify the useModels hook via window callback
+          const updateFn = (window as unknown as { __updateModelLoadProgress?: (p: ModelLoadProgress) => void }).__updateModelLoadProgress;
           if (updateFn) {
             updateFn(data);
           }

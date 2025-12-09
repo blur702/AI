@@ -50,6 +50,7 @@ function ModelsPage() {
     models,
     loadedModels,
     downloadingModels,
+    loadingModels,
     gpuInfo,
     loading,
     error,
@@ -149,28 +150,30 @@ function ModelsPage() {
   }, [gpuInfo, loadedModels]);
 
   // Handlers
-  const handleLoadModel = async (modelName: string) => {
-    setActionLoading(prev => ({ ...prev, [modelName]: true }));
-    const result = await loadModel(modelName);
-    setActionLoading(prev => ({ ...prev, [modelName]: false }));
+  const handleLoadModel = async (modelName: string, expectedVramMb?: number) => {
+    const result = await loadModel(modelName, expectedVramMb);
 
-    setNotification({
-      open: true,
-      message: result.success ? `Model "${modelName}" loaded successfully` : result.message,
-      severity: result.success ? 'success' : 'error',
-    });
+    if (!result.success) {
+      setNotification({
+        open: true,
+        message: result.message,
+        severity: 'error',
+      });
+    }
+    // Success notification will come when WebSocket reports completion
   };
 
-  const handleUnloadModel = async (modelName: string) => {
-    setActionLoading(prev => ({ ...prev, [modelName]: true }));
-    const result = await unloadModel(modelName);
-    setActionLoading(prev => ({ ...prev, [modelName]: false }));
+  const handleUnloadModel = async (modelName: string, expectedVramMb?: number) => {
+    const result = await unloadModel(modelName, expectedVramMb);
 
-    setNotification({
-      open: true,
-      message: result.success ? `Model "${modelName}" unloaded successfully` : result.message,
-      severity: result.success ? 'success' : 'error',
-    });
+    if (!result.success) {
+      setNotification({
+        open: true,
+        message: result.message,
+        severity: 'error',
+      });
+    }
+    // Success notification will come when WebSocket reports completion
   };
 
   const handleDownloadModel = async () => {
@@ -221,12 +224,21 @@ function ModelsPage() {
   };
 
   const getStatusColor = (model: OllamaModelDetailed) => {
+    const loadProgress = loadingModels[model.name];
+    if (loadProgress) {
+      return loadProgress.action === 'load' ? 'info' : 'warning';
+    }
     if (downloadingModels[model.name]) return 'warning';
     if (model.is_loaded) return 'success';
     return 'default';
   };
 
   const getStatusLabel = (model: OllamaModelDetailed) => {
+    const loadProgress = loadingModels[model.name];
+    if (loadProgress) {
+      const action = loadProgress.action === 'load' ? 'Loading' : 'Unloading';
+      return `${action} ${loadProgress.progress}%`;
+    }
     if (downloadingModels[model.name]) return 'Downloading';
     if (model.is_loaded) return 'Loaded';
     return 'Available';
@@ -379,7 +391,9 @@ function ModelsPage() {
                   display: 'flex',
                   flexDirection: 'column',
                   borderLeft: 4,
-                  borderColor: model.is_loaded ? 'success.main' : downloadingModels[model.name] ? 'warning.main' : 'grey.300',
+                  borderColor: loadingModels[model.name]
+                    ? (loadingModels[model.name].action === 'load' ? 'info.main' : 'warning.main')
+                    : model.is_loaded ? 'success.main' : downloadingModels[model.name] ? 'warning.main' : 'grey.300',
                   opacity: actionLoading[model.name] ? 0.7 : 1,
                   transition: 'opacity 0.2s',
                 }}
@@ -436,6 +450,24 @@ function ModelsPage() {
                     </Box>
                   )}
 
+                  {/* Load/Unload Progress */}
+                  {loadingModels[model.name] && (
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="body2" color={loadingModels[model.name].action === 'load' ? 'info.main' : 'warning.main'}>
+                        {loadingModels[model.name].action === 'load' ? 'Loading' : 'Unloading'} model...
+                      </Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={loadingModels[model.name].progress}
+                        color={loadingModels[model.name].action === 'load' ? 'info' : 'warning'}
+                        sx={{ mt: 0.5, height: 6, borderRadius: 1 }}
+                      />
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                        {loadingModels[model.name].progress}% complete
+                      </Typography>
+                    </Box>
+                  )}
+
                   {/* Expandable Description */}
                   <Box sx={{ mt: 1 }}>
                     <Button
@@ -466,8 +498,8 @@ function ModelsPage() {
                       <IconButton
                         size="small"
                         color="warning"
-                        onClick={() => handleUnloadModel(model.name)}
-                        disabled={actionLoading[model.name]}
+                        onClick={() => handleUnloadModel(model.name, model.estimated_vram_mb)}
+                        disabled={actionLoading[model.name] || !!loadingModels[model.name]}
                       >
                         <StopIcon fontSize="small" />
                       </IconButton>
@@ -477,8 +509,8 @@ function ModelsPage() {
                       <IconButton
                         size="small"
                         color="success"
-                        onClick={() => handleLoadModel(model.name)}
-                        disabled={actionLoading[model.name] || !!downloadingModels[model.name]}
+                        onClick={() => handleLoadModel(model.name, model.estimated_vram_mb)}
+                        disabled={actionLoading[model.name] || !!downloadingModels[model.name] || !!loadingModels[model.name]}
                       >
                         <PlayArrowIcon fontSize="small" />
                       </IconButton>
@@ -493,7 +525,7 @@ function ModelsPage() {
                         setModelToRemove(model.name);
                         setRemoveDialogOpen(true);
                       }}
-                      disabled={actionLoading[model.name] || model.is_loaded}
+                      disabled={actionLoading[model.name] || model.is_loaded || !!loadingModels[model.name]}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
