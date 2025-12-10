@@ -47,6 +47,7 @@ from api_gateway.services.scraping_lib_scrapers import (
     BeautifulSoupDocScraper,
     ScrapyDocScraper,
 )
+from api_gateway.services.vscode_docs_scraper import VSCodeDocScraper
 
 logger = get_logger(__name__)
 
@@ -66,6 +67,8 @@ ALL_SCRAPERS = {
     # Web scraping
     "beautifulsoup": BeautifulSoupDocScraper,
     "scrapy": ScrapyDocScraper,
+    # IDEs/Editors
+    "vscode": VSCodeDocScraper,
 }
 
 # Grouped by category for display
@@ -74,6 +77,7 @@ SCRAPER_CATEGORIES = {
     "Web Frameworks": ["django", "flask", "fastapi"],
     "Image Processing": ["pillow", "opencv"],
     "Web Scraping": ["beautifulsoup", "scrapy"],
+    "IDEs/Editors": ["vscode"],
 }
 
 

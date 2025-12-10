@@ -130,3 +130,6 @@ OPENCV_DOCS_COLLECTION_NAME = "OpenCVDocs"
 # Web scraping library documentation collections
 BS4_DOCS_COLLECTION_NAME = "BeautifulSoupDocs"
 SCRAPY_DOCS_COLLECTION_NAME = "ScrapyDocs"
+
+# IDE/Editor documentation collections
+VSCODE_DOCS_COLLECTION_NAME = "VSCodeDocs"
