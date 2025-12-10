@@ -238,8 +238,9 @@ N8N provides workflow automation for connecting services and automating tasks.
 
 **Credentials:**
 
-- Email: `admin@local.host`
-- Password: `admin123`
+- Email: Set via `N8N_EMAIL` environment variable (default: `admin@local.host`)
+- Password: Set via `N8N_BASIC_AUTH_PASSWORD` environment variable
+- ⚠️ **IMPORTANT**: Change default credentials immediately after first login
 
 **API Key Location:**
 
