@@ -228,7 +228,7 @@ class TensorFlowDocScraper(BaseDocScraper):
             section=section,
             package="tensorflow",
             version="latest",
-            breadcrumb=breadcrumb or f"TensorFlow > {module_name}" if module_name else "TensorFlow",
+            breadcrumb=breadcrumb or (f"TensorFlow > {module_name}" if module_name else "TensorFlow"),
             code_examples=code_examples,
         )
 
@@ -327,34 +327,35 @@ def main():
     args = parser.parse_args()
 
     if args.command == "scrape":
-        config = ScraperConfig(max_pages=args.limit) if args.limit > 0 else None
-        scraper = TensorFlowDocScraper(config=config)
+        scraper = TensorFlowDocScraper()
+        if args.limit > 0:
+            scraper.config.max_pages = args.limit
         stats = scraper.scrape(
             resume=not args.no_resume,
             dry_run=args.dry_run,
         )
-        print("\nScrape Statistics:")
+        logger.info("Scrape Statistics:")
         for key, value in stats.items():
-            print(f"  {key}: {value}")
+            logger.info("  %s: %s", key, value)
 
     elif args.command == "status":
         with WeaviateConnection() as client:
             if not client.collections.exists(TENSORFLOW_DOCS_COLLECTION):
-                print(f"Collection '{TENSORFLOW_DOCS_COLLECTION}' does not exist")
+                logger.error("Collection '%s' does not exist", TENSORFLOW_DOCS_COLLECTION)
                 sys.exit(1)
 
             collection = client.collections.get(TENSORFLOW_DOCS_COLLECTION)
             response = collection.aggregate.over_all(total_count=True)
-            print(f"Collection: {TENSORFLOW_DOCS_COLLECTION}")
-            print(f"Total documents: {response.total_count}")
+            logger.info("Collection: %s", TENSORFLOW_DOCS_COLLECTION)
+            logger.info("Total documents: %d", response.total_count)
 
     elif args.command == "clean":
         with WeaviateConnection() as client:
             if client.collections.exists(TENSORFLOW_DOCS_COLLECTION):
                 client.collections.delete(TENSORFLOW_DOCS_COLLECTION)
-                print(f"Deleted collection: {TENSORFLOW_DOCS_COLLECTION}")
+                logger.info("Deleted collection: %s", TENSORFLOW_DOCS_COLLECTION)
             else:
-                print(f"Collection '{TENSORFLOW_DOCS_COLLECTION}' does not exist")
+                logger.info("Collection '%s' does not exist", TENSORFLOW_DOCS_COLLECTION)
 
 
 if __name__ == "__main__":

@@ -26,7 +26,6 @@ import time
 from datetime import datetime
 
 from api_gateway.services.weaviate_connection import WeaviateConnection
-from api_gateway.services.base_doc_scraper import ScraperConfig
 from api_gateway.utils.logger import get_logger
 
 # Import all scrapers
@@ -83,18 +82,21 @@ SCRAPER_CATEGORIES = {
 def run_scraper(
     name: str,
     scraper_class,
-    config: ScraperConfig,
+    max_pages: int = 0,
     resume: bool = True,
     dry_run: bool = False,
 ) -> dict:
     """Run a single scraper and return stats."""
-    print(f"\n{'='*60}")
-    print(f"  Scraping: {name.upper()}")
-    print(f"  Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"{'='*60}")
+    logger.info("=" * 60)
+    logger.info("  Scraping: %s", name.upper())
+    logger.info("  Started: %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    logger.info("=" * 60)
 
     start_time = time.time()
-    scraper = scraper_class(config=config)
+    # Create scraper with its own defaults, then override max_pages if needed
+    scraper = scraper_class()
+    if max_pages > 0:
+        scraper.config.max_pages = max_pages
 
     try:
         stats = scraper.scrape(resume=resume, dry_run=dry_run)
@@ -103,17 +105,17 @@ def run_scraper(
         stats["elapsed_seconds"] = round(elapsed, 1)
         stats["status"] = "success"
 
-        print(f"\n  Completed in {elapsed:.1f}s")
-        print(f"  Pages scraped: {stats.get('pages_scraped', 0)}")
-        print(f"  Pages skipped: {stats.get('pages_skipped', 0)}")
-        print(f"  Pages failed: {stats.get('pages_failed', 0)}")
+        logger.info("  Completed in %.1fs", elapsed)
+        logger.info("  Pages scraped: %d", stats.get("pages_scraped", 0))
+        logger.info("  Pages skipped: %d", stats.get("pages_skipped", 0))
+        logger.info("  Pages failed: %d", stats.get("pages_failed", 0))
 
         return stats
 
     except Exception as e:
         elapsed = time.time() - start_time
         logger.error("Scraper %s failed: %s", name, e)
-        print(f"\n  FAILED after {elapsed:.1f}s: {e}")
+        logger.error("  FAILED after %.1fs: %s", elapsed, e)
         return {
             "status": "failed",
             "error": str(e),
@@ -127,7 +129,8 @@ def get_all_status() -> dict:
 
     with WeaviateConnection() as client:
         for name, scraper_class in ALL_SCRAPERS.items():
-            scraper = scraper_class(ScraperConfig())
+            # Create scraper with defaults to get collection_name
+            scraper = scraper_class()
             collection_name = scraper.collection_name
 
             if client.collections.exists(collection_name):
@@ -152,45 +155,46 @@ def print_status():
     """Print status of all collections in a formatted table."""
     status = get_all_status()
 
-    print("\n" + "="*60)
-    print("  DOCUMENTATION COLLECTIONS STATUS")
-    print("="*60)
+    logger.info("=" * 60)
+    logger.info("  DOCUMENTATION COLLECTIONS STATUS")
+    logger.info("=" * 60)
 
     total_docs = 0
 
     for category, scrapers in SCRAPER_CATEGORIES.items():
-        print(f"\n  {category}:")
+        logger.info("  %s:", category)
         for name in scrapers:
             info = status.get(name, {})
             count = info.get("count", 0)
             exists = info.get("exists", False)
 
             if exists:
-                print(f"    {name:15} {count:>6} docs")
+                logger.info("    %s %6d docs", name.ljust(15), count)
                 total_docs += count
             else:
-                print(f"    {name:15} {'(not created)':>12}")
+                logger.info("    %s %s", name.ljust(15), "(not created)")
 
-    print(f"\n  {'TOTAL':15} {total_docs:>6} docs")
-    print("="*60)
+    logger.info("  %s %6d docs", "TOTAL".ljust(15), total_docs)
+    logger.info("=" * 60)
 
 
 def clean_all():
     """Delete all collections."""
-    print("\nDeleting all documentation collections...")
+    logger.info("Deleting all documentation collections...")
 
     with WeaviateConnection() as client:
         for name, scraper_class in ALL_SCRAPERS.items():
-            scraper = scraper_class(ScraperConfig())
+            # Create scraper with defaults to get collection_name
+            scraper = scraper_class()
             collection_name = scraper.collection_name
 
             if client.collections.exists(collection_name):
                 client.collections.delete(collection_name)
-                print(f"  Deleted: {collection_name}")
+                logger.info("  Deleted: %s", collection_name)
             else:
-                print(f"  Skipped: {collection_name} (does not exist)")
+                logger.info("  Skipped: %s (does not exist)", collection_name)
 
-    print("\nDone!")
+    logger.info("Done!")
 
 
 def main():
@@ -259,29 +263,26 @@ Examples:
         if confirm.lower() == "yes":
             clean_all()
         else:
-            print("Cancelled.")
+            logger.info("Cancelled.")
 
     elif args.command == "list":
-        print("\nAvailable scrapers:")
+        logger.info("Available scrapers:")
         for category, scrapers in SCRAPER_CATEGORIES.items():
-            print(f"\n  {category}:")
+            logger.info("  %s:", category)
             for name in scrapers:
-                print(f"    - {name}")
+                logger.info("    - %s", name)
 
     elif args.command == "scrape":
         # Determine which scrapers to run
         scrapers_to_run = args.scrapers or list(ALL_SCRAPERS.keys())
 
-        print(f"\n{'#'*60}")
-        print("  DOCUMENTATION SCRAPER RUNNER")
-        print(f"  Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"  Scrapers: {', '.join(scrapers_to_run)}")
-        print(f"  Limit: {args.limit or 'unlimited'}")
-        print(f"  Dry run: {args.dry_run}")
-        print(f"{'#'*60}")
-
-        # Build config
-        config = ScraperConfig(max_pages=args.limit) if args.limit > 0 else None
+        logger.info("#" * 60)
+        logger.info("  DOCUMENTATION SCRAPER RUNNER")
+        logger.info("  Started: %s", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        logger.info("  Scrapers: %s", ", ".join(scrapers_to_run))
+        logger.info("  Limit: %s", args.limit or "unlimited")
+        logger.info("  Dry run: %s", args.dry_run)
+        logger.info("#" * 60)
 
         # Run scrapers
         all_stats = {}
@@ -292,7 +293,7 @@ Examples:
             stats = run_scraper(
                 name=name,
                 scraper_class=scraper_class,
-                config=config or ScraperConfig(),
+                max_pages=args.limit,
                 resume=not args.no_resume,
                 dry_run=args.dry_run,
             )
@@ -300,12 +301,12 @@ Examples:
 
         total_elapsed = time.time() - total_start
 
-        # Print summary
-        print(f"\n{'#'*60}")
-        print("  FINAL SUMMARY")
-        print(f"{'#'*60}")
-        print(f"\n  Total time: {total_elapsed:.1f}s")
-        print("\n  Results:")
+        # Log summary
+        logger.info("#" * 60)
+        logger.info("  FINAL SUMMARY")
+        logger.info("#" * 60)
+        logger.info("  Total time: %.1fs", total_elapsed)
+        logger.info("  Results:")
 
         total_scraped = 0
         total_failed = 0
@@ -315,15 +316,15 @@ Examples:
             elapsed = stats.get("elapsed_seconds", 0)
 
             if status == "success":
-                print(f"    {name:15} SUCCESS  {scraped:>5} pages  ({elapsed:.1f}s)")
+                logger.info("    %s SUCCESS  %5d pages  (%.1fs)", name.ljust(15), scraped, elapsed)
                 total_scraped += scraped
             else:
-                print(f"    {name:15} FAILED   {stats.get('error', 'unknown')[:30]}")
+                logger.info("    %s FAILED   %s", name.ljust(15), stats.get("error", "unknown")[:30])
                 total_failed += 1
 
-        print(f"\n  Total pages scraped: {total_scraped}")
+        logger.info("  Total pages scraped: %d", total_scraped)
         if total_failed > 0:
-            print(f"  Scrapers failed: {total_failed}")
+            logger.info("  Scrapers failed: %d", total_failed)
 
         # Show final status
         if not args.dry_run:

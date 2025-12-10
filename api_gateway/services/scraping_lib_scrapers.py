@@ -314,38 +314,41 @@ def main():
 
     if args.command == "scrape":
         for name, scraper_class in scrapers_to_run:
-            print(f"\n{'='*50}")
-            print(f"Scraping {name} documentation...")
-            print(f"{'='*50}")
+            logger.info("=" * 50)
+            logger.info("Scraping %s documentation...", name)
+            logger.info("=" * 50)
 
-            config = ScraperConfig(max_pages=args.limit) if args.limit > 0 else None
-            scraper = scraper_class(config=config)
+            scraper = scraper_class()
+            if args.limit > 0:
+                scraper.config.max_pages = args.limit
             stats = scraper.scrape(resume=not args.no_resume, dry_run=args.dry_run)
 
-            print(f"\n{name.title()} Statistics:")
+            logger.info("%s Statistics:", name.title())
             for key, value in stats.items():
-                print(f"  {key}: {value}")
+                logger.info("  %s: %s", key, value)
 
     elif args.command == "status":
         with WeaviateConnection() as client:
             for name, scraper_class in scrapers_to_run:
-                collection_name = scraper_class(ScraperConfig()).collection_name
+                scraper = scraper_class()
+                collection_name = scraper.collection_name
                 if client.collections.exists(collection_name):
                     collection = client.collections.get(collection_name)
                     response = collection.aggregate.over_all(total_count=True)
-                    print(f"{name}: {response.total_count} documents")
+                    logger.info("%s: %d documents", name, response.total_count)
                 else:
-                    print(f"{name}: Collection does not exist")
+                    logger.info("%s: Collection does not exist", name)
 
     elif args.command == "clean":
         with WeaviateConnection() as client:
             for name, scraper_class in scrapers_to_run:
-                collection_name = scraper_class(ScraperConfig()).collection_name
+                scraper = scraper_class()
+                collection_name = scraper.collection_name
                 if client.collections.exists(collection_name):
                     client.collections.delete(collection_name)
-                    print(f"Deleted {name} collection")
+                    logger.info("Deleted %s collection", name)
                 else:
-                    print(f"{name} collection does not exist")
+                    logger.info("%s collection does not exist", name)
 
 
 if __name__ == "__main__":

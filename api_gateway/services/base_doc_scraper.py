@@ -38,7 +38,10 @@ from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    import weaviate
 from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
@@ -196,7 +199,7 @@ class BaseDocScraper(ABC):
         pass
 
     @abstractmethod
-    def create_collection(self, client) -> None:
+    def create_collection(self, client: "weaviate.WeaviateClient") -> None:
         """Create Weaviate collection if it doesn't exist."""
         pass
 
@@ -251,7 +254,7 @@ class BaseDocScraper(ABC):
         base_delay = random.uniform(self.config.min_delay, self.config.max_delay)
         # Add small jitter (up to 20% variation)
         jitter = base_delay * random.uniform(-0.2, 0.2)
-        return max(0.5, base_delay + jitter)
+        return max(self.config.min_delay, base_delay + jitter)
 
     def _get_batch_pause(self) -> float:
         """Get randomized batch pause duration."""
@@ -558,9 +561,13 @@ class BaseDocScraper(ABC):
                             embedding_text = page.get_embedding_text()
                             vector = get_embedding(embedding_text)
 
-                            # Check if exists
-                            existing = collection.query.fetch_object_by_id(uuid)
-                            if existing:
+                            # Check if exists (may raise exception if not found)
+                            try:
+                                existing = collection.query.fetch_object_by_id(uuid)
+                            except Exception:
+                                existing = None
+
+                            if existing is not None:
                                 collection.data.update(
                                     uuid=uuid,
                                     properties=page.to_properties(),

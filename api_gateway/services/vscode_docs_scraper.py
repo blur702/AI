@@ -278,7 +278,7 @@ class VSCodeDocScraper(BaseDocScraper):
             section=section,
             package="vscode",
             version="latest",
-            breadcrumb=breadcrumb or f"VS Code > {category}" if category else "VS Code",
+            breadcrumb=breadcrumb or (f"VS Code > {category}" if category else "VS Code"),
             code_examples=code_examples,
         )
 
@@ -377,34 +377,35 @@ def main():
     args = parser.parse_args()
 
     if args.command == "scrape":
-        config = ScraperConfig(max_pages=args.limit) if args.limit > 0 else None
-        scraper = VSCodeDocScraper(config=config)
+        scraper = VSCodeDocScraper()
+        if args.limit > 0:
+            scraper.config.max_pages = args.limit
         stats = scraper.scrape(
             resume=not args.no_resume,
             dry_run=args.dry_run,
         )
-        print("\nScrape Statistics:")
+        logger.info("Scrape Statistics:")
         for key, value in stats.items():
-            print(f"  {key}: {value}")
+            logger.info("  %s: %s", key, value)
 
     elif args.command == "status":
         with WeaviateConnection() as client:
             if not client.collections.exists(VSCODE_DOCS_COLLECTION):
-                print(f"Collection '{VSCODE_DOCS_COLLECTION}' does not exist")
+                logger.error("Collection '%s' does not exist", VSCODE_DOCS_COLLECTION)
                 sys.exit(1)
 
             collection = client.collections.get(VSCODE_DOCS_COLLECTION)
             response = collection.aggregate.over_all(total_count=True)
-            print(f"Collection: {VSCODE_DOCS_COLLECTION}")
-            print(f"Total documents: {response.total_count}")
+            logger.info("Collection: %s", VSCODE_DOCS_COLLECTION)
+            logger.info("Total documents: %d", response.total_count)
 
     elif args.command == "clean":
         with WeaviateConnection() as client:
             if client.collections.exists(VSCODE_DOCS_COLLECTION):
                 client.collections.delete(VSCODE_DOCS_COLLECTION)
-                print(f"Deleted collection: {VSCODE_DOCS_COLLECTION}")
+                logger.info("Deleted collection: %s", VSCODE_DOCS_COLLECTION)
             else:
-                print(f"Collection '{VSCODE_DOCS_COLLECTION}' does not exist")
+                logger.info("Collection '%s' does not exist", VSCODE_DOCS_COLLECTION)
 
 
 if __name__ == "__main__":
