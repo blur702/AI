@@ -611,23 +611,25 @@ def scrape_mdn_webapis(
         if progress_callback:
             try:
                 progress_callback(phase, current, total, message)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Progress callback failed: %s", exc)
 
     def is_cancelled() -> bool:
         if check_cancelled:
             try:
                 return check_cancelled()
-            except Exception:
+            except Exception as exc:
+                logger.debug("Check cancelled callback failed: %s", exc)
                 return False
         return False
 
     def is_paused() -> bool:
-        """Check if paused and wait. Returns True if cancelled during wait."""
+        """Check if scraping should abort due to an external pause/cancel signal."""
         if check_paused:
             try:
                 return check_paused()
-            except Exception:
+            except Exception as exc:
+                logger.debug("Check paused callback failed: %s", exc)
                 return False
         return False
 
