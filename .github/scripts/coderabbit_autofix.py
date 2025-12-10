@@ -57,6 +57,7 @@ class GitHubAPI:
         self.token = token
         self.repo = repo
         self.base_url = "https://api.github.com"
+        self.headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github.v3+json",
             "X-GitHub-Api-Version": "2022-11-28",
@@ -75,7 +76,7 @@ class GitHubAPI:
                 if response.status_code in (500, 502, 503, 504):
                     response.raise_for_status() # Raise to trigger retry
                 return response
-            except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
+            except (requests.exceptions.RequestException, requests.exceptions.HTTPError):
                 if attempt == retries - 1:
                     raise
                 time.sleep(2 ** attempt) # Exponential backoff
@@ -88,11 +89,9 @@ class GitHubAPI:
         page = 1
 
         while True:
-            response = requests.get(
+            response = self._get_with_retry(
                 url,
-                headers=self.headers,
                 params={"per_page": 100, "page": page},
-                timeout=30,
             )
             response.raise_for_status()
             reviews = response.json()
