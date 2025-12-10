@@ -62,8 +62,8 @@ SearchResult = Dict[str, Any]
 SearchResponse = Union[List[SearchResult], Dict[str, str]]
 
 # Valid entity types for code search filtering
-VALID_ENTITY_TYPES = {"function", "method", "class", "variable", "interface", "type", "style", "animation"}
-VALID_LANGUAGES = {"python", "typescript", "javascript", "css"}
+VALID_ENTITY_TYPES = {"function", "method", "class", "variable", "interface", "type", "style", "animation", "struct", "trait", "enum", "impl", "constant", "static"}
+VALID_LANGUAGES = {"python", "typescript", "javascript", "css", "rust"}
 
 
 def _get_embedding(text: str) -> List[float]:
