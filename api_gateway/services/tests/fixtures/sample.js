@@ -4,6 +4,8 @@
  * This module contains various JavaScript constructs to test the parser's
  * ability to extract functions, classes, and variables from plain JS.
  */
+/* eslint-env node, browser */
+/* eslint-disable no-console */
 
 const EventEmitter = require("events");
 
@@ -22,7 +24,7 @@ const MAX_RETRIES = 3;
 /**
  * Service status values.
  */
-var ServiceStatus = {
+const ServiceStatus = {
   IDLE: "idle",
   RUNNING: "running",
   STOPPED: "stopped",
