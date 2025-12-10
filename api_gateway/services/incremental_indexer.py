@@ -205,7 +205,7 @@ def index_doc_file(
 
                 # Generate UUID from file path + section title
                 uuid_str = f"{file_path}:{chunk.title}"
-                uuid_hash = hashlib.md5(uuid_str.encode()).hexdigest()
+                uuid_hash = str(uuid_module.UUID(hashlib.md5(uuid_str.encode()).hexdigest()))
 
                 properties = {
                     "title": chunk.title,
