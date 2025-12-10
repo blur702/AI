@@ -76,6 +76,7 @@ def _build_python_path(venv_dir: str, script_name: str | None = None) -> list[st
 SERVICES: dict[str, dict[str, Any]] = {
     "alltalk": {
         "name": "AllTalk TTS",
+        "section": "Music",
         "port": 7851,
         "icon": "🗣️",
         "description": "Text-to-Speech synthesis",
@@ -87,6 +88,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "comfyui": {
         "name": "ComfyUI",
+        "section": "Image",
         "port": 8188,
         "icon": "🎨",
         "description": "Image generation workflows",
@@ -98,6 +100,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "wan2gp": {
         "name": "Wan2GP Video",
+        "section": "Image",
         "port": 7860,
         "icon": "🎬",
         "description": "Video generation",
@@ -109,6 +112,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "yue": {
         "name": "YuE Music",
+        "section": "Music",
         "port": 7870,
         "icon": "🎵",
         "description": "AI music generation",
@@ -120,6 +124,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "diffrhythm": {
         "name": "DiffRhythm",
+        "section": "Music",
         "port": 7871,
         "icon": "🥁",
         "description": "Rhythm-based music generation",
@@ -131,6 +136,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "musicgen": {
         "name": "MusicGen",
+        "section": "Music",
         "port": 7872,
         "icon": "🎹",
         "description": "Meta's music generation model",
@@ -146,6 +152,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "stable_audio": {
         "name": "Stable Audio",
+        "section": "Music",
         "port": 7873,
         "icon": "🔊",
         "description": "Stability AI audio generation",
@@ -157,6 +164,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "openwebui": {
         "name": "Open WebUI",
+        "section": "Main",
         "port": 3000,
         "icon": "💬",
         "description": "LLM chat interface",
@@ -169,6 +177,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "n8n": {
         "name": "N8N",
+        "section": "Main",
         "port": 5678,
         "icon": "🔄",
         "description": "Workflow automation",
@@ -181,6 +190,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "ollama": {
         "name": "Ollama",
+        "section": "Main",
         "port": 11434,
         "icon": "🦙",
         "description": "Local LLM API",
@@ -194,6 +204,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "weaviate": {
         "name": "Weaviate Console",
+        "section": "Main",
         "port": 8081,
         "icon": "🧠",
         "description": "Vector database explorer for RAG and memory",
@@ -202,10 +213,11 @@ SERVICES: dict[str, dict[str, Any]] = {
         "health_endpoint": "/",
         "startup_timeout": 60,
         "gradio": False,
-        "external": True,  # Docker container
+        "external": False,  # Managed via docker-compose from dashboard
     },
     "a1111": {
         "name": "A1111 WebUI",
+        "section": "Image",
         "port": 7861,
         "icon": "🖼️",
         "description": "AUTOMATIC1111 Stable Diffusion Web UI",
@@ -219,6 +231,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "forge": {
         "name": "SD Forge",
+        "section": "Image",
         "port": 7862,
         "icon": "⚒️",
         "description": "Stable Diffusion WebUI Forge",
@@ -232,6 +245,7 @@ SERVICES: dict[str, dict[str, Any]] = {
     },
     "fooocus": {
         "name": "Fooocus",
+        "section": "Image",
         "port": 7865,
         "icon": "🎯",
         "description": "Simplified Stable Diffusion interface",

@@ -372,44 +372,23 @@ def run_command(command: list[str]) -> tuple[bool, str, str]:
 
 
 def get_gpu_info() -> dict[str, Any] | None:
-    """Get GPU memory information using nvidia-smi.
+    """Get GPU memory information using nvidia-smi (multi-GPU via XML).
 
-    Reuses logic from vram_manager.get_gpu_info().
+    Reuses logic from vram_manager.get_gpu_info(), which now uses
+    ``nvidia-smi -q -x`` and reports per-GPU details plus an aggregate summary.
+    Callers that previously relied on single-GPU keys (total_mb, used_mb, etc.)
+    can continue to do so via the aggregate compatibility fields.
 
     Returns:
         Dictionary with GPU info (name, total_mb, used_mb, free_mb, utilization) or None on error
     """
     try:
-        success, stdout, stderr = run_command(
-            [
-                "nvidia-smi",
-                "--query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu",
-                "--format=csv,noheader,nounits",
-            ]
-        )
-        if not success:
-            if stderr:
-                logger.error("Error getting GPU info: %s", stderr.strip())
-            return None
+        from vram_manager import get_gpu_info as vm_get_gpu_info
 
-        line = stdout.strip()
-        if not line:
+        info = vm_get_gpu_info()
+        if not info:
             return None
-
-        parts = line.split(", ")
-        if len(parts) < 5:
-            return None
-
-        return {
-            "name": parts[0],
-            "total_mb": int(parts[1]),
-            "used_mb": int(parts[2]),
-            "free_mb": int(parts[3]),
-            "utilization": int(parts[4]),
-        }
-    except (ValueError, IndexError) as exc:
-        logger.error("Error parsing GPU info: %s", exc)
-        return None
+        return info
     except Exception as exc:
         logger.error("Error getting GPU info: %s", exc)
         return None
