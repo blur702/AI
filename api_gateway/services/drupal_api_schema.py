@@ -241,10 +241,10 @@ def create_drupal_api_collection(
 
     Args:
         client: Connected Weaviate client
-        force_reindex: If True, delete existing collection before creating
+        force_reindex: If True, delete existing collection before creating (default: False)
 
     Raises:
-        weaviate.exceptions.WeaviateBaseError: If collection creation fails
+        WeaviateBaseError: If collection creation fails
     """
     exists = client.collections.exists(DRUPAL_API_COLLECTION_NAME)
 

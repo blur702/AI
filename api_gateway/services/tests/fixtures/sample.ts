@@ -4,9 +4,10 @@
  * This module contains various TypeScript constructs to test the parser's
  * ability to extract interfaces, types, classes, functions, and variables.
  */
+/* eslint-env browser */
+/* global fetch, RequestInit, setTimeout */
 
 import { EventEmitter } from "events";
-import type { IncomingMessage } from "http";
 
 /**
  * Configuration options for services.
@@ -53,6 +54,7 @@ export type EventCallback<T = void> = (event: T) => void;
 export const DEFAULT_TIMEOUT = 30000;
 
 /** Maximum retry attempts */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const MAX_RETRIES = 3;
 
 /**

@@ -9,28 +9,45 @@ REM Use environment variables if set, otherwise use defaults relative to script 
 if "%PYTHON_EXE%"=="" set PYTHON_EXE=python
 
 REM Check for required environment variables
+REM If not set, try to load from .env file in dashboard\backend
 if "%DASHBOARD_AUTH_USERNAME%"=="" (
-    echo ERROR: DASHBOARD_AUTH_USERNAME environment variable is not set.
-    echo Please set DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD before starting.
+    set ENV_FILE=%SCRIPT_DIR%dashboard\backend\.env
+    if exist "%SCRIPT_DIR%dashboard\backend\.env" (
+        echo Loading credentials from .env file...
+        for /f "usebackq tokens=1,* delims==" %%a in ("%SCRIPT_DIR%dashboard\backend\.env") do (
+            if "%%a"=="DASHBOARD_AUTH_USERNAME" set DASHBOARD_AUTH_USERNAME=%%b
+            if "%%a"=="DASHBOARD_AUTH_PASSWORD" set DASHBOARD_AUTH_PASSWORD=%%b
+        )
+    )
+)
+
+REM Final check - if still not set, show error
+if "%DASHBOARD_AUTH_USERNAME%"=="" (
+    echo ERROR: DASHBOARD_AUTH_USERNAME not found in environment or .env file.
+    echo Please set DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD.
     echo.
-    echo Example:
+    echo Option 1 - Environment variables:
     echo   set DASHBOARD_AUTH_USERNAME=admin
     echo   set DASHBOARD_AUTH_PASSWORD=yourpassword
     echo.
-    echo Or create a .env file in dashboard\backend directory.
+    echo Option 2 - Create .env file in dashboard\backend:
+    echo   DASHBOARD_AUTH_USERNAME=admin
+    echo   DASHBOARD_AUTH_PASSWORD=yourpassword
     pause
     exit /b 1
 )
 
 if "%DASHBOARD_AUTH_PASSWORD%"=="" (
-    echo ERROR: DASHBOARD_AUTH_PASSWORD environment variable is not set.
-    echo Please set DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD before starting.
+    echo ERROR: DASHBOARD_AUTH_PASSWORD not found in environment or .env file.
+    echo Please set DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD.
     echo.
-    echo Example:
+    echo Option 1 - Environment variables:
     echo   set DASHBOARD_AUTH_USERNAME=admin
     echo   set DASHBOARD_AUTH_PASSWORD=yourpassword
     echo.
-    echo Or create a .env file in dashboard\backend directory.
+    echo Option 2 - Create .env file in dashboard\backend:
+    echo   DASHBOARD_AUTH_USERNAME=admin
+    echo   DASHBOARD_AUTH_PASSWORD=yourpassword
     pause
     exit /b 1
 )

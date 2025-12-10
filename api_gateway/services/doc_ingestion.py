@@ -36,7 +36,15 @@ logger = get_logger("api_gateway.doc_ingestion")
 
 
 def get_doc_text_for_embedding(chunk: "DocChunk") -> str:
-    """Build text representation for embedding computation."""
+    """
+    Build text representation for embedding computation.
+
+    Args:
+        chunk: DocChunk object containing title and content
+
+    Returns:
+        Concatenated string of title and content (first 1000 chars) for embedding
+    """
     parts = []
     if chunk.title:
         parts.append(chunk.title)
@@ -47,12 +55,27 @@ def get_doc_text_for_embedding(chunk: "DocChunk") -> str:
 
 @dataclass
 class DocChunk:
+  """
+  Represents a chunk of documentation text.
+
+  Attributes:
+      title: Section heading or filename if no headers
+      content: The text content of this section
+      file_path: Workspace-relative file path
+      section: Header level (h1, h2, etc.) or h0 for no header
+  """
   title: str
   content: str
   file_path: str
   section: str
 
   def to_properties(self) -> Dict[str, str]:
+    """
+    Convert chunk to Weaviate property dictionary.
+
+    Returns:
+        Dictionary with title, content, file_path, and section keys
+    """
     return {
       "title": self.title,
       "content": self.content,
@@ -157,6 +180,15 @@ def scan_markdown_files(include_service_readmes: bool = True) -> List[Path]:
 
 
 def _relative_to_workspace(path: Path) -> str:
+  """
+  Convert absolute path to path relative to workspace root.
+
+  Args:
+      path: Absolute file path
+
+  Returns:
+      Relative path string, or absolute path if not within workspace
+  """
   workspace_root = Path(__file__).resolve().parents[2]
   try:
     return str(path.resolve().relative_to(workspace_root))
@@ -167,6 +199,17 @@ def _relative_to_workspace(path: Path) -> str:
 def chunk_by_headers(file_path: Path) -> List[DocChunk]:
   """
   Chunk a markdown file by header hierarchy.
+
+  Splits markdown files into semantic chunks at header boundaries while
+  preserving code blocks. Each chunk contains content between consecutive
+  headers.
+
+  Args:
+      file_path: Path to markdown file to chunk
+
+  Returns:
+      List of DocChunk objects, one per header section. If no headers exist,
+      returns single chunk with entire file content.
 
   Each chunk contains:
     - title: header text (or filename if no headers)
@@ -184,6 +227,7 @@ def chunk_by_headers(file_path: Path) -> List[DocChunk]:
   in_code_block = False
 
   def flush_chunk() -> None:
+    """Finalize current chunk and append to chunks list if non-empty."""
     nonlocal current_title, current_level, current_content
     if current_title is None and not current_content:
       return
@@ -250,7 +294,18 @@ def create_documentation_collection(
   """
   Create (or recreate) the Documentation collection.
 
-  When `force_reindex` is True, deletes any existing collection first.
+  Sets up the Weaviate collection schema with manual vectorization (no
+  text2vec-ollama) to avoid connection issues. Uses COSINE distance metric.
+
+  Args:
+      client: Connected Weaviate client
+      force_reindex: If True, deletes any existing collection first
+
+  Collection schema:
+      - title (TEXT): Section heading
+      - content (TEXT): Section text
+      - file_path (TEXT): Workspace-relative path
+      - section (TEXT): Header level (h1, h2, etc.)
   """
   exists = client.collections.exists(DOCUMENTATION_COLLECTION_NAME)
   if exists and force_reindex:
@@ -283,6 +338,16 @@ def create_documentation_collection(
 
 
 def _batched(iterable: Iterable[DocChunk], batch_size: int) -> Iterable[List[DocChunk]]:
+  """
+  Yield successive batches from an iterable.
+
+  Args:
+      iterable: Iterable of DocChunk objects
+      batch_size: Maximum number of items per batch
+
+  Yields:
+      Lists of up to batch_size items
+  """
   batch: List[DocChunk] = []
   for item in iterable:
     batch.append(item)
@@ -332,6 +397,7 @@ def ingest_documentation(
   cancelled = False
 
   def emit_progress(phase: str, current: int, total: int, message: str) -> None:
+    """Call progress_callback if provided, suppressing any errors."""
     if progress_callback:
       try:
         progress_callback(phase, current, total, message)
@@ -339,6 +405,7 @@ def ingest_documentation(
         pass  # Don't let callback errors stop ingestion
 
   def is_cancelled() -> bool:
+    """Check if operation should be cancelled, suppressing callback errors."""
     if check_cancelled:
       try:
         return check_cancelled()
@@ -347,7 +414,12 @@ def ingest_documentation(
     return False
 
   def is_paused() -> bool:
-    """Check if paused and wait. Returns True if cancelled during wait."""
+    """
+    Check if paused and wait. Returns True if cancelled during wait.
+
+    Returns:
+        True if operation was cancelled during pause, False otherwise
+    """
     if check_paused:
       try:
         return check_paused()
@@ -358,6 +430,12 @@ def ingest_documentation(
   emit_progress("scanning", 0, total_files, f"Found {total_files} markdown files")
 
   def chunk_stream() -> Iterable[DocChunk]:
+    """
+    Stream DocChunks from all markdown files, respecting cancel/pause callbacks.
+
+    Yields:
+        DocChunk objects for each section of each file
+    """
     nonlocal processed_files, total_chunks, errors, cancelled
     for idx, path in enumerate(files):
       if is_cancelled():
@@ -487,8 +565,13 @@ def collection_status(client: weaviate.WeaviateClient) -> Dict[str, int]:
 
 
 def _configure_logging(verbose: bool) -> None:
+  """
+  Configure logging level based on verbosity flag.
+
+  Args:
+      verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+  """
   if verbose:
-    logging.getLogger().setLevel(logging.DEBUG)
     logger.setLevel(logging.DEBUG)
   else:
     # Respect LOG_LEVEL from settings for the module logger
@@ -497,6 +580,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+  """
+  CLI entry point for documentation ingestion.
+
+  Args:
+      argv: Optional command line arguments (for testing)
+
+  Raises:
+      SystemExit: On command failure
+  """
   parser = argparse.ArgumentParser(
     description="Documentation ingestion service for Weaviate.",
   )

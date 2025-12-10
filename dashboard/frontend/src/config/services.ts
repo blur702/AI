@@ -1,6 +1,6 @@
 import { ServiceConfig } from '../types';
 
-export const SERVICES_CONFIG: ServiceConfig[] = [
+export const SERVICES_CONFIG: readonly ServiceConfig[] = [
   {
     id: 'openwebui',
     name: 'Open WebUI',

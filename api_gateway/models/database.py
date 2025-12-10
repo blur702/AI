@@ -1,17 +1,19 @@
+"""
+Database models and connection setup for API Gateway.
+
+Defines SQLAlchemy ORM models for:
+    - Job: Async job tracking for generation tasks
+    - APIKey: API key authentication and tracking
+    - Todo: Task management for LLM use
+    - Error: Error tracking and monitoring
+
+Uses PostgreSQL with asyncpg driver for async operations.
+"""
 import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    Integer,
-    JSON,
-    String,
-    Text,
-)
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, String, Text, text
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
@@ -22,6 +24,16 @@ Base = declarative_base()
 
 
 class JobStatus(str, enum.Enum):
+    """
+    Status values for async job tracking.
+
+    Attributes:
+        pending: Job created but not yet started
+        running: Job currently executing
+        completed: Job finished successfully
+        failed: Job encountered an error and could not complete
+    """
+
     pending = "pending"
     running = "running"
     completed = "completed"
@@ -29,12 +41,31 @@ class JobStatus(str, enum.Enum):
 
 
 class TodoStatus(str, enum.Enum):
+    """
+    Status values for task management.
+
+    Attributes:
+        pending: Task not yet started
+        in_progress: Task currently being worked on
+        completed: Task finished
+    """
+
     pending = "pending"
     in_progress = "in_progress"
     completed = "completed"
 
 
 class ErrorSeverity(str, enum.Enum):
+    """
+    Severity levels for error tracking.
+
+    Attributes:
+        info: Informational message, not an error
+        warning: Warning condition that should be reviewed
+        error: Error condition that prevented an operation from completing
+        critical: Critical failure requiring immediate attention
+    """
+
     info = "info"
     warning = "warning"
     error = "error"
@@ -42,6 +73,25 @@ class ErrorSeverity(str, enum.Enum):
 
 
 class Job(Base):
+    """
+    Async job tracking for long-running generation tasks.
+
+    Tracks status, input parameters, results, and errors for async operations
+    like image/video/audio generation. Used by API Gateway to manage background
+    tasks and provide polling endpoints for clients.
+
+    Attributes:
+        id: UUID primary key
+        service: Service name (e.g., "comfyui", "stable_audio")
+        status: Current job status (pending/running/completed/failed)
+        request_data: Original request parameters as JSON
+        result: Job output data as JSON (e.g., file paths, URLs)
+        error: Error message if job failed
+        created_at: Timestamp when job was created
+        updated_at: Timestamp when job was last updated
+        timeout_seconds: Maximum execution time before job is considered failed
+    """
+
     __tablename__ = "jobs"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -58,6 +108,20 @@ class Job(Base):
 
 
 class APIKey(Base):
+    """
+    API key authentication and usage tracking.
+
+    Stores API keys for client authentication. Keys are indexed for fast lookup
+    during authentication middleware processing.
+
+    Attributes:
+        key: API key string (primary key, indexed)
+        name: Human-readable name for the key
+        created_at: Timestamp when key was created
+        last_used_at: Timestamp of most recent authentication
+        is_active: Whether the key is currently valid for authentication
+    """
+
     __tablename__ = "api_keys"
 
     key = Column(String, primary_key=True, index=True)
@@ -68,6 +132,25 @@ class APIKey(Base):
 
 
 class Todo(Base):
+    """
+    Task management for LLM-based todo tracking.
+
+    Provides structured storage for tasks with status, priority, and tagging.
+    Designed for LLM agents to track and manage their own work items.
+
+    Attributes:
+        id: UUID primary key
+        title: Short task description
+        description: Detailed task description
+        status: Current task status (pending/in_progress/completed)
+        priority: Task priority (0=low, higher=more urgent)
+        due_date: Optional deadline
+        tags: Array of tags as JSON (e.g., ["bug", "feature", "docs"])
+        created_at: Timestamp when task was created
+        updated_at: Timestamp when task was last modified
+        completed_at: Timestamp when task was marked complete
+    """
+
     __tablename__ = "todos"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
@@ -85,12 +168,34 @@ class Todo(Base):
 
 
 class Error(Base):
+    """
+    Error tracking and monitoring for all services.
+
+    Captures exceptions, stack traces, and contextual information for debugging.
+    Indexed by service and created_at for efficient querying. Job_id links errors
+    to specific async operations.
+
+    Attributes:
+        id: UUID primary key
+        service: Service that raised the error (indexed)
+        severity: Error severity level (info/warning/error/critical)
+        message: Error message
+        resolution: Optional human-readable explanation of how the error was fixed
+        stack_trace: Full exception traceback
+        context: Additional context as JSON (e.g., file paths, input parameters)
+        job_id: Related job ID if error occurred during async operation (indexed)
+        created_at: Timestamp when error occurred (indexed)
+        resolved: Whether the error has been addressed
+        resolved_at: Timestamp when error was marked resolved
+    """
+
     __tablename__ = "errors"
 
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     service = Column(String(100), nullable=False, index=True)
     severity = Column(Enum(ErrorSeverity), nullable=False, default=ErrorSeverity.error)
     message = Column(Text, nullable=False)
+    resolution = Column(Text, nullable=True)
     stack_trace = Column(Text, nullable=True)
     context = Column(JSON, nullable=True)
     job_id = Column(String, nullable=True, index=True)
@@ -113,6 +218,26 @@ AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
 async def init_db() -> None:
+    """
+    Initialize database schema by creating all tables.
+
+    Runs CREATE TABLE statements for all models defined in this module.
+    Safe to call multiple times (uses CREATE TABLE IF NOT EXISTS).
+    Should be called once at application startup.
+    """
     async with engine.begin() as conn:
+        # Ensure all tables exist
         await conn.run_sync(Base.metadata.create_all)
+
+        # Backwards-compatible migration for errors.resolution column.
+        # Use ADD COLUMN and ignore duplicate-column errors so this is
+        # safe to run repeatedly across SQLite and PostgreSQL.
+        try:
+            await conn.execute(
+                text("ALTER TABLE errors ADD COLUMN resolution TEXT")
+            )
+        except Exception as exc:  # noqa: BLE001
+            # If the column already exists, swallow the error; otherwise re-raise.
+            if "duplicate column name" not in str(exc).lower():
+                raise
 

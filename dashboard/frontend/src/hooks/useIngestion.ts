@@ -12,7 +12,22 @@ import {
 } from '../types';
 import { getApiBase } from '../config/services';
 
-export function useIngestion() {
+interface UseIngestionReturn {
+  status: IngestionStatus | null;
+  progress: IngestionProgress | null;
+  lastResult: IngestionComplete | null;
+  error: string | null;
+  loading: boolean;
+  startIngestion: (request: IngestionRequest) => Promise<boolean>;
+  cancelIngestion: () => Promise<boolean>;
+  pauseIngestion: () => Promise<boolean>;
+  resumeIngestion: () => Promise<boolean>;
+  cleanCollections: (request: CleanCollectionsRequest) => Promise<boolean>;
+  reindexCollections: (request: IngestionRequest) => Promise<boolean>;
+  refreshStatus: () => Promise<void>;
+}
+
+export function useIngestion(): UseIngestionReturn {
   const [status, setStatus] = useState<IngestionStatus | null>(null);
   const [progress, setProgress] = useState<IngestionProgress | null>(null);
   const [lastResult, setLastResult] = useState<IngestionComplete | null>(null);

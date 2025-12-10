@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, memo } from 'react';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -9,7 +9,7 @@ import { SettingsPanel } from '../components/SettingsPanel';
 import { useSocket } from '../hooks/useSocket';
 import { SERVICES_CONFIG, getApiBase } from '../config/services';
 
-function DashboardHome() {
+const DashboardHome = memo(function DashboardHome() {
   const { services, startService, stopService } = useSocket();
 
   const mainServices = SERVICES_CONFIG.filter(s => s.section === 'main');
@@ -123,6 +123,6 @@ function DashboardHome() {
       </Box>
     </Container>
   );
-}
+});
 
 export default DashboardHome;

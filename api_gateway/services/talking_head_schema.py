@@ -55,9 +55,15 @@ def get_profile_text_for_embedding(profile: "TalkingHeadProfile") -> str:
 
     Returns:
         Combined text for embedding
+
+    Raises:
+        ValueError: If all profile text fields are empty
     """
     parts = [profile.avatar_name, profile.personality_prompt, profile.memory_context]
-    return "\n\n".join(part for part in parts if part)
+    text = "\n\n".join(part for part in parts if part)
+    if not text:
+        raise ValueError("Cannot generate embedding: all profile text fields are empty")
+    return text
 
 
 def get_conversation_text_for_embedding(message: "ConversationMessage") -> str:
@@ -71,9 +77,15 @@ def get_conversation_text_for_embedding(message: "ConversationMessage") -> str:
 
     Returns:
         Combined text for embedding
+
+    Raises:
+        ValueError: If all conversation text fields are empty
     """
     parts = [message.user_message, message.avatar_response, message.context_summary]
-    return "\n\n".join(part for part in parts if part)
+    text = "\n\n".join(part for part in parts if part)
+    if not text:
+        raise ValueError("Cannot generate embedding: all conversation text fields are empty")
+    return text
 
 
 def get_voice_text_for_embedding(voice: "VoiceClone") -> str:
@@ -87,9 +99,15 @@ def get_voice_text_for_embedding(voice: "VoiceClone") -> str:
 
     Returns:
         Combined text for embedding
+
+    Raises:
+        ValueError: If all voice text fields are empty
     """
     parts = [voice.voice_name, voice.description]
-    return "\n\n".join(part for part in parts if part)
+    text = "\n\n".join(part for part in parts if part)
+    if not text:
+        raise ValueError("Cannot generate embedding: all voice text fields are empty")
+    return text
 
 
 # =============================================================================
@@ -125,7 +143,12 @@ class TalkingHeadProfile:
     last_used: str
 
     def to_properties(self) -> Dict[str, Any]:
-        """Convert to dictionary for Weaviate insertion."""
+        """
+        Convert to dictionary for Weaviate insertion.
+
+        Returns:
+            Dictionary with all fields formatted for Weaviate insertion
+        """
         return {
             "avatar_id": self.avatar_id,
             "avatar_name": self.avatar_name,
@@ -165,7 +188,12 @@ class ConversationMessage:
     context_summary: str
 
     def to_properties(self) -> Dict[str, Any]:
-        """Convert to dictionary for Weaviate insertion."""
+        """
+        Convert to dictionary for Weaviate insertion.
+
+        Returns:
+            Dictionary with all fields formatted for Weaviate insertion
+        """
         return {
             "conversation_id": self.conversation_id,
             "avatar_id": self.avatar_id,
@@ -202,7 +230,12 @@ class VoiceClone:
     created_at: str
 
     def to_properties(self) -> Dict[str, Any]:
-        """Convert to dictionary for Weaviate insertion."""
+        """
+        Convert to dictionary for Weaviate insertion.
+
+        Returns:
+            Dictionary with all fields formatted for Weaviate insertion
+        """
         return {
             "voice_id": self.voice_id,
             "voice_name": self.voice_name,
@@ -231,6 +264,9 @@ def create_talking_head_profiles_collection(
     Args:
         client: Connected Weaviate client
         force_reindex: If True, delete existing collection before creating
+
+    Raises:
+        WeaviateBaseError: If collection creation fails
     """
     exists = client.collections.exists(TALKING_HEAD_PROFILES_COLLECTION_NAME)
 
@@ -283,6 +319,9 @@ def create_conversation_memory_collection(
     Args:
         client: Connected Weaviate client
         force_reindex: If True, delete existing collection before creating
+
+    Raises:
+        WeaviateBaseError: If collection creation fails
     """
     exists = client.collections.exists(CONVERSATION_MEMORY_COLLECTION_NAME)
 
@@ -334,6 +373,9 @@ def create_voice_clones_collection(
     Args:
         client: Connected Weaviate client
         force_reindex: If True, delete existing collection before creating
+
+    Raises:
+        WeaviateBaseError: If collection creation fails
     """
     exists = client.collections.exists(VOICE_CLONES_COLLECTION_NAME)
 
@@ -376,7 +418,18 @@ def create_voice_clones_collection(
 
 
 def delete_talking_head_profiles_collection(client: weaviate.WeaviateClient) -> bool:
-    """Delete TalkingHeadProfiles collection if it exists."""
+    """
+    Delete TalkingHeadProfiles collection if it exists.
+
+    Args:
+        client: Connected Weaviate client
+
+    Returns:
+        True if collection was deleted, False if it didn't exist
+
+    Raises:
+        Exception: If deletion fails due to Weaviate error
+    """
     try:
         if client.collections.exists(TALKING_HEAD_PROFILES_COLLECTION_NAME):
             logger.info(
@@ -402,7 +455,18 @@ def delete_talking_head_profiles_collection(client: weaviate.WeaviateClient) -> 
 
 
 def delete_conversation_memory_collection(client: weaviate.WeaviateClient) -> bool:
-    """Delete ConversationMemory collection if it exists."""
+    """
+    Delete ConversationMemory collection if it exists.
+
+    Args:
+        client: Connected Weaviate client
+
+    Returns:
+        True if collection was deleted, False if it didn't exist
+
+    Raises:
+        Exception: If deletion fails due to Weaviate error
+    """
     try:
         if client.collections.exists(CONVERSATION_MEMORY_COLLECTION_NAME):
             logger.info(
@@ -428,7 +492,18 @@ def delete_conversation_memory_collection(client: weaviate.WeaviateClient) -> bo
 
 
 def delete_voice_clones_collection(client: weaviate.WeaviateClient) -> bool:
-    """Delete VoiceClones collection if it exists."""
+    """
+    Delete VoiceClones collection if it exists.
+
+    Args:
+        client: Connected Weaviate client
+
+    Returns:
+        True if collection was deleted, False if it didn't exist
+
+    Raises:
+        Exception: If deletion fails due to Weaviate error
+    """
     try:
         if client.collections.exists(VOICE_CLONES_COLLECTION_NAME):
             logger.info("Deleting collection '%s'", VOICE_CLONES_COLLECTION_NAME)
@@ -452,7 +527,15 @@ def delete_voice_clones_collection(client: weaviate.WeaviateClient) -> bool:
 
 
 def talking_head_profiles_collection_exists(client: weaviate.WeaviateClient) -> bool:
-    """Check if TalkingHeadProfiles collection exists."""
+    """
+    Check if TalkingHeadProfiles collection exists.
+
+    Args:
+        client: Connected Weaviate client
+
+    Returns:
+        True if collection exists, False otherwise
+    """
     exists = client.collections.exists(TALKING_HEAD_PROFILES_COLLECTION_NAME)
     logger.debug(
         "Collection '%s' exists: %s", TALKING_HEAD_PROFILES_COLLECTION_NAME, exists
@@ -461,7 +544,15 @@ def talking_head_profiles_collection_exists(client: weaviate.WeaviateClient) -> 
 
 
 def conversation_memory_collection_exists(client: weaviate.WeaviateClient) -> bool:
-    """Check if ConversationMemory collection exists."""
+    """
+    Check if ConversationMemory collection exists.
+
+    Args:
+        client: Connected Weaviate client
+
+    Returns:
+        True if collection exists, False otherwise
+    """
     exists = client.collections.exists(CONVERSATION_MEMORY_COLLECTION_NAME)
     logger.debug(
         "Collection '%s' exists: %s", CONVERSATION_MEMORY_COLLECTION_NAME, exists
@@ -470,7 +561,15 @@ def conversation_memory_collection_exists(client: weaviate.WeaviateClient) -> bo
 
 
 def voice_clones_collection_exists(client: weaviate.WeaviateClient) -> bool:
-    """Check if VoiceClones collection exists."""
+    """
+    Check if VoiceClones collection exists.
+
+    Args:
+        client: Connected Weaviate client
+
+    Returns:
+        True if collection exists, False otherwise
+    """
     exists = client.collections.exists(VOICE_CLONES_COLLECTION_NAME)
     logger.debug("Collection '%s' exists: %s", VOICE_CLONES_COLLECTION_NAME, exists)
     return exists
@@ -485,10 +584,17 @@ def get_talking_head_profiles_stats(client: weaviate.WeaviateClient) -> Dict[str
     """
     Get statistics for TalkingHeadProfiles collection.
 
+    Args:
+        client: Connected Weaviate client
+
     Returns:
+        Dictionary with statistics:
         - exists: Whether collection exists
         - object_count: Total number of profiles
         - avatar_type_counts: Breakdown by avatar_type
+
+    Raises:
+        Exception: If stats retrieval fails
     """
     try:
         if not client.collections.exists(TALKING_HEAD_PROFILES_COLLECTION_NAME):
@@ -536,10 +642,17 @@ def get_conversation_memory_stats(client: weaviate.WeaviateClient) -> Dict[str, 
     """
     Get statistics for ConversationMemory collection.
 
+    Args:
+        client: Connected Weaviate client
+
     Returns:
+        Dictionary with statistics:
         - exists: Whether collection exists
         - object_count: Total number of messages
         - conversation_counts: Breakdown by conversation_id
+
+    Raises:
+        Exception: If stats retrieval fails
     """
     try:
         if not client.collections.exists(CONVERSATION_MEMORY_COLLECTION_NAME):
@@ -586,10 +699,17 @@ def get_voice_clones_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
     """
     Get statistics for VoiceClones collection.
 
+    Args:
+        client: Connected Weaviate client
+
     Returns:
+        Dictionary with statistics:
         - exists: Whether collection exists
         - object_count: Total number of voice profiles
         - language_counts: Breakdown by language
+
+    Raises:
+        Exception: If stats retrieval fails
     """
     try:
         if not client.collections.exists(VOICE_CLONES_COLLECTION_NAME):
@@ -656,8 +776,17 @@ def insert_talking_head_profile(
         UUID of the inserted object
 
     Raises:
+        ValueError: If required fields are empty or invalid
         Exception: If the collection doesn't exist or insertion fails
     """
+    # Validate required fields
+    if not profile.avatar_id or not profile.avatar_id.strip():
+        raise ValueError("avatar_id cannot be empty")
+    if not profile.avatar_name or not profile.avatar_name.strip():
+        raise ValueError("avatar_name cannot be empty")
+    if not profile.avatar_type or not profile.avatar_type.strip():
+        raise ValueError("avatar_type cannot be empty")
+
     collection = client.collections.get(TALKING_HEAD_PROFILES_COLLECTION_NAME)
     text = get_profile_text_for_embedding(profile)
     vector = get_embedding(text)
@@ -688,8 +817,19 @@ def insert_conversation_message(
         UUID of the inserted object
 
     Raises:
+        ValueError: If required fields are empty or invalid
         Exception: If the collection doesn't exist or insertion fails
     """
+    # Validate required fields
+    if not message.conversation_id or not message.conversation_id.strip():
+        raise ValueError("conversation_id cannot be empty")
+    if not message.avatar_id or not message.avatar_id.strip():
+        raise ValueError("avatar_id cannot be empty")
+    if not message.user_id or not message.user_id.strip():
+        raise ValueError("user_id cannot be empty")
+    if not message.timestamp or not message.timestamp.strip():
+        raise ValueError("timestamp cannot be empty")
+
     collection = client.collections.get(CONVERSATION_MEMORY_COLLECTION_NAME)
     text = get_conversation_text_for_embedding(message)
     vector = get_embedding(text)
@@ -720,8 +860,17 @@ def insert_voice_clone(
         UUID of the inserted object
 
     Raises:
+        ValueError: If required fields are empty or invalid
         Exception: If the collection doesn't exist or insertion fails
     """
+    # Validate required fields
+    if not voice.voice_id or not voice.voice_id.strip():
+        raise ValueError("voice_id cannot be empty")
+    if not voice.voice_name or not voice.voice_name.strip():
+        raise ValueError("voice_name cannot be empty")
+    if not voice.language or not voice.language.strip():
+        raise ValueError("language cannot be empty")
+
     collection = client.collections.get(VOICE_CLONES_COLLECTION_NAME)
     text = get_voice_text_for_embedding(voice)
     vector = get_embedding(text)
@@ -746,9 +895,14 @@ def create_all_talking_head_collections(
     """
     Create all three talking head collections.
 
+    Creates TalkingHeadProfiles, ConversationMemory, and VoiceClones collections.
+
     Args:
         client: Connected Weaviate client
         force_reindex: If True, delete existing collections before creating
+
+    Raises:
+        WeaviateBaseError: If any collection creation fails
     """
     logger.info(
         "Creating all talking head collections (force_reindex=%s)", force_reindex
@@ -765,8 +919,19 @@ def delete_all_talking_head_collections(
     """
     Delete all three talking head collections.
 
+    Deletes TalkingHeadProfiles, ConversationMemory, and VoiceClones collections.
+
+    Args:
+        client: Connected Weaviate client
+
     Returns:
-        Dictionary with deletion status for each collection
+        Dictionary with deletion status for each collection:
+        - profiles: True if deleted, False if didn't exist
+        - conversations: True if deleted, False if didn't exist
+        - voices: True if deleted, False if didn't exist
+
+    Raises:
+        Exception: If any deletion fails
     """
     logger.info("Deleting all talking head collections")
     results = {
@@ -782,8 +947,17 @@ def get_all_talking_head_stats(client: weaviate.WeaviateClient) -> Dict[str, Any
     """
     Get statistics for all three talking head collections.
 
+    Args:
+        client: Connected Weaviate client
+
     Returns:
-        Dictionary with stats for each collection
+        Dictionary with stats for each collection:
+        - profiles: TalkingHeadProfiles stats
+        - conversations: ConversationMemory stats
+        - voices: VoiceClones stats
+
+    Raises:
+        Exception: If stats retrieval fails for any collection
     """
     return {
         "profiles": get_talking_head_profiles_stats(client),
@@ -798,7 +972,17 @@ def get_all_talking_head_stats(client: weaviate.WeaviateClient) -> Dict[str, Any
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    """CLI interface for talking head schema management."""
+    """
+    CLI interface for talking head schema management.
+
+    Provides commands to create, delete, and get stats for talking head collections.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On command failure
+    """
     import argparse
 
     parser = argparse.ArgumentParser(
@@ -825,7 +1009,6 @@ def main(argv: Optional[List[str]] = None) -> None:
     args = parser.parse_args(argv)
 
     if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
 
     logger.info("WEAVIATE_URL=%s", settings.WEAVIATE_URL)

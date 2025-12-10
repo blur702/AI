@@ -1,9 +1,9 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, memo } from 'react';
 import { useClaude } from '../hooks/useClaude';
 import { ClaudeSession } from '../types';
 import './ClaudePanel.css';
 
-export function ClaudePanel() {
+export const ClaudePanel = memo(function ClaudePanel() {
   const {
     sessions,
     activeSessionId,
@@ -145,12 +145,10 @@ export function ClaudePanel() {
 
   return (
     <div className={`claude-panel ${expanded ? 'expanded' : 'collapsed'}`}>
-      <div
+      <button
+        type="button"
         className="claude-header"
         onClick={() => setExpanded(!expanded)}
-        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(!expanded); } }}
-        role="button"
-        tabIndex={0}
         aria-expanded={expanded}
       >
         <div className="claude-title">
@@ -161,7 +159,7 @@ export function ClaudePanel() {
           )}
         </div>
         <span className="expand-icon">{expanded ? '-' : '+'}</span>
-      </div>
+      </button>
 
       {expanded && (
         <div className="claude-content">
@@ -222,13 +220,11 @@ export function ClaudePanel() {
               ) : (
                 <>
                   {sessions.slice(0, visibleSessionCount).map((session: ClaudeSession) => (
-                    <div
+                    <button
+                      type="button"
                       key={session.session_id}
                       className={`session-item ${activeSessionId === session.session_id ? 'active' : ''} ${getStatusClass(session.status)}`}
                       onClick={() => setActiveSessionId(session.session_id)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveSessionId(session.session_id); } }}
-                      role="button"
-                      tabIndex={0}
                     >
                       <div className="session-header">
                         <span className="session-status-icon">{getStatusIcon(session.status)}</span>
@@ -246,7 +242,7 @@ export function ClaudePanel() {
                           {session.status}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                   {sessions.length > visibleSessionCount && (
                     <button
@@ -304,4 +300,4 @@ export function ClaudePanel() {
       )}
     </div>
   );
-}
+});

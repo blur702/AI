@@ -55,13 +55,13 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const serverIp = window.location.hostname || '10.0.0.138';
+  const serverIp = window.location.hostname || 'localhost';
 
-  const handleDrawerToggle = () => {
+  const handleDrawerToggle = (): void => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleNavClick = (item: NavItem) => {
+  const handleNavClick = (item: NavItem): void => {
     if (item.isSection) {
       // If we're not on the dashboard, navigate there first
       if (location.pathname !== '/') {
@@ -87,7 +87,7 @@ function App() {
     }
   };
 
-  const isActiveRoute = (item: NavItem) => {
+  const isActiveRoute = (item: NavItem): boolean => {
     if (item.isSection) return false;
     return location.pathname === item.path;
   };

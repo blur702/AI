@@ -1,39 +1,123 @@
 #!/usr/bin/env python
-"""VRAM Model Manager - Check and clear models from GPU memory"""
-import subprocess
-import json
-import sys
+"""VRAM Model Manager - Check and clear models from GPU memory."""
 import argparse
+import json
+import logging
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+from typing import Any, Dict, List, Optional, Tuple
 
-def get_gpu_info():
-    """Get GPU memory information using nvidia-smi"""
+# Configure logging for library use
+logger = logging.getLogger(__name__)
+
+def get_gpu_info() -> Optional[Dict[str, Any]]:
+    """Get GPU memory information using nvidia-smi (multi-GPU via XML).
+
+    Uses ``nvidia-smi -q -x`` and parses the XML output to support multiple GPUs.
+    Returns both per-GPU information and an aggregate summary for backwards
+    compatibility.
+
+    Returns:
+        Dict with keys:
+            - ``gpus``: list of per-GPU dicts, each containing:
+                ``index``, ``id``, ``name``, ``total_mb``, ``used_mb``,
+                ``free_mb``, ``utilization``
+            - ``aggregate``: dict with summed ``total_mb``, ``used_mb``,
+              ``free_mb`` and max ``utilization``
+            - Top-level compatibility keys: ``name``, ``total_mb``,
+              ``used_mb``, ``free_mb``, ``utilization``
+        or None if nvidia-smi fails.
+    """
     try:
         result = subprocess.run(
-            ['nvidia-smi', '--query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu',
-             '--format=csv,noheader,nounits'],
-            capture_output=True, text=True
+            ["nvidia-smi", "-q", "-x"],
+            capture_output=True,
+            text=True,
+            check=False,
         )
-        if result.returncode == 0:
-            parts = result.stdout.strip().split(', ')
-            if len(parts) >= 5:
-                return {
-                    'name': parts[0],
-                    'total_mb': int(parts[1]),
-                    'used_mb': int(parts[2]),
-                    'free_mb': int(parts[3]),
-                    'utilization': int(parts[4])
+        if result.returncode != 0 or not result.stdout:
+            return None
+
+        root = ET.fromstring(result.stdout)
+        gpus: List[Dict[str, Any]] = []
+
+        for idx, gpu in enumerate(root.findall(".//gpu")):
+            name = gpu.findtext("product_name", default="GPU")
+
+            total_str = gpu.findtext("fb_memory_usage/total") or ""
+            used_str = gpu.findtext("fb_memory_usage/used") or ""
+            free_str = gpu.findtext("fb_memory_usage/free") or ""
+
+            def _to_mb(val: str) -> int:
+                try:
+                    return int(val.split()[0])
+                except Exception:
+                    return 0
+
+            total_mb = _to_mb(total_str)
+            used_mb = _to_mb(used_str)
+            free_mb = _to_mb(free_str) if free_str else max(0, total_mb - used_mb)
+
+            util_str = gpu.findtext("utilization/gpu") or "0"
+            try:
+                utilization = int(util_str.split()[0])
+            except Exception:
+                utilization = 0
+
+            gpus.append(
+                {
+                    "index": idx,
+                    "id": gpu.get("id"),
+                    "name": name,
+                    "total_mb": total_mb,
+                    "used_mb": used_mb,
+                    "free_mb": free_mb,
+                    "utilization": utilization,
                 }
-    except Exception as e:
-        print(f"Error getting GPU info: {e}")
+            )
+
+        if not gpus:
+            return None
+
+        agg_total = sum(g["total_mb"] for g in gpus)
+        agg_used = sum(g["used_mb"] for g in gpus)
+        agg_free = sum(g["free_mb"] for g in gpus)
+        agg_util = max((g["utilization"] for g in gpus), default=0)
+
+        aggregate = {
+            "total_mb": agg_total,
+            "used_mb": agg_used,
+            "free_mb": agg_free,
+            "utilization": agg_util,
+        }
+
+        # Backwards-compatible top-level keys use aggregate values.
+        first_name = gpus[0]["name"]
+        return {
+            "gpus": gpus,
+            "aggregate": aggregate,
+            "name": first_name,
+            "total_mb": agg_total,
+            "used_mb": agg_used,
+            "free_mb": agg_free,
+            "utilization": agg_util,
+        }
+    except (subprocess.SubprocessError, OSError, ET.ParseError, ValueError) as e:
+        logger.warning("Error getting GPU info: %s", e)
     return None
 
-def get_ollama_models():
-    """Get list of models loaded in Ollama"""
+def get_ollama_models() -> List[Dict[str, str]]:
+    """Get list of models loaded in Ollama.
+
+    Returns:
+        List of dictionaries with model info (name, id, size, processor).
+    """
     try:
-        result = subprocess.run(['ollama', 'ps'], capture_output=True, text=True)
+        result = subprocess.run(['ollama', 'ps'], capture_output=True, text=True, check=False)
         if result.returncode == 0:
             lines = result.stdout.strip().split('\n')
-            models = []
+            models: List[Dict[str, str]] = []
             for line in lines[1:]:  # Skip header
                 parts = line.split()
                 if parts:
@@ -44,17 +128,21 @@ def get_ollama_models():
                         'processor': parts[3] if len(parts) > 3 else ''
                     })
             return models
-    except Exception as e:
-        print(f"Error getting Ollama models: {e}")
+    except (subprocess.SubprocessError, OSError) as e:
+        logger.warning("Error getting Ollama models: %s", e)
     return []
 
-def get_available_ollama_models():
-    """Get list of all available Ollama models"""
+def get_available_ollama_models() -> List[Dict[str, str]]:
+    """Get list of all available Ollama models.
+
+    Returns:
+        List of dictionaries with model info (name, id, size).
+    """
     try:
-        result = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
+        result = subprocess.run(['ollama', 'list'], capture_output=True, text=True, check=False)
         if result.returncode == 0:
             lines = result.stdout.strip().split('\n')
-            models = []
+            models: List[Dict[str, str]] = []
             for line in lines[1:]:  # Skip header
                 parts = line.split()
                 if parts:
@@ -64,28 +152,39 @@ def get_available_ollama_models():
                         'size': parts[2] if len(parts) > 2 else ''
                     })
             return models
-    except Exception as e:
-        print(f"Error listing Ollama models: {e}")
+    except (subprocess.SubprocessError, OSError) as e:
+        logger.warning("Error listing Ollama models: %s", e)
     return []
 
-def stop_ollama_model(model_name):
-    """Stop/unload an Ollama model from memory"""
+def stop_ollama_model(model_name: str) -> Tuple[bool, str]:
+    """Stop/unload an Ollama model from memory.
+
+    Args:
+        model_name: Name of the model to stop.
+
+    Returns:
+        Tuple of (success, error_message).
+    """
     try:
-        result = subprocess.run(['ollama', 'stop', model_name], capture_output=True, text=True)
+        result = subprocess.run(['ollama', 'stop', model_name], capture_output=True, text=True, check=False)
         return result.returncode == 0, result.stderr
-    except Exception as e:
+    except (subprocess.SubprocessError, OSError) as e:
         return False, str(e)
 
-def get_gpu_processes():
-    """Get processes using the GPU"""
+def get_gpu_processes() -> List[Dict[str, str]]:
+    """Get processes using the GPU.
+
+    Returns:
+        List of dictionaries with process info (pid, name, memory).
+    """
     try:
         result = subprocess.run(
             ['nvidia-smi', '--query-compute-apps=pid,process_name,used_memory',
              '--format=csv,noheader'],
-            capture_output=True, text=True
+            capture_output=True, text=True, check=False
         )
         if result.returncode == 0:
-            processes = []
+            processes: List[Dict[str, str]] = []
             for line in result.stdout.strip().split('\n'):
                 if line and 'Insufficient Permissions' not in line and '[N/A]' not in line:
                     parts = line.split(', ')
@@ -96,12 +195,12 @@ def get_gpu_processes():
                             'memory': parts[2].strip()
                         })
             return processes
-    except Exception as e:
-        print(f"Error getting GPU processes: {e}")
+    except (subprocess.SubprocessError, OSError) as e:
+        logger.warning("Error getting GPU processes: %s", e)
     return []
 
-def display_status():
-    """Display current VRAM and model status"""
+def display_status() -> None:
+    """Display current VRAM and model status."""
     print("\n" + "=" * 60)
     print("VRAM MODEL MANAGER")
     print("=" * 60)
@@ -141,7 +240,8 @@ def display_status():
 
     print("\n" + "=" * 60)
 
-def main():
+def main() -> None:
+    """CLI entry point for VRAM Model Manager."""
     parser = argparse.ArgumentParser(description='VRAM Model Manager')
     parser.add_argument('--status', '-s', action='store_true', help='Show status (default)')
     parser.add_argument('--stop', metavar='MODEL', help='Stop/unload an Ollama model')

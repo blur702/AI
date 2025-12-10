@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
@@ -45,7 +45,7 @@ import type { OllamaModelDetailed } from '../types';
 type FilterType = 'all' | 'loaded' | 'available' | 'downloading';
 type SortType = 'name' | 'size' | 'parameters' | 'vram';
 
-function ModelsPage() {
+const ModelsPage = memo(function ModelsPage() {
   const {
     models,
     loadedModels,
@@ -185,13 +185,14 @@ function ModelsPage() {
   const handleDownloadModel = async () => {
     if (!downloadModelName.trim()) return;
 
+    const modelName = downloadModelName.trim();
     setDownloadDialogOpen(false);
-    const result = await downloadModel(downloadModelName.trim());
+    const result = await downloadModel(modelName);
     setDownloadModelName('');
 
     setNotification({
       open: true,
-      message: result.success ? `Download started for "${downloadModelName}"` : result.message,
+      message: result.success ? `Download started for "${modelName}"` : result.message,
       severity: result.success ? 'info' : 'error',
     });
   };
@@ -199,15 +200,16 @@ function ModelsPage() {
   const handleRemoveModel = async () => {
     if (!modelToRemove) return;
 
+    const modelName = modelToRemove;
     setRemoveDialogOpen(false);
-    setActionLoading(prev => ({ ...prev, [modelToRemove]: true }));
-    const result = await removeModel(modelToRemove);
-    setActionLoading(prev => ({ ...prev, [modelToRemove]: false }));
+    setActionLoading(prev => ({ ...prev, [modelName]: true }));
+    const result = await removeModel(modelName);
+    setActionLoading(prev => ({ ...prev, [modelName]: false }));
     setModelToRemove(null);
 
     setNotification({
       open: true,
-      message: result.success ? `Model "${modelToRemove}" removed successfully` : result.message,
+      message: result.success ? `Model "${modelName}" removed successfully` : result.message,
       severity: result.success ? 'success' : 'error',
     });
   };
@@ -324,7 +326,7 @@ function ModelsPage() {
 
       {/* Error Alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => {}}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error}
         </Alert>
       )}
@@ -683,6 +685,6 @@ function ModelsPage() {
       </Snackbar>
     </Container>
   );
-}
+});
 
 export default ModelsPage;
