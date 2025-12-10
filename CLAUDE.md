@@ -1038,10 +1038,26 @@ The `master` branch is protected. **All changes must go through Pull Requests**,
 5. CodeRabbit automatically reviews
 6. Address any feedback, then merge
 
-**To bypass (emergencies only):**
-Temporarily disable via GitHub Settings > Branches > master > Edit, or use GitHub API:
+**Emergency Bypass Procedures:**
+
+There are two levels of bypass depending on the emergency:
+
+1. **Allow admin force-push (partial bypass):** Removes admin enforcement so admins can force-push, but PR requirement remains for other users:
+   ```bash
+   gh api repos/blur702/AI/branches/master/protection/enforce_admins -X DELETE
+   ```
+
+2. **Complete bypass (full protection removal):** Removes all branch protection entirely:
+   ```bash
+   gh api repos/blur702/AI/branches/master/protection -X DELETE
+   ```
+
+**After emergency, restore protection:**
 ```bash
-gh api repos/blur702/AI/branches/master/protection/enforce_admins -X DELETE
+gh api repos/blur702/AI/branches/master/protection -X PUT \
+  -H "Accept: application/vnd.github+json" \
+  -f required_pull_request_reviews='{"required_approving_review_count":0}' \
+  -f enforce_admins=true
 ```
 
 ### How CodeRabbit Review Works
