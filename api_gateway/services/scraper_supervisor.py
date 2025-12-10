@@ -343,7 +343,7 @@ def run_drupal_scraper(
                         entities_processed += 1
 
                         # Check max entities limit
-                        if scrape_config.max_entities and entities_processed >= scrape_config.max_entities:
+                        if scrape_config.max_entities and entities_processed > scrape_config.max_entities:
                             logger.info("Reached max entities limit: %d", scrape_config.max_entities)
                             break
 
@@ -383,7 +383,7 @@ def run_drupal_scraper(
                             )
 
                     # Check limit after each entity type
-                    if scrape_config.max_entities and entities_processed >= scrape_config.max_entities:
+                    if scrape_config.max_entities and entities_processed > scrape_config.max_entities:
                         break
 
         return {
@@ -485,7 +485,7 @@ def run_mdn_javascript_scraper(
                     entities_processed += 1
 
                     # Check max entities limit
-                    if scrape_config.max_entities and entities_processed >= scrape_config.max_entities:
+                    if scrape_config.max_entities and entities_processed > scrape_config.max_entities:
                         logger.info("Reached max entities limit: %d", scrape_config.max_entities)
                         break
 
@@ -629,7 +629,7 @@ def run_mdn_webapis_scraper(
                     entities_processed += 1
 
                     # Check max entities limit
-                    if scrape_config.max_entities and entities_processed >= scrape_config.max_entities:
+                    if scrape_config.max_entities and entities_processed > scrape_config.max_entities:
                         logger.info("Reached max entities limit: %d", scrape_config.max_entities)
                         break
 
@@ -677,6 +677,297 @@ def run_mdn_webapis_scraper(
 
     except Exception as e:
         logger.exception("MDN Web APIs scraper failed: %s", e)
+        checkpoint.entities_processed = entities_processed
+        checkpoint.entities_inserted = entities_inserted
+        checkpoint.errors = errors
+        checkpoint_manager.save(checkpoint)
+
+        return {
+            "success": False,
+            "error": str(e),
+            "entities_processed": entities_processed,
+            "entities_inserted": entities_inserted,
+            "errors": errors,
+        }
+
+
+@register_scraper("python_docs")
+def run_python_docs_scraper(
+    job: ScraperJob,
+    checkpoint: Optional[JobCheckpoint],
+    checkpoint_manager: CheckpointManager,
+) -> Dict[str, Any]:
+    """Run the Python documentation scraper with checkpoint support."""
+    from .python_docs_schema import create_python_docs_collection
+    from .python_docs_scraper import (
+        PythonDocsScraper,
+        ScrapeConfig,
+        PYTHON_SECTIONS,
+        PYTHON_VERSIONS,
+        get_doc_text_for_embedding,
+    )
+    from ..utils.embeddings import get_embedding
+    from .weaviate_connection import PYTHON_DOCS_COLLECTION_NAME, WeaviateConnection
+
+    config = job.config
+    scrape_config = ScrapeConfig(
+        request_delay=config.get("request_delay", 1.0),
+        batch_size=config.get("batch_size", 20),
+        batch_delay=config.get("batch_delay", 3.0),
+        max_entities=config.get("max_entities"),
+        dry_run=config.get("dry_run", False),
+    )
+
+    # Initialize checkpoint if resuming
+    if checkpoint:
+        entities_processed = checkpoint.entities_processed
+        entities_inserted = checkpoint.entities_inserted
+        errors = checkpoint.errors
+        skip_until_name: Optional[str] = (
+            checkpoint.last_entity_name if checkpoint.last_entity_name else None
+        )
+        skip_until_version: Optional[str] = None
+        skip_until_section: Optional[str] = None
+
+        if checkpoint.last_entity_type:
+            # last_entity_type may store "version:section_type" for precise resumption
+            if ":" in checkpoint.last_entity_type:
+                version_part, section_part = checkpoint.last_entity_type.split(":", 1)
+                skip_until_version = version_part or None
+                skip_until_section = section_part or None
+            else:
+                skip_until_version = checkpoint.last_entity_type
+
+        logger.info(
+            "Resuming Python docs from checkpoint: processed=%d, inserted=%d, "
+            "skip_until=%s [%s:%s]",
+            entities_processed,
+            entities_inserted,
+            skip_until_name,
+            skip_until_version,
+            skip_until_section,
+        )
+    else:
+        entities_processed = 0
+        entities_inserted = 0
+        errors = 0
+        skip_until_name = None
+        skip_until_version = None
+        skip_until_section = None
+        checkpoint = JobCheckpoint(
+            job_id=job.job_id,
+            scraper_type="python_docs",
+        )
+
+    try:
+        with WeaviateConnection() as client:
+            # Create collection if needed (won't delete existing)
+            create_python_docs_collection(client, force_reindex=False)
+            collection = client.collections.get(PYTHON_DOCS_COLLECTION_NAME)
+
+            # Get existing UUIDs and content hashes for deduplication and incremental updates
+            logger.info(
+                "Loading existing PythonDocs UUIDs and content hashes for deduplication...",
+            )
+            existing_docs: Dict[str, Optional[str]] = {}
+            try:
+                for obj in collection.iterator(include_vector=False):
+                    props = getattr(obj, "properties", None)
+                    uuid_val: Optional[str] = None
+                    content_hash: Optional[str] = None
+                    if props and isinstance(props, dict):
+                        uuid_val = props.get("uuid")
+                        content_hash = props.get("content_hash")
+                    if not uuid_val and getattr(obj, "uuid", None):
+                        uuid_val = str(obj.uuid)
+                    if uuid_val:
+                        existing_docs[uuid_val] = content_hash
+            except Exception as e:
+                logger.warning("Could not load existing UUIDs: %s", e)
+            logger.info("Found %d existing documents", len(existing_docs))
+
+            with PythonDocsScraper(config=scrape_config) as scraper:
+                for version in PYTHON_VERSIONS:
+                    # Skip entire versions until we reach resume point
+                    if skip_until_version and version != skip_until_version:
+                        logger.info(
+                            "Skipping version %s (resuming from %s)",
+                            version,
+                            skip_until_version,
+                        )
+                        continue
+
+                    for section_path, section_type in PYTHON_SECTIONS:
+                        # If resuming within a specific section, skip until we reach it
+                        if skip_until_version and version == skip_until_version:
+                            if skip_until_section and section_type != skip_until_section:
+                                logger.info(
+                                    "Skipping section %s for version %s "
+                                    "(resuming from %s:%s)",
+                                    section_type,
+                                    version,
+                                    skip_until_version,
+                                    skip_until_section,
+                                )
+                                continue
+
+                        logger.info(
+                            "Processing Python docs version=%s section=%s path=%s",
+                            version,
+                            section_type,
+                            section_path,
+                        )
+
+                        for doc in scraper.scrape_section(
+                            version, section_path, section_type
+                        ):
+                            # Skip documents until we have passed the resume point
+                            if skip_until_name:
+                                if doc.title == skip_until_name:
+                                    # Found the last processed doc; start with the next one
+                                    skip_until_name = None
+                                    skip_until_version = None
+                                    skip_until_section = None
+                                logger.debug(
+                                    "Skipping %s [%s:%s] (resuming after %s [%s])",
+                                    doc.title,
+                                    version,
+                                    section_type,
+                                    checkpoint.last_entity_name,
+                                    checkpoint.last_entity_type,
+                                )
+                                continue
+
+                            entities_processed += 1
+
+                            # Check max entities limit
+                            if (
+                                scrape_config.max_entities
+                                and entities_processed > scrape_config.max_entities
+                            ):
+                                logger.info(
+                                    "Reached max entities limit: %d",
+                                    scrape_config.max_entities,
+                                )
+                                break
+
+                            doc_uuid_str = str(doc.uuid)
+                            existing_hash = existing_docs.get(doc_uuid_str)
+
+                            # Dry-run: report what would happen without modifying Weaviate
+                            if scrape_config.dry_run:
+                                if existing_hash is None:
+                                    logger.info(
+                                        "[DRY RUN] Would insert new PythonDoc: %s (version=%s, section=%s)",
+                                        doc.title,
+                                        doc.version,
+                                        doc.section_type,
+                                    )
+                                elif existing_hash != doc.content_hash:
+                                    logger.info(
+                                        "[DRY RUN] Would update existing PythonDoc: %s (version=%s, section=%s)",
+                                        doc.title,
+                                        doc.version,
+                                        doc.section_type,
+                                    )
+                                else:
+                                    logger.info(
+                                        "[DRY RUN] Unchanged PythonDoc (skipping): %s (version=%s, section=%s)",
+                                        doc.title,
+                                        doc.version,
+                                        doc.section_type,
+                                    )
+                                continue
+
+                            # Insert or update in Weaviate
+                            try:
+                                text = get_doc_text_for_embedding(doc)
+                                vector = get_embedding(text)
+
+                                if existing_hash is None:
+                                    # New document
+                                    collection.data.insert(
+                                        doc.to_properties(),
+                                        uuid=doc.uuid,
+                                        vector=vector,
+                                    )
+                                    entities_inserted += 1
+                                    existing_docs[doc_uuid_str] = doc.content_hash
+                                elif existing_hash != doc.content_hash:
+                                    # Existing document with changed content
+                                    collection.data.update(
+                                        uuid=doc.uuid,
+                                        properties=doc.to_properties(),
+                                        vector=vector,
+                                    )
+                                    entities_inserted += 1
+                                    existing_docs[doc_uuid_str] = doc.content_hash
+                                    logger.info(
+                                        "Updated existing PythonDoc with changed content_hash: %s (version=%s, section=%s)",
+                                        doc.title,
+                                        doc.version,
+                                        doc.section_type,
+                                    )
+                                else:
+                                    # Unchanged document, skip
+                                    logger.debug(
+                                        "Skipping unchanged PythonDoc: %s (UUID: %s)",
+                                        doc.title,
+                                        doc_uuid_str,
+                                    )
+                                    continue
+
+                            except Exception as e:
+                                errors += 1
+                                logger.warning(
+                                    "Failed to insert/update %s (version=%s, section=%s): %s",
+                                    doc.title,
+                                    doc.version,
+                                    doc.section_type,
+                                    e,
+                                )
+
+                            # Update checkpoint every 10 entities
+                            if entities_processed % 10 == 0:
+                                composite_type = f"{version}:{section_type}"
+                                checkpoint.last_entity_type = composite_type
+                                checkpoint.last_entity_name = doc.title
+                                checkpoint.entities_processed = entities_processed
+                                checkpoint.entities_inserted = entities_inserted
+                                checkpoint.errors = errors
+                                checkpoint_manager.save(checkpoint)
+                                logger.info(
+                                    "Checkpoint [%s]: processed=%d, inserted=%d, errors=%d",
+                                    composite_type,
+                                    entities_processed,
+                                    entities_inserted,
+                                    errors,
+                                )
+
+                        # Check limit after each section
+                        if (
+                            scrape_config.max_entities
+                            and entities_processed > scrape_config.max_entities
+                        ):
+                            break
+
+                    # Check limit after each version
+                    if (
+                        scrape_config.max_entities
+                        and entities_processed > scrape_config.max_entities
+                    ):
+                        break
+
+        return {
+            "success": True,
+            "entities_processed": entities_processed,
+            "entities_inserted": entities_inserted,
+            "errors": errors,
+        }
+
+    except Exception as e:
+        logger.exception("Python docs scraper failed: %s", e)
+        # Save checkpoint on failure
         checkpoint.entities_processed = entities_processed
         checkpoint.entities_inserted = entities_inserted
         checkpoint.errors = errors
@@ -919,11 +1210,11 @@ def install_windows_task(interval_minutes: int = 5) -> None:
     ]
 
     try:
-        result = subprocess.run(schtasks_cmd, capture_output=True, text=True, check=True, timeout=30)
+        subprocess.run(schtasks_cmd, capture_output=True, text=True, check=True, timeout=30)
         logger.info("Scheduled task created: %s", task_name)
         print(f"Created scheduled task '{task_name}' to run every {interval_minutes} minutes")
         print(f"Command: {cmd}")
-    except subprocess.TimeoutExpired as e:
+    except subprocess.TimeoutExpired:
         logger.error("Timeout creating scheduled task after 30 seconds")
         print("Error: Task creation timed out")
         raise
@@ -949,7 +1240,7 @@ def uninstall_windows_task() -> None:
         )
         logger.info("Scheduled task removed: %s", task_name)
         print(f"Removed scheduled task '{task_name}'")
-    except subprocess.TimeoutExpired as e:
+    except subprocess.TimeoutExpired:
         logger.error("Timeout removing scheduled task after 30 seconds")
         print("Error: Task removal timed out")
         raise
@@ -1019,7 +1310,7 @@ def main(argv: Optional[List[str]] = None) -> None:
 
     elif args.command == "status":
         status = supervisor.get_status()
-        print(f"\n=== Scraper Jobs Status ===")
+        print("\n=== Scraper Jobs Status ===")
         print(f"Total: {status['summary']['total']}")
         print(f"  Running: {status['summary']['running']}")
         print(f"  Completed: {status['summary']['completed']}")
