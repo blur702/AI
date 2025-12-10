@@ -582,9 +582,9 @@ This project maintains a semantic index of documentation, code, and external API
 
 ### search_code Filters
 
-- `entity_type`: function, method, class, variable, interface, type, style, animation
+- `entity_type`: function, method, class, variable, interface, type, style, animation, struct, trait, enum, impl, constant, static
 - `service_name`: core, alltalk, audiocraft, comfyui, diffrhythm, musicgpt, stable_audio, wan2gp, yue
-- `language`: python, typescript, javascript, css
+- `language`: python, typescript, javascript, css, rust
 
 ### When to Use
 
@@ -592,6 +592,132 @@ This project maintains a semantic index of documentation, code, and external API
 2. **"How does X work?"** → `search_codebase(query="X")` (gets both docs and implementation)
 3. **"What does the README say about X?"** → `search_documentation(query="X")`
 4. **"Find all CSS for buttons"** → `search_code(query="button styles", entity_type="style")`
+5. **"Find Rust structs in MusicGPT"** → `search_code(query="audio config", language="rust", service_name="musicgpt")`
+
+### MCP Tool Reference for LLMs
+
+The MCP (Model Context Protocol) tools provide semantic search over the codebase. **Always prefer these over Glob/Grep** for understanding code.
+
+#### search_code
+
+Search for code entities (functions, classes, structs, etc.) by semantic meaning.
+
+**Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | Yes | Natural language description of what you're looking for |
+| `limit` | int | No | Max results (default: 10, max: 100) |
+| `entity_type` | string | No | Filter by type (see list below) |
+| `service_name` | string | No | Filter by service (see list below) |
+| `language` | string | No | Filter by language (see list below) |
+
+**Entity Types:**
+- **Python/TS/JS**: `function`, `method`, `class`, `variable`, `interface`, `type`
+- **CSS**: `style`, `animation`
+- **Rust**: `function`, `struct`, `trait`, `enum`, `impl`, `constant`, `static`, `type`
+
+**Services:** `core`, `alltalk`, `audiocraft`, `comfyui`, `diffrhythm`, `musicgpt`, `stable_audio`, `wan2gp`, `yue`
+
+**Languages:** `python`, `typescript`, `javascript`, `css`, `rust`
+
+**Example Queries:**
+```python
+# Find audio processing functions in MusicGPT
+search_code(query="audio generation", service_name="musicgpt")
+
+# Find all Python classes related to job management
+search_code(query="job manager", entity_type="class", language="python")
+
+# Find Rust structs for configuration
+search_code(query="config settings", entity_type="struct", language="rust")
+
+# Find CSS animations
+search_code(query="loading spinner", entity_type="animation")
+```
+
+**Return Fields:**
+- `name`: Entity name (e.g., "process_audio")
+- `full_name`: Fully qualified name (e.g., "musicgpt.backend.audio::process_audio")
+- `entity_type`: Type of entity
+- `signature`: Function/method signature
+- `file_path`: Source file with line number (e.g., "MusicGPT/src/audio.rs:42")
+- `docstring`: Documentation string
+- `source_code`: Code snippet (truncated to 500 chars)
+- `service_name`: Which service it belongs to
+
+#### search_documentation
+
+Search markdown documentation by semantic meaning.
+
+**Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | Yes | Natural language query |
+| `limit` | int | No | Max results (default: 10) |
+
+**Example Queries:**
+```python
+# Find docs about VRAM management
+search_documentation(query="GPU memory management")
+
+# Find setup instructions
+search_documentation(query="installation and configuration")
+
+# Find API documentation
+search_documentation(query="REST API endpoints")
+```
+
+**Return Fields:**
+- `title`: Section/header title
+- `content`: Section content
+- `file_path`: Source file path
+- `section`: Header level (h1, h2, etc.)
+
+#### search_codebase
+
+Combined search across both code AND documentation. Best for understanding how features work.
+
+**Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `query` | string | Yes | Natural language query |
+| `limit` | int | No | Total max results, split between docs and code (default: 10) |
+
+**Example Queries:**
+```python
+# Understand how a feature works end-to-end
+search_codebase(query="how does image generation work")
+
+# Find both implementation and docs for a concept
+search_codebase(query="WebSocket connection handling")
+```
+
+**Return Fields:**
+- `source`: "documentation" or "code"
+- Plus all fields from the respective tool above
+
+### Best Practices for LLMs
+
+1. **Start with `search_codebase`** for broad questions like "how does X work?"
+2. **Use `search_code` with filters** when you know the language or service
+3. **Use `search_documentation`** for setup/config questions
+4. **Combine with file reads**: After finding relevant entities, use `Read` tool to see full context
+5. **Filter by service** when the user mentions a specific AI service
+6. **Check Rust entities** for MusicGPT - it's primarily a Rust codebase
+
+### Example Workflow
+
+User asks: "How does MusicGPT generate audio?"
+
+```
+1. search_codebase(query="MusicGPT audio generation")
+   → Returns both docs explaining the feature AND code implementing it
+
+2. search_code(query="audio generation", service_name="musicgpt", language="rust")
+   → Returns specific Rust functions/structs
+
+3. Read the file_path returned to see full implementation context
+```
 
 ### Database Contents
 
