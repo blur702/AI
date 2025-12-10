@@ -30,9 +30,10 @@ import argparse
 import logging
 import re
 import time
+from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Generator, List, Optional, Set
+from typing import Any, Callable, Deque, Dict, Generator, List, Optional, Set
 from urllib.parse import urljoin, urlparse
 
 import httpx
@@ -501,7 +502,7 @@ class MDNWebAPIsScraper:
         logger.info("Scraping section: %s (%s)", section_path, section_type)
 
         # BFS queue
-        queue: List[str] = [start_url]
+        queue: Deque[str] = deque([start_url])
         entity_count = 0
         max_depth_entities = 500  # Safety limit per section
 
@@ -519,7 +520,7 @@ class MDNWebAPIsScraper:
                 logger.info("Reached max entities limit: %d", self.config.max_entities)
                 return
 
-            url = queue.pop(0)
+            url = queue.popleft()
             normalized_url = self._normalize_url(url)
 
             if normalized_url in self._seen_urls:
