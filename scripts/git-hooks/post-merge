@@ -1,0 +1,47 @@
+#!/bin/bash
+# Post-Merge Git Hook
+# Indexes changed files to Weaviate after a merge
+#
+# Installation:
+#   cp scripts/git-hooks/post-merge .git/hooks/
+#   chmod +x .git/hooks/post-merge
+#
+# Or use symlink:
+#   ln -sf ../../scripts/git-hooks/post-merge .git/hooks/post-merge
+
+# Get the project root
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+
+# Get files changed in the merge (comparing HEAD with HEAD@{1})
+CHANGED_FILES=$(git diff --name-only HEAD@{1} HEAD)
+
+if [ -z "$CHANGED_FILES" ]; then
+    echo "No files changed in merge, skipping indexing"
+    exit 0
+fi
+
+# Filter to indexable file types
+INDEXABLE_FILES=""
+for file in $CHANGED_FILES; do
+    case "$file" in
+        *.py|*.ts|*.tsx|*.js|*.jsx|*.css|*.md)
+            if [ -f "$PROJECT_ROOT/$file" ]; then
+                INDEXABLE_FILES="$INDEXABLE_FILES $PROJECT_ROOT/$file"
+            fi
+            ;;
+    esac
+done
+
+if [ -z "$INDEXABLE_FILES" ]; then
+    echo "No indexable files changed, skipping"
+    exit 0
+fi
+
+echo "=== Post-Merge Weaviate Indexing ==="
+echo "Files to index:$INDEXABLE_FILES"
+
+# Run the incremental indexer
+cd "$PROJECT_ROOT"
+python -m api_gateway.services.incremental_indexer --files $INDEXABLE_FILES
+
+echo "=== Indexing Complete ==="

@@ -8,6 +8,7 @@ issues are found or max iterations reached.
 """
 
 import argparse
+import logging
 import os
 import re
 import subprocess
@@ -18,6 +19,13 @@ from pathlib import Path
 from typing import Optional
 
 import requests
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -411,8 +419,8 @@ class AutoFixer:
                 check=False,
             )
             results["ruff"] = result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
-            print(f"  ruff failed: {e}")
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            logger.exception("ruff linter failed")
             results["ruff"] = False
 
         # Run black for Python formatting
@@ -425,8 +433,8 @@ class AutoFixer:
                 check=False,
             )
             results["black"] = result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
-            print(f"  black failed: {e}")
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            logger.exception("black formatter failed")
             results["black"] = False
 
         # Run isort for Python imports
@@ -439,8 +447,8 @@ class AutoFixer:
                 check=False,
             )
             results["isort"] = result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
-            print(f"  isort failed: {e}")
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            logger.exception("isort failed")
             results["isort"] = False
 
         # Run prettier for JS/TS
@@ -453,8 +461,8 @@ class AutoFixer:
                 check=False,
             )
             results["prettier"] = result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
-            print(f"  prettier failed: {e}")
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            logger.exception("prettier failed")
             results["prettier"] = False
 
         # Run ESLint fix for JS/TS
@@ -467,8 +475,8 @@ class AutoFixer:
                 check=False,
             )
             results["eslint"] = result.returncode == 0
-        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as e:
-            print(f"  eslint failed: {e}")
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            logger.exception("eslint failed")
             results["eslint"] = False
 
         return results
@@ -492,55 +500,55 @@ def run_autofix_loop(
     iteration = 0  # Initialize to handle edge case where max_iterations <= 0
 
     for iteration in range(1, max_iterations + 1):
-        print(f"\n{'='*60}")
-        print(f"Iteration {iteration}/{max_iterations}")
-        print("=" * 60)
+        logger.info("=" * 60)
+        logger.info("Iteration %d/%d", iteration, max_iterations)
+        logger.info("=" * 60)
 
         # Fetch latest comments
-        print("Fetching CodeRabbit comments...")
+        logger.info("Fetching CodeRabbit comments...")
         review_comments = github_api.get_pr_review_comments(pr_number)
         issue_comments = github_api.get_pr_issue_comments(pr_number)
 
         # Parse fixes
         fixes = parser.parse_all_comments(review_comments + issue_comments)
-        print(f"Found {len(fixes)} potential fixes")
+        logger.info("Found %d potential fixes", len(fixes))
 
         if not fixes:
-            print("No more fixes to apply")
+            logger.info("No more fixes to apply")
             break
 
         # Apply fixes
         applied_count = 0
         for fix in fixes:
-            print(f"\nApplying fix to {fix.file_path}:{fix.start_line}")
-            print(f"  Category: {fix.category}")
-            print(f"  Description: {fix.description[:80]}...")
+            logger.info("Applying fix to %s:%d", fix.file_path, fix.start_line)
+            logger.info("  Category: %s", fix.category)
+            logger.info("  Description: %s...", fix.description[:80])
 
             result = fixer.apply_fix(fix)
             all_results.append(result)
 
             if result.success:
                 applied_count += 1
-                print(f"  Result: SUCCESS - {result.message}")
+                logger.info("  Result: SUCCESS - %s", result.message)
             else:
-                print(f"  Result: SKIPPED - {result.message}")
+                logger.info("  Result: SKIPPED - %s", result.message)
 
-        print(f"\nApplied {applied_count}/{len(fixes)} fixes")
+        logger.info("Applied %d/%d fixes", applied_count, len(fixes))
 
         # Run linters to fix additional issues
-        print("\nRunning linters...")
+        logger.info("Running linters...")
         linter_results = fixer.run_linters()
         for linter, success in linter_results.items():
             status = "OK" if success else "SKIPPED"
-            print(f"  {linter}: {status}")
+            logger.info("  %s: %s", linter, status)
 
         if applied_count == 0:
-            print("No fixes applied in this iteration, stopping loop")
+            logger.info("No fixes applied in this iteration, stopping loop")
             break
 
         # Small delay before next iteration
         if iteration < max_iterations:
-            print("\nWaiting before next iteration...")
+            logger.info("Waiting before next iteration...")
             time.sleep(5)
 
     return iteration, all_results

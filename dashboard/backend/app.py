@@ -59,7 +59,7 @@ except ImportError:
     # dotenv not required if using system environment variables
     pass
 
-from service_manager import get_service_manager, ServiceStatus
+from service_manager import get_service_manager
 from services_config import SERVICES
 from ingestion_manager import get_ingestion_manager
 from claude_manager import get_claude_manager
@@ -1512,8 +1512,6 @@ def api_load_ollama_model():
                 break
 
     # Run load with progress monitoring in a background thread
-    import threading
-
     def run_load():
         load_ollama_model_with_progress(model_name, expected_vram_mb)
 
@@ -1570,8 +1568,6 @@ def api_unload_ollama_model():
                 break
 
     # Run unload with progress monitoring in a background thread
-    import threading
-
     def run_unload():
         unload_ollama_model_with_progress(model_name, expected_vram_mb)
 
