@@ -4,6 +4,8 @@ description: Specializes in CockroachDB setup, optimization, and best practices.
 model: claude-sonnet-4-20250514
 ---
 
+# Cockroachdb Expert
+
 ## Focus Areas
 
 - CockroachDB cluster setup and deployment

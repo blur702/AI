@@ -4,6 +4,8 @@ description: Expert in Prometheus for monitoring, alerting, and performance opti
 model: claude-sonnet-4-20250514
 ---
 
+# Prometheus Expert
+
 ## Focus Areas
 
 - Instrumenting code for Prometheus

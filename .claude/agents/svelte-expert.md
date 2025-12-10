@@ -4,6 +4,8 @@ description: Master Svelte.js development with a focus on building performant, m
 model: claude-sonnet-4-20250514
 ---
 
+# Svelte Expert
+
 ## Focus Areas
 
 - Deep understanding of Svelte's reactivity and component lifecycle

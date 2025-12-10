@@ -4,6 +4,8 @@ description: Expert in Neo4j graph database specializing in Cypher queries, grap
 model: claude-sonnet-4-20250514
 ---
 
+# Neo4J Expert
+
 ## Focus Areas
 - Cypher query language proficiency
 - Graph modeling best practices

@@ -4,6 +4,8 @@ description: Write efficient and idiomatic Lua code, mastering the language feat
 model: claude-sonnet-4-20250514
 ---
 
+# Lua Expert
+
 ## Focus Areas
 
 - Understanding of Lua's metatables and metamethods

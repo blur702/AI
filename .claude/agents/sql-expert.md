@@ -4,6 +4,8 @@ description: Master complex SQL queries, optimize execution plans, and ensure da
 model: claude-sonnet-4-20250514
 ---
 
+# Sql Expert
+
 ## Focus Areas
 
 - Writing complex queries utilizing CTEs and window functions.

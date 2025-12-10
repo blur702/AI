@@ -4,6 +4,8 @@ description: Master of defensive Bash scripting for production automation, CI/CD
 model: claude-sonnet-4-20250514
 ---
 
+# Bash Expert
+
 ## Focus Areas
 
 - Defensive programming with strict error handling

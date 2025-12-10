@@ -4,6 +4,8 @@ description: Expert in React Native development focusing on cross-platform mobil
 model: claude-sonnet-4-20250514
 ---
 
+# React Native Expert
+
 ## Focus Areas
 
 - Cross-platform compatibility with iOS and Android

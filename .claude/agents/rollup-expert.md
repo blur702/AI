@@ -4,6 +4,8 @@ description: Expert in Rollup.js for bundling JavaScript projects with optimal p
 model: claude-sonnet-4-20250514
 ---
 
+# Rollup Expert
+
 ## Focus Areas
 
 - Rollup configuration and setup

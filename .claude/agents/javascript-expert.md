@@ -4,6 +4,8 @@ description: Expert in modern JavaScript specializing in language features, opti
 model: claude-sonnet-4-20250514
 ---
 
+# Javascript Expert
+
 ## Focus Areas
 
 - ES6+ features (let, const, arrow functions, template literals)

@@ -4,6 +4,8 @@ description: Expert in OAuth 2.0 and OpenID Connect (OIDC) for secure authentica
 model: claude-sonnet-4-20250514
 ---
 
+# Oauth Oidc Expert
+
 ## Focus Areas
 - Understanding OAuth 2.0 and OIDC standards and specifications
 - Implementing secure authentication flows

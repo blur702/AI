@@ -4,6 +4,8 @@ description: Expert in TypeScript specializing in type safety, async patterns, a
 model: claude-sonnet-4-20250514
 ---
 
+# Typescript Expert
+
 ## Focus Areas
 
 - Strict type safety and type inference

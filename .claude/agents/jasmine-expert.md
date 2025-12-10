@@ -8,6 +8,8 @@ model: claude-sonnet-4-20250514
 
 ---
 
+# Jasmine Expert
+
 ## Focus Areas
 
 - Understanding Jasmine test suite and spec structure

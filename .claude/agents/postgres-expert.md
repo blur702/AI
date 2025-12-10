@@ -4,6 +4,8 @@ description: Expert in PostgreSQL database management and optimization, handling
 model: claude-sonnet-4-20250514
 ---
 
+# Postgres Expert
+
 ## Focus Areas
 
 - Mastery of advanced SQL queries, including CTEs and window functions

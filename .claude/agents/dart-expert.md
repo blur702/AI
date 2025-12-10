@@ -4,6 +4,8 @@ description: Write idiomatic Dart code, optimize for Dart VM, and ensure cross-p
 model: claude-sonnet-4-20250514
 ---
 
+# Dart Expert
+
 ## Focus Areas
 
 - Dart language features and syntax

@@ -4,6 +4,8 @@ description: Expert in Cypress testing framework for end-to-end testing and auto
 model: claude-sonnet-4-20250514
 ---
 
+# Cypress Expert
+
 ## Focus Areas
 
 - Setting up Cypress projects with best practices

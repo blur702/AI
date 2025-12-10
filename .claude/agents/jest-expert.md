@@ -4,6 +4,8 @@ description: Expert in testing JavaScript applications using Jest, ensuring comp
 model: claude-sonnet-4-20250514
 ---
 
+# Jest Expert
+
 ## Focus Areas
 
 - Mastering Jest matchers and assertions

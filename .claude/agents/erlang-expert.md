@@ -4,6 +4,8 @@ description: Expert in writing efficient, concurrent, and robust Erlang applicat
 model: claude-sonnet-4-20250514
 ---
 
+# Erlang Expert
+
 ## Focus Areas
 
 - Concurrent programming with processes and message passing

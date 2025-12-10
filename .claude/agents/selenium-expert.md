@@ -4,6 +4,8 @@ description: Expert in automated browser testing using Selenium. Specializes in 
 model: claude-sonnet-4-20250514
 ---
 
+# Selenium Expert
+
 ## Focus Areas
 
 - Selenium WebDriver setup and configuration

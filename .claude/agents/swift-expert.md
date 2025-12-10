@@ -4,6 +4,8 @@ description: Write efficient, idiomatic Swift code with a focus on safety, perfo
 model: claude-sonnet-4-20250514
 ---
 
+# Swift Expert
+
 ## Focus Areas
 - Advanced Swift features (Optionals, Generics, Protocols)
 - Protocol-Oriented Programming

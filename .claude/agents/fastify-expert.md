@@ -4,6 +4,8 @@ description: Expert in building high-performance Node.js applications using Fast
 model: claude-sonnet-4-20250514
 ---
 
+# Fastify Expert
+
 ## Focus Areas
 
 - Fastify routing and request handling

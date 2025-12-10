@@ -4,6 +4,8 @@ description: Expert in Android development, specializing in modern Android pract
 model: claude-sonnet-4-20250514
 ---
 
+# Android Expert
+
 ## Focus Areas
 
 - Understanding of Android SDK and its components

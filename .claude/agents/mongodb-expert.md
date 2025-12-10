@@ -4,6 +4,8 @@ description: Master MongoDB operations, schema design, performance optimization,
 model: claude-sonnet-4-20250514
 ---
 
+# Mongodb Expert
+
 ## Focus Areas
 
 - Efficient query design and optimization

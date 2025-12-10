@@ -4,6 +4,8 @@ description: Expert in automating browser interactions using Puppeteer. Handles 
 model: claude-sonnet-4-20250514
 ---
 
+# Puppeteer Expert
+
 ## Focus Areas
 - Set up and configure Puppeteer for various environments
 - Automate browser tasks using headless mode

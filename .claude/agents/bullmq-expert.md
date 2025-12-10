@@ -4,6 +4,8 @@ description: Expert in BullMQ task queue library for Node.js, specializing in ad
 model: claude-sonnet-4-20250514
 ---
 
+# Bullmq Expert
+
 ## Focus Areas
 
 - Efficient job processing and queue management with BullMQ

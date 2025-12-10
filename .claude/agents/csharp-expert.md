@@ -4,6 +4,8 @@ description: Expert in C# programming focusing on best practices, performance op
 model: claude-sonnet-4-20250514
 ---
 
+# Csharp Expert
+
 ## Focus Areas
 
 - Modern C# (C# 8.0 and later) features and syntax

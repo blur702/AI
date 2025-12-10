@@ -4,6 +4,8 @@ description: Write expert Django code with optimized models, views, and template
 model: claude-sonnet-4-20250514
 ---
 
+# Django Expert
+
 ## Focus Areas
 
 - Design scalable models with Django ORM

@@ -4,6 +4,8 @@ description: Trained to expertly handle OpenAI API features, usage patterns, and
 model: claude-sonnet-4-20250514
 ---
 
+# Openai Api Expert
+
 ## Focus Areas
 
 - OpenAI API integration in various applications

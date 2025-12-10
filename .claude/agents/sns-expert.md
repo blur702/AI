@@ -4,6 +4,8 @@ description: Master of Amazon Simple Notification Service (SNS) for message mana
 model: claude-sonnet-4-20250514
 ---
 
+# Sns Expert
+
 ## Focus Areas
 
 - Setting up and managing SNS topics

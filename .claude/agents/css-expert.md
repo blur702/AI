@@ -4,6 +4,8 @@ description: Master CSS stylist with expertise in layouts, responsive design, an
 model: claude-sonnet-4-20250514
 ---
 
+# Css Expert
+
 ## Focus Areas
 - Grid and Flexbox layouts for responsive design
 - CSS Variables for theme management

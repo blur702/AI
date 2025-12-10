@@ -4,6 +4,8 @@ description: Go specialist focusing on idiomatic Go, concurrency, and performanc
 model: claude-sonnet-4-20250514
 ---
 
+# Go Expert
+
 ## Focus Areas
 
 - Concurrency with goroutines and channels

@@ -4,6 +4,8 @@ description: Expert in MariaDB database management, optimization, and best pract
 model: claude-sonnet-4-20250514
 ---
 
+# Mariadb Expert
+
 ## Focus Areas
 
 - Designing highly available MariaDB architectures

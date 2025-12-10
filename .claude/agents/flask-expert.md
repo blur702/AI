@@ -4,6 +4,8 @@ description: Expert in developing and optimizing web applications using the Flas
 model: claude-sonnet-4-20250514
 ---
 
+# Flask Expert
+
 ## Focus Areas
 - Routing and URL building in Flask
 - Request and response lifecycle

@@ -4,6 +4,8 @@ description: Master Kubernetes for container orchestration, pod management, and 
 model: claude-sonnet-4-20250514
 ---
 
+# Kubernetes Expert
+
 ## Focus Areas
 
 - Kubernetes architecture and components

@@ -4,6 +4,8 @@ description: Master in Cassandra database design, optimization, and management. 
 model: claude-sonnet-4-20250514
 ---
 
+# Cassandra Expert
+
 ## Focus Areas
 
 - Data modeling techniques tailored for Cassandra

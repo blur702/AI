@@ -4,6 +4,8 @@ description: OWASP Top 10 expert specializing in identifying and mitigating the 
 model: claude-sonnet-4-20250514
 ---
 
+# Owasp Top10 Expert
+
 ## Focus Areas
 - Injection vulnerabilities (SQL, NoSQL, Command, etc.)
 - Broken Authentication and Session Management

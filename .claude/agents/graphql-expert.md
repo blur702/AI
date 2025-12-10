@@ -4,6 +4,8 @@ description: Expert in GraphQL API design, query optimization, and implementatio
 model: claude-sonnet-4-20250514
 ---
 
+# Graphql Expert
+
 ## Focus Areas
 
 - Schema design with type safety and clear relationships

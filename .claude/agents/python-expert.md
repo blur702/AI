@@ -4,6 +4,8 @@ description: Master advanced Python features, optimize performance, and ensure c
 model: claude-sonnet-4-20250514
 ---
 
+# Python Expert
+
 ## Focus Areas
 
 - Pythonic coding style and adherence to PEP 8

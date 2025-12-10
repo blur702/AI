@@ -4,6 +4,8 @@ description: Expertise in Mocha, the JavaScript test framework running on Node.j
 model: claude-sonnet-4-20250514
 ---
 
+# Mocha Expert
+
 ## Focus Areas
 
 - Setting up Mocha test environment

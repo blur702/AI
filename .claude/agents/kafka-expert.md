@@ -4,6 +4,8 @@ description: Write highly efficient, scalable, and fault-tolerant Kafka architec
 model: claude-sonnet-4-20250514
 ---
 
+# Kafka Expert
+
 ## Focus Areas
 
 - Kafka cluster setup and configuration

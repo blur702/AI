@@ -4,6 +4,8 @@ description: Expert in building scalable and efficient applications using the Ne
 model: claude-sonnet-4-20250514
 ---
 
+# Nestjs Expert
+
 ## Focus Areas
 
 - Dependency Injection (DI) and Inversion of Control (IoC) in NestJS

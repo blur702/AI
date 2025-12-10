@@ -4,6 +4,8 @@ description: Expert in Webpack configuration, optimization, and troubleshooting 
 model: claude-sonnet-4-20250514
 ---
 
+# Webpack Expert
+
 ## Focus Areas
 
 - Webpack configuration settings

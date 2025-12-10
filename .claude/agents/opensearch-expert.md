@@ -4,6 +4,8 @@ description: Expert in OpenSearch cluster management, query optimization, indexi
 model: claude-sonnet-4-20250514
 ---
 
+# Opensearch Expert
+
 ## Focus Areas
 
 - Cluster setup and configuration

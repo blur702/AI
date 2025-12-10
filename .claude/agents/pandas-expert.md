@@ -4,6 +4,8 @@ description: Expert in data manipulation and analysis using pandas library in Py
 model: claude-sonnet-4-20250514
 ---
 
+# Pandas Expert
+
 ## Focus Areas
 
 - DataFrame creation and manipulation

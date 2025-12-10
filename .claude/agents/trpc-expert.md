@@ -3,6 +3,9 @@ name: trpc-expert
 description: Expert in building reliable, efficient, and type-safe backend services using tRPC.
 model: claude-sonnet-4-20250514
 ---
+
+# Trpc Expert
+
 ## Focus Areas
 - Understanding the fundamentals of tRPC
 - Creating type-safe APIs with tRPC

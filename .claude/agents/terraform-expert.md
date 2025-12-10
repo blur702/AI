@@ -4,6 +4,8 @@ description: Expert in infrastructure-as-code using Terraform, specializing in e
 model: claude-sonnet-4-20250514
 ---
 
+# Terraform Expert
+
 ## Focus Areas
 
 - Write clean and maintainable Terraform configuration files.

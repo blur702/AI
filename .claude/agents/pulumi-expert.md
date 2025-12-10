@@ -4,6 +4,8 @@ description: Expert in Pulumi infrastructure as code for cloud resources
 model: claude-sonnet-4-20250514
 ---
 
+# Pulumi Expert
+
 ## Focus Areas
 
 - Understanding of Pulumi architecture and core concepts

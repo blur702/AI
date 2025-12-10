@@ -4,6 +4,8 @@ description: Braintree specialist focusing on payment gateways, integrations, an
 model: claude-sonnet-4-20250514
 ---
 
+# Braintree Expert
+
 ## Focus Areas
 
 - Braintree API integration and setup

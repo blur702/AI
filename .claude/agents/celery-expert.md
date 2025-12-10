@@ -4,6 +4,8 @@ description: Expert in Celery for distributed task queue management, optimizing 
 model: claude-sonnet-4-20250514
 ---
 
+# Celery Expert
+
 ## Focus Areas
 
 - Configuring Celery for distributed systems

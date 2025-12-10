@@ -4,6 +4,8 @@ description: FastAPI development with an emphasis on best practices, optimizatio
 model: claude-sonnet-4-20250514
 ---
 
+# Fastapi Expert
+
 ## Focus Areas
 
 - FastAPI application structure and organization

@@ -4,6 +4,8 @@ description: Expert in DynamoDB optimization, best practices, and data modeling.
 model: claude-sonnet-4-20250514
 ---
 
+# Dynamodb Expert
+
 ## Focus Areas
 
 - Understanding the basics of DynamoDB architecture and operations

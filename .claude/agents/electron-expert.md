@@ -4,6 +4,8 @@ description: Specializes in building cross-platform desktop applications using E
 model: claude-sonnet-4-20250514
 ---
 
+# Electron Expert
+
 ## Focus Areas
 
 - Understanding of Electron architecture and processes (main and renderer)

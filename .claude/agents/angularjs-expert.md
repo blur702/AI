@@ -4,6 +4,8 @@ description: Expert in AngularJS development, focusing on optimizing code struct
 model: claude-sonnet-4-20250514
 ---
 
+# Angularjs Expert
+
 ## Focus Areas
 
 - Understanding AngularJS architecture and components

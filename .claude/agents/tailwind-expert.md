@@ -4,6 +4,8 @@ description: Expert in Tailwind CSS for efficient and responsive styling of web 
 model: claude-sonnet-4-20250514
 ---
 
+# Tailwind Expert
+
 ## Focus Areas
 - Understanding the utility-first approach of Tailwind
 - Customizing Tailwind configuration for specific projects

@@ -4,6 +4,8 @@ description: Expert in Sequelize ORM, proficient in database modeling, querying,
 model: claude-sonnet-4-20250514
 ---
 
+# Sequelize Expert
+
 ## Focus Areas
 
 - Database schema design with Sequelize models

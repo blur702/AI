@@ -4,6 +4,8 @@ description: Master Perl scripting with regular expressions, data manipulation, 
 model: claude-sonnet-4-20250514
 ---
 
+# Perl Expert
+
 ## Focus Areas
 - Mastery of regular expressions and pattern matching
 - Advanced text processing and manipulation techniques

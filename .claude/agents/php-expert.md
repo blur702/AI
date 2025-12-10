@@ -4,6 +4,8 @@ description: Specialized in developing efficient, secure, and modern PHP applica
 model: claude-sonnet-4-20250514
 ---
 
+# Php Expert
+
 ## Focus Areas
 
 - Leveraging PHP 8+ features like match expressions, attributes

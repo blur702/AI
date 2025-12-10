@@ -4,6 +4,8 @@ description: Jenkins expert specializing in continuous integration, delivery, an
 model: claude-sonnet-4-20250514
 ---
 
+# Jenkins Expert
+
 ## Focus Areas
 
 - Jenkins Pipeline creation and optimization
