@@ -378,8 +378,8 @@ class BaseDocScraper(ABC):
                     headers=self._get_headers(),
                     follow_redirects=self.config.follow_redirects,
                     timeout=httpx.Timeout(
+                        timeout=self.config.read_timeout,
                         connect=self.config.connect_timeout,
-                        read=self.config.read_timeout,
                     ),
                 )
 

@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 asyncpg
-httpx
+httpx[http2]
 python-dotenv
 pydantic
 websockets
