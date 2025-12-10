@@ -4,6 +4,8 @@
  * This module contains various TypeScript constructs to test the parser's
  * ability to extract interfaces, types, classes, functions, and variables.
  */
+/* eslint-env browser */
+/* global fetch, RequestInit, setTimeout */
 
 import { EventEmitter } from "events";
 
