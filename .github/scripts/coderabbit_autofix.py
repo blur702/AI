@@ -57,11 +57,29 @@ class GitHubAPI:
         self.token = token
         self.repo = repo
         self.base_url = "https://api.github.com"
-        self.headers = {
             "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github.v3+json",
             "X-GitHub-Api-Version": "2022-11-28",
         }
+
+    def _get_with_retry(self, url: str, params: dict = None, retries: int = 3) -> requests.Response:
+        """Make a GET request with retry logic."""
+        for attempt in range(retries):
+            try:
+                response = requests.get(
+                    url,
+                    headers=self.headers,
+                    params=params,
+                    timeout=30,
+                )
+                if response.status_code in (500, 502, 503, 504):
+                    response.raise_for_status() # Raise to trigger retry
+                return response
+            except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
+                if attempt == retries - 1:
+                    raise
+                time.sleep(2 ** attempt) # Exponential backoff
+        return None # Should not be reached
 
     def get_pr_reviews(self, pr_number: int) -> list[dict]:
         """Fetch all reviews for a PR."""
@@ -92,11 +110,9 @@ class GitHubAPI:
         page = 1
 
         while True:
-            response = requests.get(
+            response = self._get_with_retry(
                 url,
-                headers=self.headers,
                 params={"per_page": 100, "page": page},
-                timeout=30,
             )
             response.raise_for_status()
             comments = response.json()
@@ -114,11 +130,9 @@ class GitHubAPI:
         page = 1
 
         while True:
-            response = requests.get(
+            response = self._get_with_retry(
                 url,
-                headers=self.headers,
                 params={"per_page": 100, "page": page},
-                timeout=30,
             )
             response.raise_for_status()
             comments = response.json()
@@ -188,10 +202,8 @@ class CodeRabbitParser:
         re.MULTILINE,
     )
 
-    # Pattern to extract file path from comment
-    # Matches file paths in backticks with file extensions
-    # Example: `path/to/file.py`
-    FILE_PATH_PATTERN = re.compile(r"`([^`]+\.[a-zA-Z]+)`")
+
+
 
     def __init__(self):
         self.fixes: list[CodeFix] = []
