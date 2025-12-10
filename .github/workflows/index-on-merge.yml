@@ -1,0 +1,63 @@
+# Index Changed Files to Weaviate on Merge
+#
+# This workflow runs on a SELF-HOSTED runner because Weaviate runs locally.
+# See docs/SETUP.md for self-hosted runner setup instructions.
+#
+# Alternative: Use the local git hook (scripts/git-hooks/post-merge)
+
+name: Index to Vector DB
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - '**.py'
+      - '**.ts'
+      - '**.tsx'
+      - '**.js'
+      - '**.jsx'
+      - '**.css'
+      - '**.md'
+
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'Space-separated list of files to index (leave empty for git diff)'
+        required: false
+        type: string
+
+jobs:
+  index:
+    runs-on: self-hosted  # MUST be self-hosted to access local Weaviate
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need previous commit for diff
+
+      - name: Get changed files
+        id: changed
+        run: |
+          if [ -n "${{ inputs.files }}" ]; then
+            echo "files=${{ inputs.files }}" >> $GITHUB_OUTPUT
+          else
+            # Get files changed in this push
+            CHANGED=$(git diff --name-only HEAD~1 HEAD | tr '\n' ' ')
+            echo "files=$CHANGED" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Index to Weaviate
+        if: steps.changed.outputs.files != ''
+        run: |
+          echo "Indexing files: ${{ steps.changed.outputs.files }}"
+          python -m api_gateway.services.incremental_indexer \
+            --files ${{ steps.changed.outputs.files }}
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Summary
+        run: |
+          echo "## Indexing Complete" >> $GITHUB_STEP_SUMMARY
+          echo "Files processed: ${{ steps.changed.outputs.files }}" >> $GITHUB_STEP_SUMMARY

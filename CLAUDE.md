@@ -8,6 +8,97 @@ This is a **local AI development workspace** featuring an integrated ecosystem o
 
 **External access**: `https://ssdd.kevinalthaus.com` (HTTPS via nginx reverse proxy)
 
+## Database Access for LLMs
+
+This project has two databases that LLMs can query for context:
+
+### Quick Reference
+
+| Database | Port | Contents | When to Use |
+|----------|------|----------|-------------|
+| **Weaviate** | 8080 | Code, docs, conversations | "How does X work?", "Find code that does Y" |
+| **PostgreSQL** | 5432 | Errors, todos, jobs | "What errors occurred?", "What tasks are pending?" |
+
+### Weaviate (Vector Search)
+
+Use for semantic search over code, documentation, and past conversations.
+
+**MCP Tools (if available):**
+```
+search_code        - Find functions, classes, methods by description
+search_documentation - Find docs by concept
+search_codebase    - Search both code and docs together
+```
+
+**CLI Commands:**
+```bash
+# Search code entities
+python -m api_gateway.services.code_ingestion search "authentication function"
+
+# Search documentation
+python -m api_gateway.services.doc_ingestion search "how to configure"
+
+# Search past Claude conversations
+python -m api_gateway.services.claude_conversation_schema search --query "error handling"
+```
+
+**Collections:**
+- `CodeEntity` - Functions, classes, methods, styles (Python/TS/JS/CSS)
+- `Documentation` - Markdown docs, READMEs
+- `ClaudeConversation` - Past Claude Code session history
+- `DrupalAPI` - Drupal 11.x API reference
+
+### PostgreSQL (Structured Data)
+
+Use for querying errors, todos, and job status.
+
+**Python Path:** `D:\AI\api_gateway\venv\Scripts\python.exe`
+
+**Error Tracking CLI:**
+```bash
+# View error statistics
+python -m api_gateway.services.error_tracker stats
+
+# List unresolved errors
+python -m api_gateway.services.error_tracker list
+
+# Find errors by file
+python -m api_gateway.services.error_tracker find --file "path/to/file.py"
+
+# Find errors by service
+python -m api_gateway.services.error_tracker find --service "api_gateway"
+
+# Store a new error
+python -m api_gateway.services.error_tracker store \
+    --service "service_name" \
+    --file "file.py" \
+    --line 42 \
+    --message "Error description" \
+    --severity error
+
+# Resolve an error with explanation
+python -m api_gateway.services.error_tracker resolve \
+    --error-id "uuid" \
+    --resolution "How it was fixed"
+```
+
+**Tables:**
+- `errors` - Lint errors, exceptions, with resolution tracking
+- `todos` - Task management with status, priority
+- `jobs` - Async job tracking for generation tasks
+- `api_keys` - API authentication
+
+### When to Query Each Database
+
+| Question Type | Database | Tool/Command |
+|---------------|----------|--------------|
+| "Where is X defined?" | Weaviate | `search_code` |
+| "How does X work?" | Weaviate | `search_codebase` |
+| "What errors have occurred?" | PostgreSQL | `error_tracker list` |
+| "Show unresolved errors for service Y" | PostgreSQL | `error_tracker find --service Y` |
+| "What did we discuss about X?" | Weaviate | `claude_conversation_schema search` |
+| "What tasks are pending?" | PostgreSQL | Query `todos` table |
+
 ## Key Commands
 
 ### Dashboard & Monitoring
@@ -428,7 +519,13 @@ dashboard/
 api_gateway/           # FastAPI unified API (port 1301)
 ├── routes/            # Endpoint handlers
 ├── services/          # Backend service clients
+│   └── incremental_indexer.py  # Post-merge Weaviate indexing
 └── models/            # Pydantic models
+
+.claude/               # Claude Code configuration
+└── hooks/             # Automation hooks
+    ├── post-edit-review.ps1    # Lint after Edit/Write
+    └── post-message-store.ps1  # Store conversations to Weaviate
 
 nginx/                 # Nginx reverse proxy configuration
 ├── nginx.conf         # Main configuration
@@ -441,7 +538,10 @@ nginx/                 # Nginx reverse proxy configuration
 scripts/               # System monitoring and automation
 ├── dashboard-monitor.ps1  # Port 80 monitor with auto-restart
 ├── setup-task.ps1         # Task Scheduler setup script
-└── disable.flag           # Create to disable monitoring (on demand)
+├── disable.flag           # Create to disable monitoring (on demand)
+└── git-hooks/             # Git hooks for automation
+    ├── post-merge         # Index changed files to Weaviate
+    └── install-hooks.bat  # Install git hooks
 
 tests/                 # Playwright test suite
 ├── fixtures/          # Base and service fixtures
@@ -529,6 +629,66 @@ python -m api_gateway.services.migrate_embeddings migrate
 ### Embedding Model
 
 The default embedding model is `snowflake-arctic-embed:l` (1024 dimensions). When changing models, ALL collections must be re-indexed since different models produce incompatible vectors.
+
+### Incremental Indexing (Post-Merge)
+
+After code is merged to master, only changed files are indexed to Weaviate (not the full codebase). This ensures the vector database stays in sync without re-indexing everything.
+
+**How It Works:**
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  1. Code written → Linters run (ruff/eslint)               │
+│  2. Code committed and pushed                               │
+│  3. PR created → CodeRabbit reviews                         │
+│  4. PR merged to master                                     │
+│  5. Post-merge hook triggers incremental indexer            │
+│  6. Only changed .py/.ts/.tsx/.js/.jsx/.css/.md indexed     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Trigger Options:**
+
+1. **GitHub Actions (self-hosted runner)**: `.github/workflows/index-on-merge.yml`
+   - Runs automatically on push to master/main
+   - Requires self-hosted runner with Weaviate access
+
+2. **Local Git Hook**: `scripts/git-hooks/post-merge`
+   - Install: `scripts\git-hooks\install-hooks.bat`
+   - Runs after every `git merge` or `git pull`
+
+**CLI Usage:**
+
+```bash
+# Index specific files
+python -m api_gateway.services.incremental_indexer --files file1.py file2.ts
+
+# Index from stdin (newline-separated paths)
+echo -e "file1.py\nfile2.ts" | python -m api_gateway.services.incremental_indexer --stdin
+
+# Index git diff (changed since last commit)
+python -m api_gateway.services.incremental_indexer --git-diff
+
+# Index git diff against specific branch
+python -m api_gateway.services.incremental_indexer --git-diff --base-branch master
+
+# Dry run (no actual indexing)
+python -m api_gateway.services.incremental_indexer --files file1.py --dry-run
+```
+
+**File Types Indexed:**
+
+| Extension | Collection | What's Extracted |
+|-----------|------------|------------------|
+| `.py` | CodeEntity | Functions, classes, methods |
+| `.ts`, `.tsx` | CodeEntity | Functions, classes, interfaces, types |
+| `.js`, `.jsx` | CodeEntity | Functions, classes |
+| `.css` | CodeEntity | Styles, animations |
+| `.md` | Documentation | Markdown sections by header |
+
+**Why Only Reviewed Code:**
+
+The workflow ensures that only linted and CodeRabbit-reviewed code gets indexed. This prevents "potential bugs" from polluting the vector database with bad patterns.
 
 ### Claude Conversation Storage
 
@@ -702,7 +862,7 @@ python -m api_gateway.services.scraper_supervisor uninstall-task
 
 ## Automatic Code Review (Claude Code Hooks)
 
-This project has automatic code review configured via Claude Code hooks. After every `Edit` or `Write` operation, linters run automatically.
+This project has automatic code review configured via Claude Code hooks. After every `Edit` or `Write` operation, linters run automatically and errors are tracked in PostgreSQL.
 
 ### Current Setup
 
@@ -713,6 +873,7 @@ This project has automatic code review configured via Claude Code hooks. After e
 
 - **Python files (*.py)**: `ruff check` for linting
 - **TypeScript/JavaScript (*.ts, *.tsx, *.js, *.jsx)**: `eslint` for linting
+- **Error tracking**: Errors stored in PostgreSQL, auto-resolved when fixed
 
 ### Adding CodeRabbit CLI (Future Enhancement)
 
@@ -754,6 +915,96 @@ npx eslint <file.ts> --fix  # Auto-fix
 npm run format
 npm run lint:fix
 ```
+
+## Error Tracking (PostgreSQL)
+
+Lint errors and their resolutions are automatically tracked in PostgreSQL. When code is edited:
+1. If linters find errors → stored in `errors` table with file, line, service
+2. If linters pass → any previous errors for that file are marked resolved
+
+### How It Works
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Edit file → Linter runs → Errors found?                   │
+│                                │                            │
+│                    ┌───────────┴───────────┐                │
+│                    ▼                       ▼                │
+│              YES: Store in DB        NO: Mark resolved      │
+│              (file, line, msg)       (auto-resolution)      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### CLI Commands
+
+```bash
+# List recent errors
+python -m api_gateway.services.error_tracker list
+
+# List all errors (including resolved)
+python -m api_gateway.services.error_tracker list --all
+
+# Find errors for a specific file
+python -m api_gateway.services.error_tracker find --file "src/App.tsx"
+
+# Find errors by service
+python -m api_gateway.services.error_tracker find --service "dashboard/frontend"
+
+# Manually store an error
+python -m api_gateway.services.error_tracker store \
+    --service "api_gateway" \
+    --file "routes/jobs.py" \
+    --line 42 \
+    --message "Type error: expected int, got str" \
+    --severity error
+
+# Manually resolve an error with description
+python -m api_gateway.services.error_tracker resolve \
+    --error-id "uuid-here" \
+    --resolution "Changed parameter type from str to int"
+
+# Resolve all errors for a file
+python -m api_gateway.services.error_tracker resolve \
+    --file "routes/jobs.py" \
+    --resolution "Refactored type handling"
+
+# Get error statistics
+python -m api_gateway.services.error_tracker stats
+```
+
+### Error Schema
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `service` | string | Service/app name (e.g., "dashboard/frontend") |
+| `severity` | enum | info, warning, error, critical |
+| `message` | text | Error message with code/rule |
+| `resolution` | text | How the error was fixed |
+| `context` | JSON | `{file_path, line_number}` |
+| `created_at` | datetime | When error was found |
+| `resolved` | boolean | Whether error is fixed |
+| `resolved_at` | datetime | When error was resolved |
+
+### Service Names
+
+Errors are categorized by service based on file path:
+
+| Path Pattern | Service Name |
+|--------------|--------------|
+| `dashboard/frontend/*` | dashboard/frontend |
+| `dashboard/backend/*` | dashboard/backend |
+| `api_gateway/*` | api_gateway |
+| `tests/*` | tests |
+| `alltalk*` | alltalk_tts |
+| `audiocraft*` | audiocraft |
+| `ComfyUI*` | comfyui |
+| `DiffRhythm*` | diffrhythm |
+| `MusicGPT*` | musicgpt |
+| `stable-audio*` | stable_audio |
+| `Wan2GP*` | wan2gp |
+| `YuE*` | yue |
+| (other) | core |
 
 ## CodeRabbit Integration
 
