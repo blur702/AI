@@ -1,25 +1,29 @@
 # Index Changed Files to Weaviate on Merge
 #
-# This workflow runs on a SELF-HOSTED runner because Weaviate runs locally.
-# See docs/SETUP.md for self-hosted runner setup instructions.
+# NOTE: This workflow is DISABLED for automatic runs because:
+# 1. Weaviate runs locally and requires a self-hosted runner
+# 2. The local git hook (scripts/git-hooks/post-merge) handles automatic indexing
 #
-# Alternative: Use the local git hook (scripts/git-hooks/post-merge)
+# Use workflow_dispatch for manual re-indexing if needed.
+# To enable automatic indexing, set up a self-hosted runner:
+# https://docs.github.com/en/actions/hosting-your-own-runners
 
 name: Index to Vector DB
 
 on:
-  push:
-    branches: [master, main]
-    paths:
-      - '**.py'
-      - '**.ts'
-      - '**.tsx'
-      - '**.js'
-      - '**.jsx'
-      - '**.css'
-      - '**.md'
+  # DISABLED: push triggers - use local post-merge hook instead
+  # push:
+  #   branches: [master, main]
+  #   paths:
+  #     - '**.py'
+  #     - '**.ts'
+  #     - '**.tsx'
+  #     - '**.js'
+  #     - '**.jsx'
+  #     - '**.css'
+  #     - '**.md'
 
-  # Allow manual trigger
+  # Manual trigger only - requires self-hosted runner
   workflow_dispatch:
     inputs:
       files:
