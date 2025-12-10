@@ -1210,11 +1210,11 @@ def install_windows_task(interval_minutes: int = 5) -> None:
     ]
 
     try:
-        result = subprocess.run(schtasks_cmd, capture_output=True, text=True, check=True, timeout=30)
+        subprocess.run(schtasks_cmd, capture_output=True, text=True, check=True, timeout=30)
         logger.info("Scheduled task created: %s", task_name)
         print(f"Created scheduled task '{task_name}' to run every {interval_minutes} minutes")
         print(f"Command: {cmd}")
-    except subprocess.TimeoutExpired as e:
+    except subprocess.TimeoutExpired:
         logger.error("Timeout creating scheduled task after 30 seconds")
         print("Error: Task creation timed out")
         raise
@@ -1240,7 +1240,7 @@ def uninstall_windows_task() -> None:
         )
         logger.info("Scheduled task removed: %s", task_name)
         print(f"Removed scheduled task '{task_name}'")
-    except subprocess.TimeoutExpired as e:
+    except subprocess.TimeoutExpired:
         logger.error("Timeout removing scheduled task after 30 seconds")
         print("Error: Task removal timed out")
         raise
@@ -1310,7 +1310,7 @@ def main(argv: Optional[List[str]] = None) -> None:
 
     elif args.command == "status":
         status = supervisor.get_status()
-        print(f"\n=== Scraper Jobs Status ===")
+        print("\n=== Scraper Jobs Status ===")
         print(f"Total: {status['summary']['total']}")
         print(f"  Running: {status['summary']['running']}")
         print(f"  Completed: {status['summary']['completed']}")
