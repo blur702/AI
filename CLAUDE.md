@@ -1018,6 +1018,32 @@ This project has full CodeRabbit integration for automated code review and fix a
 | `.github/workflows/coderabbit-autofix.yml` | GitHub Actions workflow for auto-applying fixes |
 | `.github/scripts/coderabbit_autofix.py` | Python script that parses and applies CodeRabbit suggestions |
 
+### Branch Protection (Enforced)
+
+The `master` branch is protected. **All changes must go through Pull Requests**, which triggers automatic CodeRabbit review.
+
+| Setting | Value |
+|---------|-------|
+| Require PR | Yes |
+| Enforce for admins | Yes (owner included) |
+| Required approvals | 0 (CodeRabbit reviews but doesn't block) |
+| Force push | Blocked |
+| Direct push to master | Blocked |
+
+**Workflow:**
+1. Create a feature branch: `git checkout -b feature/my-change`
+2. Make changes and commit
+3. Push branch: `git push -u origin feature/my-change`
+4. Create PR: `gh pr create --title "My change" --body "Description"`
+5. CodeRabbit automatically reviews
+6. Address any feedback, then merge
+
+**To bypass (emergencies only):**
+Temporarily disable via GitHub Settings > Branches > master > Edit, or use GitHub API:
+```bash
+gh api repos/blur702/AI/branches/master/protection/enforce_admins -X DELETE
+```
+
 ### How CodeRabbit Review Works
 
 1. **Create a PR**: Push changes to a branch and create a Pull Request
