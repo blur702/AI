@@ -140,6 +140,9 @@ export function useSocket(): UseSocketReturn {
         method: 'POST',
         credentials: 'include'
       });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       const data = await response.json();
 
       if (!data.success) {
@@ -180,6 +183,9 @@ export function useSocket(): UseSocketReturn {
         method: 'POST',
         credentials: 'include'
       });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       const data = await response.json();
 
       if (data.success) {
