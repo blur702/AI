@@ -688,7 +688,7 @@ class TypeScriptParser(BaseParser):
         """
         self._file_extension = file_extension
         self._node_path: Optional[str] = None
-        self._ts_parser_path = Path(__file__).parent / "ts_parser.js"
+        self._ts_parser_path = Path(__file__).parent / "ts_parser.cjs"
 
     @property
     def language(self) -> str:

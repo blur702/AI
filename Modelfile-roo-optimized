@@ -1,0 +1,16 @@
+FROM qwen3-coder:30b
+
+# Optimized for Roo Code tool use with local LLM
+# Lower temperature = more deterministic tool syntax
+# Smaller context = fits in VRAM, less drift
+
+PARAMETER temperature 0.15
+PARAMETER top_k 40
+PARAMETER top_p 0.9
+PARAMETER repeat_penalty 1.1
+PARAMETER num_ctx 16384
+
+# Keep default stop tokens
+PARAMETER stop <|im_start|>
+PARAMETER stop <|im_end|>
+PARAMETER stop <|endoftext|>

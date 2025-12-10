@@ -13,16 +13,7 @@ import enum
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Enum,
-    Integer,
-    JSON,
-    String,
-    Text,
-)
+from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, String, Text, text
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
@@ -239,8 +230,14 @@ async def init_db() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
         # Backwards-compatible migration for errors.resolution column.
-        # Using IF NOT EXISTS keeps this safe to run repeatedly.
-        await conn.execute(  # type: ignore[no-untyped-call]
-            "ALTER TABLE errors ADD COLUMN IF NOT EXISTS resolution TEXT"
-        )
+        # Use ADD COLUMN and ignore duplicate-column errors so this is
+        # safe to run repeatedly across SQLite and PostgreSQL.
+        try:
+            await conn.execute(
+                text("ALTER TABLE errors ADD COLUMN resolution TEXT")
+            )
+        except Exception as exc:  # noqa: BLE001
+            # If the column already exists, swallow the error; otherwise re-raise.
+            if "duplicate column name" not in str(exc).lower():
+                raise
 
