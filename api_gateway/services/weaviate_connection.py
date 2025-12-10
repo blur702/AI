@@ -112,3 +112,21 @@ MDN_WEBAPIS_COLLECTION_NAME = "MDNWebAPIs"
 TALKING_HEAD_PROFILES_COLLECTION_NAME = "TalkingHeadProfiles"
 CONVERSATION_MEMORY_COLLECTION_NAME = "ConversationMemory"
 VOICE_CLONES_COLLECTION_NAME = "VoiceClones"
+
+# AI/ML library documentation collections
+PYTORCH_DOCS_COLLECTION_NAME = "PyTorchDocs"
+TENSORFLOW_DOCS_COLLECTION_NAME = "TensorFlowDocs"
+SKLEARN_DOCS_COLLECTION_NAME = "ScikitLearnDocs"
+
+# Web framework documentation collections
+DJANGO_DOCS_COLLECTION_NAME = "DjangoDocs"
+FLASK_DOCS_COLLECTION_NAME = "FlaskDocs"
+FASTAPI_DOCS_COLLECTION_NAME = "FastAPIDocs"
+
+# Image processing library documentation collections
+PILLOW_DOCS_COLLECTION_NAME = "PillowDocs"
+OPENCV_DOCS_COLLECTION_NAME = "OpenCVDocs"
+
+# Web scraping library documentation collections
+BS4_DOCS_COLLECTION_NAME = "BeautifulSoupDocs"
+SCRAPY_DOCS_COLLECTION_NAME = "ScrapyDocs"
