@@ -534,17 +534,17 @@ Examples:
 
     args = parser.parse_args(argv)
 
-    # Configure logging
+    # Configure logging - scope to api_gateway package to avoid flooding from third-party libs
+    api_logger = logging.getLogger("api_gateway")
+    handler = logging.StreamHandler()
     if args.verbose:
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        )
+        api_logger.setLevel(logging.DEBUG)
+        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
     else:
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s [%(levelname)s] %(message)s",
-        )
+        api_logger.setLevel(logging.INFO)
+        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+    if not api_logger.handlers:
+        api_logger.addHandler(handler)
 
     # Handle incremental update mode
     if args.files:
