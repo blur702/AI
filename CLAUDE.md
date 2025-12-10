@@ -8,9 +8,101 @@ This is a **local AI development workspace** featuring an integrated ecosystem o
 
 **External access**: `https://ssdd.kevinalthaus.com` (HTTPS via nginx reverse proxy)
 
+## Database Access for LLMs
+
+This project has two databases that LLMs can query for context:
+
+### Quick Reference
+
+| Database | Port | Contents | When to Use |
+|----------|------|----------|-------------|
+| **Weaviate** | 8080 | Code, docs, conversations | "How does X work?", "Find code that does Y" |
+| **PostgreSQL** | 5432 | Errors, todos, jobs | "What errors occurred?", "What tasks are pending?" |
+
+### Weaviate (Vector Search)
+
+Use for semantic search over code, documentation, and past conversations.
+
+**MCP Tools (if available):**
+```
+search_code        - Find functions, classes, methods by description
+search_documentation - Find docs by concept
+search_codebase    - Search both code and docs together
+```
+
+**CLI Commands:**
+```bash
+# Search code entities
+python -m api_gateway.services.code_ingestion search "authentication function"
+
+# Search documentation
+python -m api_gateway.services.doc_ingestion search "how to configure"
+
+# Search past Claude conversations
+python -m api_gateway.services.claude_conversation_schema search --query "error handling"
+```
+
+**Collections:**
+- `CodeEntity` - Functions, classes, methods, styles (Python/TS/JS/CSS)
+- `Documentation` - Markdown docs, READMEs
+- `ClaudeConversation` - Past Claude Code session history
+- `DrupalAPI` - Drupal 11.x API reference
+
+### PostgreSQL (Structured Data)
+
+Use for querying errors, todos, and job status.
+
+**Python Path:** `D:\AI\api_gateway\venv\Scripts\python.exe`
+
+**Error Tracking CLI:**
+```bash
+# View error statistics
+python -m api_gateway.services.error_tracker stats
+
+# List unresolved errors
+python -m api_gateway.services.error_tracker list
+
+# Find errors by file
+python -m api_gateway.services.error_tracker find --file "path/to/file.py"
+
+# Find errors by service
+python -m api_gateway.services.error_tracker find --service "api_gateway"
+
+# Store a new error
+python -m api_gateway.services.error_tracker store \
+    --service "service_name" \
+    --file "file.py" \
+    --line 42 \
+    --message "Error description" \
+    --severity error
+
+# Resolve an error with explanation
+python -m api_gateway.services.error_tracker resolve \
+    --error-id "uuid" \
+    --resolution "How it was fixed"
+```
+
+**Tables:**
+- `errors` - Lint errors, exceptions, with resolution tracking
+- `todos` - Task management with status, priority
+- `jobs` - Async job tracking for generation tasks
+- `api_keys` - API authentication
+
+### When to Query Each Database
+
+| Question Type | Database | Tool/Command |
+|---------------|----------|--------------|
+| "Where is X defined?" | Weaviate | `search_code` |
+| "How does X work?" | Weaviate | `search_codebase` |
+| "What errors have occurred?" | PostgreSQL | `error_tracker list` |
+| "Show unresolved errors for service Y" | PostgreSQL | `error_tracker find --service Y` |
+| "What did we discuss about X?" | Weaviate | `claude_conversation_schema search` |
+| "What tasks are pending?" | PostgreSQL | Query `todos` table |
+
 ## Key Commands
 
 ### Dashboard & Monitoring
+
 ```bash
 .\start_dashboard.bat              # Launch dashboard (single-port on 80)
 .\start_n8n.bat                    # Launch N8N workflow automation (port 5678)
@@ -19,6 +111,7 @@ python vram_manager.py             # GPU VRAM monitoring CLI
 ```
 
 ### Nginx Reverse Proxy (HTTPS)
+
 ```bash
 cd D:\AI\nginx
 .\start-nginx.bat                  # Start nginx (HTTPS on 443)
@@ -30,6 +123,7 @@ cd D:\AI\nginx
 ```
 
 ### Dashboard Frontend (React + TypeScript + Vite)
+
 ```bash
 cd D:\AI\dashboard\frontend
 npm install                        # Install dependencies
@@ -38,6 +132,7 @@ npm run build                      # Production build (must rebuild after change
 ```
 
 ### Dashboard Backend (Flask + Socket.IO)
+
 ```bash
 cd D:\AI\dashboard\backend
 pip install -r requirements.txt
@@ -45,6 +140,7 @@ python app.py                      # Serves frontend + API on port 80
 ```
 
 ### API Gateway (FastAPI)
+
 ```bash
 cd D:\AI\api_gateway
 pip install -r requirements.txt
@@ -53,6 +149,7 @@ python -m api_gateway.main         # Or run directly
 ```
 
 ### Playwright Tests
+
 ```bash
 npm install                        # From project root
 npx playwright install             # One-time: download browser binaries (Chromium/Firefox/WebKit)
@@ -67,6 +164,7 @@ npm run test:report                # Open HTML report
 ```
 
 ### Ollama Model Management
+
 ```bash
 ollama list                        # List available models
 ollama ps                          # Show loaded models
@@ -76,24 +174,29 @@ ollama stop <model>                # Unload from VRAM
 ```
 
 ### Dashboard Persistence & Monitoring
+
 The dashboard has a Task Scheduler-based persistence system that automatically restarts it if it becomes unresponsive.
 
 **Scripts Location**: `D:\AI\scripts\`
+
 - `dashboard-monitor.ps1` - Monitors port 80 every 30 seconds, restarts dashboard on failure
 - `setup-task.ps1` - Creates Windows Task Scheduler task (run as Administrator)
 
 **Setup (one-time, run as Administrator):**
+
 ```powershell
 powershell -ExecutionPolicy Bypass -File D:\AI\scripts\setup-task.ps1
 ```
 
 **How it works:**
+
 1. Task Scheduler runs `dashboard-monitor.ps1` on user logon with SYSTEM privileges
 2. Script checks port 80 connectivity every 30 seconds
 3. If port is unresponsive (and no disable flag), executes `start_dashboard.bat`
-4. Coexists with tray app auto-restart (both mechanisms can operate independently)
+4. Provides automatic dashboard recovery without manual intervention
 
 **Disable/Enable Monitoring:**
+
 ```powershell
 # Disable (create flag file)
 New-Item -ItemType File -Path "D:\AI\scripts\disable.flag" -Force
@@ -106,6 +209,7 @@ Test-Path "D:\AI\scripts\disable.flag"
 ```
 
 **Task Management:**
+
 ```powershell
 # View task details
 schtasks /query /tn "AI Dashboard Monitor" /v /fo list
@@ -122,6 +226,7 @@ schtasks /run /tn "AI Dashboard Monitor"
 ## Architecture
 
 ### Single-Port Deployment
+
 The dashboard uses a **single-port architecture** where Flask serves both the React frontend and API on port 80. This enables external access via domain without exposing multiple ports. Persistent monitoring via Task Scheduler ensures the dashboard auto-restarts if it becomes unresponsive.
 
 - Frontend: `http://localhost/` (React SPA from `frontend/dist/`)
@@ -129,6 +234,7 @@ The dashboard uses a **single-port architecture** where Flask serves both the Re
 - WebSocket: `http://localhost/socket.io/`
 
 ### Service Port Allocation
+
 | Port | Service |
 |------|---------|
 | 443 | Nginx HTTPS reverse proxy (external entry point) |
@@ -148,7 +254,9 @@ The dashboard uses a **single-port architecture** where Flask serves both the Re
 | 11434 | Ollama API |
 
 ### Nginx Path-Based Routing
+
 External HTTPS URLs via `https://ssdd.kevinalthaus.com`:
+
 | Path | Service | Backend Port |
 |------|---------|--------------|
 | `/` | Dashboard | 80 |
@@ -167,6 +275,7 @@ External HTTPS URLs via `https://ssdd.kevinalthaus.com`:
 | `/weaviate/` | Weaviate | 8080 |
 
 ### Dashboard API (port 80)
+
 ```text
 GET  /api/services                 # All service statuses
 POST /api/services/<id>/start      # Start a service
@@ -195,8 +304,10 @@ WebSocket Events:
 ```
 
 ### API Gateway (port 1301)
+
 Unified REST/WebSocket interface for external clients (mobile apps, etc). Requires API key auth via `X-API-Key` header.
-```
+
+```text
 POST /generate/image               # ComfyUI image generation
 POST /generate/video               # Wan2GP video generation
 POST /generate/audio               # Stable Audio / AudioCraft
@@ -207,16 +318,52 @@ GET  /jobs/{job_id}                # Poll job status
 GET  /ws/jobs/{job_id}             # WebSocket job updates
 ```
 
+### N8N Workflow Automation (port 5678)
+
+N8N provides workflow automation for connecting services and automating tasks.
+
+**Access:**
+
+- Local: <http://localhost:5678>
+- External: <https://ssdd.kevinalthaus.com/n8n/>
+
+**Credentials:**
+
+- Email: Set via `N8N_EMAIL` environment variable (default: `admin@local.host`)
+- Password: Set via `N8N_BASIC_AUTH_PASSWORD` environment variable
+- ⚠️ **IMPORTANT**: Change default credentials immediately after first login
+
+**API Key Location:**
+
+- File: `D:\AI\.secrets\n8n_api_key.txt`
+- Usage: Add `X-N8N-API-KEY` header to API requests
+
+**Data Location:**
+
+- Database: `C:\Users\kevin\.n8n\database.sqlite`
+- Config: `C:\Users\kevin\.n8n\config`
+
+**Commands:**
+
+```bash
+.\start_n8n.bat                    # Start N8N (port 5678)
+n8n --help                         # List available commands
+n8n user-management:reset          # Reset user management
+```
+
 ### PostgreSQL Database
+
 The API Gateway uses PostgreSQL with asyncpg for persistent storage.
 
 **Tables:**
+
 - `jobs` - Async job tracking (image/audio/video generation)
 - `api_keys` - API key authentication
 - `todos` - Task management
 - `errors` - Error tracking and monitoring
 
 **Configuration** (in `.env` or environment):
+
 ```bash
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
@@ -228,6 +375,7 @@ POSTGRES_DB=ai_gateway
 ```
 
 **Migration Commands:**
+
 ```bash
 # Migrate from SQLite to PostgreSQL
 python -m api_gateway.scripts.migrate_to_postgres
@@ -242,6 +390,7 @@ python -m api_gateway.scripts.rollback_to_sqlite --export-data
 ```
 
 **PostgreSQL Setup (Windows):**
+
 ```bash
 # Install PostgreSQL (via installer or scoop)
 scoop install postgresql
@@ -261,11 +410,13 @@ GRANT ALL PRIVILEGES ON DATABASE ai_gateway TO ai_gateway;
 ### PostgreSQL Storage for LLMs (Errors & Todos)
 
 The PostgreSQL database stores structured data that should NOT be vectorized - things like errors, todos, and job tracking. Use this for:
+
 - **Errors**: Exception tracking with service, severity, stack traces, resolution status
 - **Todos**: Task management with status, priority, due dates, tags
 - **Jobs**: Async job tracking for long-running operations
 
 **Schema (api_gateway/models/database.py):**
+
 ```python
 # Error tracking
 class Error(Base):
@@ -294,6 +445,7 @@ class Todo(Base):
 ```
 
 **Python API for LLMs:**
+
 ```python
 from api_gateway.models.database import AsyncSessionLocal, Error, Todo, ErrorSeverity, TodoStatus
 from datetime import datetime, timezone
@@ -325,7 +477,7 @@ async with AsyncSessionLocal() as session:
 # Query errors
 async with AsyncSessionLocal() as session:
     result = await session.execute(
-        select(Error).where(Error.resolved == False).order_by(Error.created_at.desc())
+        select(Error).where(Error.resolved.is_(False)).order_by(Error.created_at.desc())
     )
     unresolved_errors = result.scalars().all()
 
@@ -338,6 +490,7 @@ async with AsyncSessionLocal() as session:
 ```
 
 **When to use PostgreSQL vs Weaviate:**
+
 | Data Type | Storage | Why |
 |-----------|---------|-----|
 | Errors | PostgreSQL | Structured, filterable, no semantic search needed |
@@ -348,7 +501,8 @@ async with AsyncSessionLocal() as session:
 | Code entities | Weaviate | Find similar functions/classes |
 
 ### Core Components (this repo)
-```
+
+```text
 dashboard/
 ├── frontend/          # React + TypeScript + Vite
 │   ├── src/
@@ -365,7 +519,13 @@ dashboard/
 api_gateway/           # FastAPI unified API (port 1301)
 ├── routes/            # Endpoint handlers
 ├── services/          # Backend service clients
+│   └── incremental_indexer.py  # Post-merge Weaviate indexing
 └── models/            # Pydantic models
+
+.claude/               # Claude Code configuration
+└── hooks/             # Automation hooks
+    ├── post-edit-review.ps1    # Lint after Edit/Write
+    └── post-message-store.ps1  # Store conversations to Weaviate
 
 nginx/                 # Nginx reverse proxy configuration
 ├── nginx.conf         # Main configuration
@@ -378,7 +538,10 @@ nginx/                 # Nginx reverse proxy configuration
 scripts/               # System monitoring and automation
 ├── dashboard-monitor.ps1  # Port 80 monitor with auto-restart
 ├── setup-task.ps1         # Task Scheduler setup script
-└── disable.flag           # Create to disable monitoring (on demand)
+├── disable.flag           # Create to disable monitoring (on demand)
+└── git-hooks/             # Git hooks for automation
+    ├── post-merge         # Index changed files to Weaviate
+    └── install-hooks.bat  # Install git hooks
 
 tests/                 # Playwright test suite
 ├── fixtures/          # Base and service fixtures
@@ -388,7 +551,9 @@ tests/                 # Playwright test suite
 ```
 
 ### AI Service Projects (independent repos)
+
 Each AI project (alltalk_tts, audiocraft, ComfyUI, DiffRhythm, stable-audio-tools, Wan2GP, YuE) has:
+
 - Its own git repository (excluded from root repo)
 - Isolated Python virtual environment (e.g., `audiocraft_env/Scripts/python.exe`)
 - Independent dependencies
@@ -439,6 +604,7 @@ This project maintains a semantic index of documentation, code, and external API
   - Includes signatures, parameters, descriptions, deprecation notices
 
 ### Ingestion Commands
+
 ```bash
 # Check status
 curl http://localhost/api/ingestion/status
@@ -461,14 +627,77 @@ python -m api_gateway.services.migrate_embeddings migrate
 ```
 
 ### Embedding Model
+
 The default embedding model is `snowflake-arctic-embed:l` (1024 dimensions). When changing models, ALL collections must be re-indexed since different models produce incompatible vectors.
+
+### Incremental Indexing (Post-Merge)
+
+After code is merged to master, only changed files are indexed to Weaviate (not the full codebase). This ensures the vector database stays in sync without re-indexing everything.
+
+**How It Works:**
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  1. Code written → Linters run (ruff/eslint)               │
+│  2. Code committed and pushed                               │
+│  3. PR created → CodeRabbit reviews                         │
+│  4. PR merged to master                                     │
+│  5. Post-merge hook triggers incremental indexer            │
+│  6. Only changed .py/.ts/.tsx/.js/.jsx/.css/.md indexed     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Trigger Options:**
+
+1. **GitHub Actions (self-hosted runner)**: `.github/workflows/index-on-merge.yml`
+   - Runs automatically on push to master/main
+   - Requires self-hosted runner with Weaviate access
+
+2. **Local Git Hook**: `scripts/git-hooks/post-merge`
+   - Install: `scripts\git-hooks\install-hooks.bat`
+   - Runs after every `git merge` or `git pull`
+
+**CLI Usage:**
+
+```bash
+# Index specific files
+python -m api_gateway.services.incremental_indexer --files file1.py file2.ts
+
+# Index from stdin (newline-separated paths)
+echo -e "file1.py\nfile2.ts" | python -m api_gateway.services.incremental_indexer --stdin
+
+# Index git diff (changed since last commit)
+python -m api_gateway.services.incremental_indexer --git-diff
+
+# Index git diff against specific branch
+python -m api_gateway.services.incremental_indexer --git-diff --base-branch master
+
+# Dry run (no actual indexing)
+python -m api_gateway.services.incremental_indexer --files file1.py --dry-run
+```
+
+**File Types Indexed:**
+
+| Extension | Collection | What's Extracted |
+|-----------|------------|------------------|
+| `.py` | CodeEntity | Functions, classes, methods |
+| `.ts`, `.tsx` | CodeEntity | Functions, classes, interfaces, types |
+| `.js`, `.jsx` | CodeEntity | Functions, classes |
+| `.css` | CodeEntity | Styles, animations |
+| `.md` | Documentation | Markdown sections by header |
+
+**Why Only Reviewed Code:**
+
+The workflow ensures that only linted and CodeRabbit-reviewed code gets indexed. This prevents "potential bugs" from polluting the vector database with bad patterns.
 
 ### Claude Conversation Storage
 
 Claude Code conversations are automatically stored in Weaviate via a hook that triggers on user prompts. This enables semantic search over past conversations.
 
 **Automatic Storage (Hook):**
+
 A `UserPromptSubmit` hook in `.claude/settings.json` captures each user prompt and stores it in the `ClaudeConversation` collection:
+
 ```json
 {
   "hooks": {
@@ -484,6 +713,7 @@ A `UserPromptSubmit` hook in `.claude/settings.json` captures each user prompt a
 ```
 
 **Manual Storage:**
+
 ```bash
 # Store a conversation turn
 python -m api_gateway.services.claude_conversation_schema store \
@@ -497,6 +727,7 @@ echo '{"session_id":"abc","user_message":"hello","assistant_response":"Hi!"}' | 
 ```
 
 **Search Past Conversations:**
+
 ```bash
 # Semantic search
 python -m api_gateway.services.claude_conversation_schema search \
@@ -509,6 +740,7 @@ python -m api_gateway.services.claude_conversation_schema search \
 ```
 
 **Python API for Retrieval:**
+
 ```python
 from api_gateway.services.claude_conversation_schema import (
     search_conversations,
@@ -540,6 +772,7 @@ with WeaviateConnection() as client:
 ```
 
 **Collection Stats:**
+
 ```bash
 python -m api_gateway.services.claude_conversation_schema stats
 ```
@@ -573,6 +806,7 @@ with WeaviateConnection() as client:
 Long-running scraping jobs are managed by the supervisor system with automatic restart and resume capabilities.
 
 ### Features
+
 - **Checkpoint/Resume**: Saves progress every 10 entities, resumes from last checkpoint on restart
 - **Deduplication**: Skips already-scraped entities via stable UUID comparison
 - **Health Monitoring**: Detects crashed processes and heartbeat timeouts
@@ -580,6 +814,7 @@ Long-running scraping jobs are managed by the supervisor system with automatic r
 - **Windows Scheduled Task**: Runs health checks every 5 minutes
 
 ### Supervisor Commands
+
 ```bash
 # Check status of all scraping jobs
 python -m api_gateway.services.scraper_supervisor status
@@ -604,6 +839,7 @@ python -m api_gateway.services.scraper_supervisor uninstall-task
 ```
 
 ### Data Locations
+
 - Jobs registry: `D:\AI\data\scraper\jobs.json`
 - Checkpoints: `D:\AI\data\scraper\checkpoints\`
 - Logs: `D:\AI\data\scraper\drupal_stderr.log`
@@ -626,7 +862,7 @@ python -m api_gateway.services.scraper_supervisor uninstall-task
 
 ## Automatic Code Review (Claude Code Hooks)
 
-This project has automatic code review configured via Claude Code hooks. After every `Edit` or `Write` operation, linters run automatically.
+This project has automatic code review configured via Claude Code hooks. After every `Edit` or `Write` operation, linters run automatically and errors are tracked in PostgreSQL.
 
 ### Current Setup
 
@@ -634,14 +870,17 @@ This project has automatic code review configured via Claude Code hooks. After e
 **Configuration**: `.claude/settings.json`
 
 **What runs automatically:**
+
 - **Python files (*.py)**: `ruff check` for linting
 - **TypeScript/JavaScript (*.ts, *.tsx, *.js, *.jsx)**: `eslint` for linting
+- **Error tracking**: Errors stored in PostgreSQL, auto-resolved when fixed
 
 ### Adding CodeRabbit CLI (Future Enhancement)
 
 CodeRabbit CLI provides AI-powered code reviews but requires Linux/macOS (or WSL with Ubuntu).
 
 **To install when WSL Ubuntu is available:**
+
 ```bash
 # In WSL Ubuntu
 curl -fsSL https://cli.coderabbit.ai/install.sh | sh
@@ -650,6 +889,7 @@ coderabbit auth login
 ```
 
 **Then update the hook** (`.claude/hooks/post-edit-review.ps1`):
+
 ```powershell
 # Add CodeRabbit review for comprehensive AI analysis
 $wslPath = $filePath -replace '\\', '/' -replace '^D:', '/mnt/d'
@@ -675,6 +915,96 @@ npx eslint <file.ts> --fix  # Auto-fix
 npm run format
 npm run lint:fix
 ```
+
+## Error Tracking (PostgreSQL)
+
+Lint errors and their resolutions are automatically tracked in PostgreSQL. When code is edited:
+1. If linters find errors → stored in `errors` table with file, line, service
+2. If linters pass → any previous errors for that file are marked resolved
+
+### How It Works
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│  Edit file → Linter runs → Errors found?                   │
+│                                │                            │
+│                    ┌───────────┴───────────┐                │
+│                    ▼                       ▼                │
+│              YES: Store in DB        NO: Mark resolved      │
+│              (file, line, msg)       (auto-resolution)      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### CLI Commands
+
+```bash
+# List recent errors
+python -m api_gateway.services.error_tracker list
+
+# List all errors (including resolved)
+python -m api_gateway.services.error_tracker list --all
+
+# Find errors for a specific file
+python -m api_gateway.services.error_tracker find --file "src/App.tsx"
+
+# Find errors by service
+python -m api_gateway.services.error_tracker find --service "dashboard/frontend"
+
+# Manually store an error
+python -m api_gateway.services.error_tracker store \
+    --service "api_gateway" \
+    --file "routes/jobs.py" \
+    --line 42 \
+    --message "Type error: expected int, got str" \
+    --severity error
+
+# Manually resolve an error with description
+python -m api_gateway.services.error_tracker resolve \
+    --error-id "uuid-here" \
+    --resolution "Changed parameter type from str to int"
+
+# Resolve all errors for a file
+python -m api_gateway.services.error_tracker resolve \
+    --file "routes/jobs.py" \
+    --resolution "Refactored type handling"
+
+# Get error statistics
+python -m api_gateway.services.error_tracker stats
+```
+
+### Error Schema
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | UUID | Primary key |
+| `service` | string | Service/app name (e.g., "dashboard/frontend") |
+| `severity` | enum | info, warning, error, critical |
+| `message` | text | Error message with code/rule |
+| `resolution` | text | How the error was fixed |
+| `context` | JSON | `{file_path, line_number}` |
+| `created_at` | datetime | When error was found |
+| `resolved` | boolean | Whether error is fixed |
+| `resolved_at` | datetime | When error was resolved |
+
+### Service Names
+
+Errors are categorized by service based on file path:
+
+| Path Pattern | Service Name |
+|--------------|--------------|
+| `dashboard/frontend/*` | dashboard/frontend |
+| `dashboard/backend/*` | dashboard/backend |
+| `api_gateway/*` | api_gateway |
+| `tests/*` | tests |
+| `alltalk*` | alltalk_tts |
+| `audiocraft*` | audiocraft |
+| `ComfyUI*` | comfyui |
+| `DiffRhythm*` | diffrhythm |
+| `MusicGPT*` | musicgpt |
+| `stable-audio*` | stable_audio |
+| `Wan2GP*` | wan2gp |
+| `YuE*` | yue |
+| (other) | core |
 
 ## CodeRabbit Integration
 
@@ -705,6 +1035,7 @@ This project has full CodeRabbit integration for automated code review and fix a
 **Review Profile**: `assertive` (detailed feedback)
 **Auto-Review**: Enabled for `master` and `main` branches
 **Tools Enabled**:
+
 - `ast_grep` - AST-based code analysis
 - `shellcheck` - Bash script linting
 - `ruff` - Python linting
@@ -712,6 +1043,7 @@ This project has full CodeRabbit integration for automated code review and fix a
 - `biome` - JavaScript/TypeScript formatting
 
 **Path-Specific Rules**:
+
 - Python (`**/*.py`): Type hints, logging, exceptions, security, subprocess calls
 - TypeScript (`**/*.ts`): Proper types, async/await, error handling
 - React (`**/*.tsx`): React patterns, hooks, typed props
@@ -720,6 +1052,7 @@ This project has full CodeRabbit integration for automated code review and fix a
 ### GitHub CLI
 
 GitHub CLI (`gh`) is installed at `C:\Program Files\GitHub CLI\gh.exe`. If `gh` is not in PATH, use the full path:
+
 ```bash
 "C:\Program Files\GitHub CLI\gh.exe" pr create --title "Title" --body "Body"
 "C:\Program Files\GitHub CLI\gh.exe" pr view 123
@@ -728,6 +1061,7 @@ GitHub CLI (`gh`) is installed at `C:\Program Files\GitHub CLI\gh.exe`. If `gh` 
 ### Running CodeRabbit Verification
 
 **Option 1: Via Pull Request (Recommended)**
+
 ```bash
 # Create a branch and push changes
 git checkout -b feature/my-changes
@@ -743,12 +1077,14 @@ gh pr create --title "My changes" --body "Description"
 ```
 
 **Option 2: Manual Trigger**
+
 ```bash
 # Trigger the auto-fix workflow manually for an existing PR
 gh workflow run coderabbit-autofix.yml -f pr_number=123 -f max_iterations=3
 ```
 
 **Option 3: Local Linting (Pre-PR Check)**
+
 ```bash
 # Run the same linters CodeRabbit uses locally
 # Python
@@ -764,6 +1100,7 @@ npx prettier --write .
 ### Auto-Fix Script Usage
 
 The auto-fix script can be run locally (requires GITHUB_TOKEN):
+
 ```bash
 # Set GitHub token
 export GITHUB_TOKEN=your_token
@@ -777,6 +1114,7 @@ python .github/scripts/coderabbit_autofix.py \
 ```
 
 The script:
+
 - Fetches CodeRabbit review comments via GitHub API
 - Parses suggestions using regex patterns (diff, before/after, inline)
 - Categorizes fixes: security, performance, bug, typing, style, improvement

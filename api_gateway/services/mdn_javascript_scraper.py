@@ -30,9 +30,10 @@ import argparse
 import logging
 import re
 import time
+from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Generator, List, Optional, Set
+from typing import Any, Callable, Deque, Dict, Generator, List, Optional, Set
 from urllib.parse import urljoin, urlparse
 
 import httpx
@@ -92,7 +93,15 @@ PauseCheck = Callable[[], bool]
 
 
 def get_doc_text_for_embedding(doc: MDNJavaScriptDoc) -> str:
-    """Build text representation for embedding computation."""
+    """
+    Build text representation for embedding computation.
+
+    Args:
+        doc: MDN JavaScript documentation object
+
+    Returns:
+        Combined text from title and content (limited to 2000 chars for content)
+    """
     parts = []
     if doc.title:
         parts.append(doc.title)
@@ -117,6 +126,15 @@ class MDNJavaScriptScraper:
         check_cancelled: Optional[CancelCheck] = None,
         check_paused: Optional[PauseCheck] = None,
     ):
+        """
+        Initialize the MDN JavaScript documentation scraper.
+
+        Args:
+            config: Scraping configuration (rate limits, batch size, etc.)
+            progress_callback: Optional callback for progress updates (phase, current, total, message)
+            check_cancelled: Optional callback to check if scraping should be cancelled
+            check_paused: Optional callback to check if scraping is paused
+        """
         self.config = config or ScrapeConfig()
         self.progress_callback = progress_callback
         self.check_cancelled = check_cancelled
@@ -135,32 +153,56 @@ class MDNJavaScriptScraper:
         self._seen_urls: Set[str] = set()
 
     def __enter__(self) -> "MDNJavaScriptScraper":
+        """Context manager entry."""
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Context manager exit, closes HTTP client."""
         self.client.close()
 
     def _emit_progress(self, phase: str, current: int, total: int, message: str) -> None:
+        """
+        Emit progress update via callback if configured.
+
+        Args:
+            phase: Current phase of scraping
+            current: Current count
+            total: Total expected count (0 if unknown)
+            message: Progress message
+        """
         if self.progress_callback:
             try:
                 self.progress_callback(phase, current, total, message)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Progress callback error: %s", exc)
 
     def _is_cancelled(self) -> bool:
+        """
+        Check if scraping has been cancelled.
+
+        Returns:
+            True if cancelled, False otherwise
+        """
         if self.check_cancelled:
             try:
                 return self.check_cancelled()
-            except Exception:
+            except Exception as exc:
+                logger.debug("Check cancelled callback error: %s", exc)
                 return False
         return False
 
     def _is_paused(self) -> bool:
-        """Check if paused and wait. Returns True if cancelled during wait."""
+        """
+        Check if scraping is paused and wait if so.
+
+        Returns:
+            True if cancelled during wait, False otherwise
+        """
         if self.check_paused:
             try:
                 return self.check_paused()
-            except Exception:
+            except Exception as exc:
+                logger.debug("Check paused callback error: %s", exc)
                 return False
         return False
 
@@ -184,7 +226,15 @@ class MDNJavaScriptScraper:
         self._last_request_time = time.time()
 
     def _fetch(self, url: str) -> Optional[BeautifulSoup]:
-        """Fetch URL with rate limiting and error handling."""
+        """
+        Fetch URL with rate limiting and error handling.
+
+        Args:
+            url: URL to fetch
+
+        Returns:
+            BeautifulSoup object if successful, None on error
+        """
         self._rate_limit()
 
         try:
@@ -200,13 +250,29 @@ class MDNJavaScriptScraper:
             return None
 
     def _normalize_url(self, url: str) -> str:
-        """Normalize URL to canonical form."""
+        """
+        Normalize URL to canonical form.
+
+        Args:
+            url: URL to normalize
+
+        Returns:
+            Normalized URL without fragments or query parameters
+        """
         parsed = urlparse(url)
         # Remove fragments and query params for deduplication
         return f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
 
     def _is_javascript_doc_url(self, url: str) -> bool:
-        """Check if URL is a valid JavaScript documentation page."""
+        """
+        Check if URL is a valid JavaScript documentation page.
+
+        Args:
+            url: URL to validate
+
+        Returns:
+            True if URL is under /docs/Web/JavaScript and is English, False otherwise
+        """
         parsed = urlparse(url)
         path = parsed.path
 
@@ -232,7 +298,15 @@ class MDNJavaScriptScraper:
         return True
 
     def _extract_title(self, soup: BeautifulSoup) -> str:
-        """Extract page title from MDN page."""
+        """
+        Extract page title from MDN page.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Page title or empty string
+        """
         # Try the main heading first
         h1 = soup.select_one("h1")
         if h1:
@@ -248,7 +322,15 @@ class MDNJavaScriptScraper:
         return ""
 
     def _extract_content(self, soup: BeautifulSoup) -> str:
-        """Extract main content from MDN page."""
+        """
+        Extract main content from MDN page.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            Main content text (limited to 10000 chars) or empty string
+        """
         # MDN uses article.main-page-content for main content
         article = soup.select_one("article.main-page-content, article, main")
         if not article:
@@ -269,7 +351,15 @@ class MDNJavaScriptScraper:
         return text[:10000]
 
     def _extract_last_modified(self, soup: BeautifulSoup) -> str:
-        """Extract last modified date from MDN page metadata."""
+        """
+        Extract last modified date from MDN page metadata.
+
+        Args:
+            soup: Parsed HTML page
+
+        Returns:
+            ISO 8601 timestamp or current time if not found
+        """
         # Try meta tag
         meta = soup.select_one('meta[property="article:modified_time"]')
         if meta:
@@ -284,7 +374,16 @@ class MDNJavaScriptScraper:
         return datetime.now(timezone.utc).isoformat()
 
     def _extract_links(self, soup: BeautifulSoup, base_url: str) -> List[str]:
-        """Extract links to other JavaScript documentation pages."""
+        """
+        Extract links to other JavaScript documentation pages.
+
+        Args:
+            soup: Parsed HTML page
+            base_url: Current page URL for resolving relative links
+
+        Returns:
+            List of absolute URLs to valid JavaScript documentation pages
+        """
         links = []
         for a in soup.select("a[href]"):
             href = a.get("href", "")
@@ -309,7 +408,17 @@ class MDNJavaScriptScraper:
     def _parse_page(
         self, soup: BeautifulSoup, url: str, section_type: str
     ) -> Optional[MDNJavaScriptDoc]:
-        """Parse a single MDN page and extract documentation from pre-fetched soup."""
+        """
+        Parse a single MDN page and extract documentation from pre-fetched soup.
+
+        Args:
+            soup: Pre-fetched BeautifulSoup object
+            url: Page URL
+            section_type: Section type (Reference or Guide)
+
+        Returns:
+            MDNJavaScriptDoc object or None if insufficient content
+        """
         title = self._extract_title(soup)
         if not title:
             logger.warning("No title found for %s", url)
@@ -339,12 +448,21 @@ class MDNJavaScriptScraper:
     def scrape_section(
         self, section_path: str, section_type: str
     ) -> Generator[MDNJavaScriptDoc, None, None]:
-        """Scrape all pages in a documentation section using BFS."""
+        """
+        Scrape all pages in a documentation section using BFS.
+
+        Args:
+            section_path: Path suffix (e.g., "/Reference/Global_Objects")
+            section_type: Section type (Reference or Guide)
+
+        Yields:
+            MDNJavaScriptDoc objects for each successfully parsed page
+        """
         start_url = f"{MDN_BASE}{MDN_JAVASCRIPT_ROOT}{section_path}"
         logger.info("Scraping section: %s (%s)", section_path, section_type)
 
         # BFS queue
-        queue: List[str] = [start_url]
+        queue: Deque[str] = deque([start_url])
         entity_count = 0
 
         while queue:
@@ -361,7 +479,7 @@ class MDNJavaScriptScraper:
                 logger.info("Reached max entities limit: %d", self.config.max_entities)
                 return
 
-            url = queue.pop(0)
+            url = queue.popleft()
             normalized_url = self._normalize_url(url)
 
             if normalized_url in self._seen_urls:
@@ -401,7 +519,12 @@ class MDNJavaScriptScraper:
         logger.info("Finished section %s: %d documents", section_path, entity_count)
 
     def scrape_all(self) -> Generator[MDNJavaScriptDoc, None, None]:
-        """Scrape all JavaScript documentation sections."""
+        """
+        Scrape all JavaScript documentation sections defined in JAVASCRIPT_SECTIONS.
+
+        Yields:
+            MDNJavaScriptDoc objects from all sections
+        """
         for section_path, section_type, description in JAVASCRIPT_SECTIONS:
             if self._is_cancelled():
                 return
@@ -442,23 +565,25 @@ def scrape_mdn_javascript(
         if progress_callback:
             try:
                 progress_callback(phase, current, total, message)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("Progress callback failed: %s", exc)
 
     def is_cancelled() -> bool:
         if check_cancelled:
             try:
                 return check_cancelled()
-            except Exception:
+            except Exception as exc:
+                logger.debug("Check cancelled callback failed: %s", exc)
                 return False
         return False
 
     def is_paused() -> bool:
-        """Check if paused and wait. Returns True if cancelled during wait."""
+        """Check if scraping should abort due to an external pause/cancel signal."""
         if check_paused:
             try:
                 return check_paused()
-            except Exception:
+            except Exception as exc:
+                logger.debug("Check paused callback failed: %s", exc)
                 return False
         return False
 
@@ -470,6 +595,18 @@ def scrape_mdn_javascript(
             emit_progress("setup", 0, 0, "Setting up MDNJavaScript collection")
             create_mdn_javascript_collection(client, force_reindex=False)
             collection = client.collections.get(MDN_JAVASCRIPT_COLLECTION_NAME)
+
+            # Load existing UUIDs for deduplication
+            emit_progress("setup", 0, 0, "Loading existing UUIDs for deduplication")
+            existing_uuids: Set[str] = set()
+            try:
+                logger.info("Loading existing entity UUIDs for deduplication...")
+                for obj in collection.iterator(include_vector=False):
+                    if obj.uuid:
+                        existing_uuids.add(str(obj.uuid))
+                logger.info("Loaded %d existing UUIDs", len(existing_uuids))
+            except Exception as e:
+                logger.warning("Could not load existing UUIDs: %s", e)
 
             if config.dry_run:
                 logger.info("Dry run mode - not inserting into Weaviate")
@@ -501,6 +638,12 @@ def scrape_mdn_javascript(
                         doc.title,
                     )
 
+                    # Skip if document already exists (deduplication)
+                    doc_uuid_str = str(doc.uuid)
+                    if doc_uuid_str in existing_uuids:
+                        logger.debug("Skipping duplicate: %s (UUID: %s)", doc.title, doc_uuid_str)
+                        continue
+
                     if config.dry_run:
                         logger.info("[DRY RUN] Would insert: %s", doc.title)
                         continue
@@ -528,7 +671,7 @@ def scrape_mdn_javascript(
 
                     except Exception as e:
                         errors += 1
-                        logger.warning("Failed to insert %s: %s", doc.title, e)
+                        logger.exception("Failed to insert %s: %s", doc.title, e)
 
         if cancelled:
             emit_progress("cancelled", entities_processed, 0, "Scraping cancelled")
@@ -557,8 +700,13 @@ def scrape_mdn_javascript(
 
 
 def _configure_logging(verbose: bool) -> None:
+    """
+    Configure logging level based on verbosity flag.
+
+    Args:
+        verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+    """
     if verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
     else:
         level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
@@ -566,6 +714,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    """
+    CLI entry point for MDN JavaScript scraper.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On command failure
+    """
     parser = argparse.ArgumentParser(
         description="MDN JavaScript documentation scraper for Weaviate ingestion.",
     )

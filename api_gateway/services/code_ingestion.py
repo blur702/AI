@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import time
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
 
@@ -130,8 +131,17 @@ AI_SERVICE_VENVS = {
 }
 
 
-def _is_excluded(path: Path, extra_excludes: Optional[set] = None) -> bool:
-    """Check if any parent directory of the path is in excluded_dirs."""
+def _is_excluded(path: Path, extra_excludes: Optional[set[str]] = None) -> bool:
+    """
+    Check if any parent directory of the path is in excluded_dirs.
+
+    Args:
+        path: Path to check
+        extra_excludes: Additional directory names to exclude (optional)
+
+    Returns:
+        True if path should be excluded, False otherwise
+    """
     excluded = EXCLUDED_DIRS | (extra_excludes or set())
     for parent in path.resolve().parents:
         if parent.name in excluded:
@@ -245,7 +255,16 @@ def scan_all_services() -> Dict[str, List[Path]]:
 def _batched(
     iterable: Iterable[CodeEntity], batch_size: int
 ) -> Iterable[List[CodeEntity]]:
-    """Yield successive batches from an iterable."""
+    """
+    Yield successive batches from an iterable.
+
+    Args:
+        iterable: Iterable of CodeEntity objects
+        batch_size: Maximum number of items per batch
+
+    Yields:
+        Lists of up to batch_size items
+    """
     batch: List[CodeEntity] = []
     for item in iterable:
         batch.append(item)
@@ -295,6 +314,7 @@ def ingest_code_entities(
     cancelled = False
 
     def emit_progress(phase: str, current: int, total: int, message: str) -> None:
+        """Call progress_callback if provided, suppressing any errors."""
         if progress_callback:
             try:
                 progress_callback(phase, current, total, message)
@@ -302,6 +322,7 @@ def ingest_code_entities(
                 pass  # Don't let callback errors stop ingestion
 
     def is_cancelled() -> bool:
+        """Check if operation should be cancelled, suppressing callback errors."""
         if check_cancelled:
             try:
                 return check_cancelled()
@@ -310,7 +331,12 @@ def ingest_code_entities(
         return False
 
     def is_paused() -> bool:
-        """Check if paused and wait. Returns True if cancelled during wait."""
+        """
+        Check if paused and wait. Returns True if cancelled during wait.
+
+        Returns:
+            True if operation was cancelled during pause, False otherwise
+        """
         if check_paused:
             try:
                 return check_paused()
@@ -345,6 +371,12 @@ def ingest_code_entities(
     processed_files = 0
 
     def entity_stream() -> Iterable[CodeEntity]:
+        """
+        Stream CodeEntity objects from all source files, respecting cancel/pause callbacks.
+
+        Yields:
+            CodeEntity objects for each code entity found in source files
+        """
         nonlocal total_files, total_entities, errors, cancelled, processed_files
         for svc_name, files in files_by_service.items():
             for path in files:
@@ -406,7 +438,6 @@ def ingest_code_entities(
     create_code_entity_collection(client, force_reindex=force_reindex)
     collection = client.collections.get(CODE_ENTITY_COLLECTION_NAME)
 
-    import time
     inserted = 0
     for entity in entity_stream():
         if cancelled:
@@ -478,9 +509,13 @@ def collection_status(client: weaviate.WeaviateClient) -> Dict[str, int]:
 
 
 def _configure_logging(verbose: bool) -> None:
-    """Configure logging level based on verbosity flag."""
+    """
+    Configure logging level based on verbosity flag.
+
+    Args:
+        verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
+    """
     if verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
     else:
         # Respect LOG_LEVEL from settings for the module logger
@@ -489,7 +524,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
-    """CLI entry point for code ingestion."""
+    """
+    CLI entry point for code ingestion.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On command failure
+    """
     # Build service choices dynamically
     service_choices = ["core", "all"] + sorted(AI_SERVICE_DIRS.values())
 

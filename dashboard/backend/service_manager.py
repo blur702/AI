@@ -15,7 +15,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, Optional, Set
+from typing import Any, Callable, Dict, Optional, Set
 
 import psutil
 import requests
@@ -27,6 +27,13 @@ logger = logging.getLogger(__name__)
 
 
 class ServiceStatus(Enum):
+    """
+    Enumeration of possible service lifecycle states.
+
+    Used to track the current operational status of managed AI services
+    throughout their lifecycle from startup to shutdown.
+    """
+
     STOPPED = "stopped"
     STARTING = "starting"
     RUNNING = "running"
@@ -37,12 +44,27 @@ class ServiceStatus(Enum):
 
 @dataclass
 class ServiceState:
+    """
+    Tracks the runtime state of a managed service.
+
+    Stores process information, status, timing data, and error details
+    for services managed by the ServiceManager.
+
+    Attributes:
+        status: Current lifecycle status of the service.
+        process: Subprocess handle if started by dashboard.
+        error_message: Error details if status is ERROR.
+        start_time: Unix timestamp when service was started.
+        pid: Process ID of the running service.
+        last_activity: Unix timestamp of last API access (for idle detection).
+    """
+
     status: ServiceStatus = ServiceStatus.STOPPED
     process: Optional[subprocess.Popen] = None
     error_message: Optional[str] = None
     start_time: Optional[float] = None
     pid: Optional[int] = None
-    last_activity: Optional[float] = None  # Last time service was accessed/used
+    last_activity: Optional[float] = None
 
 
 class ServiceManager:
@@ -74,7 +96,7 @@ class ServiceManager:
         for service_id in SERVICES:
             self._services[service_id] = ServiceState()
 
-    def set_test_error_mode(self, service_id: str, enabled: bool = True):
+    def set_test_error_mode(self, service_id: str, enabled: bool = True) -> None:
         """
         Enable or disable test-only error mode for a service.
 
@@ -87,15 +109,15 @@ class ServiceManager:
             else:
                 self._test_error_services.discard(service_id)
 
-    def _emit_status(self, service_id: str, status: ServiceStatus, message: str = ""):
+    def _emit_status(self, service_id: str, status: ServiceStatus, message: str = "") -> None:
         """Emit status update via callback if configured."""
         if self._status_callback:
             try:
                 self._status_callback(service_id, status.value, message)
             except Exception as e:
-                logger.error(f"Error in status callback: {e}")
+                logger.error("Error in status callback: %s", e)
 
-    def _check_auto_start_dependencies(self, service_id: str):
+    def _check_auto_start_dependencies(self, service_id: str) -> None:
         """
         Check if a service that just came online has auto_start_with dependencies.
         If so, start those dependent services.
@@ -113,7 +135,7 @@ class ServiceManager:
             if service_id in self._auto_start_triggered:
                 return
             self._auto_start_triggered.add(service_id)
-        logger.info(f"Service {service_id} is online, auto-starting: {auto_start_services}")
+        logger.info("Service %s is online, auto-starting: %s", service_id, auto_start_services)
 
         # Start dependent services in background threads
         for dep_service_id in auto_start_services:
@@ -149,10 +171,11 @@ class ServiceManager:
                 check=False,
             )
             return result.returncode == 0
-        except Exception:
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError) as exc:
+            logger.debug("Docker availability check failed: %s", exc)
             return False
 
-    def _auto_start_dependent_service(self, service_id: str, triggered_by: str):
+    def _auto_start_dependent_service(self, service_id: str, triggered_by: str) -> None:
         """Background thread to auto-start a dependent service."""
         try:
             # Special handling for Weaviate - requires Docker
@@ -183,15 +206,20 @@ class ServiceManager:
         except Exception as e:
             logger.error(f"Error auto-starting {service_id}: {e}")
 
-    def _clear_auto_start_trigger(self, service_id: str):
+    def _clear_auto_start_trigger(self, service_id: str) -> None:
         """Clear the auto-start trigger when a service goes offline."""
         self._auto_start_triggered.discard(service_id)
 
     def _check_port_in_use(self, port: int) -> bool:
         """Check if a port is in use (service might be running externally)."""
         import socket
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            return s.connect_ex(('127.0.0.1', port)) == 0
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1)
+                return s.connect_ex(('127.0.0.1', port)) == 0
+        except OSError as exc:
+            logger.debug("Port check failed for %d: %s", port, exc)
+            return False
 
     def _kill_process_on_port(self, port: int) -> bool:
         """Attempt to terminate a process listening on the given port.
@@ -284,7 +312,7 @@ class ServiceManager:
 
             return True
 
-        except Exception as exc:  # noqa: BLE001
+        except (subprocess.SubprocessError, OSError) as exc:
             logger.error("Error killing process on port %s: %s", port, exc)
             return False
 
@@ -310,7 +338,8 @@ class ServiceManager:
             url = f"http://{DEFAULT_HOST}:{port}{endpoint}"
             response = requests.get(url, timeout=timeout)
             return response.status_code < 500
-        except requests.exceptions.RequestException:
+        except requests.exceptions.RequestException as exc:
+            logger.debug("Health check failed for %s: %s", service_id, exc)
             return False
 
     def get_status(self, service_id: str) -> dict:
@@ -430,10 +459,10 @@ class ServiceManager:
                         service_id, is_healthy, port_in_use = future.result()
                         health_results[service_id] = is_healthy
                         port_results[service_id] = port_in_use
-                    except Exception:
-                        pass
+                    except Exception as exc:
+                        logger.debug("Service check future failed: %s", exc)
         except Exception as e:
-            logger.error(f"Error in concurrent service checks: {e}")
+            logger.error("Error in concurrent service checks: %s", e)
             # Fallback: mark all as unknown
             for service_id in SERVICES:
                 if service_id not in health_results and service_id not in paused_services:
@@ -587,7 +616,7 @@ class ServiceManager:
 
         return {"success": True, "message": "Service starting..."}
 
-    def _start_service_thread(self, service_id: str):
+    def _start_service_thread(self, service_id: str) -> None:
         """Background thread to start a service and monitor startup."""
         config = SERVICES[service_id]
 
@@ -597,7 +626,7 @@ class ServiceManager:
             creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
             
             # Start the process
-            popen_kwargs = {
+            popen_kwargs: dict[str, Any] = {
                 "cwd": config["working_dir"],
                 "stdout": subprocess.PIPE,
                 "stderr": subprocess.STDOUT,
@@ -605,7 +634,7 @@ class ServiceManager:
             }
             if creationflags:
                 popen_kwargs["creationflags"] = creationflags
-            
+
             process = subprocess.Popen(config["command"], **popen_kwargs)
 
             with self._lock:
@@ -736,7 +765,7 @@ class ServiceManager:
 
             return {"success": True, "message": "Service stopped"}
 
-        except Exception as e:  # noqa: BLE001
+        except (subprocess.SubprocessError, OSError) as e:
             with self._lock:
                 state.status = ServiceStatus.ERROR
                 state.error_message = str(e)
@@ -904,7 +933,7 @@ class ServiceManager:
         time.sleep(2)  # Brief pause between stop and start
         return self.start_service(service_id)
 
-    def touch_activity(self, service_id: str):
+    def touch_activity(self, service_id: str) -> None:
         """
         Update the last activity timestamp for a service.
 
@@ -941,7 +970,7 @@ class ServiceManager:
             return None
         return time.time() - last
 
-    def set_idle_timeout(self, timeout_seconds: int):
+    def set_idle_timeout(self, timeout_seconds: int) -> None:
         """Set the idle timeout in seconds."""
         self._idle_timeout = timeout_seconds
 
@@ -949,7 +978,7 @@ class ServiceManager:
         """Get the current idle timeout in seconds."""
         return self._idle_timeout
 
-    def enable_auto_stop(self, enabled: bool = True):
+    def enable_auto_stop(self, enabled: bool = True) -> None:
         """Enable or disable auto-stop for idle services."""
         self._auto_stop_enabled = enabled
         if enabled:
@@ -961,7 +990,7 @@ class ServiceManager:
         """Check if auto-stop is enabled."""
         return self._auto_stop_enabled
 
-    def _start_idle_check_thread(self):
+    def _start_idle_check_thread(self) -> None:
         """Start the background thread that checks for idle services."""
         if self._idle_check_thread and self._idle_check_thread.is_alive():
             return  # Already running
@@ -974,14 +1003,14 @@ class ServiceManager:
         self._idle_check_thread.start()
         logger.info("Idle check thread started")
 
-    def _stop_idle_check_thread(self):
+    def _stop_idle_check_thread(self) -> None:
         """Stop the idle check background thread."""
         self._idle_check_stop = True
         if self._idle_check_thread:
             self._idle_check_thread.join(timeout=5)
         logger.info("Idle check thread stopped")
 
-    def _idle_check_loop(self):
+    def _idle_check_loop(self) -> None:
         """Background loop that stops idle services."""
         from services_config import GPU_INTENSIVE_SERVICES
 
@@ -1009,7 +1038,9 @@ class ServiceManager:
             # Stop services outside the lock
             for service_id, idle_time in services_to_stop:
                 logger.info(
-                    f"Auto-stopping {service_id} after {idle_time:.0f}s idle"
+                    "Auto-stopping %s after %.0fs idle",
+                    service_id,
+                    idle_time
                 )
                 self.stop_service(service_id)
                 self._emit_status(

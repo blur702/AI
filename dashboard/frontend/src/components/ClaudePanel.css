@@ -19,6 +19,12 @@
   padding: 16px 20px;
   cursor: pointer;
   transition: background 0.2s;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 
 .claude-header:hover {
@@ -212,7 +218,12 @@
   padding: 10px 12px;
   cursor: pointer;
   transition: all 0.2s;
+  border: none;
   border-left: 3px solid transparent;
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
 }
 
 .session-item:hover {

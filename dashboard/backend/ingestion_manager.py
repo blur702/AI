@@ -7,12 +7,15 @@ WebSocket events for real-time progress updates.
 
 from __future__ import annotations
 
+import logging
 import sys
 import threading
 import time
 import uuid
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 # Add project root to path for imports
 project_root = Path(__file__).resolve().parents[2]
@@ -154,6 +157,7 @@ class IngestionManager:
         except Exception as exc:
             # Return status even if Weaviate is unavailable
             collections["error"] = str(exc)
+            logger.error("Error fetching collection status: %s", exc)
 
         return {
             "is_running": self.is_running,
@@ -417,6 +421,7 @@ class IngestionManager:
 
         except Exception as exc:
             success = False
+            logger.error("Ingestion error for task %s: %s", task_id, exc)
             self.emit("ingestion_error", {
                 "task_id": task_id,
                 "error": str(exc),

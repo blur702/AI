@@ -52,7 +52,15 @@ logger = get_logger("api_gateway.code_parsers")
 
 
 def _relative_to_workspace(path: Path) -> str:
-    """Convert absolute path to workspace-relative path."""
+    """
+    Convert absolute path to workspace-relative path.
+
+    Args:
+        path: Absolute file path
+
+    Returns:
+        Workspace-relative path string, or absolute path if not within workspace
+    """
     workspace_root = Path(__file__).resolve().parents[2]
     try:
         return str(path.resolve().relative_to(workspace_root))
@@ -65,6 +73,14 @@ def _build_full_name(
 ) -> str:
     """
     Build fully qualified name for an entity.
+
+    Args:
+        file_path: Path to source file containing entity
+        entity_name: Name of the entity (function, class, etc.)
+        parent: Optional parent entity name (for nested entities)
+
+    Returns:
+        Fully qualified dotted name (e.g., module.path.ClassName.method_name)
 
     Format: module.path.ClassName.method_name or module.path.function_name
     """
@@ -86,17 +102,42 @@ def _build_full_name(
 
 
 def _serialize_parameters(params: List[Dict[str, Any]]) -> str:
-    """Convert parameter list to JSON string."""
+    """
+    Convert parameter list to JSON string.
+
+    Args:
+        params: List of parameter dictionaries with name, type, default, kind keys
+
+    Returns:
+        JSON string representation of parameter list
+    """
     return json.dumps(params)
 
 
 def _serialize_decorators(decorators: List[str]) -> str:
-    """Convert decorator list to JSON array string."""
+    """
+    Convert decorator list to JSON array string.
+
+    Args:
+        decorators: List of decorator strings (e.g., ["@property", "@staticmethod"])
+
+    Returns:
+        JSON array string
+    """
     return json.dumps(decorators)
 
 
 def _count_line_number(text: str, position: int) -> int:
-    """Count line number (1-indexed) for a character position in text."""
+    """
+    Count line number (1-indexed) for a character position in text.
+
+    Args:
+        text: Source text
+        position: Character position (0-indexed)
+
+    Returns:
+        Line number (1-indexed)
+    """
     return text[:position].count("\n") + 1
 
 
@@ -106,7 +147,12 @@ def _count_line_number(text: str, position: int) -> int:
 
 
 class BaseParser(ABC):
-    """Abstract base class for language-specific parsers."""
+    """
+    Abstract base class for language-specific parsers.
+
+    Subclasses must implement parse_file() and language property to handle
+    specific programming languages.
+    """
 
     @abstractmethod
     def parse_file(self, file_path: Path) -> List[CodeEntity]:
@@ -124,7 +170,12 @@ class BaseParser(ABC):
     @property
     @abstractmethod
     def language(self) -> str:
-        """Return the language identifier for entities from this parser."""
+        """
+        Return the language identifier for entities from this parser.
+
+        Returns:
+            Language identifier string (e.g., "python", "typescript", "javascript", "css")
+        """
         pass
 
 
@@ -134,14 +185,29 @@ class BaseParser(ABC):
 
 
 class PythonParser(BaseParser):
-    """Parser for Python source files using the built-in ast module."""
+    """
+    Parser for Python source files using the built-in ast module.
+
+    Extracts functions, methods, classes, and module-level variables with
+    comprehensive metadata including parameters (positional, *args, kwonly, **kwargs),
+    return types, decorators, and docstrings.
+    """
 
     @property
     def language(self) -> str:
+        """Return language identifier."""
         return "python"
 
     def parse_file(self, file_path: Path) -> List[CodeEntity]:
-        """Parse a Python file and extract code entities."""
+        """
+        Parse a Python file and extract code entities.
+
+        Args:
+            file_path: Path to Python source file
+
+        Returns:
+            List of CodeEntity objects (functions, methods, classes, variables)
+        """
         logger.info("Parsing Python file: %s", _relative_to_workspace(file_path))
 
         try:
@@ -253,7 +319,15 @@ class PythonParser(BaseParser):
         return entities
 
     def _extract_imports(self, tree: ast.Module) -> List[str]:
-        """Extract all import statements from a Python AST."""
+        """
+        Extract all import statements from a Python AST.
+
+        Args:
+            tree: Parsed Python AST module
+
+        Returns:
+            List of imported module/package names
+        """
         imports: List[str] = []
 
         for node in ast.walk(tree):
@@ -278,7 +352,21 @@ class PythonParser(BaseParser):
         is_async: bool = False,
         is_method: bool = False,
     ) -> CodeEntity:
-        """Extract a function or method entity."""
+        """
+        Extract a function or method entity from AST node.
+
+        Args:
+            node: AST FunctionDef or AsyncFunctionDef node
+            file_path: Source file path
+            source_lines: Lines of source code for extracting text
+            imports: List of imported modules
+            parent: Parent entity name (for nested functions/methods)
+            is_async: Whether function is async
+            is_method: Whether function is a class method
+
+        Returns:
+            CodeEntity object with complete function/method metadata
+        """
         name = node.name
 
         # Parameters - extract all categories
@@ -406,7 +494,19 @@ class PythonParser(BaseParser):
         imports: List[str],
         parent: Optional[str] = None,
     ) -> CodeEntity:
-        """Extract a class entity."""
+        """
+        Extract a class entity from AST node.
+
+        Args:
+            node: AST ClassDef node
+            file_path: Source file path
+            source_lines: Lines of source code for extracting text
+            imports: List of imported modules
+            parent: Parent entity name (for nested classes)
+
+        Returns:
+            CodeEntity object with class metadata including base classes
+        """
         name = node.name
 
         # Base classes
@@ -461,7 +561,19 @@ class PythonParser(BaseParser):
         source_lines: List[str],
         imports: List[str],
     ) -> CodeEntity:
-        """Extract a module-level variable assignment."""
+        """
+        Extract a module-level variable assignment.
+
+        Args:
+            name: Variable name
+            node: AST Assign node
+            file_path: Source file path
+            source_lines: Lines of source code for extracting text
+            imports: List of imported modules
+
+        Returns:
+            CodeEntity object for the variable
+        """
         start_line = node.lineno
         end_line = node.end_lineno or node.lineno
         source = "\n".join(source_lines[start_line - 1 : end_line])
@@ -502,7 +614,18 @@ class PythonParser(BaseParser):
         source_lines: List[str],
         imports: List[str],
     ) -> CodeEntity:
-        """Extract an annotated module-level variable."""
+        """
+        Extract an annotated module-level variable.
+
+        Args:
+            node: AST AnnAssign node (annotated assignment)
+            file_path: Source file path
+            source_lines: Lines of source code for extracting text
+            imports: List of imported modules
+
+        Returns:
+            CodeEntity object for the typed variable
+        """
         name = node.target.id  # type: ignore
         start_line = node.lineno
         end_line = node.end_lineno or node.lineno
@@ -548,7 +671,13 @@ class PythonParser(BaseParser):
 
 
 class TypeScriptParser(BaseParser):
-    """Parser for TypeScript/JavaScript files using Node.js subprocess."""
+    """
+    Parser for TypeScript/JavaScript files using Node.js subprocess.
+
+    Uses ts_parser.js Node.js script to parse TypeScript/JavaScript files via
+    the TypeScript compiler API. Extracts functions, classes, interfaces, types,
+    and variables.
+    """
 
     def __init__(self, file_extension: str = ".ts"):
         """
@@ -559,22 +688,41 @@ class TypeScriptParser(BaseParser):
         """
         self._file_extension = file_extension
         self._node_path: Optional[str] = None
-        self._ts_parser_path = Path(__file__).parent / "ts_parser.js"
+        self._ts_parser_path = Path(__file__).parent / "ts_parser.cjs"
 
     @property
     def language(self) -> str:
+        """
+        Return language identifier based on file extension.
+
+        Returns:
+            "typescript" for .ts/.tsx files, "javascript" for .js/.jsx files
+        """
         if self._file_extension in (".ts", ".tsx"):
             return "typescript"
         return "javascript"
 
     def _get_node_path(self) -> Optional[str]:
-        """Get path to Node.js executable."""
+        """
+        Get path to Node.js executable.
+
+        Returns:
+            Path to node executable, or None if not found
+        """
         if self._node_path is None:
             self._node_path = shutil.which("node")
         return self._node_path
 
     def parse_file(self, file_path: Path) -> List[CodeEntity]:
-        """Parse a TypeScript/JavaScript file and extract code entities."""
+        """
+        Parse a TypeScript/JavaScript file and extract code entities.
+
+        Args:
+            file_path: Path to TypeScript/JavaScript source file
+
+        Returns:
+            List of CodeEntity objects extracted via ts_parser.js subprocess
+        """
         logger.info("Parsing %s file: %s", self.language, _relative_to_workspace(file_path))
 
         node_path = self._get_node_path()
@@ -671,7 +819,12 @@ class TypeScriptParser(BaseParser):
 
 
 class CSSParser(BaseParser):
-    """Parser for CSS files using regex patterns."""
+    """
+    Parser for CSS files using regex patterns.
+
+    Extracts CSS style rules (selectors with properties) and @keyframes animations.
+    Handles comments and nested structures correctly.
+    """
 
     # Pattern for CSS rules: selector { properties }
     RULE_PATTERN = re.compile(
@@ -693,10 +846,19 @@ class CSSParser(BaseParser):
 
     @property
     def language(self) -> str:
+        """Return language identifier."""
         return "css"
 
     def parse_file(self, file_path: Path) -> List[CodeEntity]:
-        """Parse a CSS file and extract style rules and animations."""
+        """
+        Parse a CSS file and extract style rules and animations.
+
+        Args:
+            file_path: Path to CSS file
+
+        Returns:
+            List of CodeEntity objects (styles and animations)
+        """
         logger.info("Parsing CSS file: %s", _relative_to_workspace(file_path))
 
         try:
@@ -835,7 +997,15 @@ class CSSParser(BaseParser):
         return entities
 
     def _parse_properties(self, block: str) -> List[Dict[str, str]]:
-        """Parse CSS properties from a block of text."""
+        """
+        Parse CSS properties from a block of text.
+
+        Args:
+            block: CSS properties block text
+
+        Returns:
+            List of dicts with "property" and "value" keys
+        """
         properties = []
         for match in self.PROPERTY_PATTERN.finditer(block):
             properties.append({
@@ -855,13 +1025,24 @@ class CodeParser:
     Unified code parser that delegates to language-specific parsers.
 
     Automatically detects the language based on file extension and uses
-    the appropriate parser.
+    the appropriate parser (Python, TypeScript, JavaScript, or CSS).
+
+    Supported file types:
+        - Python: .py
+        - TypeScript: .ts, .tsx
+        - JavaScript: .js, .jsx
+        - CSS: .css
     """
 
     SUPPORTED_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css"}
 
     def __init__(self):
-        """Initialize the code parser with all language-specific parsers."""
+        """
+        Initialize the code parser with all language-specific parsers.
+
+        Creates instances of PythonParser and CSSParser. TypeScriptParser
+        instances are created per-file based on extension.
+        """
         self._python_parser = PythonParser()
         self._css_parser = CSSParser()
 
@@ -903,12 +1084,25 @@ class CodeParser:
 
     @classmethod
     def get_supported_extensions(cls) -> List[str]:
-        """Return list of supported file extensions."""
+        """
+        Return list of supported file extensions.
+
+        Returns:
+            List of extension strings (e.g., [".py", ".ts", ".tsx", ...])
+        """
         return list(cls.SUPPORTED_EXTENSIONS)
 
     @classmethod
     def is_supported(cls, file_path: Path) -> bool:
-        """Check if a file type is supported by the parser."""
+        """
+        Check if a file type is supported by the parser.
+
+        Args:
+            file_path: Path to file to check
+
+        Returns:
+            True if file extension is supported, False otherwise
+        """
         return file_path.suffix.lower() in cls.SUPPORTED_EXTENSIONS
 
 

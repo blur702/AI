@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
@@ -5,7 +6,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { useThemeMode } from '../theme/ThemeContext';
 import './ThemeToggle.css';
 
-export function ThemeToggle(): JSX.Element {
+export const ThemeToggle = memo(function ThemeToggle(): JSX.Element {
   const { mode, toggleTheme } = useThemeMode();
 
   const tooltipTitle = mode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
@@ -32,4 +33,4 @@ export function ThemeToggle(): JSX.Element {
       </IconButton>
     </Tooltip>
   );
-}
+});

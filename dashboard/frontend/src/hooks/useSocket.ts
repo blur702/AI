@@ -3,7 +3,15 @@ import { io, Socket } from 'socket.io-client';
 import { ServiceStatus, ServiceState, ServicesResponse, ServiceStatusUpdate, ModelDownloadProgress, ModelLoadProgress } from '../types';
 import { getApiBase } from '../config/services';
 
-export function useSocket() {
+interface UseSocketReturn {
+  connected: boolean;
+  services: Record<string, ServiceState>;
+  startService: (serviceId: string) => Promise<void>;
+  stopService: (serviceId: string) => Promise<void>;
+  refreshStatuses: () => Promise<void>;
+}
+
+export function useSocket(): UseSocketReturn {
   const [connected, setConnected] = useState(false);
   const [services, setServices] = useState<Record<string, ServiceState>>({});
   const socketRef = useRef<Socket | null>(null);
@@ -132,6 +140,9 @@ export function useSocket() {
         method: 'POST',
         credentials: 'include'
       });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       const data = await response.json();
 
       if (!data.success) {
@@ -172,6 +183,9 @@ export function useSocket() {
         method: 'POST',
         credentials: 'include'
       });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
       const data = await response.json();
 
       if (data.success) {

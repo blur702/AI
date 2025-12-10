@@ -186,6 +186,37 @@ async def migrate_api_keys(sqlite_conn: sqlite3.Connection, pg_conn: asyncpg.Con
     return len(rows)
 
 
+async def _migrate_data_tables(
+    sqlite_conn: sqlite3.Connection,
+    pg_conn: asyncpg.Connection,
+    dry_run: bool
+) -> int:
+    """Migrate all data tables and return total count."""
+    total_migrated = 0
+
+    print("  Jobs table:")
+    total_migrated += await migrate_jobs(sqlite_conn, pg_conn, dry_run)
+
+    print("  API Keys table:")
+    total_migrated += await migrate_api_keys(sqlite_conn, pg_conn, dry_run)
+
+    return total_migrated
+
+
+async def _handle_fresh_database(dry_run: bool) -> bool:
+    """Handle case where no SQLite database exists."""
+    print("\nNo SQLite database found - nothing to migrate.")
+    print("Starting with fresh PostgreSQL database.")
+
+    if not dry_run:
+        pg_conn = await get_postgres_connection()
+        await create_tables(pg_conn)
+        await pg_conn.close()
+        print("\nPostgreSQL tables created successfully.")
+
+    return True
+
+
 async def run_migration(dry_run: bool = False) -> bool:
     """Run the complete migration."""
     print("=" * 60)
@@ -198,16 +229,7 @@ async def run_migration(dry_run: bool = False) -> bool:
     # Check SQLite database
     sqlite_conn = get_sqlite_connection()
     if sqlite_conn is None:
-        print("\nNo SQLite database found - nothing to migrate.")
-        print("Starting with fresh PostgreSQL database.")
-
-        if not dry_run:
-            pg_conn = await get_postgres_connection()
-            await create_tables(pg_conn)
-            await pg_conn.close()
-            print("\nPostgreSQL tables created successfully.")
-
-        return True
+        return await _handle_fresh_database(dry_run)
 
     try:
         # Connect to PostgreSQL
@@ -222,13 +244,7 @@ async def run_migration(dry_run: bool = False) -> bool:
 
         # Migrate data
         print("\nMigrating data...")
-        total_migrated = 0
-
-        print("  Jobs table:")
-        total_migrated += await migrate_jobs(sqlite_conn, pg_conn, dry_run)
-
-        print("  API Keys table:")
-        total_migrated += await migrate_api_keys(sqlite_conn, pg_conn, dry_run)
+        total_migrated = await _migrate_data_tables(sqlite_conn, pg_conn, dry_run)
 
         # Summary
         print("\n" + "=" * 60)
