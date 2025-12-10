@@ -186,6 +186,7 @@ class Error(Base):
         job_id: Related job ID if error occurred during async operation (indexed)
         created_at: Timestamp when error occurred (indexed)
         resolved: Whether the error has been addressed
+        ready_for_review: Whether the error has been triaged and is ready for human review
         resolved_at: Timestamp when error was marked resolved
     """
 
@@ -201,6 +202,7 @@ class Error(Base):
     job_id = Column(String, nullable=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     resolved = Column(Boolean, default=False, nullable=False)
+    ready_for_review = Column(Boolean, default=False, nullable=False)
     resolved_at = Column(DateTime, nullable=True)
 
 
@@ -238,6 +240,19 @@ async def init_db() -> None:
             )
         except Exception as exc:  # noqa: BLE001
             # If the column already exists, swallow the error; otherwise re-raise.
-            if "duplicate column name" not in str(exc).lower():
+            # SQLite uses "duplicate column name", PostgreSQL uses "already exists"
+            msg = str(exc).lower()
+            if "duplicate column" not in msg and not ("column" in msg and "already exists" in msg):
+                raise
+
+        # Migration for errors.ready_for_review column
+        try:
+            await conn.execute(
+                text("ALTER TABLE errors ADD COLUMN ready_for_review BOOLEAN NOT NULL DEFAULT FALSE")
+            )
+        except Exception as exc:  # noqa: BLE001
+            # SQLite uses "duplicate column name", PostgreSQL uses "already exists"
+            msg = str(exc).lower()
+            if "duplicate column" not in msg and not ("column" in msg and "already exists" in msg):
                 raise
 

@@ -26,21 +26,27 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
+
+import hashlib
+import uuid as uuid_module
 
 from api_gateway.services.weaviate_connection import WeaviateConnection
 from api_gateway.services.code_parsers import CodeParser
-from api_gateway.services.code_ingestion import (
+from api_gateway.services.code_entity_schema import (
     CodeEntity,
-    ensure_code_entity_collection,
-    generate_entity_uuid,
+    create_code_entity_collection,
 )
 from api_gateway.services.doc_ingestion import (
-    ensure_documentation_collection,
-    parse_markdown_sections,
-    DocumentSection,
+    create_documentation_collection,
+    chunk_by_headers,
 )
 from api_gateway.utils.embeddings import get_embedding
+
+
+def generate_entity_uuid(entity: CodeEntity) -> str:
+    """Generate a stable UUID for a code entity based on its identifying properties."""
+    key = f"{entity.file_path}:{entity.full_name}:{entity.line_start}"
+    return str(uuid_module.UUID(hashlib.md5(key.encode()).hexdigest()))
 
 # Configure logging
 logging.basicConfig(
@@ -99,7 +105,6 @@ def index_code_file(
         return stats
 
     service_name = get_service_name(file_path)
-    extension = file_path.suffix.lower()
 
     try:
         # Parse the file
@@ -107,34 +112,25 @@ def index_code_file(
 
         for entity in entities:
             try:
-                # Create CodeEntity object
-                code_entity = CodeEntity(
-                    entity_type=entity.get("type", "unknown"),
-                    name=entity.get("name", ""),
-                    full_name=entity.get("full_name", entity.get("name", "")),
-                    signature=entity.get("signature", ""),
-                    docstring=entity.get("docstring", ""),
-                    source_code=entity.get("source", "")[:2000],  # Truncate
-                    file_path=str(file_path),
-                    line_number=entity.get("line", 0),
-                    service_name=service_name,
-                    language=_get_language(extension),
-                )
+                # entity is already a CodeEntity object from the parser
+                # Update service_name if not set
+                if entity.service_name == "core":
+                    entity.service_name = service_name
 
                 if dry_run:
-                    logger.info(f"  [DRY RUN] Would index: {code_entity.full_name}")
+                    logger.info(f"  [DRY RUN] Would index: {entity.full_name}")
                     stats["entities_added"] += 1
                     continue
 
                 # Generate UUID for deduplication
-                uuid = generate_entity_uuid(code_entity)
+                uuid = generate_entity_uuid(entity)
 
                 # Build text for embedding
-                text_parts = [code_entity.full_name]
-                if code_entity.docstring:
-                    text_parts.append(code_entity.docstring)
-                if code_entity.signature:
-                    text_parts.append(code_entity.signature)
+                text_parts = [entity.full_name]
+                if entity.docstring:
+                    text_parts.append(entity.docstring)
+                if entity.signature:
+                    text_parts.append(entity.signature)
                 text = "\n\n".join(text_parts)
 
                 # Get embedding
@@ -147,23 +143,23 @@ def index_code_file(
                     # Update existing
                     collection.data.update(
                         uuid=uuid,
-                        properties=code_entity.__dict__,
+                        properties=entity.to_properties(),
                         vector=vector,
                     )
                     stats["entities_updated"] += 1
-                    logger.debug(f"  Updated: {code_entity.full_name}")
+                    logger.debug(f"  Updated: {entity.full_name}")
                 else:
                     # Insert new
                     collection.data.insert(
                         uuid=uuid,
-                        properties=code_entity.__dict__,
+                        properties=entity.to_properties(),
                         vector=vector,
                     )
                     stats["entities_added"] += 1
-                    logger.debug(f"  Added: {code_entity.full_name}")
+                    logger.debug(f"  Added: {entity.full_name}")
 
             except Exception as e:
-                logger.error(f"  Error indexing entity {entity.get('name')}: {e}")
+                logger.error(f"  Error indexing entity {entity.name}: {e}")
                 stats["errors"] += 1
 
     except Exception as e:
@@ -193,56 +189,55 @@ def index_doc_file(
         return stats
 
     try:
-        content = file_path.read_text(encoding="utf-8")
-        sections = parse_markdown_sections(content, str(file_path))
+        # chunk_by_headers takes a file path and returns DocChunk objects
+        chunks = chunk_by_headers(file_path)
 
-        for section in sections:
+        for chunk in chunks:
             try:
                 if dry_run:
-                    logger.info(f"  [DRY RUN] Would index section: {section.title}")
+                    logger.info(f"  [DRY RUN] Would index section: {chunk.title}")
                     stats["sections_added"] += 1
                     continue
 
                 # Build text for embedding
-                text = f"{section.title}\n\n{section.content}"
+                text = f"{chunk.title}\n\n{chunk.content}"
                 vector = get_embedding(text)
 
                 # Generate UUID from file path + section title
-                import hashlib
-                uuid_str = f"{file_path}:{section.title}"
-                uuid = hashlib.md5(uuid_str.encode()).hexdigest()
+                uuid_str = f"{file_path}:{chunk.title}"
+                uuid_hash = str(uuid_module.UUID(hashlib.md5(uuid_str.encode()).hexdigest()))
 
                 properties = {
-                    "title": section.title,
-                    "content": section.content,
+                    "title": chunk.title,
+                    "content": chunk.content,
                     "file_path": str(file_path),
-                    "section": section.header_level,
+                    "section": chunk.section,
                 }
 
                 # Check if exists
                 try:
-                    existing = collection.query.fetch_object_by_id(uuid)
+                    existing = collection.query.fetch_object_by_id(uuid_hash)
                     if existing:
                         collection.data.update(
-                            uuid=uuid,
+                            uuid=uuid_hash,
                             properties=properties,
                             vector=vector,
                         )
                         stats["sections_updated"] += 1
-                        logger.debug(f"  Updated section: {section.title}")
+                        logger.debug(f"  Updated section: {chunk.title}")
                     else:
                         raise Exception("Not found")  # noqa: TRY301
                 except Exception:
                     collection.data.insert(
-                        uuid=uuid,
+                        uuid=uuid_hash,
                         properties=properties,
                         vector=vector,
                     )
                     stats["sections_added"] += 1
-                    logger.debug(f"  Added section: {section.title}")
+                    logger.debug(f"  Added section: {chunk.title}")
 
             except Exception as e:
-                logger.error(f"  Error indexing section {section.title}: {e}")
+                logger.error(f"  Error indexing section {chunk.title}: {e}")
                 stats["errors"] += 1
 
     except Exception as e:
@@ -271,6 +266,27 @@ def get_git_changed_files(base_branch: str = "master") -> list[Path]:
         # Get changed files compared to base branch
         result = subprocess.run(
             ["git", "diff", "--name-only", f"{base_branch}...HEAD"],
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=PROJECT_ROOT,
+        )
+        files = [
+            PROJECT_ROOT / f.strip()
+            for f in result.stdout.strip().split("\n")
+            if f.strip()
+        ]
+        return files
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Git diff failed: {e}")
+        return []
+
+
+def get_files_changed_since(ref: str) -> list[Path]:
+    """Get list of changed files since a git ref (e.g., HEAD~5, commit hash)."""
+    try:
+        result = subprocess.run(
+            ["git", "diff", "--name-only", ref, "HEAD"],
             capture_output=True,
             text=True,
             check=True,
@@ -325,7 +341,7 @@ def index_files(
 
         # Index code files
         if code_files:
-            ensure_code_entity_collection(client)
+            create_code_entity_collection(client)
             collection = client.collections.get("CodeEntity")
 
             for file_path in code_files:
@@ -340,7 +356,7 @@ def index_files(
 
         # Index doc files
         if doc_files:
-            ensure_documentation_collection(client)
+            create_documentation_collection(client)
             collection = client.collections.get("Documentation")
 
             for file_path in doc_files:
@@ -384,6 +400,11 @@ def main():
         action="store_true",
         help="Parse files but don't actually index",
     )
+    parser.add_argument(
+        "--changed-since",
+        metavar="REF",
+        help="Index files changed since git ref (e.g., HEAD~5, abc123)",
+    )
 
     args = parser.parse_args()
 
@@ -402,8 +423,11 @@ def main():
     if args.git_diff:
         files.extend(get_git_changed_files(args.base_branch))
 
+    if args.changed_since:
+        files.extend(get_files_changed_since(args.changed_since))
+
     if not files:
-        logger.error("No files specified. Use --files, --stdin, or --git-diff")
+        logger.error("No files specified. Use --files, --stdin, --git-diff, or --changed-since")
         sys.exit(1)
 
     # Make paths absolute
