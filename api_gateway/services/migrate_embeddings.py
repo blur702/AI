@@ -35,13 +35,8 @@ from .weaviate_connection import (
 
 logger = get_logger("api_gateway.migrate_embeddings")
 
-# Known embedding models and their dimensions
-EMBEDDING_MODELS = {
-    "nomic-embed-text": 768,
-    "snowflake-arctic-embed:l": 1024,
-    "mxbai-embed-large": 1024,
-    "all-minilm": 384,
-}
+# Import embedding models from centralized config
+EMBEDDING_MODELS = settings.EMBEDDING_MODEL_DIMENSIONS
 
 ALL_COLLECTIONS = [
     DOCUMENTATION_COLLECTION_NAME,
@@ -262,7 +257,6 @@ def _configure_logging(verbose: bool) -> None:
                  otherwise use settings.LOG_LEVEL
     """
     if verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
     else:
         level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)

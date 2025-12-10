@@ -33,6 +33,7 @@ Configuration:
 Usage:
     python app.py
 """
+import hmac
 import logging
 import os
 import secrets
@@ -2465,7 +2466,8 @@ def check_proxy_auth() -> tuple[bool, tuple[Response, int] | None]:
         return False, (jsonify({"error": "Unauthorized: Missing or invalid token"}), 401)
 
     token = auth_header[7:]  # Remove "Bearer " prefix
-    if token != PROXY_AUTH_TOKEN:
+    # Use constant-time comparison to prevent timing attacks
+    if not hmac.compare_digest(token, PROXY_AUTH_TOKEN):
         logger.warning("Proxy request rejected: Invalid token")
         return False, (jsonify({"error": "Forbidden: Invalid token"}), 403)
 
