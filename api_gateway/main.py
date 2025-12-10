@@ -226,8 +226,28 @@ async def global_exception_handler(request: Request, exc: Exception):
         JSONResponse with unified error format and 500 status
     """
     from .models.schemas import UnifiedError, UnifiedResponse
+    from .models.database import ErrorSeverity
+    from .utils.error_logger import log_exception
 
     logger.exception("Global exception handler caught an error")
+
+    # Best-effort persistence of the error to PostgreSQL.
+    try:
+        context = {
+            "path": request.url.path,
+            "method": request.method,
+            "client": request.client.host if request.client else None,
+        }
+        await log_exception(
+            service="api_gateway",
+            exc=exc,
+            severity=ErrorSeverity.critical,
+            context=context,
+            job_id=None,
+        )
+    except Exception as db_exc:  # noqa: BLE001
+        logger.warning(f"Failed to record error in database: {db_exc}")
+
     error = UnifiedError(code="INTERNAL_ERROR", message=str(exc))
     payload = UnifiedResponse(
         success=False,

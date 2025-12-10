@@ -12,7 +12,8 @@ import httpx
 from sqlalchemy import select
 
 from ..config import settings
-from ..models.database import AsyncSessionLocal, Job, JobStatus
+from ..models.database import AsyncSessionLocal, ErrorSeverity, Job, JobStatus
+from ..utils.error_logger import log_error, log_exception, mark_job_errors_resolved
 from ..utils.exceptions import JobNotFoundError, JobTimeoutError, ServiceUnavailableError
 from ..utils.logger import logger
 from .vram_service import VRAMService
@@ -231,6 +232,17 @@ class JobWorker:
             await self.queue_manager.update_job_status(
                 job.id, JobStatus.failed, error="Unknown service"
             )
+            # Persist a structured error record linked to this job.
+            try:
+                await log_error(
+                    service=job.service,
+                    message="Unknown service in job queue",
+                    severity=ErrorSeverity.error,
+                    context={"job_id": job.id, "service_url": None},
+                    job_id=job.id,
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"Failed to record unknown-service error: {exc}")
             event.set()
             return
 
@@ -257,16 +269,44 @@ class JobWorker:
             await self.queue_manager.update_job_status(
                 job.id, JobStatus.completed, result=result
             )
+            # Any prior errors for this job are now considered resolved.
+            try:
+                await mark_job_errors_resolved(
+                    job.id,
+                    resolution="Job completed successfully after previous failures",
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"Failed to mark job errors resolved: {exc}")
         except asyncio.TimeoutError as exc:
             await self.queue_manager.update_job_status(
                 job.id, JobStatus.failed, error="Job timeout"
             )
+            try:
+                await log_exception(
+                    service=job.service,
+                    exc=JobTimeoutError(f"Job {job.id} exceeded timeout"),
+                    severity=ErrorSeverity.error,
+                    context={"job_id": job.id, "service_url": service_url},
+                    job_id=job.id,
+                )
+            except Exception as log_exc:  # noqa: BLE001
+                logger.warning(f"Failed to record timeout error: {log_exc}")
             raise JobTimeoutError(f"Job {job.id} exceeded timeout") from exc
         except Exception as exc:  # noqa: BLE001
             logger.exception(f"Job {job.id} failed")
             await self.queue_manager.update_job_status(
                 job.id, JobStatus.failed, error=str(exc)
             )
+            try:
+                await log_exception(
+                    service=job.service,
+                    exc=exc,
+                    severity=ErrorSeverity.error,
+                    context={"job_id": job.id, "service_url": service_url},
+                    job_id=job.id,
+                )
+            except Exception as log_exc:  # noqa: BLE001
+                logger.warning(f"Failed to record job failure error: {log_exc}")
         finally:
             event.set()
 

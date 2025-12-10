@@ -5,35 +5,105 @@ import json
 import logging
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 from typing import Any, Dict, List, Optional, Tuple
 
 # Configure logging for library use
 logger = logging.getLogger(__name__)
 
 def get_gpu_info() -> Optional[Dict[str, Any]]:
-    """Get GPU memory information using nvidia-smi.
+    """Get GPU memory information using nvidia-smi (multi-GPU via XML).
+
+    Uses ``nvidia-smi -q -x`` and parses the XML output to support multiple GPUs.
+    Returns both per-GPU information and an aggregate summary for backwards
+    compatibility.
 
     Returns:
-        Dictionary with GPU info (name, total_mb, used_mb, free_mb, utilization)
+        Dict with keys:
+            - ``gpus``: list of per-GPU dicts, each containing:
+                ``index``, ``id``, ``name``, ``total_mb``, ``used_mb``,
+                ``free_mb``, ``utilization``
+            - ``aggregate``: dict with summed ``total_mb``, ``used_mb``,
+              ``free_mb`` and max ``utilization``
+            - Top-level compatibility keys: ``name``, ``total_mb``,
+              ``used_mb``, ``free_mb``, ``utilization``
         or None if nvidia-smi fails.
     """
     try:
         result = subprocess.run(
-            ['nvidia-smi', '--query-gpu=name,memory.total,memory.used,memory.free,utilization.gpu',
-             '--format=csv,noheader,nounits'],
-            capture_output=True, text=True, check=False
+            ["nvidia-smi", "-q", "-x"],
+            capture_output=True,
+            text=True,
+            check=False,
         )
-        if result.returncode == 0:
-            parts = result.stdout.strip().split(', ')
-            if len(parts) >= 5:
-                return {
-                    'name': parts[0],
-                    'total_mb': int(parts[1]),
-                    'used_mb': int(parts[2]),
-                    'free_mb': int(parts[3]),
-                    'utilization': int(parts[4])
+        if result.returncode != 0 or not result.stdout:
+            return None
+
+        root = ET.fromstring(result.stdout)
+        gpus: List[Dict[str, Any]] = []
+
+        for idx, gpu in enumerate(root.findall(".//gpu")):
+            name = gpu.findtext("product_name", default="GPU")
+
+            total_str = gpu.findtext("fb_memory_usage/total") or ""
+            used_str = gpu.findtext("fb_memory_usage/used") or ""
+            free_str = gpu.findtext("fb_memory_usage/free") or ""
+
+            def _to_mb(val: str) -> int:
+                try:
+                    return int(val.split()[0])
+                except Exception:
+                    return 0
+
+            total_mb = _to_mb(total_str)
+            used_mb = _to_mb(used_str)
+            free_mb = _to_mb(free_str) if free_str else max(0, total_mb - used_mb)
+
+            util_str = gpu.findtext("utilization/gpu") or "0"
+            try:
+                utilization = int(util_str.split()[0])
+            except Exception:
+                utilization = 0
+
+            gpus.append(
+                {
+                    "index": idx,
+                    "id": gpu.get("id"),
+                    "name": name,
+                    "total_mb": total_mb,
+                    "used_mb": used_mb,
+                    "free_mb": free_mb,
+                    "utilization": utilization,
                 }
-    except (subprocess.SubprocessError, ValueError, OSError) as e:
+            )
+
+        if not gpus:
+            return None
+
+        agg_total = sum(g["total_mb"] for g in gpus)
+        agg_used = sum(g["used_mb"] for g in gpus)
+        agg_free = sum(g["free_mb"] for g in gpus)
+        agg_util = max((g["utilization"] for g in gpus), default=0)
+
+        aggregate = {
+            "total_mb": agg_total,
+            "used_mb": agg_used,
+            "free_mb": agg_free,
+            "utilization": agg_util,
+        }
+
+        # Backwards-compatible top-level keys use aggregate values.
+        first_name = gpus[0]["name"]
+        return {
+            "gpus": gpus,
+            "aggregate": aggregate,
+            "name": first_name,
+            "total_mb": agg_total,
+            "used_mb": agg_used,
+            "free_mb": agg_free,
+            "utilization": agg_util,
+        }
+    except (subprocess.SubprocessError, OSError, ET.ParseError, ValueError) as e:
         logger.warning("Error getting GPU info: %s", e)
     return None
 
