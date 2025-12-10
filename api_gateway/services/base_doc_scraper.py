@@ -34,10 +34,11 @@ import random
 import re
 import time
 from abc import ABC, abstractmethod
+from contextlib import nullcontext
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
@@ -135,7 +136,7 @@ class ScraperConfig:
 
     # Cache/checkpoint
     checkpoint_interval: int = 50  # Save checkpoint every N pages
-    cache_dir: Path = field(default_factory=lambda: Path("D:/AI/data/scraper_cache"))
+    cache_dir: Path = field(default_factory=lambda: Path("data/scraper_cache"))
 
 
 class BaseDocScraper(ABC):
@@ -505,101 +506,99 @@ class BaseDocScraper(ABC):
                 depth_map = {url: 0 for url in queue}
                 self._seen_urls = set()
 
-            # Connect to Weaviate
-            if not dry_run:
-                weaviate_conn = WeaviateConnection()
-                weaviate_client = weaviate_conn.__enter__()
-                self.create_collection(weaviate_client)
-                collection = weaviate_client.collections.get(self.collection_name)
+            # Use context manager for proper resource cleanup
+            weaviate_context = WeaviateConnection() if not dry_run else nullcontext()
+            with weaviate_context as weaviate_client:
+                collection = None
+                if not dry_run and weaviate_client is not None:
+                    self.create_collection(weaviate_client)
+                    collection = weaviate_client.collections.get(self.collection_name)
 
-            pages_processed = 0
+                pages_processed = 0
 
-            while queue:
-                url = queue.pop(0)
-                current_depth = depth_map.get(url, 0)
+                while queue:
+                    url = queue.pop(0)
+                    current_depth = depth_map.get(url, 0)
 
-                # Skip if already seen
-                if url in self._seen_urls:
-                    continue
-                self._seen_urls.add(url)
+                    # Skip if already seen
+                    if url in self._seen_urls:
+                        continue
+                    self._seen_urls.add(url)
 
-                # Check depth limit
-                if current_depth > self.config.max_depth:
-                    continue
+                    # Check depth limit
+                    if current_depth > self.config.max_depth:
+                        continue
 
-                # Check page limit
-                if self.config.max_pages > 0 and pages_processed >= self.config.max_pages:
-                    logger.info("[%s] Reached max pages limit (%d)", self.name, self.config.max_pages)
-                    break
+                    # Check page limit
+                    if self.config.max_pages > 0 and pages_processed >= self.config.max_pages:
+                        logger.info("[%s] Reached max pages limit (%d)", self.name, self.config.max_pages)
+                        break
 
-                # Fetch page
-                html = self.fetch_page(url)
-                if not html:
-                    continue
+                    # Fetch page
+                    html = self.fetch_page(url)
+                    if not html:
+                        continue
 
-                # Parse page
-                try:
-                    page = self.parse_page(url, html)
-                except Exception as e:
-                    logger.warning("[%s] Parse error for %s: %s", self.name, url, e)
-                    self.stats["pages_failed"] += 1
-                    continue
-
-                if page is None:
-                    self.stats["pages_skipped"] += 1
-                    continue
-
-                # Store in Weaviate
-                if not dry_run:
+                    # Parse page
                     try:
-                        uuid = self.generate_uuid(page)
-                        embedding_text = page.get_embedding_text()
-                        vector = get_embedding(embedding_text)
-
-                        # Check if exists
-                        existing = collection.query.fetch_object_by_id(uuid)
-                        if existing:
-                            collection.data.update(
-                                uuid=uuid,
-                                properties=page.to_properties(),
-                                vector=vector,
-                            )
-                        else:
-                            collection.data.insert(
-                                uuid=uuid,
-                                properties=page.to_properties(),
-                                vector=vector,
-                            )
+                        page = self.parse_page(url, html)
                     except Exception as e:
-                        logger.warning("[%s] Failed to store %s: %s", self.name, url, e)
+                        logger.warning("[%s] Parse error for %s: %s", self.name, url, e)
                         self.stats["pages_failed"] += 1
                         continue
 
-                self.stats["pages_scraped"] += 1
-                pages_processed += 1
+                    if page is None:
+                        self.stats["pages_skipped"] += 1
+                        continue
 
-                if pages_processed % 10 == 0:
-                    logger.info(
-                        "[%s] Progress: %d scraped, %d queued, %d seen",
-                        self.name, pages_processed, len(queue), len(self._seen_urls)
-                    )
+                    # Store in Weaviate
+                    if collection is not None:
+                        try:
+                            uuid = self.generate_uuid(page)
+                            embedding_text = page.get_embedding_text()
+                            vector = get_embedding(embedding_text)
 
-                # Extract and queue new links
-                new_links = self.extract_links(url, html)
-                for link in new_links:
-                    if link not in self._seen_urls and link not in depth_map:
-                        queue.append(link)
-                        depth_map[link] = current_depth + 1
+                            # Check if exists
+                            existing = collection.query.fetch_object_by_id(uuid)
+                            if existing:
+                                collection.data.update(
+                                    uuid=uuid,
+                                    properties=page.to_properties(),
+                                    vector=vector,
+                                )
+                            else:
+                                collection.data.insert(
+                                    uuid=uuid,
+                                    properties=page.to_properties(),
+                                    vector=vector,
+                                )
+                        except Exception as e:
+                            logger.warning("[%s] Failed to store %s: %s", self.name, url, e)
+                            self.stats["pages_failed"] += 1
+                            continue
 
-                # Save checkpoint periodically
-                if pages_processed % self.config.checkpoint_interval == 0:
-                    self._save_checkpoint(queue, depth_map)
+                    self.stats["pages_scraped"] += 1
+                    pages_processed += 1
 
-            # Final checkpoint
-            self._save_checkpoint(queue, depth_map)
+                    if pages_processed % 10 == 0:
+                        logger.info(
+                            "[%s] Progress: %d scraped, %d queued, %d seen",
+                            self.name, pages_processed, len(queue), len(self._seen_urls)
+                        )
 
-            if not dry_run:
-                weaviate_conn.__exit__(None, None, None)
+                    # Extract and queue new links
+                    new_links = self.extract_links(url, html)
+                    for link in new_links:
+                        if link not in self._seen_urls and link not in depth_map:
+                            queue.append(link)
+                            depth_map[link] = current_depth + 1
+
+                    # Save checkpoint periodically
+                    if pages_processed % self.config.checkpoint_interval == 0:
+                        self._save_checkpoint(queue, depth_map)
+
+                # Final checkpoint
+                self._save_checkpoint(queue, depth_map)
 
             logger.info("[%s] Scrape complete: %s", self.name, self.stats)
             return self.stats

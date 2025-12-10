@@ -16,7 +16,6 @@ Usage:
 """
 
 import re
-from typing import Optional
 
 import weaviate.classes as wvc
 from bs4 import BeautifulSoup

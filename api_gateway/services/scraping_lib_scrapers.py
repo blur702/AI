@@ -10,7 +10,6 @@ Usage:
 """
 
 import re
-from typing import Optional
 
 import weaviate.classes as wvc
 from bs4 import BeautifulSoup
@@ -187,7 +186,7 @@ class ScrapyDocScraper(BaseDocScraper):
         if not super().is_valid_url(url):
             return False
 
-        if not "/en/latest/" in url:
+        if "/en/latest/" not in url:
             return False
 
         if any(pattern in url for pattern in ["/_modules/", "/_sources/"]):
@@ -285,7 +284,6 @@ SCRAPERS = {
 def main():
     """CLI entry point."""
     import argparse
-    import sys
 
     from api_gateway.services.weaviate_connection import WeaviateConnection
 

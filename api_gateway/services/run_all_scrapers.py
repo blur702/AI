@@ -22,7 +22,6 @@ Usage:
 """
 
 import argparse
-import sys
 import time
 from datetime import datetime
 
@@ -274,7 +273,7 @@ Examples:
         scrapers_to_run = args.scrapers or list(ALL_SCRAPERS.keys())
 
         print(f"\n{'#'*60}")
-        print(f"  DOCUMENTATION SCRAPER RUNNER")
+        print("  DOCUMENTATION SCRAPER RUNNER")
         print(f"  Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"  Scrapers: {', '.join(scrapers_to_run)}")
         print(f"  Limit: {args.limit or 'unlimited'}")
@@ -303,10 +302,10 @@ Examples:
 
         # Print summary
         print(f"\n{'#'*60}")
-        print(f"  FINAL SUMMARY")
+        print("  FINAL SUMMARY")
         print(f"{'#'*60}")
         print(f"\n  Total time: {total_elapsed:.1f}s")
-        print(f"\n  Results:")
+        print("\n  Results:")
 
         total_scraped = 0
         total_failed = 0

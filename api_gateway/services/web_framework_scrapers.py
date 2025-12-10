@@ -11,7 +11,6 @@ Usage:
 """
 
 import re
-from typing import Optional
 
 import weaviate.classes as wvc
 from bs4 import BeautifulSoup
@@ -414,7 +413,6 @@ SCRAPERS = {
 def main():
     """CLI entry point."""
     import argparse
-    import sys
 
     from api_gateway.services.weaviate_connection import WeaviateConnection
 

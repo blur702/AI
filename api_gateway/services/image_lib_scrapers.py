@@ -10,7 +10,6 @@ Usage:
 """
 
 import re
-from typing import Optional
 
 import weaviate.classes as wvc
 from bs4 import BeautifulSoup
@@ -69,7 +68,7 @@ class PillowDocScraper(BaseDocScraper):
     def is_valid_url(self, url: str) -> bool:
         if not super().is_valid_url(url):
             return False
-        if not "/en/stable/" in url:
+        if "/en/stable/" not in url:
             return False
         if "/_modules/" in url or "/_sources/" in url:
             return False
@@ -204,7 +203,7 @@ class OpenCVDocScraper(BaseDocScraper):
             return False
 
         # Must be 4.x docs (latest stable)
-        if not "/4.x/" in url:
+        if "/4.x/" not in url:
             return False
 
         # Skip sources and media
@@ -303,7 +302,6 @@ SCRAPERS = {
 def main():
     """CLI entry point."""
     import argparse
-    import sys
 
     from api_gateway.services.weaviate_connection import WeaviateConnection
 
