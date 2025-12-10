@@ -26,7 +26,6 @@ import logging
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
 
 import hashlib
 import uuid as uuid_module
@@ -40,7 +39,6 @@ from api_gateway.services.code_entity_schema import (
 from api_gateway.services.doc_ingestion import (
     create_documentation_collection,
     chunk_by_headers,
-    DocChunk,
 )
 from api_gateway.utils.embeddings import get_embedding
 
@@ -107,7 +105,6 @@ def index_code_file(
         return stats
 
     service_name = get_service_name(file_path)
-    extension = file_path.suffix.lower()
 
     try:
         # Parse the file
