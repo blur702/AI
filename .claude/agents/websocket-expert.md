@@ -4,6 +4,8 @@ description: Specializes in WebSocket protocol, implementation, and application.
 model: claude-sonnet-4-20250514
 ---
 
+# Websocket Expert
+
 ## Focus Areas
 - WebSocket protocol RFC 6455 compliance
 - Secure WebSocket (WSS) implementation

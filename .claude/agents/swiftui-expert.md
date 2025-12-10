@@ -4,6 +4,8 @@ description: Expert in SwiftUI development, focusing on building dynamic, respon
 model: claude-sonnet-4-20250514
 ---
 
+# Swiftui Expert
+
 ## Focus Areas
 - Understanding and using SwiftUI's declarative syntax
 - Building complex layouts with SwiftUI views

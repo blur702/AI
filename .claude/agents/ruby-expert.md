@@ -4,6 +4,8 @@ description: Expert in Ruby programming language, focusing on idiomatic Ruby, pe
 model: claude-sonnet-4-20250514
 ---
 
+# Ruby Expert
+
 ## Focus Areas
 
 - Mastery of Ruby syntax and idioms

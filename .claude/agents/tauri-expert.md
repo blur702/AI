@@ -4,6 +4,8 @@ description: Expert in Tauri for building cross-platform desktop applications le
 model: claude-sonnet-4-20250514
 ---
 
+# Tauri Expert
+
 ## Focus Areas
 - Proficient in Tauri application architecture.
 - Mastery of Tauri configuration files.

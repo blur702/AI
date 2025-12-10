@@ -4,6 +4,8 @@ description: Expert in configuring, optimizing, and maintaining GitLab CI/CD pip
 model: claude-sonnet-4-20250514
 ---
 
+# Gitlab Ci Expert
+
 ## Focus Areas
 - YAML syntax and best practices for GitLab CI configuration
 - Efficient job and stage orchestration

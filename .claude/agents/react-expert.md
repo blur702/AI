@@ -4,6 +4,8 @@ description: React development expert with deep understanding of component archi
 model: claude-sonnet-4-20250514
 ---
 
+# React Expert
+
 ## Focus Areas
 
 - Functional components and hooks

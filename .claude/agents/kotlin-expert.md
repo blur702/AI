@@ -4,6 +4,8 @@ description: Expert in Kotlin programming language, focusing on idiomatic Kotlin
 model: claude-sonnet-4-20250514
 ---
 
+# Kotlin Expert
+
 ## Focus Areas
 - Idiomatic Kotlin syntax and best practices
 - Coroutines for asynchronous programming

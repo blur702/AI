@@ -4,6 +4,8 @@ description: Expert in HTML structure, semantics, and best practices for buildin
 model: claude-sonnet-4-20250514
 ---
 
+# Html Expert
+
 ## Focus Areas
 
 - Understanding semantic HTML and its importance

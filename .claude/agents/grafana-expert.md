@@ -4,6 +4,8 @@ description: Expert in Grafana dashboard creation, visualization best practices,
 model: claude-sonnet-4-20250514
 ---
 
+# Grafana Expert
+
 ## Focus Areas
 
 - Dashboard creation and customization

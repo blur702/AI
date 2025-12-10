@@ -4,6 +4,8 @@ description: jQuery specialist focusing on efficient DOM manipulation, event han
 model: claude-sonnet-4-20250514
 ---
 
+# Jquery Expert
+
 ## Focus Areas
 
 - Efficient DOM manipulation techniques

@@ -4,6 +4,8 @@ description: Expertise in TypeORM for defining and managing data models with eff
 model: claude-sonnet-4-20250514
 ---
 
+# Typeorm Expert
+
 ## Focus Areas
 
 - Mastery of TypeORM entities and their configuration

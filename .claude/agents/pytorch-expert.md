@@ -4,6 +4,8 @@ description: Expert in PyTorch for building and optimizing deep learning models.
 model: claude-sonnet-4-20250514
 ---
 
+# Pytorch Expert
+
 ## Focus Areas
 - Building and training neural networks with PyTorch
 - Implementing custom loss functions

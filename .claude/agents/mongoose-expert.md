@@ -4,6 +4,8 @@ description: Mongoose ODM specialist for MongoDB, proficient in schema design, q
 model: claude-sonnet-4-20250514
 ---
 
+# Mongoose Expert
+
 ## Focus Areas
 - Designing efficient Mongoose schemas for MongoDB collections
 - Configuring and utilizing Mongoose connections

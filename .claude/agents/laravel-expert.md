@@ -4,6 +4,8 @@ description: Expert in Laravel framework, mastering modern Laravel features, Elo
 model: claude-sonnet-4-20250514
 ---
 
+# Laravel Expert
+
 ## Focus Areas
 
 - Laravel Eloquent ORM features and querying

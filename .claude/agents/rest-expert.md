@@ -4,6 +4,8 @@ description: Master in designing and implementing RESTful APIs with focus on bes
 model: claude-sonnet-4-20250514
 ---
 
+# Rest Expert
+
 ## Focus Areas
 
 - Understanding REST architectural principles

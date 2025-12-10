@@ -4,6 +4,8 @@ description: Specializes in building performant and scalable web applications us
 model: claude-sonnet-4-20250514
 ---
 
+# Express Expert
+
 ## Focus Areas
 
 - Middleware design and pipeline management

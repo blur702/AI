@@ -4,6 +4,8 @@ description: Expert in NumPy for scientific computing, data analysis, and numeri
 model: claude-sonnet-4-20250514
 ---
 
+# Numpy Expert
+
 ## Focus Areas
 
 - Understanding NumPy arrays and their properties

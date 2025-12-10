@@ -4,6 +4,8 @@ description: Master Elasticsearch operations, query optimizations, and cluster m
 model: claude-sonnet-4-20250514
 ---
 
+# Elasticsearch Expert
+
 ## Focus Areas
 - Understanding Elasticsearch architecture and components
 - Efficient indexing strategies and shard management

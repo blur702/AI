@@ -4,6 +4,8 @@ description: Expert in MySQL database management, query optimization, and schema
 model: claude-sonnet-4-20250514
 ---
 
+# Mysql Expert
+
 ## Focus Areas
 
 - MySQL query optimization techniques

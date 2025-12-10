@@ -4,6 +4,8 @@ description: Expert in Playwright testing for modern web applications. Specializ
 model: claude-sonnet-4-20250514
 ---
 
+# Playwright Expert
+
 ## Focus Areas
 
 - Mastery of Playwright's API for end-to-end testing

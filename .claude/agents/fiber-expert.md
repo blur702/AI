@@ -4,6 +4,8 @@ description: Master in fiber technology specializing in manufacturing, propertie
 model: claude-sonnet-4-20250514
 ---
 
+# Fiber Expert
+
 ## Focus Areas
 - Properties of natural fibers
 - Properties of synthetic fibers

@@ -4,6 +4,8 @@ description: Write high-quality iOS applications using Swift and SwiftUI, ensuri
 model: claude-sonnet-4-20250514
 ---
 
+# Ios Expert
+
 ## Focus Areas
 
 - Swift and SwiftUI for building modern iOS apps

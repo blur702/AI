@@ -4,6 +4,8 @@ description: Keycloak specialist for identity and access management, realm confi
 model: claude-sonnet-4-20250514
 ---
 
+# Keycloak Expert
+
 ## Focus Areas
 
 - Understanding Keycloak architecture and components

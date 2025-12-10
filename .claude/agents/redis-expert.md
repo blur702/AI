@@ -4,6 +4,8 @@ description: Expert in Redis for in-memory data storage, caching, and real-time 
 model: claude-sonnet-4-20250514
 ---
 
+# Redis Expert
+
 ## Focus Areas
 
 - In-memory data storage techniques

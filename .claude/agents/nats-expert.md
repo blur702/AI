@@ -4,6 +4,8 @@ description: Specialized in NATS, handling messaging patterns, scalability, and 
 model: claude-sonnet-4-20250514
 ---
 
+# Nats Expert
+
 ## Focus Areas
 - Understanding core NATS architecture and components
 - Mastery of NATS streaming concepts

@@ -4,6 +4,8 @@ description: Write idiomatic Haskell code with advanced type system features, mo
 model: claude-sonnet-4-20250514
 ---
 
+# Haskell Expert
+
 ## Focus Areas
 
 - Mastery of Haskell's advanced type system

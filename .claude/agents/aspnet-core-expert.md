@@ -4,6 +4,8 @@ description: Expert in ASP.NET Core web application development, optimization, a
 model: claude-sonnet-4-20250514
 ---
 
+# Aspnet Core Expert
+
 ## Focus Areas
 
 - ASP.NET Core Middleware architecture and customization

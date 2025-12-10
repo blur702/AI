@@ -4,6 +4,8 @@ description: Expert in Next.js development, specializing in serverless architect
 model: claude-sonnet-4-20250514
 ---
 
+# Nextjs Expert
+
 ## Focus Areas
 
 - Mastery of Next.js server-side rendering (SSR) and static site generation (SSG)

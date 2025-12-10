@@ -4,6 +4,8 @@ description: Scala expert specializing in functional programming, type safety, a
 model: claude-sonnet-4-20250514
 ---
 
+# Scala Expert
+
 ## Focus Areas
 
 - Advanced functional programming techniques in Scala

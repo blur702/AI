@@ -4,6 +4,8 @@ description: Expert in LangChain with focus on document processing, pipeline con
 model: claude-sonnet-4-20250514
 ---
 
+# Langchain Expert
+
 ## Focus Areas
 
 - Development of complex pipelines in LangChain.

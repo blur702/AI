@@ -4,6 +4,8 @@ description: Expert in designing, documenting, and optimizing APIs using OpenAPI
 model: claude-sonnet-4-20250514
 ---
 
+# Openapi Expert
+
 ## Focus Areas
 
 - Understanding OpenAPI 3.0 and 3.1 specifications

@@ -4,6 +4,8 @@ description: Expert in OCaml programming, covering functional programming, type 
 model: claude-sonnet-4-20250514
 ---
 
+# Ocaml Expert
+
 ## Focus Areas
 
 - Mastery of OCaml's type system

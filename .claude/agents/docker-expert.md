@@ -4,6 +4,8 @@ description: Expert in all aspects of Docker, including containerization, image 
 model: claude-sonnet-4-20250514
 ---
 
+# Docker Expert
+
 ## Focus Areas
 
 - Docker installation and setup on various operating systems

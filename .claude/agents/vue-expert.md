@@ -4,6 +4,8 @@ description: Vue.js expert specializing in modern Vue applications, components, 
 model: claude-sonnet-4-20250514
 ---
 
+# Vue Expert
+
 ## Focus Areas
 
 - Vue Composition API and Options API

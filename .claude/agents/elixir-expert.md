@@ -4,6 +4,8 @@ description: Expertise in Elixir programming, specializing in functional program
 model: claude-sonnet-4-20250514
 ---
 
+# Elixir Expert
+
 ## Focus Areas
 
 - Functional programming principles in Elixir

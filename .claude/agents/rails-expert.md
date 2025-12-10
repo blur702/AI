@@ -4,6 +4,8 @@ description: Master Ruby on Rails for building scalable, maintainable, and perfo
 model: claude-sonnet-4-20250514
 ---
 
+# Rails Expert
+
 ## Focus Areas
 
 - Rails MVC (Model-View-Controller) architecture

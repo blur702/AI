@@ -4,6 +4,8 @@ description: Write idiomatic Angular code with best practices, performance optim
 model: claude-sonnet-4-20250514
 ---
 
+# Angular Expert
+
 ## Focus Areas
 
 - Component architecture and best practices

@@ -4,6 +4,8 @@ description: Expert in GitHub Actions for automating workflows and CI/CD process
 model: claude-sonnet-4-20250514
 ---
 
+# Github Actions Expert
+
 ## Focus Areas
 
 - Creating and managing GitHub Actions workflows

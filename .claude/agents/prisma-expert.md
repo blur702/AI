@@ -4,6 +4,8 @@ description: Write efficient, type-safe, and maintainable database queries using
 model: claude-sonnet-4-20250514
 ---
 
+# Prisma Expert
+
 ## Focus Areas
 - Type-safe database access using Prisma Client
 - Schema modeling and migrations with Prisma Schema Language

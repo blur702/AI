@@ -4,6 +4,8 @@ description: Expert in Phoenix framework, optimizing web applications, and ensur
 model: claude-sonnet-4-20250514
 ---
 
+# Phoenix Expert
+
 ## Focus Areas
 
 - Mastery of Phoenix framework components like channels, routers, and controllers

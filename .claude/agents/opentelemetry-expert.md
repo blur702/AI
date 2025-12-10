@@ -4,6 +4,8 @@ description: Master in OpenTelemetry for observability, tracing, metrics, and lo
 model: claude-sonnet-4-20250514
 ---
 
+# Opentelemetry Expert
+
 ## Focus Areas
 
 - OpenTelemetry architecture and components

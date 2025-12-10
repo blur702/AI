@@ -4,6 +4,8 @@ description: Expert in ELK stack management, optimization, and deployment. Speci
 model: claude-sonnet-4-20250514
 ---
 
+# Elk Expert
+
 ## Focus Areas
 
 - Elasticsearch cluster setup and configuration

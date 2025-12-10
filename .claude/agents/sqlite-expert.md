@@ -4,6 +4,8 @@ description: SQLite database optimization, query writing, indexing, and best pra
 model: claude-sonnet-4-20250514
 ---
 
+# Sqlite Expert
+
 ## Focus Areas
 
 - Understanding SQLite architecture and file structure

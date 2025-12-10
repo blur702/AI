@@ -4,6 +4,8 @@ description: Expertise in Knex.js for SQL database manipulation, migration handl
 model: claude-sonnet-4-20250514
 ---
 
+# Knex Expert
+
 ## Focus Areas
 - Mastery of SQL query building with Knex
 - Database agnosticism with dialect support

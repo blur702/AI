@@ -4,6 +4,8 @@ description: Master of MQTT protocol, focusing on message brokering, QoS levels,
 model: claude-sonnet-4-20250514
 ---
 
+# Mqtt Expert
+
 ## Focus Areas
 
 - Understanding MQTT protocol basics

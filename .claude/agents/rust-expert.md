@@ -4,6 +4,8 @@ description: Expert in writing idiomatic Rust code with focus on safety, concurr
 model: claude-sonnet-4-20250514
 ---
 
+# Rust Expert
+
 ## Focus Areas
 
 - Ownership and Borrowing concepts

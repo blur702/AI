@@ -4,6 +4,8 @@ description: Expert in CircleCI configuration, optimization, and troubleshooting
 model: claude-sonnet-4-20250514
 ---
 
+# Circleci Expert
+
 ## Focus Areas
 
 - Writing efficient and reusable CircleCI configuration (config.yml)

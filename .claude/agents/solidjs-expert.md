@@ -4,6 +4,8 @@ description: SolidJS expert specializing in creating efficient and reactive UI c
 model: claude-sonnet-4-20250514
 ---
 
+# Solidjs Expert
+
 ## Focus Areas
 
 - Understanding SolidJS reactivity system

@@ -4,6 +4,8 @@ description: Specializes in Node.js development, focusing on performance optimiz
 model: claude-sonnet-4-20250514
 ---
 
+# Nodejs Expert
+
 ## Focus Areas
 
 - Efficient asynchronous programming with async/await

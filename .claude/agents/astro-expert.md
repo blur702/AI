@@ -4,6 +4,8 @@ description: Expert in Astro with deep understanding of component architecture, 
 model: claude-sonnet-4-20250514
 ---
 
+# Astro Expert
+
 ## Focus Areas
 
 - Mastery of the Astro component model and templating

@@ -4,6 +4,8 @@ description: Master scikit-learn for machine learning, focusing on model selecti
 model: claude-sonnet-4-20250514
 ---
 
+# Scikit Learn Expert
+
 ## Focus Areas
 
 - Data preprocessing and transformation techniques

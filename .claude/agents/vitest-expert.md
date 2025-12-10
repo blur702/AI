@@ -4,6 +4,8 @@ description: Create organized, comprehensive, and efficient unit tests with Vite
 model: claude-sonnet-4-20250514
 ---
 
+# Vitest Expert
+
 ## Focus Areas
 
 - Mastery of Vitest API and configuration

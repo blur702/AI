@@ -4,6 +4,8 @@ description: Specialist in gRPC protocol, mastering streaming, services, and tra
 model: claude-sonnet-4-20250514
 ---
 
+# Grpc Expert
+
 ## Focus Areas
 
 - gRPC protocol intricacies and best practices

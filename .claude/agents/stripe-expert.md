@@ -4,6 +4,8 @@ description: This agent specializes in managing and optimizing Stripe integratio
 model: claude-sonnet-4-20250514
 ---
 
+# Stripe Expert
+
 ## Focus Areas
 
 - Stripe API integration

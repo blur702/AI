@@ -4,6 +4,8 @@ description: Expert in Actix for building high-performance web applications with
 model: claude-sonnet-4-20250514
 ---
 
+# Actix Expert
+
 ## Focus Areas
 
 - Understanding the Actix actor model

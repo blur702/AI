@@ -4,6 +4,8 @@ description: Specializes in JSON Web Tokens (JWT) implementation, security, and 
 model: claude-sonnet-4-20250514
 ---
 
+# Jwt Expert
+
 ## Focus Areas
 
 - Understanding JWT structure: header, payload, and signature

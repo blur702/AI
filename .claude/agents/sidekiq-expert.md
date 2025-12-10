@@ -4,6 +4,8 @@ description: Specialist in optimizing and managing Sidekiq for efficient job pro
 model: claude-sonnet-4-20250514
 ---
 
+# Sidekiq Expert
+
 ## Focus Areas
 
 - Advanced configuration of Sidekiq for optimal performance

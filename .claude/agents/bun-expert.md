@@ -4,6 +4,8 @@ description: Expertise in Bun, focusing on high-performance JavaScript runtime, 
 model: claude-sonnet-4-20250514
 ---
 
+# Bun Expert
+
 ## Focus Areas
 
 - Bun.js installation and setup processes
