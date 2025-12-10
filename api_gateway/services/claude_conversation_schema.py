@@ -399,7 +399,6 @@ def main(argv: Optional[List[str]] = None) -> None:
     args = parser.parse_args(argv)
 
     if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
 
     if args.command == "store-stdin":

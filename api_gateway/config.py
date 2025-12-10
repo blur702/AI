@@ -172,6 +172,25 @@ class Settings:
     # Use host.docker.internal when Weaviate runs in Docker, localhost for native setup
     OLLAMA_API_ENDPOINT: str = os.getenv("OLLAMA_API_ENDPOINT", "http://127.0.0.1:11434")
 
+    # Known embedding models and their vector dimensions
+    # Used by migrate_embeddings and collection schemas
+    EMBEDDING_MODEL_DIMENSIONS: Dict[str, int] = {
+        "nomic-embed-text": 768,
+        "snowflake-arctic-embed:l": 1024,
+        "mxbai-embed-large": 1024,
+        "all-minilm": 384,
+    }
+
+    @classmethod
+    def get_embedding_dimension(cls) -> int:
+        """
+        Get the vector dimension for the configured embedding model.
+
+        Returns:
+            Dimension for the current OLLAMA_EMBEDDING_MODEL, or 1024 as default
+        """
+        return cls.EMBEDDING_MODEL_DIMENSIONS.get(cls.OLLAMA_EMBEDDING_MODEL, 1024)
+
     SERVICES: Dict[str, str] = {
         "comfyui": "http://localhost:8188",
         "alltalk": "http://localhost:7851",

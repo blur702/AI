@@ -572,7 +572,6 @@ def _configure_logging(verbose: bool) -> None:
       verbose: If True, enable DEBUG logging; otherwise use settings.LOG_LEVEL
   """
   if verbose:
-    logging.getLogger().setLevel(logging.DEBUG)
     logger.setLevel(logging.DEBUG)
   else:
     # Respect LOG_LEVEL from settings for the module logger
