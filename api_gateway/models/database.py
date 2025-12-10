@@ -201,6 +201,7 @@ class Error(Base):
     job_id = Column(String, nullable=True, index=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
     resolved = Column(Boolean, default=False, nullable=False)
+    ready_for_review = Column(Boolean, default=False, nullable=False)
     resolved_at = Column(DateTime, nullable=True)
 
 
@@ -238,6 +239,15 @@ async def init_db() -> None:
             )
         except Exception as exc:  # noqa: BLE001
             # If the column already exists, swallow the error; otherwise re-raise.
+            if "duplicate column name" not in str(exc).lower():
+                raise
+
+        # Migration for errors.ready_for_review column
+        try:
+            await conn.execute(
+                text("ALTER TABLE errors ADD COLUMN ready_for_review BOOLEAN DEFAULT FALSE")
+            )
+        except Exception as exc:  # noqa: BLE001
             if "duplicate column name" not in str(exc).lower():
                 raise
 
