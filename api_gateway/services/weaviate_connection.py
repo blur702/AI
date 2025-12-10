@@ -103,6 +103,7 @@ DOCUMENTATION_COLLECTION_NAME = "Documentation"
 CODE_ENTITY_COLLECTION_NAME = "CodeEntity"
 DRUPAL_API_COLLECTION_NAME = "DrupalAPI"  # Drupal 11.x API reference collection
 PYTHON_DOCS_COLLECTION_NAME = "PythonDocs"  # Python documentation collection (3.13 and 3.12)
+CONGRESSIONAL_DATA_COLLECTION_NAME = "CongressionalData"
 
 # MDN documentation collections
 MDN_JAVASCRIPT_COLLECTION_NAME = "MDNJavaScript"

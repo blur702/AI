@@ -32,7 +32,7 @@ from ..utils.logger import get_logger
 from .weaviate_connection import CONGRESSIONAL_DATA_COLLECTION_NAME
 
 
-logger = get_logger("api_gateway.congressional_schema")
+logger = get_logger("api_gateway.services.congressional_schema")
 
 
 # -----------------------------------------------------------------------------
