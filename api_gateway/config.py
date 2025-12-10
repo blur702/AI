@@ -1,3 +1,31 @@
+"""
+API Gateway Configuration Module.
+
+Centralized configuration management using environment variables with sensible
+defaults. Loads configuration from .env file and provides a Settings class
+with all configurable options.
+
+Configuration Categories:
+    - API Server: Port, CORS origins, log level
+    - PostgreSQL: Database connection settings
+    - Weaviate: Vector database connection
+    - Ollama: LLM and embedding model settings
+    - Service Endpoints: AI service URLs
+
+Environment Variables:
+    API_PORT: API gateway port (default: 1301)
+    DATABASE_URL: Full PostgreSQL URL (overrides component settings)
+    POSTGRES_HOST/PORT/USER/PASSWORD/DB: PostgreSQL components
+    WEAVIATE_URL: Weaviate HTTP endpoint
+    WEAVIATE_GRPC_PORT: Weaviate gRPC port
+    OLLAMA_API_ENDPOINT: Ollama API base URL
+    OLLAMA_EMBEDDING_MODEL: Model for embeddings
+
+Usage:
+    from api_gateway.config import settings
+    print(settings.API_PORT)
+    print(settings.WEAVIATE_URL)
+"""
 import os
 from pathlib import Path
 from typing import Dict, List
@@ -11,6 +39,33 @@ load_dotenv(override=True)
 
 
 class Settings:
+    """
+    Application configuration settings loaded from environment variables.
+
+    Centralizes all configuration values with sensible defaults. Loads from .env file
+    and environment variables, with file values taking precedence (override=True).
+
+    Attributes:
+        API_PORT: Port for API gateway server (default: 1301)
+        POSTGRES_HOST: PostgreSQL server hostname
+        POSTGRES_PORT: PostgreSQL server port
+        POSTGRES_USER: PostgreSQL username
+        POSTGRES_PASSWORD: PostgreSQL password
+        POSTGRES_DB: PostgreSQL database name
+        DATABASE_URL: Full PostgreSQL connection URL (auto-built from components)
+        DB_POOL_SIZE: Connection pool size for database
+        DB_MAX_OVERFLOW: Maximum overflow connections beyond pool size
+        DB_POOL_RECYCLE: Connection recycle time in seconds
+        LOG_LEVEL: Logging level (DEBUG, INFO, WARNING, ERROR)
+        CORS_ORIGINS: Allowed CORS origins (comma-separated)
+        VRAM_MANAGER_PATH: Absolute path to vram_manager.py
+        WEAVIATE_URL: Weaviate HTTP endpoint URL
+        WEAVIATE_GRPC_HOST: Weaviate gRPC hostname
+        WEAVIATE_GRPC_PORT: Weaviate gRPC port
+        OLLAMA_EMBEDDING_MODEL: Ollama model name for embeddings
+        OLLAMA_API_ENDPOINT: Ollama API base URL
+        SERVICES: Dictionary of service names to endpoint URLs
+    """
     API_PORT: int = int(os.getenv("API_PORT", "1301"))
 
     # PostgreSQL configuration
@@ -23,6 +78,16 @@ class Settings:
     # Build DATABASE_URL from components if not explicitly set
     @staticmethod
     def _build_database_url() -> str:
+        """
+        Construct PostgreSQL connection URL from environment variables.
+
+        Uses explicit DATABASE_URL if set, otherwise builds URL from component
+        settings (POSTGRES_HOST, PORT, USER, PASSWORD, DB). Automatically URL-encodes
+        password to handle special characters.
+
+        Returns:
+            PostgreSQL asyncpg connection URL
+        """
         explicit_url = os.getenv("DATABASE_URL")
         if explicit_url:
             return explicit_url
@@ -53,6 +118,15 @@ class Settings:
     # VRAM Manager path - resolves relative paths to absolute
     @staticmethod
     def _resolve_vram_path() -> str:
+        """
+        Resolve VRAM manager path to absolute filesystem path.
+
+        Converts relative paths (like ./vram_manager.py) to absolute paths
+        relative to the project root directory (parent of api_gateway).
+
+        Returns:
+            Absolute path to vram_manager.py as string
+        """
         vram_path = os.getenv("VRAM_MANAGER_PATH", "./vram_manager.py")
         if not vram_path:
             vram_path = "./vram_manager.py"
@@ -75,6 +149,15 @@ class Settings:
     # Validate WEAVIATE_GRPC_PORT is a valid integer
     @staticmethod
     def _parse_grpc_port() -> int:
+        """
+        Parse and validate Weaviate gRPC port from environment variable.
+
+        Attempts to parse WEAVIATE_GRPC_PORT as integer. Falls back to default
+        50051 with warning if parsing fails.
+
+        Returns:
+            Valid port number as integer
+        """
         port_str = os.getenv("WEAVIATE_GRPC_PORT", "50051")
         try:
             return int(port_str)
@@ -88,6 +171,25 @@ class Settings:
     # Ollama API endpoint for embeddings (from Weaviate's perspective)
     # Use host.docker.internal when Weaviate runs in Docker, localhost for native setup
     OLLAMA_API_ENDPOINT: str = os.getenv("OLLAMA_API_ENDPOINT", "http://127.0.0.1:11434")
+
+    # Known embedding models and their vector dimensions
+    # Used by migrate_embeddings and collection schemas
+    EMBEDDING_MODEL_DIMENSIONS: Dict[str, int] = {
+        "nomic-embed-text": 768,
+        "snowflake-arctic-embed:l": 1024,
+        "mxbai-embed-large": 1024,
+        "all-minilm": 384,
+    }
+
+    @classmethod
+    def get_embedding_dimension(cls) -> int:
+        """
+        Get the vector dimension for the configured embedding model.
+
+        Returns:
+            Dimension for the current OLLAMA_EMBEDDING_MODEL, or 1024 as default
+        """
+        return cls.EMBEDDING_MODEL_DIMENSIONS.get(cls.OLLAMA_EMBEDDING_MODEL, 1024)
 
     SERVICES: Dict[str, str] = {
         "comfyui": "http://localhost:8188",

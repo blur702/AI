@@ -35,13 +35,8 @@ from .weaviate_connection import (
 
 logger = get_logger("api_gateway.migrate_embeddings")
 
-# Known embedding models and their dimensions
-EMBEDDING_MODELS = {
-    "nomic-embed-text": 768,
-    "snowflake-arctic-embed:l": 1024,
-    "mxbai-embed-large": 1024,
-    "all-minilm": 384,
-}
+# Import embedding models from centralized config
+EMBEDDING_MODELS = settings.EMBEDDING_MODEL_DIMENSIONS
 
 ALL_COLLECTIONS = [
     DOCUMENTATION_COLLECTION_NAME,
@@ -51,7 +46,13 @@ ALL_COLLECTIONS = [
 
 
 def get_ollama_models() -> List[str]:
-    """Get list of models available in Ollama."""
+    """
+    Get list of models available in Ollama.
+
+    Returns:
+        List of model name strings from Ollama /api/tags endpoint,
+        or empty list on error
+    """
     try:
         response = httpx.get(
             f"{settings.OLLAMA_API_ENDPOINT}/api/tags",
@@ -66,7 +67,18 @@ def get_ollama_models() -> List[str]:
 
 
 def check_model_available(model_name: str) -> bool:
-    """Check if a model is available in Ollama by trying to generate an embedding."""
+    """
+    Check if a model is available in Ollama by trying to generate an embedding.
+
+    First attempts a direct embedding test (most reliable), then falls back
+    to checking the model list with tag variation handling.
+
+    Args:
+        model_name: Model identifier (e.g., "snowflake-arctic-embed:l")
+
+    Returns:
+        True if model is available and can generate embeddings, False otherwise
+    """
     # First try direct embedding test - most reliable
     try:
         response = httpx.post(
@@ -89,7 +101,15 @@ def check_model_available(model_name: str) -> bool:
 
 
 def get_embedding_dimension(model_name: str) -> Optional[int]:
-    """Get embedding dimension for a model, or None if unknown."""
+    """
+    Get embedding dimension for a model, or None if unknown.
+
+    Args:
+        model_name: Model identifier
+
+    Returns:
+        Expected embedding vector dimension, or None if model is not in known list
+    """
     return EMBEDDING_MODELS.get(model_name)
 
 
@@ -97,11 +117,14 @@ def check_status() -> Dict[str, Any]:
     """
     Check current configuration and collection status.
 
-    Returns dict with:
-        - configured_model: Current model in settings
-        - model_available: Whether model is available in Ollama
-        - model_dimensions: Expected embedding dimensions
-        - collections: Dict of collection -> object_count
+    Queries Ollama for model availability and Weaviate for collection counts.
+
+    Returns:
+        Dict with keys:
+            - configured_model (str): Current model in settings
+            - model_available (bool): Whether model is available in Ollama
+            - model_dimensions (int|None): Expected embedding dimensions
+            - collections (dict): Collection name -> object count (or None if not exists)
     """
     model = settings.OLLAMA_EMBEDDING_MODEL
     available = check_model_available(model)
@@ -132,11 +155,21 @@ def migrate(dry_run: bool = False) -> Dict[str, Any]:
     """
     Perform full migration: delete all collections and re-ingest.
 
+    Deletes all Weaviate collections (Documentation, CodeEntity, DrupalAPIEntity)
+    and re-indexes Documentation and CodeEntity with new embedding model. DrupalAPIEntity
+    collection is recreated empty (requires re-running scraper).
+
     Args:
-        dry_run: If True, only report what would be done
+        dry_run: If True, only report what would be done without making changes
 
     Returns:
-        Dict with migration results
+        Dict with migration results:
+            - success (bool): Whether migration succeeded
+            - model (str): Model used for migration
+            - dry_run (bool): Whether this was a dry run
+            - collections_deleted (list): List of deleted collection names
+            - collections_reindexed (dict): Collection -> reindex stats
+            - error (str, optional): Error message if failed
     """
     # Import ingestion services here to avoid circular imports
     from .doc_ingestion import ingest_documentation
@@ -190,11 +223,16 @@ def migrate(dry_run: bool = False) -> Dict[str, Any]:
             # and note that the scraper needs to be re-run
             logger.info("Creating empty DrupalAPIEntity collection (requires re-scraping)...")
             try:
-                from .drupal_entity_schema import create_drupal_entity_collection
-                create_drupal_entity_collection(client, force_reindex=True)
+                from .drupal_api_schema import create_drupal_api_collection
+                create_drupal_api_collection(client, force_reindex=True)
                 results["collections_reindexed"]["DrupalAPIEntity"] = {
                     "note": "Collection created. Run scraper to re-populate.",
                     "command": "python -m api_gateway.services.drupal_scraper scrape",
+                }
+            except ImportError as e:
+                logger.error("Could not import drupal_api_schema module: %s", e)
+                results["collections_reindexed"]["DrupalAPIEntity"] = {
+                    "error": f"Import error: {e}"
                 }
             except Exception as e:
                 logger.warning("Could not create DrupalAPIEntity collection: %s", e)
@@ -211,8 +249,14 @@ def migrate(dry_run: bool = False) -> Dict[str, Any]:
 
 
 def _configure_logging(verbose: bool) -> None:
+    """
+    Configure logging level based on verbosity flag.
+
+    Args:
+        verbose: If True, enable DEBUG logging for all loggers;
+                 otherwise use settings.LOG_LEVEL
+    """
     if verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
         logger.setLevel(logging.DEBUG)
     else:
         level = getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO)
@@ -220,6 +264,15 @@ def _configure_logging(verbose: bool) -> None:
 
 
 def main(argv: Optional[List[str]] = None) -> None:
+    """
+    CLI entry point for embedding model migration.
+
+    Args:
+        argv: Optional command line arguments (for testing)
+
+    Raises:
+        SystemExit: On error or when model is not available
+    """
     parser = argparse.ArgumentParser(
         description="Embedding model migration for Weaviate collections.",
         epilog="""
@@ -256,6 +309,7 @@ Examples:
 
     if args.command == "check":
         status = check_status()
+        logger.info("Embedding migration status: %s", status)
         print("\n=== Embedding Migration Status ===\n")
         print(f"Configured model:    {status['configured_model']}")
         print(f"Model available:     {'[OK] Yes' if status['model_available'] else '[X] No'}")
@@ -268,6 +322,7 @@ Examples:
                 print(f"  {coll}: {count} objects")
 
         if not status["model_available"]:
+            logger.error("Model '%s' is not available in Ollama", status['configured_model'])
             print(f"\n[!] Model not available. Run: ollama pull {status['configured_model']}")
             sys.exit(1)
 
@@ -275,14 +330,22 @@ Examples:
         print("\n=== Embedding Migration ===\n")
 
         if not args.dry_run:
+            logger.warning("About to DELETE all Weaviate collections and re-ingest data")
             print("[!] WARNING: This will DELETE all Weaviate collections and re-ingest data.")
             print("   - Documentation: Will be re-indexed from markdown files")
             print("   - CodeEntity: Will be re-indexed from source code")
             print("   - DrupalAPIEntity: Collection recreated (requires re-running scraper)")
             print("")
-            confirm = input("Type 'yes' to proceed: ")
+            try:
+                confirm = input("Type 'yes' to proceed: ")
+            except (EOFError, KeyboardInterrupt):
+                print("\nMigration cancelled.")
+                logger.info("Migration cancelled by user")
+                sys.exit(0)
+
             if confirm.lower() != "yes":
                 print("Migration cancelled.")
+                logger.info("Migration cancelled by user (incorrect confirmation)")
                 sys.exit(0)
 
         results = migrate(dry_run=args.dry_run)

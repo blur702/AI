@@ -1,4 +1,33 @@
-import asyncio
+"""
+AI API Gateway - FastAPI Unified Interface.
+
+Central REST/WebSocket interface for external clients (mobile apps, integrations)
+to access AI generation services. Provides unified endpoints for image, video,
+audio, music generation, TTS, and LLM text generation.
+
+Features:
+- API key authentication via X-API-Key header
+- Async job management with status polling and WebSocket updates
+- CORS support for cross-origin requests
+- Request/response logging with timing
+- Prometheus metrics endpoint
+
+Endpoints:
+    POST /generate/image - ComfyUI image generation
+    POST /generate/video - Wan2GP video generation
+    POST /generate/audio - Stable Audio / AudioCraft
+    POST /generate/music - YuE / DiffRhythm / MusicGPT
+    POST /tts - AllTalk text-to-speech
+    POST /llm/generate - Ollama text generation
+    GET /jobs/{job_id} - Poll job status
+    GET /ws/jobs/{job_id} - WebSocket job updates
+    GET /health - Health check
+    GET /metrics - Prometheus metrics
+
+Usage:
+    python -m api_gateway.main
+    # or via start_gateway.bat
+"""
 from datetime import datetime
 
 import uvicorn
@@ -35,6 +64,19 @@ worker = None
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next):
+    """
+    HTTP middleware for request/response logging with timing.
+
+    Logs incoming request details (method, path, headers, body size) and outgoing
+    response details (status code, duration). Redacts X-API-Key header for security.
+
+    Args:
+        request: Incoming FastAPI request
+        call_next: Next middleware/handler in chain
+
+    Returns:
+        Response from downstream handler
+    """
     start = datetime.utcnow()
     body = await request.body()
     redacted_headers = {
@@ -55,6 +97,15 @@ async def logging_middleware(request: Request, call_next):
 
 @app.get("/metrics")
 async def metrics() -> PlainTextResponse:
+    """
+    Prometheus metrics endpoint.
+
+    Returns basic gateway health metrics in Prometheus text format.
+    Currently exports api_gateway_up gauge (1 = running).
+
+    Returns:
+        PlainTextResponse with Prometheus-formatted metrics
+    """
     lines = [
         "# HELP api_gateway_up API Gateway up status",
         "# TYPE api_gateway_up gauge",
@@ -65,6 +116,16 @@ async def metrics() -> PlainTextResponse:
 
 @app.on_event("startup")
 async def on_startup() -> None:
+    """
+    Application startup event handler.
+
+    Initializes database schema and starts background job worker.
+    Failures are logged but don't prevent the gateway from starting,
+    allowing graceful degradation of optional features.
+
+    Raises:
+        Exceptions are caught and logged; startup always succeeds
+    """
     global worker
     # Initialize database (later-phase). Failure here should not prevent
     # the base gateway from starting.
@@ -89,6 +150,15 @@ async def on_startup() -> None:
 
 @app.on_event("shutdown")
 async def on_shutdown() -> None:
+    """
+    Application shutdown event handler.
+
+    Gracefully stops background job worker. Failures are logged but don't
+    prevent shutdown from completing.
+
+    Raises:
+        Exceptions are caught and logged; shutdown always succeeds
+    """
     global worker
     if worker is not None:
         try:
@@ -142,9 +212,42 @@ app.include_router(health_routes.router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler for unhandled errors.
+
+    Catches all exceptions that weren't handled by route-specific handlers
+    and returns a unified error response with 500 status code.
+
+    Args:
+        request: Request that caused the exception
+        exc: Exception that was raised
+
+    Returns:
+        JSONResponse with unified error format and 500 status
+    """
     from .models.schemas import UnifiedError, UnifiedResponse
+    from .models.database import ErrorSeverity
+    from .utils.error_logger import log_exception
 
     logger.exception("Global exception handler caught an error")
+
+    # Best-effort persistence of the error to PostgreSQL.
+    try:
+        context = {
+            "path": request.url.path,
+            "method": request.method,
+            "client": request.client.host if request.client else None,
+        }
+        await log_exception(
+            service="api_gateway",
+            exc=exc,
+            severity=ErrorSeverity.critical,
+            context=context,
+            job_id=None,
+        )
+    except Exception as db_exc:  # noqa: BLE001
+        logger.warning(f"Failed to record error in database: {db_exc}")
+
     error = UnifiedError(code="INTERNAL_ERROR", message=str(exc))
     payload = UnifiedResponse(
         success=False,
@@ -157,6 +260,12 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 def run() -> None:
+    """
+    Start the API Gateway server with uvicorn.
+
+    Binds to all interfaces (0.0.0.0) on the configured API_PORT.
+    Auto-reload is disabled for production use.
+    """
     uvicorn.run("api_gateway.main:app", host="0.0.0.0", port=settings.API_PORT, reload=False)
 
 

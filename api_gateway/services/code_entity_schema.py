@@ -25,7 +25,6 @@ Usage:
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from typing import Any, Dict
 
@@ -33,7 +32,6 @@ import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
 from weaviate.classes.config import Configure, DataType, Property, VectorDistances
 
-from ..config import settings
 from ..utils.logger import get_logger
 from .weaviate_connection import CODE_ENTITY_COLLECTION_NAME
 

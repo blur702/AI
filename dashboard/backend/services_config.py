@@ -1,12 +1,34 @@
 """
-Service Registry Configuration
+Service Registry Configuration.
 
 Defines all AI services with their startup commands, ports, and health check settings.
 Used by the service manager for on-demand service starting.
+
+Key Components:
+    SERVICES: Main service registry dictionary mapping service IDs to configuration
+    GPU_INTENSIVE_SERVICES: List of service IDs that use significant VRAM
+    DEFAULT_HOST: Default host for health checks (127.0.0.1)
+
+Service Configuration Schema:
+    name: Display name for the service
+    port: Port number the service binds to
+    icon: Emoji icon for UI display
+    description: Short description of service functionality
+    working_dir: Working directory for process execution
+    command: Command list to start the service (None for external services)
+    health_endpoint: HTTP endpoint for health checks
+    startup_timeout: Max seconds to wait for service to become healthy
+    gradio: Whether service uses Gradio interface
+    external: Whether service is managed externally (not started by dashboard)
+    auto_start_with: List of services to auto-start when this service comes online
+
+Environment Variables:
+    AI_ROOT_DIR: Override default AI root directory path
 """
 
 import os
 from pathlib import Path
+from typing import Any
 
 # Get AI root directory from environment or use platform-aware default
 # Default: ~/AI on Linux/macOS, D:\AI on Windows
@@ -19,27 +41,42 @@ else:
         AI_ROOT_PATH = Path.home() / 'AI'
 
 # Helper function to build platform-agnostic paths
-def _build_path(*parts):
-    """Build absolute path from AI root."""
+def _build_path(*parts: str) -> str:
+    """Build absolute path from AI root.
+
+    Args:
+        *parts: Path components to join (e.g., 'ComfyUI', 'venv')
+
+    Returns:
+        Absolute path string
+    """
     return str(AI_ROOT_PATH.joinpath(*parts))
 
-def _build_python_path(venv_dir, script_name=None):
-    """
-    Build path to Python executable in virtual environment.
+def _build_python_path(venv_dir: str, script_name: str | None = None) -> list[str]:
+    """Build path to Python executable in virtual environment.
+
     Always returns a list to allow easy concatenation with additional arguments.
+
+    Args:
+        venv_dir: Virtual environment directory (e.g., 'ComfyUI/venv')
+        script_name: Optional script name to append (e.g., 'main.py')
+
+    Returns:
+        List with Python executable path, optionally followed by script name
     """
     if os.name == 'nt':  # Windows
         python_exe = _build_path(venv_dir, 'Scripts', 'python.exe')
     else:  # Linux/macOS
         python_exe = _build_path(venv_dir, 'bin', 'python')
-    
+
     if script_name:
         return [python_exe, script_name]
     return [python_exe]
 
-SERVICES = {
+SERVICES: dict[str, dict[str, Any]] = {
     "alltalk": {
         "name": "AllTalk TTS",
+        "section": "Music",
         "port": 7851,
         "icon": "🗣️",
         "description": "Text-to-Speech synthesis",
@@ -51,6 +88,7 @@ SERVICES = {
     },
     "comfyui": {
         "name": "ComfyUI",
+        "section": "Image",
         "port": 8188,
         "icon": "🎨",
         "description": "Image generation workflows",
@@ -62,6 +100,7 @@ SERVICES = {
     },
     "wan2gp": {
         "name": "Wan2GP Video",
+        "section": "Image",
         "port": 7860,
         "icon": "🎬",
         "description": "Video generation",
@@ -73,6 +112,7 @@ SERVICES = {
     },
     "yue": {
         "name": "YuE Music",
+        "section": "Music",
         "port": 7870,
         "icon": "🎵",
         "description": "AI music generation",
@@ -84,6 +124,7 @@ SERVICES = {
     },
     "diffrhythm": {
         "name": "DiffRhythm",
+        "section": "Music",
         "port": 7871,
         "icon": "🥁",
         "description": "Rhythm-based music generation",
@@ -95,6 +136,7 @@ SERVICES = {
     },
     "musicgen": {
         "name": "MusicGen",
+        "section": "Music",
         "port": 7872,
         "icon": "🎹",
         "description": "Meta's music generation model",
@@ -110,6 +152,7 @@ SERVICES = {
     },
     "stable_audio": {
         "name": "Stable Audio",
+        "section": "Music",
         "port": 7873,
         "icon": "🔊",
         "description": "Stability AI audio generation",
@@ -121,6 +164,7 @@ SERVICES = {
     },
     "openwebui": {
         "name": "Open WebUI",
+        "section": "Main",
         "port": 3000,
         "icon": "💬",
         "description": "LLM chat interface",
@@ -133,6 +177,7 @@ SERVICES = {
     },
     "n8n": {
         "name": "N8N",
+        "section": "Main",
         "port": 5678,
         "icon": "🔄",
         "description": "Workflow automation",
@@ -145,6 +190,7 @@ SERVICES = {
     },
     "ollama": {
         "name": "Ollama",
+        "section": "Main",
         "port": 11434,
         "icon": "🦙",
         "description": "Local LLM API",
@@ -158,6 +204,7 @@ SERVICES = {
     },
     "weaviate": {
         "name": "Weaviate Console",
+        "section": "Main",
         "port": 8081,
         "icon": "🧠",
         "description": "Vector database explorer for RAG and memory",
@@ -166,10 +213,11 @@ SERVICES = {
         "health_endpoint": "/",
         "startup_timeout": 60,
         "gradio": False,
-        "external": True,  # Docker container
+        "external": False,  # Managed via docker-compose from dashboard
     },
     "a1111": {
         "name": "A1111 WebUI",
+        "section": "Image",
         "port": 7861,
         "icon": "🖼️",
         "description": "AUTOMATIC1111 Stable Diffusion Web UI",
@@ -183,6 +231,7 @@ SERVICES = {
     },
     "forge": {
         "name": "SD Forge",
+        "section": "Image",
         "port": 7862,
         "icon": "⚒️",
         "description": "Stable Diffusion WebUI Forge",
@@ -196,6 +245,7 @@ SERVICES = {
     },
     "fooocus": {
         "name": "Fooocus",
+        "section": "Image",
         "port": 7865,
         "icon": "🎯",
         "description": "Simplified Stable Diffusion interface",
@@ -210,7 +260,7 @@ SERVICES = {
 }
 
 # Services that use significant GPU VRAM
-GPU_INTENSIVE_SERVICES = [
+GPU_INTENSIVE_SERVICES: list[str] = [
     "wan2gp",
     "yue",
     "diffrhythm",

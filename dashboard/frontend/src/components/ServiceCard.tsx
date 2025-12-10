@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardActions from '@mui/material/CardActions';
@@ -29,7 +30,7 @@ interface ServiceCardProps {
   onResume?: (id: string) => void;
 }
 
-export function ServiceCard({ config, state, onStart, onStop, onPause, onResume }: ServiceCardProps) {
+export const ServiceCard = memo(function ServiceCard({ config, state, onStart, onStop, onPause, onResume }: ServiceCardProps) {
   const status: ServiceStatus = state?.status || 'stopped';
   const isRunning = status === 'running';
   const isPaused = status === 'paused';
@@ -265,4 +266,4 @@ export function ServiceCard({ config, state, onStart, onStop, onPause, onResume 
       )}
     </Card>
   );
-}
+});

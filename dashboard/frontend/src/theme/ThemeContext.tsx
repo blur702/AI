@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -62,19 +62,19 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
   }, [prefersDarkMode]);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setMode((prevMode) => {
       const newMode = prevMode === 'light' ? 'dark' : 'light';
       setStorageItem(THEME_STORAGE_KEY, newMode);
       return newMode;
     });
-  };
+  }, []);
 
   const theme = useMemo(() => createAppTheme(mode), [mode]);
 
   const contextValue = useMemo(
     () => ({ mode, toggleTheme }),
-    [mode]
+    [mode, toggleTheme]
   );
 
   return (
