@@ -189,6 +189,7 @@ class Error(Base):
         service: Service that raised the error (indexed)
         severity: Error severity level (info/warning/error/critical)
         message: Error message
+        resolution: Optional human-readable explanation of how the error was fixed
         stack_trace: Full exception traceback
         context: Additional context as JSON (e.g., file paths, input parameters)
         job_id: Related job ID if error occurred during async operation (indexed)
@@ -203,6 +204,7 @@ class Error(Base):
     service = Column(String(100), nullable=False, index=True)
     severity = Column(Enum(ErrorSeverity), nullable=False, default=ErrorSeverity.error)
     message = Column(Text, nullable=False)
+    resolution = Column(Text, nullable=True)
     stack_trace = Column(Text, nullable=True)
     context = Column(JSON, nullable=True)
     job_id = Column(String, nullable=True, index=True)
@@ -233,5 +235,12 @@ async def init_db() -> None:
     Should be called once at application startup.
     """
     async with engine.begin() as conn:
+        # Ensure all tables exist
         await conn.run_sync(Base.metadata.create_all)
+
+        # Backwards-compatible migration for errors.resolution column.
+        # Using IF NOT EXISTS keeps this safe to run repeatedly.
+        await conn.execute(  # type: ignore[no-untyped-call]
+            "ALTER TABLE errors ADD COLUMN IF NOT EXISTS resolution TEXT"
+        )
 
