@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+import time
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
 
@@ -437,7 +438,6 @@ def ingest_code_entities(
     create_code_entity_collection(client, force_reindex=force_reindex)
     collection = client.collections.get(CODE_ENTITY_COLLECTION_NAME)
 
-    import time
     inserted = 0
     for entity in entity_stream():
         if cancelled:
