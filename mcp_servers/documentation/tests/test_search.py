@@ -6,7 +6,6 @@ Uses mocking to avoid requiring a running Weaviate instance.
 
 from __future__ import annotations
 
-import io
 import logging
 import sys
 import unittest
