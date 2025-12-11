@@ -152,7 +152,8 @@ class CongressionalData:
     content_hash: str
     scraped_at: str  # ISO 8601 datetime string
 
-    # Stable identifier
+    # Stable identifier - stored as property for query convenience
+    # (Weaviate objects have built-in UUIDs but this enables filtering by string)
     uuid: str
 
     def to_properties(self) -> Dict[str, Any]:
@@ -198,52 +199,74 @@ def create_congressional_data_collection(
     Args:
         client: Connected Weaviate client
         force_reindex: Whether to drop and recreate the collection if it exists
+
+    Raises:
+        WeaviateBaseError: If collection creation or deletion fails.
+        Exception: Re-raises unexpected exceptions after logging.
     """
-    exists = client.collections.exists(CONGRESSIONAL_DATA_COLLECTION_NAME)
+    try:
+        exists = client.collections.exists(CONGRESSIONAL_DATA_COLLECTION_NAME)
 
-    if exists and force_reindex:
-        logger.info(
-            "Force reindex requested; deleting existing collection '%s'",
-            CONGRESSIONAL_DATA_COLLECTION_NAME,
-        )
-        client.collections.delete(CONGRESSIONAL_DATA_COLLECTION_NAME)
-        exists = False
+        if exists and force_reindex:
+            logger.info(
+                "Force reindex requested; deleting existing collection '%s'",
+                CONGRESSIONAL_DATA_COLLECTION_NAME,
+            )
+            client.collections.delete(CONGRESSIONAL_DATA_COLLECTION_NAME)
+            exists = False
 
-    if not exists:
-        logger.info(
-            "Creating collection '%s'",
+        if not exists:
+            logger.info(
+                "Creating collection '%s'",
+                CONGRESSIONAL_DATA_COLLECTION_NAME,
+            )
+            client.collections.create(
+                name=CONGRESSIONAL_DATA_COLLECTION_NAME,
+                vectorizer_config=Configure.Vectorizer.none(),
+                vector_index_config=Configure.VectorIndex.hnsw(
+                    distance_metric=VectorDistances.COSINE,
+                ),
+                properties=[
+                    Property(name="member_name", data_type=DataType.TEXT),
+                    Property(name="state", data_type=DataType.TEXT),
+                    Property(name="district", data_type=DataType.TEXT),
+                    Property(name="party", data_type=DataType.TEXT),
+                    Property(name="chamber", data_type=DataType.TEXT),
+                    Property(name="content_text", data_type=DataType.TEXT),
+                    Property(name="title", data_type=DataType.TEXT),
+                    Property(name="url", data_type=DataType.TEXT),
+                    Property(name="rss_feed_url", data_type=DataType.TEXT),
+                    Property(name="content_hash", data_type=DataType.TEXT),
+                    Property(name="scraped_at", data_type=DataType.TEXT),
+                    # Stored as TEXT property for query convenience (e.g., filtering by
+                    # UUID string). Weaviate objects have built-in UUIDs, but storing
+                    # here allows simpler cross-collection lookups without extra joins.
+                    Property(name="uuid", data_type=DataType.TEXT),
+                ],
+            )
+            logger.info(
+                "Collection '%s' created successfully",
+                CONGRESSIONAL_DATA_COLLECTION_NAME,
+            )
+        else:
+            logger.info(
+                "Collection '%s' already exists; skipping creation",
+                CONGRESSIONAL_DATA_COLLECTION_NAME,
+            )
+    except WeaviateBaseError as exc:
+        logger.error(
+            "Weaviate error while creating collection '%s': %s",
             CONGRESSIONAL_DATA_COLLECTION_NAME,
+            exc,
         )
-        client.collections.create(
-            name=CONGRESSIONAL_DATA_COLLECTION_NAME,
-            vectorizer_config=Configure.Vectorizer.none(),
-            vector_index_config=Configure.VectorIndex.hnsw(
-                distance_metric=VectorDistances.COSINE,
-            ),
-            properties=[
-                Property(name="member_name", data_type=DataType.TEXT),
-                Property(name="state", data_type=DataType.TEXT),
-                Property(name="district", data_type=DataType.TEXT),
-                Property(name="party", data_type=DataType.TEXT),
-                Property(name="chamber", data_type=DataType.TEXT),
-                Property(name="content_text", data_type=DataType.TEXT),
-                Property(name="title", data_type=DataType.TEXT),
-                Property(name="url", data_type=DataType.TEXT),
-                Property(name="rss_feed_url", data_type=DataType.TEXT),
-                Property(name="content_hash", data_type=DataType.TEXT),
-                Property(name="scraped_at", data_type=DataType.TEXT),
-                Property(name="uuid", data_type=DataType.TEXT),
-            ],
-        )
-        logger.info(
-            "Collection '%s' created successfully",
+        raise
+    except Exception as exc:
+        logger.exception(
+            "Unexpected error while creating collection '%s': %s",
             CONGRESSIONAL_DATA_COLLECTION_NAME,
+            exc,
         )
-    else:
-        logger.info(
-            "Collection '%s' already exists; skipping creation",
-            CONGRESSIONAL_DATA_COLLECTION_NAME,
-        )
+        raise
 
 
 def delete_congressional_data_collection(
