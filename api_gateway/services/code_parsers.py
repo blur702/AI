@@ -1198,15 +1198,92 @@ class RustParser(BaseParser):
         return ", ".join(mods)
 
     def _find_block_end(self, content: str, start: int) -> int:
-        """Find the end of a brace-delimited block."""
+        """Find the end of a brace-delimited block.
+
+        Handles:
+        - String literals ("..." and '...')
+        - Raw strings (r"..." and r#"..."#)
+        - Line comments (//)
+        - Block comments (/* */)
+        """
         depth = 1
         i = start
-        while i < len(content) and depth > 0:
-            if content[i] == "{":
+        length = len(content)
+
+        while i < length and depth > 0:
+            ch = content[i]
+
+            # Skip string literals
+            if ch == '"':
+                # Check for raw string r"..." or r#"..."#
+                if i > 0 and content[i - 1] == "r":
+                    # Count # symbols after r
+                    hash_count = 0
+                    j = i - 1
+                    while j > 0 and content[j - 1] == "#":
+                        hash_count += 1
+                        j -= 1
+                    # Find matching closing: "# * hash_count
+                    i += 1
+                    while i < length:
+                        if content[i] == '"':
+                            # Check for closing #s
+                            end_hashes = 0
+                            k = i + 1
+                            while k < length and content[k] == "#" and end_hashes < hash_count:
+                                end_hashes += 1
+                                k += 1
+                            if end_hashes == hash_count:
+                                i = k
+                                break
+                        i += 1
+                else:
+                    # Regular string literal
+                    i += 1
+                    while i < length:
+                        if content[i] == "\\" and i + 1 < length:
+                            i += 2  # Skip escaped character
+                        elif content[i] == '"':
+                            i += 1
+                            break
+                        else:
+                            i += 1
+                continue
+
+            # Skip character literals
+            if ch == "'":
+                i += 1
+                if i < length and content[i] == "\\":
+                    i += 2  # Skip escaped char in char literal
+                elif i < length:
+                    i += 1  # Skip the character
+                if i < length and content[i] == "'":
+                    i += 1  # Skip closing quote
+                continue
+
+            # Skip line comments
+            if ch == "/" and i + 1 < length and content[i + 1] == "/":
+                while i < length and content[i] != "\n":
+                    i += 1
+                continue
+
+            # Skip block comments
+            if ch == "/" and i + 1 < length and content[i + 1] == "*":
+                i += 2
+                while i + 1 < length:
+                    if content[i] == "*" and content[i + 1] == "/":
+                        i += 2
+                        break
+                    i += 1
+                continue
+
+            # Count braces
+            if ch == "{":
                 depth += 1
-            elif content[i] == "}":
+            elif ch == "}":
                 depth -= 1
             i += 1
+
         return i
 
     def _extract_functions(self, content: str, file_path: str) -> List[CodeEntity]:
@@ -1255,17 +1332,24 @@ class RustParser(BaseParser):
         return entities
 
     def _parse_rust_params(self, params: str) -> List[Dict[str, Any]]:
-        """Parse Rust function parameters."""
+        """Parse Rust function parameters.
+
+        Handles nested brackets for:
+        - Generics: <T, U>
+        - Parentheses: (for tuples and function pointers)
+        - Square brackets: [u8; 32] (arrays), &[T] (slices)
+        - Curly braces: impl Fn() -> {} (closures)
+        """
         if not params.strip():
             return []
         param_list = []
-        # Split by comma, handling nested generics
+        # Split by comma, handling all nested bracket types
         depth = 0
         current = ""
         for char in params:
-            if char in "<(":
+            if char in "<([{":
                 depth += 1
-            elif char in ">)":
+            elif char in ">)]}":
                 depth -= 1
             if char == "," and depth == 0:
                 if current.strip():
@@ -1414,7 +1498,8 @@ class RustParser(BaseParser):
             source = content[match.start():block_end].strip()
 
             if trait_name:
-                name = f"{trait_name} for {type_name}"
+                # Use underscores for consistent naming across name and full_name
+                name = f"{trait_name}_for_{type_name}"
                 signature = f"impl{generics} {trait_name} for {type_name}"
             else:
                 name = type_name
@@ -1423,7 +1508,7 @@ class RustParser(BaseParser):
             entities.append(CodeEntity(
                 entity_type="impl",
                 name=name,
-                full_name=_build_full_name(Path(file_path), name.replace(" ", "_")),
+                full_name=_build_full_name(Path(file_path), name),
                 file_path=file_path,
                 line_start=line_start,
                 line_end=line_end,
