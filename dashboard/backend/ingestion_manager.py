@@ -22,7 +22,7 @@ project_root = Path(__file__).resolve().parents[2]
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from api_gateway.services.weaviate_connection import (
+from api_gateway.services.weaviate_connection import (  # noqa: E402
     WeaviateConnection,
     DOCUMENTATION_COLLECTION_NAME,
     CODE_ENTITY_COLLECTION_NAME,
@@ -30,30 +30,30 @@ from api_gateway.services.weaviate_connection import (
     MDN_JAVASCRIPT_COLLECTION_NAME,
     MDN_WEBAPIS_COLLECTION_NAME,
 )
-from api_gateway.services.doc_ingestion import (
+from api_gateway.services.doc_ingestion import (  # noqa: E402
     ingest_documentation,
     collection_status as doc_collection_status,
 )
-from api_gateway.services.code_ingestion import (
+from api_gateway.services.code_ingestion import (  # noqa: E402
     ingest_code_entities,
     collection_status as code_collection_status,
 )
-from api_gateway.services.drupal_api_schema import (
+from api_gateway.services.drupal_api_schema import (  # noqa: E402
     get_collection_stats as drupal_collection_stats,
 )
-from api_gateway.services.drupal_scraper import (
+from api_gateway.services.drupal_scraper import (  # noqa: E402
     scrape_drupal_api,
     ScrapeConfig as DrupalScrapeConfig,
 )
-from api_gateway.services.mdn_schema import (
+from api_gateway.services.mdn_schema import (  # noqa: E402
     get_mdn_javascript_stats,
     get_mdn_webapis_stats,
 )
-from api_gateway.services.mdn_javascript_scraper import (
+from api_gateway.services.mdn_javascript_scraper import (  # noqa: E402
     scrape_mdn_javascript,
     ScrapeConfig as MdnJsScrapeConfig,
 )
-from api_gateway.services.mdn_webapis_scraper import (
+from api_gateway.services.mdn_webapis_scraper import (  # noqa: E402
     scrape_mdn_webapis,
     ScrapeConfig as MdnWebScrapeConfig,
 )

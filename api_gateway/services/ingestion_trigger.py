@@ -5,6 +5,11 @@ Provides a single entry point for ingesting documentation and/or code
 into Weaviate collections. Supports full ingestion, incremental updates,
 and deferred queue processing for VRAM-friendly workflows.
 
+For audit-driven orchestration that decides between full documentation
+reindex and targeted incremental updates based on a Phase 1 report, see
+api_gateway.services.audit_ingestion, which wraps doc_ingestion and
+incremental_indexer using the same file_path conventions.
+
 CLI usage (from project root):
 
     # Full ingestion
@@ -41,6 +46,7 @@ from .doc_ingestion import (
     ingest_documentation,
     collection_status as doc_collection_status,
     chunk_by_headers,
+    get_doc_text_for_embedding,
 )
 from .code_ingestion import (
     ingest_code_entities,
@@ -184,10 +190,16 @@ def run_incremental(file_paths: List[str], dry_run: bool = False) -> int:
                             where=Filter.by_property("file_path").equal(rel_path)
                         )
 
-                        # Parse and insert new chunks
+                        # Parse and insert new chunks with embeddings
                         chunks = chunk_by_headers(file_path)
                         for chunk in chunks:
-                            doc_collection.data.insert(chunk.to_properties())
+                            # Compute embedding (required for semantic search)
+                            text = get_doc_text_for_embedding(chunk)
+                            vector = get_embedding(text)
+                            doc_collection.data.insert(
+                                chunk.to_properties(),
+                                vector=vector
+                            )
 
                         print(f"  [doc] {rel_path}: {len(chunks)} chunks")
                     except Exception as exc:

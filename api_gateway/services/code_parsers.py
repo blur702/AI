@@ -22,6 +22,7 @@ Supported file types:
     - TypeScript (.ts, .tsx)
     - JavaScript (.js, .jsx)
     - CSS (.css)
+    - Rust (.rs)
 
 Python Parser Notes:
     - Extracts all parameter types: positional, *args, keyword-only, **kwargs
@@ -94,6 +95,8 @@ def _build_full_name(
         module_path = module_path[:-3]
     elif module_path.endswith((".tsx", ".jsx", ".css")):
         module_path = module_path[:-4]
+    elif module_path.endswith(".rs"):
+        module_path = module_path[:-3]
     module_path = module_path.replace("/", ".")
 
     if parent:
@@ -1015,6 +1018,583 @@ class CSSParser(BaseParser):
         return properties
 
 
+
+
+# =============================================================================
+# Rust Parser
+# =============================================================================
+
+
+class RustParser(BaseParser):
+    """
+    Parser for Rust files using regex patterns.
+
+    Extracts functions, structs, traits, enums, impls, and constants from Rust source files.
+    Handles async functions, generics, and visibility modifiers.
+    """
+
+    # Pattern for function definitions (pub async fn, fn, etc.)
+    FN_PATTERN = re.compile(
+        r"(?:///[^\n]*\n)*"  # Optional doc comments
+        r"((?:pub(?:\([^)]+\))?\s+)?(?:async\s+)?(?:unsafe\s+)?(?:const\s+)?)"  # modifiers
+        r"fn\s+([a-zA-Z_][a-zA-Z0-9_]*)"  # fn name
+        r"(<[^>]+>)?"  # optional generics
+        r"\s*\(([^)]*)\)"  # parameters
+        r"(?:\s*->\s*([^\n{]+))?"  # optional return type
+        r"\s*(?:where[^{]+)?"  # optional where clause
+        r"\s*\{",  # opening brace
+        re.MULTILINE | re.DOTALL,
+    )
+
+    # Pattern for struct definitions
+    STRUCT_PATTERN = re.compile(
+        r"(?:///[^\n]*\n)*"  # Optional doc comments
+        r"((?:pub(?:\([^)]+\))?\s+)?)"  # visibility
+        r"struct\s+([a-zA-Z_][a-zA-Z0-9_]*)"  # struct name
+        r"(<[^>]+>)?"  # optional generics
+        r"(?:\s*\([^)]*\))?"  # tuple struct
+        r"(?:\s*where[^{;]+)?"  # optional where clause
+        r"\s*[{;]",  # opening brace or semicolon
+        re.MULTILINE | re.DOTALL,
+    )
+
+    # Pattern for trait definitions
+    TRAIT_PATTERN = re.compile(
+        r"(?:///[^\n]*\n)*"  # Optional doc comments
+        r"((?:pub(?:\([^)]+\))?\s+)?(?:unsafe\s+)?)"  # visibility and unsafe
+        r"trait\s+([a-zA-Z_][a-zA-Z0-9_]*)"  # trait name
+        r"(<[^>]+>)?"  # optional generics
+        r"(?:\s*:\s*[^{]+)?"  # optional supertraits
+        r"(?:\s*where[^{]+)?"  # optional where clause
+        r"\s*\{",
+        re.MULTILINE | re.DOTALL,
+    )
+
+    # Pattern for enum definitions
+    ENUM_PATTERN = re.compile(
+        r"(?:///[^\n]*\n)*"  # Optional doc comments
+        r"((?:pub(?:\([^)]+\))?\s+)?)"  # visibility
+        r"enum\s+([a-zA-Z_][a-zA-Z0-9_]*)"  # enum name
+        r"(<[^>]+>)?"  # optional generics
+        r"(?:\s*where[^{]+)?"  # optional where clause
+        r"\s*\{",
+        re.MULTILINE | re.DOTALL,
+    )
+
+    # Pattern for impl blocks
+    IMPL_PATTERN = re.compile(
+        r"((?:unsafe\s+)?)"  # unsafe modifier
+        r"impl\s*"
+        r"(<[^>]+>)?"  # optional generics
+        r"\s*(?:([a-zA-Z_][a-zA-Z0-9_:<>]*)\s+for\s+)?"  # optional trait for
+        r"([a-zA-Z_][a-zA-Z0-9_:<>]+)"  # type name
+        r"(?:\s*where[^{]+)?"  # optional where clause
+        r"\s*\{",
+        re.MULTILINE | re.DOTALL,
+    )
+
+    # Pattern for const/static
+    CONST_PATTERN = re.compile(
+        r"(?:///[^\n]*\n)*"  # Optional doc comments
+        r"((?:pub(?:\([^)]+\))?\s+)?)"  # visibility
+        r"(const|static(?:\s+mut)?)\s+"
+        r"([a-zA-Z_][a-zA-Z0-9_]*)"  # name
+        r"\s*:\s*([^=]+)"  # type
+        r"\s*=",
+        re.MULTILINE,
+    )
+
+    # Pattern for type aliases
+    TYPE_ALIAS_PATTERN = re.compile(
+        r"(?:///[^\n]*\n)*"  # Optional doc comments
+        r"((?:pub(?:\([^)]+\))?\s+)?)"  # visibility
+        r"type\s+([a-zA-Z_][a-zA-Z0-9_]*)"  # name
+        r"(<[^>]+>)?"  # optional generics
+        r"\s*=\s*([^;]+);",
+        re.MULTILINE,
+    )
+
+    @property
+    def language(self) -> str:
+        """Return language identifier."""
+        return "rust"
+
+    def parse_file(self, file_path: Path) -> List[CodeEntity]:
+        """
+        Parse a Rust file and extract code entities.
+
+        Args:
+            file_path: Path to Rust file
+
+        Returns:
+            List of CodeEntity objects (functions, structs, traits, enums, etc.)
+        """
+        logger.info("Parsing Rust file: %s", _relative_to_workspace(file_path))
+
+        try:
+            content = file_path.read_text(encoding="utf-8")
+        except (FileNotFoundError, PermissionError) as exc:
+            logger.exception("Failed to read file %s: %s", file_path, exc)
+            return []
+
+        entities: List[CodeEntity] = []
+        relative_path = _relative_to_workspace(file_path)
+
+        # Extract functions
+        entities.extend(self._extract_functions(content, relative_path))
+
+        # Extract structs
+        entities.extend(self._extract_structs(content, relative_path))
+
+        # Extract traits
+        entities.extend(self._extract_traits(content, relative_path))
+
+        # Extract enums
+        entities.extend(self._extract_enums(content, relative_path))
+
+        # Extract impl blocks
+        entities.extend(self._extract_impls(content, relative_path))
+
+        # Extract constants and statics
+        entities.extend(self._extract_constants(content, relative_path))
+
+        # Extract type aliases
+        entities.extend(self._extract_type_aliases(content, relative_path))
+
+        logger.info(
+            "Extracted %d entities from %s",
+            len(entities),
+            relative_path,
+        )
+        return entities
+
+    def _extract_doc_comment(self, content: str, pos: int) -> str:
+        """Extract doc comments preceding a position."""
+        lines = content[:pos].split("\n")
+        doc_lines = []
+        for line in reversed(lines):
+            stripped = line.strip()
+            if stripped.startswith("///"):
+                doc_lines.insert(0, stripped[3:].strip())
+            elif stripped.startswith("//!"):
+                doc_lines.insert(0, stripped[3:].strip())
+            elif stripped == "" or stripped.startswith("//"):
+                continue
+            else:
+                break
+        return "\n".join(doc_lines)
+
+    def _extract_modifiers(self, mod_str: str) -> str:
+        """Extract modifiers from a modifier string."""
+        mods = []
+        if "pub" in mod_str:
+            mods.append("pub")
+        if "async" in mod_str:
+            mods.append("async")
+        if "unsafe" in mod_str:
+            mods.append("unsafe")
+        if "const" in mod_str:
+            mods.append("const")
+        return ", ".join(mods)
+
+    def _find_block_end(self, content: str, start: int) -> int:
+        """Find the end of a brace-delimited block.
+
+        Handles:
+        - String literals ("..." and '...')
+        - Raw strings (r"..." and r#"..."#)
+        - Line comments (//)
+        - Block comments (/* */)
+        """
+        depth = 1
+        i = start
+        length = len(content)
+
+        while i < length and depth > 0:
+            ch = content[i]
+
+            # Skip string literals
+            if ch == '"':
+                # Check for raw string r"..." or r#"..."#
+                if i > 0 and content[i - 1] == "r":
+                    # Count # symbols after r
+                    hash_count = 0
+                    j = i - 1
+                    while j > 0 and content[j - 1] == "#":
+                        hash_count += 1
+                        j -= 1
+                    # Find matching closing: "# * hash_count
+                    i += 1
+                    while i < length:
+                        if content[i] == '"':
+                            # Check for closing #s
+                            end_hashes = 0
+                            k = i + 1
+                            while k < length and content[k] == "#" and end_hashes < hash_count:
+                                end_hashes += 1
+                                k += 1
+                            if end_hashes == hash_count:
+                                i = k
+                                break
+                        i += 1
+                else:
+                    # Regular string literal
+                    i += 1
+                    while i < length:
+                        if content[i] == "\\" and i + 1 < length:
+                            i += 2  # Skip escaped character
+                        elif content[i] == '"':
+                            i += 1
+                            break
+                        else:
+                            i += 1
+                continue
+
+            # Skip character literals
+            if ch == "'":
+                i += 1
+                if i < length and content[i] == "\\":
+                    i += 2  # Skip escaped char in char literal
+                elif i < length:
+                    i += 1  # Skip the character
+                if i < length and content[i] == "'":
+                    i += 1  # Skip closing quote
+                continue
+
+            # Skip line comments
+            if ch == "/" and i + 1 < length and content[i + 1] == "/":
+                while i < length and content[i] != "\n":
+                    i += 1
+                continue
+
+            # Skip block comments
+            if ch == "/" and i + 1 < length and content[i + 1] == "*":
+                i += 2
+                while i + 1 < length:
+                    if content[i] == "*" and content[i + 1] == "/":
+                        i += 2
+                        break
+                    i += 1
+                continue
+
+            # Count braces
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+            i += 1
+
+        return i
+
+    def _extract_functions(self, content: str, file_path: str) -> List[CodeEntity]:
+        """Extract function definitions."""
+        entities = []
+        for match in self.FN_PATTERN.finditer(content):
+            modifiers = self._extract_modifiers(match.group(1) or "")
+            name = match.group(2)
+            generics = (match.group(3) or "").strip()
+            params = match.group(4).strip()
+            return_type = (match.group(5) or "").strip()
+
+            line_start = _count_line_number(content, match.start())
+            block_end = self._find_block_end(content, match.end())
+            line_end = _count_line_number(content, block_end)
+            source = content[match.start():block_end].strip()
+
+            # Parse parameters
+            param_list = self._parse_rust_params(params)
+
+            signature = f"fn {name}{generics}({params})"
+            if return_type:
+                signature += f" -> {return_type}"
+
+            docstring = self._extract_doc_comment(content, match.start())
+
+            entities.append(CodeEntity(
+                entity_type="function",
+                name=name,
+                full_name=_build_full_name(Path(file_path), name),
+                file_path=file_path,
+                line_start=line_start,
+                line_end=line_end,
+                signature=signature,
+                parameters=json.dumps(param_list),
+                return_type=return_type,
+                docstring=docstring,
+                decorators="[]",
+                modifiers=modifiers,
+                parent_entity="",
+                language=self.language,
+                source_code=source[:2000],  # Truncate long sources
+                dependencies="[]",
+                relationships="{}",
+            ))
+        return entities
+
+    def _parse_rust_params(self, params: str) -> List[Dict[str, Any]]:
+        """Parse Rust function parameters.
+
+        Handles nested brackets for:
+        - Generics: <T, U>
+        - Parentheses: (for tuples and function pointers)
+        - Square brackets: [u8; 32] (arrays), &[T] (slices)
+        - Curly braces: impl Fn() -> {} (closures)
+        """
+        if not params.strip():
+            return []
+        param_list = []
+        # Split by comma, handling all nested bracket types
+        depth = 0
+        current = ""
+        for char in params:
+            if char in "<([{":
+                depth += 1
+            elif char in ">)]}":
+                depth -= 1
+            if char == "," and depth == 0:
+                if current.strip():
+                    param_list.append(self._parse_single_param(current.strip()))
+                current = ""
+            else:
+                current += char
+        if current.strip():
+            param_list.append(self._parse_single_param(current.strip()))
+        return param_list
+
+    def _parse_single_param(self, param: str) -> Dict[str, Any]:
+        """Parse a single Rust parameter."""
+        # Handle self, &self, &mut self
+        if param in ("self", "&self", "&mut self"):
+            return {"name": "self", "type": param, "kind": "self"}
+        # Handle name: Type patterns
+        if ":" in param:
+            parts = param.split(":", 1)
+            return {"name": parts[0].strip(), "type": parts[1].strip(), "kind": "positional"}
+        return {"name": param, "type": "", "kind": "positional"}
+
+    def _extract_structs(self, content: str, file_path: str) -> List[CodeEntity]:
+        """Extract struct definitions."""
+        entities = []
+        for match in self.STRUCT_PATTERN.finditer(content):
+            modifiers = self._extract_modifiers(match.group(1) or "")
+            name = match.group(2)
+            generics = (match.group(3) or "").strip()
+
+            line_start = _count_line_number(content, match.start())
+            # Find end of struct
+            if content[match.end() - 1] == ";":
+                line_end = line_start
+                source = content[match.start():match.end()].strip()
+            else:
+                block_end = self._find_block_end(content, match.end())
+                line_end = _count_line_number(content, block_end)
+                source = content[match.start():block_end].strip()
+
+            docstring = self._extract_doc_comment(content, match.start())
+
+            entities.append(CodeEntity(
+                entity_type="struct",
+                name=name,
+                full_name=_build_full_name(Path(file_path), name),
+                file_path=file_path,
+                line_start=line_start,
+                line_end=line_end,
+                signature=f"struct {name}{generics}",
+                parameters="[]",
+                return_type="",
+                docstring=docstring,
+                decorators="[]",
+                modifiers=modifiers,
+                parent_entity="",
+                language=self.language,
+                source_code=source[:2000],
+                dependencies="[]",
+                relationships="{}",
+            ))
+        return entities
+
+    def _extract_traits(self, content: str, file_path: str) -> List[CodeEntity]:
+        """Extract trait definitions."""
+        entities = []
+        for match in self.TRAIT_PATTERN.finditer(content):
+            modifiers = self._extract_modifiers(match.group(1) or "")
+            name = match.group(2)
+            generics = (match.group(3) or "").strip()
+
+            line_start = _count_line_number(content, match.start())
+            block_end = self._find_block_end(content, match.end())
+            line_end = _count_line_number(content, block_end)
+            source = content[match.start():block_end].strip()
+            docstring = self._extract_doc_comment(content, match.start())
+
+            entities.append(CodeEntity(
+                entity_type="trait",
+                name=name,
+                full_name=_build_full_name(Path(file_path), name),
+                file_path=file_path,
+                line_start=line_start,
+                line_end=line_end,
+                signature=f"trait {name}{generics}",
+                parameters="[]",
+                return_type="",
+                docstring=docstring,
+                decorators="[]",
+                modifiers=modifiers,
+                parent_entity="",
+                language=self.language,
+                source_code=source[:2000],
+                dependencies="[]",
+                relationships="{}",
+            ))
+        return entities
+
+    def _extract_enums(self, content: str, file_path: str) -> List[CodeEntity]:
+        """Extract enum definitions."""
+        entities = []
+        for match in self.ENUM_PATTERN.finditer(content):
+            modifiers = self._extract_modifiers(match.group(1) or "")
+            name = match.group(2)
+            generics = (match.group(3) or "").strip()
+
+            line_start = _count_line_number(content, match.start())
+            block_end = self._find_block_end(content, match.end())
+            line_end = _count_line_number(content, block_end)
+            source = content[match.start():block_end].strip()
+            docstring = self._extract_doc_comment(content, match.start())
+
+            entities.append(CodeEntity(
+                entity_type="enum",
+                name=name,
+                full_name=_build_full_name(Path(file_path), name),
+                file_path=file_path,
+                line_start=line_start,
+                line_end=line_end,
+                signature=f"enum {name}{generics}",
+                parameters="[]",
+                return_type="",
+                docstring=docstring,
+                decorators="[]",
+                modifiers=modifiers,
+                parent_entity="",
+                language=self.language,
+                source_code=source[:2000],
+                dependencies="[]",
+                relationships="{}",
+            ))
+        return entities
+
+    def _extract_impls(self, content: str, file_path: str) -> List[CodeEntity]:
+        """Extract impl blocks."""
+        entities = []
+        for match in self.IMPL_PATTERN.finditer(content):
+            modifiers = self._extract_modifiers(match.group(1) or "")
+            generics = (match.group(2) or "").strip()
+            trait_name = match.group(3)
+            type_name = match.group(4)
+
+            line_start = _count_line_number(content, match.start())
+            block_end = self._find_block_end(content, match.end())
+            line_end = _count_line_number(content, block_end)
+            source = content[match.start():block_end].strip()
+
+            if trait_name:
+                # Use underscores for consistent naming across name and full_name
+                name = f"{trait_name}_for_{type_name}"
+                signature = f"impl{generics} {trait_name} for {type_name}"
+            else:
+                name = type_name
+                signature = f"impl{generics} {type_name}"
+
+            entities.append(CodeEntity(
+                entity_type="impl",
+                name=name,
+                full_name=_build_full_name(Path(file_path), name),
+                file_path=file_path,
+                line_start=line_start,
+                line_end=line_end,
+                signature=signature,
+                parameters="[]",
+                return_type="",
+                docstring="",
+                decorators="[]",
+                modifiers=modifiers,
+                parent_entity="",
+                language=self.language,
+                source_code=source[:2000],
+                dependencies="[]",
+                relationships="{}",
+            ))
+        return entities
+
+    def _extract_constants(self, content: str, file_path: str) -> List[CodeEntity]:
+        """Extract const and static declarations."""
+        entities = []
+        for match in self.CONST_PATTERN.finditer(content):
+            modifiers = self._extract_modifiers(match.group(1) or "")
+            kind = match.group(2)  # const or static
+            name = match.group(3)
+            type_annotation = match.group(4).strip()
+
+            line_start = _count_line_number(content, match.start())
+            line_end = line_start
+            docstring = self._extract_doc_comment(content, match.start())
+
+            entities.append(CodeEntity(
+                entity_type="constant" if "const" in kind else "static",
+                name=name,
+                full_name=_build_full_name(Path(file_path), name),
+                file_path=file_path,
+                line_start=line_start,
+                line_end=line_end,
+                signature=f"{kind} {name}: {type_annotation}",
+                parameters="[]",
+                return_type=type_annotation,
+                docstring=docstring,
+                decorators="[]",
+                modifiers=modifiers,
+                parent_entity="",
+                language=self.language,
+                source_code="",
+                dependencies="[]",
+                relationships="{}",
+            ))
+        return entities
+
+    def _extract_type_aliases(self, content: str, file_path: str) -> List[CodeEntity]:
+        """Extract type alias declarations."""
+        entities = []
+        for match in self.TYPE_ALIAS_PATTERN.finditer(content):
+            modifiers = self._extract_modifiers(match.group(1) or "")
+            name = match.group(2)
+            generics = (match.group(3) or "").strip()
+            aliased_type = match.group(4).strip()
+
+            line_start = _count_line_number(content, match.start())
+            line_end = line_start
+            docstring = self._extract_doc_comment(content, match.start())
+
+            entities.append(CodeEntity(
+                entity_type="type",
+                name=name,
+                full_name=_build_full_name(Path(file_path), name),
+                file_path=file_path,
+                line_start=line_start,
+                line_end=line_end,
+                signature=f"type {name}{generics} = {aliased_type}",
+                parameters="[]",
+                return_type=aliased_type,
+                docstring=docstring,
+                decorators="[]",
+                modifiers=modifiers,
+                parent_entity="",
+                language=self.language,
+                source_code="",
+                dependencies="[]",
+                relationships="{}",
+            ))
+        return entities
+
+
 # =============================================================================
 # Unified Code Parser
 # =============================================================================
@@ -1032,9 +1612,10 @@ class CodeParser:
         - TypeScript: .ts, .tsx
         - JavaScript: .js, .jsx
         - CSS: .css
+        - Rust: .rs
     """
 
-    SUPPORTED_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css"}
+    SUPPORTED_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css", ".rs"}
 
     def __init__(self):
         """
@@ -1045,6 +1626,7 @@ class CodeParser:
         """
         self._python_parser = PythonParser()
         self._css_parser = CSSParser()
+        self._rust_parser = RustParser()
 
     def parse_file(self, file_path: Path) -> List[CodeEntity]:
         """
@@ -1076,6 +1658,8 @@ class CodeParser:
                 return parser.parse_file(file_path)
             elif suffix == ".css":
                 return self._css_parser.parse_file(file_path)
+            elif suffix == ".rs":
+                return self._rust_parser.parse_file(file_path)
             else:
                 return []
         except Exception as exc:

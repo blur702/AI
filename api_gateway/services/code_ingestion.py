@@ -103,7 +103,7 @@ EXCLUDED_DIRS = {
 }
 
 # File patterns to include
-INCLUDE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css"}
+INCLUDE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css", ".rs"}
 
 # AI service directory mappings: directory name -> service name
 AI_SERVICE_DIRS: Dict[str, str] = {

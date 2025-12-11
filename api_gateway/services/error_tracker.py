@@ -37,8 +37,7 @@ import sys
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select, and_, or_
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, and_
 
 from api_gateway.models.database import (
     AsyncSessionLocal,
