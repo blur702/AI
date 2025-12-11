@@ -5,7 +5,6 @@ This script logs the errors discovered during the debugging session and
 their solutions to the PostgreSQL database for future reference.
 """
 import asyncio
-import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,7 +13,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(project_root))
 
-from api_gateway.models.database import AsyncSessionLocal, Error, ErrorSeverity, init_db
+from api_gateway.models.database import AsyncSessionLocal, Error, ErrorSeverity, init_db  # noqa: E402
 
 
 ERRORS_AND_SOLUTIONS = [
