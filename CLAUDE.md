@@ -603,6 +603,7 @@ The MCP (Model Context Protocol) tools provide semantic search over the codebase
 Search for code entities (functions, classes, structs, etc.) by semantic meaning.
 
 **Parameters:**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `query` | string | Yes | Natural language description of what you're looking for |
@@ -650,12 +651,14 @@ search_code(query="loading spinner", entity_type="animation")
 Search markdown documentation by semantic meaning.
 
 **Parameters:**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `query` | string | Yes | Natural language query |
 | `limit` | int | No | Max results (default: 10) |
 
 **Example Queries:**
+
 ```python
 # Find docs about VRAM management
 search_documentation(query="GPU memory management")
@@ -678,12 +681,14 @@ search_documentation(query="REST API endpoints")
 Combined search across both code AND documentation. Best for understanding how features work.
 
 **Parameters:**
+
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `query` | string | Yes | Natural language query |
 | `limit` | int | No | Total max results, split between docs and code (default: 10) |
 
 **Example Queries:**
+
 ```python
 # Understand how a feature works end-to-end
 search_codebase(query="how does image generation work")
