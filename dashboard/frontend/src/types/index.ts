@@ -321,3 +321,15 @@ export interface CleanCollectionsResponse {
   deleted: string[];
   errors: string[] | null;
 }
+
+// Re-export Congressional types
+export type {
+  CongressionalStatus,
+  CongressionalProgress,
+  CongressionalChatMessage,
+  CongressionalQueryRequest,
+  CongressionalQueryResult,
+  CongressionalQueryResponse,
+  CongressionalScrapeConfig,
+  MemberStats,
+} from './congressional';
