@@ -1,5 +1,4 @@
 import threading
-import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
@@ -72,11 +71,7 @@ class CongressionalJobManager:
 
     def _check_paused(self) -> bool:
         with self._state_lock:
-            paused = self._state.pause_flag
-        # Simple cooperative pause; callers may sleep while paused
-        if paused:
-            time.sleep(1.0)
-        return paused
+            return self._state.pause_flag
 
     def _run_scrape(self, config: ScrapeConfig) -> None:
         with self._state_lock:
@@ -133,13 +128,14 @@ class CongressionalJobManager:
                 daemon=True,
             )
             self._state.thread = thread
+            thread.start()
 
-        thread.start()
         return self.get_status()
 
     def get_status(self) -> _JobState:
         with self._state_lock:
             # Return a shallow copy to avoid external mutation
+            # Don't expose internal thread reference
             return _JobState(
                 status=self._state.status,
                 stats=dict(self._state.stats),
@@ -148,7 +144,7 @@ class CongressionalJobManager:
                 error=self._state.error,
                 cancel_flag=self._state.cancel_flag,
                 pause_flag=self._state.pause_flag,
-                thread=self._state.thread,
+                thread=None,
             )
 
     def cancel_scrape(self) -> None:
