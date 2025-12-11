@@ -1053,6 +1053,7 @@ There are two levels of bypass depending on the emergency:
    ```
 
 **After emergency, restore protection:**
+
 ```bash
 gh api repos/blur702/AI/branches/master/protection -X PUT \
   -H "Accept: application/vnd.github+json" \
