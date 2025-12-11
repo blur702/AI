@@ -1,7 +1,6 @@
 """Create N8N owner user directly in database."""
 import sqlite3
 import uuid
-import hashlib
 import os
 from datetime import datetime
 
@@ -71,7 +70,7 @@ def create_owner():
                 print(f"Table {table[0]} columns: {cols}")
 
         conn.commit()
-        print(f"Owner user created successfully!")
+        print("Owner user created successfully!")
         print(f"Email: {EMAIL}")
         print(f"Password: {PASSWORD}")
 

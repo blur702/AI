@@ -6,9 +6,7 @@ Provides settings for connecting to Weaviate and configuring the search service.
 
 from __future__ import annotations
 
-import logging
 import os
-from typing import Optional
 
 from dotenv import load_dotenv
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from types import TracebackType
-from typing import Any, Optional, Type
+from typing import Optional, Type
 from urllib.parse import urlparse
 
 import weaviate
@@ -133,3 +133,12 @@ SCRAPY_DOCS_COLLECTION_NAME = "ScrapyDocs"
 
 # IDE/Editor documentation collections
 VSCODE_DOCS_COLLECTION_NAME = "VSCodeDocs"
+
+# React ecosystem documentation collections
+REACT_ECOSYSTEM_COLLECTION_NAME = "ReactEcosystem"  # React, React Router, Redux, etc.
+
+# TypeScript documentation collection
+TYPESCRIPT_DOCS_COLLECTION_NAME = "TypeScriptDocs"  # TypeScript language documentation
+
+# PHP documentation collection
+PHP_DOCS_COLLECTION_NAME = "PHPDocs"  # PHP language documentation from php.net

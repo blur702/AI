@@ -29,13 +29,13 @@ project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from api_gateway.services.weaviate_connection import (
+from api_gateway.services.weaviate_connection import (  # noqa: E402
     WeaviateConnection,
     DOCUMENTATION_COLLECTION_NAME,
     CODE_ENTITY_COLLECTION_NAME,
 )
-from api_gateway.config import settings as api_settings
-from mcp_servers.documentation import settings
+from api_gateway.config import settings as api_settings  # noqa: E402
+from mcp_servers.documentation import settings  # noqa: E402
 
 
 # Limit validation constants
