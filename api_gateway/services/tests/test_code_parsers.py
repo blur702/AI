@@ -16,14 +16,12 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from api_gateway.services.code_entity_schema import CodeEntity
 from api_gateway.services.code_parsers import (
     CodeParser,
     CSSParser,
     PythonParser,
     TypeScriptParser,
     _build_full_name,
-    _relative_to_workspace,
     _serialize_decorators,
     _serialize_parameters,
     get_supported_extensions,
