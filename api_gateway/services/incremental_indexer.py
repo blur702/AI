@@ -39,6 +39,7 @@ from api_gateway.services.code_entity_schema import (
 from api_gateway.services.doc_ingestion import (
     create_documentation_collection,
     chunk_by_headers,
+    get_doc_text_for_embedding,
 )
 from api_gateway.utils.embeddings import get_embedding
 
@@ -191,6 +192,20 @@ def index_doc_file(
     try:
         # chunk_by_headers takes a file path and returns DocChunk objects
         chunks = chunk_by_headers(file_path)
+        if not chunks:
+            logger.info("No chunks produced for docs file: %s", file_path)
+            return stats
+
+        # All chunks share the same workspace-relative file_path
+        rel_path = chunks[0].file_path
+
+        # Delete existing chunks for this file so we can reinsert cleanly
+        if not dry_run:
+            from weaviate.classes.query import Filter  # Imported here to avoid hard dependency at module import time
+
+            collection.data.delete_many(
+                where=Filter.by_property("file_path").equal(rel_path)
+            )
 
         for chunk in chunks:
             try:
@@ -199,42 +214,17 @@ def index_doc_file(
                     stats["sections_added"] += 1
                     continue
 
-                # Build text for embedding
-                text = f"{chunk.title}\n\n{chunk.content}"
+                # Build text for embedding (aligned with full ingestion)
+                text = get_doc_text_for_embedding(chunk)
                 vector = get_embedding(text)
 
-                # Generate UUID from file path + section title
-                uuid_str = f"{file_path}:{chunk.title}"
-                uuid_hash = str(uuid_module.UUID(hashlib.md5(uuid_str.encode()).hexdigest()))
-
-                properties = {
-                    "title": chunk.title,
-                    "content": chunk.content,
-                    "file_path": str(file_path),
-                    "section": chunk.section,
-                }
-
-                # Check if exists
-                try:
-                    existing = collection.query.fetch_object_by_id(uuid_hash)
-                    if existing:
-                        collection.data.update(
-                            uuid=uuid_hash,
-                            properties=properties,
-                            vector=vector,
-                        )
-                        stats["sections_updated"] += 1
-                        logger.debug(f"  Updated section: {chunk.title}")
-                    else:
-                        raise Exception("Not found")  # noqa: TRY301
-                except Exception:
-                    collection.data.insert(
-                        uuid=uuid_hash,
-                        properties=properties,
-                        vector=vector,
-                    )
-                    stats["sections_added"] += 1
-                    logger.debug(f"  Added section: {chunk.title}")
+                # Insert new chunk; collection manages UUIDs
+                collection.data.insert(
+                    properties=chunk.to_properties(),
+                    vector=vector,
+                )
+                stats["sections_added"] += 1
+                logger.debug("  Added section: %s", chunk.title)
 
             except Exception as e:
                 logger.error(f"  Error indexing section {chunk.title}: {e}")
