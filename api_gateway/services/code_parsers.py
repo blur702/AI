@@ -1040,7 +1040,7 @@ class RustParser(BaseParser):
         r"fn\s+([a-zA-Z_][a-zA-Z0-9_]*)"  # fn name
         r"(<[^>]+>)?"  # optional generics
         r"\s*\(([^)]*)\)"  # parameters
-        r"(?:\s*->\s*([^\n{]+))?"  # optional return type
+        r"(?:\s*->\s*([^{]+))?"  # optional return type (allows multi-line)
         r"\s*(?:where[^{]+)?"  # optional where clause
         r"\s*\{",  # opening brace
         re.MULTILINE | re.DOTALL,
