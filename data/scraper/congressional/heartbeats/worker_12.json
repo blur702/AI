@@ -1,0 +1,12 @@
+{
+  "worker_id": 12,
+  "pid": 29276,
+  "started_at": "2025-12-12T17:56:47.775685+00:00",
+  "last_heartbeat": "2025-12-12T18:02:22.674391+00:00",
+  "current_member": "Michael A. Rulli",
+  "members_processed": 3,
+  "members_total": 23,
+  "pages_scraped": 15,
+  "status": "running",
+  "error": null
+}

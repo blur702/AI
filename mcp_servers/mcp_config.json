@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "documentation": {
+      "command": "python",
+      "args": ["-m", "mcp_servers.documentation.main"],
+      "cwd": "D:\\AI",
+      "env": {
+        "WEAVIATE_URL": "http://localhost:8080",
+        "OLLAMA_API_ENDPOINT": "http://127.0.0.1:11434",
+        "OLLAMA_EMBEDDING_MODEL": "snowflake-arctic-embed:l",
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}

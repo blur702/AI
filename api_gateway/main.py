@@ -206,6 +206,13 @@ try:
 except Exception as exc:  # noqa: BLE001
     logger.warning(f"Job routes disabled due to initialization error: {exc}")
 
+try:
+    from .routes import congressional as congressional_routes
+
+    app.include_router(congressional_routes.router)
+except Exception as exc:  # noqa: BLE001
+    logger.warning(f"Congressional routes disabled due to initialization error: {exc}")
+
 # Health is part of the foundational phase and is expected to be present.
 app.include_router(health_routes.router)
 

@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+     <base href="https://www.php.net/manual/en/features.http-auth.php">
+  
+  <title>PHP: HTTP authentication with PHP - Manual</title>
+
+      <link rel="stylesheet" type="text/css" href="/cached.php?t=1756715876&amp;f=/fonts/Fira/fira.css" media="screen">
+      <link rel="stylesheet" type="text/css" href="/cached.php?t=1756715876&amp;f=/fonts/Font-Awesome/css/fontello.css" media="screen">
+      <link rel="stylesheet" type="text/css" href="/cached.php?t=1763585401&amp;f=/styles/theme-base.css" media="screen">
+      <link rel="stylesheet" type="text/css" href="/cached.php?t=1763575802&amp;f=/styles/theme-medium.css" media="screen">
+  
+ <link rel="icon" type="image/svg+xml" sizes="any" href="https://www.php.net/favicon.svg?v=2">
+ <link rel="icon" type="image/png" sizes="196x196" href="https://www.php.net/favicon-196x196.png?v=2">
+ <link rel="icon" type="image/png" sizes="32x32" href="https://www.php.net/favicon-32x32.png?v=2">
+ <link rel="icon" type="image/png" sizes="16x16" href="https://www.php.net/favicon-16x16.png?v=2">
+ <link rel="shortcut icon" href="https://www.php.net/favicon.ico?v=2">
+
+ <link rel="search" type="application/opensearchdescription+xml" href="https://www.php.net/phpnetimprovedsearch.src" title="Add PHP.net search">
+ <link rel="alternate" type="application/atom+xml" href="https://www.php.net/releases/feed.php" title="PHP Release feed">
+ <link rel="alternate" type="application/atom+xml" href="https://www.php.net/feed.atom" title="PHP: Hypertext Preprocessor">
+
+ <link rel="canonical" href="https://www.php.net/manual/en/features.http-auth.php">
+ <link rel="shorturl" href="https://www.php.net/http-auth">
+ <link rel="alternate" href="https://www.php.net/http-auth" hreflang="x-default">
+
+ <link rel="contents" href="https://www.php.net/manual/en/index.php">
+ <link rel="index" href="https://www.php.net/manual/en/features.php">
+ <link rel="prev" href="https://www.php.net/manual/en/features.php">
+ <link rel="next" href="https://www.php.net/manual/en/features.cookies.php">
+
+ <link rel="alternate" href="https://www.php.net/manual/en/features.http-auth.php" hreflang="en">
+ <link rel="alternate" href="https://www.php.net/manual/de/features.http-auth.php" hreflang="de">
+ <link rel="alternate" href="https://www.php.net/manual/es/features.http-auth.php" hreflang="es">
+ <link rel="alternate" href="https://www.php.net/manual/fr/features.http-auth.php" hreflang="fr">
+ <link rel="alternate" href="https://www.php.net/manual/it/features.http-auth.php" hreflang="it">
+ <link rel="alternate" href="https://www.php.net/manual/ja/features.http-auth.php" hreflang="ja">
+ <link rel="alternate" href="https://www.php.net/manual/pt_BR/features.http-auth.php" hreflang="pt_BR">
+ <link rel="alternate" href="https://www.php.net/manual/ru/features.http-auth.php" hreflang="ru">
+ <link rel="alternate" href="https://www.php.net/manual/tr/features.http-auth.php" hreflang="tr">
+ <link rel="alternate" href="https://www.php.net/manual/uk/features.http-auth.php" hreflang="uk">
+ <link rel="alternate" href="https://www.php.net/manual/zh/features.http-auth.php" hreflang="zh">
+
+<link rel="stylesheet" type="text/css" href="/cached.php?t=1756715876&amp;f=/fonts/Fira/fira.css" media="screen">
+<link rel="stylesheet" type="text/css" href="/cached.php?t=1756715876&amp;f=/fonts/Font-Awesome/css/fontello.css" media="screen">
+<link rel="stylesheet" type="text/css" href="/cached.php?t=1763585401&amp;f=/styles/theme-base.css" media="screen">
+<link rel="stylesheet" type="text/css" href="/cached.php?t=1763575802&amp;f=/styles/theme-medium.css" media="screen">
+
+
+ <base href="https://www.php.net/manual/en/features.http-auth.php">
+
+<meta name="Description" content="HTTP authentication with PHP" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@official_php" />
+<meta name="twitter:title" content="PHP: HTTP authentication with PHP - Manual" />
+<meta name="twitter:description" content="HTTP authentication with PHP" />
+<meta name="twitter:creator" content="@official_php" />
+<meta name="twitter:image:src" content="https://www.php.net/images/meta-image.png" />
+
+<meta itemprop="name" content="PHP: HTTP authentication with PHP - Manual" />
+<meta itemprop="description" content="HTTP authentication with PHP" />
+<meta itemprop="image" content="https://www.php.net/images/meta-image.png" />
+
+<meta property="og:image" content="https://www.php.net/images/meta-image.png" />
+<meta property="og:description" content="HTTP authentication with PHP" />
+
+<link href="https://fosstodon.org/@php" rel="me" />
+<!-- Matomo -->
+<script>
+    var _paq = window._paq = window._paq || [];
+    /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+    _paq.push(["setDoNotTrack", true]);
+    _paq.push(["disableCookies"]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+        var u="https://analytics.php.net/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+</script>
+<!-- End Matomo Code -->
+</head>
+<body class="docs "><a href="/x-myracloud-5958a2bbbed300a9b9ac631223924e0b/1765442071.004" style="display:  none">update page now</a>
+
+<nav class="navbar navbar-fixed-top">
+  <div class="navbar__inner">
+    <a href="/" aria-label="PHP Home" class="navbar__brand">
+      <img
+        src="/images/logos/php-logo-white.svg"
+        aria-hidden="true"
+        width="80"
+        height="40"
+      >
+    </a>
+
+    <div
+      id="navbar__offcanvas"
+      tabindex="-1"
+      class="navbar__offcanvas"
+      aria-label="Menu"
+    >
+      <button
+        id="navbar__close-button"
+        class="navbar__icon-item navbar_icon-item--visually-aligned navbar__close-button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
+      </button>
+
+      <ul class="navbar__nav">
+                            <li class="navbar__item">
+              <a
+                href="/downloads.php"
+                                class="navbar__link  "
+              >
+                                  Downloads                              </a>
+          </li>
+                            <li class="navbar__item">
+              <a
+                href="/docs.php"
+                aria-current="page"                class="navbar__link navbar__link--active "
+              >
+                                  Documentation                              </a>
+          </li>
+                            <li class="navbar__item">
+              <a
+                href="/get-involved.php"
+                                class="navbar__link  "
+              >
+                                  Get Involved                              </a>
+          </li>
+                            <li class="navbar__item">
+              <a
+                href="/support.php"
+                                class="navbar__link  "
+              >
+                                  Help                              </a>
+          </li>
+                            <li class="navbar__item">
+              <a
+                href="/releases/8.5/index.php"
+                                class="navbar__link  navbar__release"
+              >
+                                  <img src="/images/php8/logo_php8_5.svg" alt="PHP 8.5">
+                              </a>
+          </li>
+              </ul>
+    </div>
+
+    <div class="navbar__right">
+        
+      
+      <!-- Desktop default search -->
+      <form
+        action="/manual-lookup.php"
+        class="navbar__search-form"
+      >
+        <label for="navbar__search-input" aria-label="Search docs">
+          <svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8"></circle>
+  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>        </label>
+        <input
+          type="search"
+          name="pattern"
+          id="navbar__search-input"
+          class="navbar__search-input"
+          placeholder="Search docs"
+          accesskey="s"
+        >
+        <input type="hidden" name="scope" value="quickref">
+      </form>
+
+      <!-- Desktop encanced search -->
+      <button
+        id="navbar__search-button"
+        class="navbar__search-button"
+        hidden
+      >
+        <svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8"></circle>
+  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>        Search docs
+      </button>
+
+        
+      <!-- Mobile default items -->
+      <a
+        id="navbar__search-link"
+        href="/lookup-form.php"
+        aria-label="Search docs"
+        class="navbar__icon-item navbar__search-link"
+      >
+        <svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8"></circle>
+  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>      </a>
+      <a
+        id="navbar__menu-link"
+        href="/menu.php"
+        aria-label="Menu"
+        class="navbar__icon-item navbar_icon-item--visually-aligned navbar_menu-link"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+>
+  <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+</svg>      </a>
+
+      <!-- Mobile enhanced items -->
+      <button
+        id="navbar__search-button-mobile"
+        aria-label="Search docs"
+        class="navbar__icon-item navbar__search-button-mobile"
+        hidden
+      >
+        <svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8"></circle>
+  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>      </button>
+      <button
+        id="navbar__menu-button"
+        aria-label="Menu"
+        class="navbar__icon-item navbar_icon-item--visually-aligned"
+        hidden
+      >
+        <svg xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+>
+  <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+</svg>      </button>
+    </div>
+
+    <div
+      id="navbar__backdrop"
+      class="navbar__backdrop"
+    ></div>
+  </div>
+
+  <div id="flash-message"></div>
+</nav>
+<nav id="trick"><div><dl>
+<dt><a href='/manual/en/getting-started.php'>Getting Started</a></dt>
+	<dd><a href='/manual/en/introduction.php'>Introduction</a></dd>
+	<dd><a href='/manual/en/tutorial.php'>A simple tutorial</a></dd>
+<dt><a href='/manual/en/langref.php'>Language Reference</a></dt>
+	<dd><a href='/manual/en/language.basic-syntax.php'>Basic syntax</a></dd>
+	<dd><a href='/manual/en/language.types.php'>Types</a></dd>
+	<dd><a href='/manual/en/language.variables.php'>Variables</a></dd>
+	<dd><a href='/manual/en/language.constants.php'>Constants</a></dd>
+	<dd><a href='/manual/en/language.expressions.php'>Expressions</a></dd>
+	<dd><a href='/manual/en/language.operators.php'>Operators</a></dd>
+	<dd><a href='/manual/en/language.control-structures.php'>Control Structures</a></dd>
+	<dd><a href='/manual/en/language.functions.php'>Functions</a></dd>
+	<dd><a href='/manual/en/language.oop5.php'>Classes and Objects</a></dd>
+	<dd><a href='/manual/en/language.namespaces.php'>Namespaces</a></dd>
+	<dd><a href='/manual/en/language.enumerations.php'>Enumerations</a></dd>
+	<dd><a href='/manual/en/language.errors.php'>Errors</a></dd>
+	<dd><a href='/manual/en/language.exceptions.php'>Exceptions</a></dd>
+	<dd><a href='/manual/en/language.fibers.php'>Fibers</a></dd>
+	<dd><a href='/manual/en/language.generators.php'>Generators</a></dd>
+	<dd><a href='/manual/en/language.attributes.php'>Attributes</a></dd>
+	<dd><a href='/manual/en/language.references.php'>References Explained</a></dd>
+	<dd><a href='/manual/en/reserved.variables.php'>Predefined Variables</a></dd>
+	<dd><a href='/manual/en/reserved.exceptions.php'>Predefined Exceptions</a></dd>
+	<dd><a href='/manual/en/reserved.interfaces.php'>Predefined Interfaces and Classes</a></dd>
+	<dd><a href='/manual/en/reserved.attributes.php'>Predefined Attributes</a></dd>
+	<dd><a href='/manual/en/context.php'>Context options and parameters</a></dd>
+	<dd><a href='/manual/en/wrappers.php'>Supported Protocols and Wrappers</a></dd>
+</dl>
+<dl>
+<dt><a href='/manual/en/security.php'>Security</a></dt>
+	<dd><a href='/manual/en/security.intro.php'>Introduction</a></dd>
+	<dd><a href='/manual/en/security.general.php'>General considerations</a></dd>
+	<dd><a href='/manual/en/security.cgi-bin.php'>Installed as CGI binary</a></dd>
+	<dd><a href='/manual/en/security.apache.php'>Installed as an Apache module</a></dd>
+	<dd><a href='/manual/en/security.sessions.php'>Session Security</a></dd>
+	<dd><a href='/manual/en/security.filesystem.php'>Filesystem Security</a></dd>
+	<dd><a href='/manual/en/security.database.php'>Database Security</a></dd>
+	<dd><a href='/manual/en/security.errors.php'>Error Reporting</a></dd>
+	<dd><a href='/manual/en/security.variables.php'>User Submitted Data</a></dd>
+	<dd><a href='/manual/en/security.hiding.php'>Hiding PHP</a></dd>
+	<dd><a href='/manual/en/security.current.php'>Keeping Current</a></dd>
+<dt><a href='/manual/en/features.php'>Features</a></dt>
+	<dd><a href='/manual/en/features.http-auth.php'>HTTP authentication with PHP</a></dd>
+	<dd><a href='/manual/en/features.cookies.php'>Cookies</a></dd>
+	<dd><a href='/manual/en/features.sessions.php'>Sessions</a></dd>
+	<dd><a href='/manual/en/features.file-upload.php'>Handling file uploads</a></dd>
+	<dd><a href='/manual/en/features.remote-files.php'>Using remote files</a></dd>
+	<dd><a href='/manual/en/features.connection-handling.php'>Connection handling</a></dd>
+	<dd><a href='/manual/en/features.persistent-connections.php'>Persistent Database Connections</a></dd>
+	<dd><a href='/manual/en/features.commandline.php'>Command line usage</a></dd>
+	<dd><a href='/manual/en/features.gc.php'>Garbage Collection</a></dd>
+	<dd><a href='/manual/en/features.dtrace.php'>DTrace Dynamic Tracing</a></dd>
+</dl>
+<dl>
+<dt><a href='/manual/en/funcref.php'>Function Reference</a></dt>
+	<dd><a href='/manual/en/refs.basic.php.php'>Affecting PHP's Behaviour</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.audio.php'>Audio Formats Manipulation</a></dd>
+	<dd><a href='/manual/en/refs.remote.auth.php'>Authentication Services</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.cmdline.php'>Command Line Specific Extensions</a></dd>
+	<dd><a href='/manual/en/refs.compression.php'>Compression and Archive Extensions</a></dd>
+	<dd><a href='/manual/en/refs.crypto.php'>Cryptography Extensions</a></dd>
+	<dd><a href='/manual/en/refs.database.php'>Database Extensions</a></dd>
+	<dd><a href='/manual/en/refs.calendar.php'>Date and Time Related Extensions</a></dd>
+	<dd><a href='/manual/en/refs.fileprocess.file.php'>File System Related Extensions</a></dd>
+	<dd><a href='/manual/en/refs.international.php'>Human Language and Character Encoding Support</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.image.php'>Image Processing and Generation</a></dd>
+	<dd><a href='/manual/en/refs.remote.mail.php'>Mail Related Extensions</a></dd>
+	<dd><a href='/manual/en/refs.math.php'>Mathematical Extensions</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.nontext.php'>Non-Text MIME Output</a></dd>
+	<dd><a href='/manual/en/refs.fileprocess.process.php'>Process Control Extensions</a></dd>
+	<dd><a href='/manual/en/refs.basic.other.php'>Other Basic Extensions</a></dd>
+	<dd><a href='/manual/en/refs.remote.other.php'>Other Services</a></dd>
+	<dd><a href='/manual/en/refs.search.php'>Search Engine Extensions</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.server.php'>Server Specific Extensions</a></dd>
+	<dd><a href='/manual/en/refs.basic.session.php'>Session Extensions</a></dd>
+	<dd><a href='/manual/en/refs.basic.text.php'>Text Processing</a></dd>
+	<dd><a href='/manual/en/refs.basic.vartype.php'>Variable and Type Related Extensions</a></dd>
+	<dd><a href='/manual/en/refs.webservice.php'>Web Services</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.windows.php'>Windows Only Extensions</a></dd>
+	<dd><a href='/manual/en/refs.xml.php'>XML Manipulation</a></dd>
+	<dd><a href='/manual/en/refs.ui.php'>GUI Extensions</a></dd>
+</dl>
+<dl>
+<dt>Keyboard Shortcuts</dt><dt>?</dt>
+<dd>This help</dd>
+<dt>j</dt>
+<dd>Next menu item</dd>
+<dt>k</dt>
+<dd>Previous menu item</dd>
+<dt>g p</dt>
+<dd>Previous man page</dd>
+<dt>g n</dt>
+<dd>Next man page</dd>
+<dt>G</dt>
+<dd>Scroll to bottom</dd>
+<dt>g g</dt>
+<dd>Scroll to top</dd>
+<dt>g h</dt>
+<dd>Goto homepage</dd>
+<dt>g s</dt>
+<dd>Goto search<br>(current page)</dd>
+<dt>/</dt>
+<dd>Focus search box</dd>
+</dl></div></nav>
+<div id="goto">
+    <div class="search">
+         <div class="text"></div>
+         <div class="results"><ul></ul></div>
+   </div>
+</div>
+
+  <div id="breadcrumbs" class="clearfix">
+    <div id="breadcrumbs-inner">
+          <div class="next">
+        <a href="features.cookies.php">
+          Cookies &raquo;
+        </a>
+      </div>
+              <div class="prev">
+        <a href="features.php">
+          &laquo; Features        </a>
+      </div>
+          <ul>
+            <li><a href='index.php'>PHP Manual</a></li>      <li><a href='features.php'>Features</a></li>      </ul>
+    </div>
+  </div>
+
+
+
+
+<div id="layout" class="clearfix">
+  <section id="layout-content">
+  <div class="page-tools">
+    <div class="change-language">
+      <form action="/manual/change.php" method="get" id="changelang" name="changelang">
+        <fieldset>
+          <label for="changelang-langs">Change language:</label>
+          <select onchange="document.changelang.submit()" name="page" id="changelang-langs">
+            <option value='en/features.http-auth.php' selected="selected">English</option>
+            <option value='de/features.http-auth.php'>German</option>
+            <option value='es/features.http-auth.php'>Spanish</option>
+            <option value='fr/features.http-auth.php'>French</option>
+            <option value='it/features.http-auth.php'>Italian</option>
+            <option value='ja/features.http-auth.php'>Japanese</option>
+            <option value='pt_BR/features.http-auth.php'>Brazilian Portuguese</option>
+            <option value='ru/features.http-auth.php'>Russian</option>
+            <option value='tr/features.http-auth.php'>Turkish</option>
+            <option value='uk/features.http-auth.php'>Ukrainian</option>
+            <option value='zh/features.http-auth.php'>Chinese (Simplified)</option>
+            <option value='help-translate.php'>Other</option>
+          </select>
+        </fieldset>
+      </form>
+    </div>
+  </div><div id="features.http-auth" class="chapter">
+  <h1 class="title">HTTP authentication with PHP</h1>
+
+
+  <p class="simpara">
+   It is possible to use the 
+   <span class="function"><a href="function.header.php" class="function">header()</a></span> function to send an <code class="literal">&quot;Authentication Required&quot;</code> 
+   message to the client browser causing it to pop up a Username/Password 
+   input window.  Once the user has filled in a username and a password, 
+   the URL containing the PHP script will be called again with the 
+   <a href="reserved.variables.php" class="link">predefined variables</a> 
+   <var class="varname">PHP_AUTH_USER</var>, <var class="varname">PHP_AUTH_PW</var>, 
+   and <var class="varname">AUTH_TYPE</var> set to the user name, password and 
+   authentication type respectively.  These predefined variables are found 
+   in the <var class="varname"><a href="reserved.variables.server.php" class="classname">$_SERVER</a></var> array. <em>Only</em>
+   the &quot;Basic&quot; authentication method is supported. See the
+   <span class="function"><a href="function.header.php" class="function">header()</a></span> function for more information.
+  </p>
+
+  <p class="para">
+   An example script fragment which would force client authentication
+   on a page is as follows:
+  </p>
+  <p class="para">
+   <div class="example" id="example-1">
+    <p><strong>Example #1 Basic HTTP Authentication example</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000"><span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">if (!isset(</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'PHP_AUTH_USER'</span><span style="color: #007700">])) {<br />    </span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'WWW-Authenticate: Basic realm="My Realm"'</span><span style="color: #007700">);<br />    </span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'HTTP/1.0 401 Unauthorized'</span><span style="color: #007700">);<br />    echo </span><span style="color: #DD0000">'Text to send if user hits Cancel button'</span><span style="color: #007700">;<br />    exit;<br />} else {<br />    echo </span><span style="color: #DD0000">"&lt;p&gt;Hello </span><span style="color: #007700">{</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'PHP_AUTH_USER'</span><span style="color: #007700">]}</span><span style="color: #DD0000">.&lt;/p&gt;"</span><span style="color: #007700">;<br />    echo </span><span style="color: #DD0000">"&lt;p&gt;You entered </span><span style="color: #007700">{</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'PHP_AUTH_PW'</span><span style="color: #007700">]}</span><span style="color: #DD0000"> as your password.&lt;/p&gt;"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span></span></code></div>
+    </div>
+
+   </div>
+  </p>
+
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <strong>Compatibility Note</strong><br />
+   <p class="para">
+    Please be careful when coding the HTTP header lines. In order to guarantee maximum
+    compatibility with all clients, the keyword &quot;Basic&quot; should be written with an
+    uppercase &quot;B&quot;, the realm string must be enclosed in double (not single) quotes,
+    and exactly one space should precede the <em>401</em> code in the 
+    <em>HTTP/1.0 401</em> header line. Authentication parameters have
+    to be comma-separated.
+   </p>
+  </p></blockquote>
+
+  <p class="para">
+   Instead of simply printing out <var class="varname">PHP_AUTH_USER</var> 
+   and <var class="varname">PHP_AUTH_PW</var>, as done in the above example, 
+   you may want to check the username and password for validity.  
+   Perhaps by sending a query to a database, or by looking up the 
+   user in a dbm file.
+  </p>
+
+  <p class="para">
+   Watch out for buggy Internet Explorer browsers out there.  They
+   seem very picky about the order of the headers.  Sending the
+   <em>WWW-Authenticate</em> header before the
+   <code class="literal">HTTP/1.0 401</code> header seems to do the trick
+   for now.
+  </p>
+
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <strong>Configuration Note</strong><br />
+   <p class="para">
+    PHP uses the presence of an <code class="literal">AuthType</code> directive
+    to determine whether external authentication is in effect.
+   </p>
+  </p></blockquote>
+
+  <p class="simpara">
+   Note, however, that the above does not prevent someone who
+   controls a non-authenticated URL from stealing passwords from
+   authenticated URLs on the same server.
+  </p>
+  <p class="simpara">
+   Both Netscape Navigator and Internet Explorer will clear the local browser
+   window&#039;s authentication cache for the realm upon receiving a
+   server response of 401. This can effectively &quot;log out&quot; a user,
+   forcing them to re-enter their username and password. Some people
+   use this to &quot;time out&quot; logins, or provide a &quot;log-out&quot; button.
+  </p>
+  <p class="para">
+   <div class="example" id="example-2">
+    <p><strong>Example #2 HTTP Authentication example forcing a new name/password</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000"><span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">function </span><span style="color: #0000BB">authenticate</span><span style="color: #007700">() {<br />    </span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'WWW-Authenticate: Basic realm="Test Authentication System"'</span><span style="color: #007700">);<br />    </span><span style="color: #0000BB">header</span><span style="color: #007700">(</span><span style="color: #DD0000">'HTTP/1.0 401 Unauthorized'</span><span style="color: #007700">);<br />    echo </span><span style="color: #DD0000">"You must enter a valid login ID and password to access this resource\n"</span><span style="color: #007700">;<br />    exit;<br />}<br /> <br />if (!isset(</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'PHP_AUTH_USER'</span><span style="color: #007700">]) ||<br />    (</span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'SeenBefore'</span><span style="color: #007700">] == </span><span style="color: #0000BB">1 </span><span style="color: #007700">&amp;&amp; </span><span style="color: #0000BB">$_POST</span><span style="color: #007700">[</span><span style="color: #DD0000">'OldAuth'</span><span style="color: #007700">] == </span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'PHP_AUTH_USER'</span><span style="color: #007700">])) {<br />    </span><span style="color: #0000BB">authenticate</span><span style="color: #007700">();<br />} else {<br />    echo </span><span style="color: #DD0000">"&lt;p&gt;Welcome: " </span><span style="color: #007700">. </span><span style="color: #0000BB">htmlspecialchars</span><span style="color: #007700">(</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'PHP_AUTH_USER'</span><span style="color: #007700">]) . </span><span style="color: #DD0000">"&lt;br /&gt;"</span><span style="color: #007700">;<br />    echo </span><span style="color: #DD0000">"Old: " </span><span style="color: #007700">. </span><span style="color: #0000BB">htmlspecialchars</span><span style="color: #007700">(</span><span style="color: #0000BB">$_REQUEST</span><span style="color: #007700">[</span><span style="color: #DD0000">'OldAuth'</span><span style="color: #007700">]);<br />    echo </span><span style="color: #DD0000">"&lt;form action='' method='post'&gt;\n"</span><span style="color: #007700">;<br />    echo </span><span style="color: #DD0000">"&lt;input type='hidden' name='SeenBefore' value='1' /&gt;\n"</span><span style="color: #007700">;<br />    echo </span><span style="color: #DD0000">"&lt;input type='hidden' name='OldAuth' value=\"" </span><span style="color: #007700">. </span><span style="color: #0000BB">htmlspecialchars</span><span style="color: #007700">(</span><span style="color: #0000BB">$_SERVER</span><span style="color: #007700">[</span><span style="color: #DD0000">'PHP_AUTH_USER'</span><span style="color: #007700">]) . </span><span style="color: #DD0000">"\" /&gt;\n"</span><span style="color: #007700">;<br />    echo </span><span style="color: #DD0000">"&lt;input type='submit' value='Re Authenticate' /&gt;\n"</span><span style="color: #007700">;<br />    echo </span><span style="color: #DD0000">"&lt;/form&gt;&lt;/p&gt;\n"</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span></span></code></div>
+    </div>
+
+   </div>
+  </p>
+  <p class="simpara">
+   This behavior is not required by the <code class="literal">HTTP Basic</code>
+   authentication standard, so you should never depend on this. Testing with
+   <code class="literal">Lynx</code> has shown that <code class="literal">Lynx</code> does not clear
+   the authentication credentials with a 401 server response, so pressing back
+   and then forward again will open the resource as long as the credential
+   requirements haven&#039;t changed. The user can press the
+   <code class="literal">&#039;_&#039;</code> key to clear their authentication information, however.
+  </p>
+  <p class="simpara">
+   In order to get HTTP Authentication to work using IIS server with the CGI version
+   of PHP you must edit your IIS configuration &quot;<code class="literal">Directory Security</code>&quot;.
+   Click on &quot;<code class="literal">Edit</code>&quot; and only check
+   &quot;<code class="literal">Anonymous Access</code>&quot;, all other fields
+   should be left unchecked.
+  </p>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <strong>IIS Note:</strong><br />
+   <span class="simpara">
+    For HTTP Authentication to work with IIS, the PHP directive
+    <a href="ini.core.php#ini.cgi.rfc2616-headers" class="link">cgi.rfc2616_headers</a> must
+    be set to <code class="literal">0</code> (the default value).
+   </span>
+  </p></blockquote>
+
+ </div>
+    <div class="contribute">
+      <h3 class="title">Found A Problem?</h3>
+      <div>
+         
+      </div>
+      <div class="edit-bug">
+        <a href="https://github.com/php/doc-base/blob/master/README.md" title="This will take you to our contribution guidelines on GitHub" target="_blank" rel="noopener noreferrer">Learn How To Improve This Page</a>
+        •
+        <a href="https://github.com/php/doc-en/blob/master/features/http-auth.xml">Submit a Pull Request</a>
+        •
+        <a href="https://github.com/php/doc-en/issues/new?body=From%20manual%20page:%20https:%2F%2Fphp.net%2Ffeatures.http-auth%0A%0A---">Report a Bug</a>
+      </div>
+    </div><section id="usernotes">
+ <div class="head">
+  <span class="action"><a href="/manual/add-note.php?sect=features.http-auth&amp;repo=en&amp;redirect=https://www.php.net/manual/en/features.http-auth.php">＋<small>add a note</small></a></span>
+  <h3 class="title">User Contributed Notes <span class="count">46 notes</span></h3>
+ </div><div id="allnotes">
+  <div class="note" id="114877">  <div class="votes">
+    <div id="Vu114877">
+    <a href="/manual/vote-note.php?id=114877&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd114877">
+    <a href="/manual/vote-note.php?id=114877&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V114877" title="63% like this...">
+    77
+    </div>
+  </div>
+  <a href="#114877" class="name">
+  <strong class="user"><em>derkontrollfreak+9hy5l at gmail dot com</em></strong></a><a class="genanchor" href="#114877"> &para;</a><div class="date" title="2014-04-19 03:55"><strong>11 years ago</strong></div>
+  <div class="text" id="Hcom114877">
+<div class="phpcode"><pre><code class="html">Workaround for missing Authorization header under CGI/FastCGI Apache:
+
+SetEnvIf Authorization .+ HTTP_AUTHORIZATION=$0
+
+Now PHP should automatically declare $_SERVER[PHP_AUTH_*] variables if the client sends the Authorization header.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="73386">  <div class="votes">
+    <div id="Vu73386">
+    <a href="/manual/vote-note.php?id=73386&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd73386">
+    <a href="/manual/vote-note.php?id=73386&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V73386" title="58% like this...">
+    70
+    </div>
+  </div>
+  <a href="#73386" class="name">
+  <strong class="user"><em>webmaster at kratia dot com</em></strong></a><a class="genanchor" href="#73386"> &para;</a><div class="date" title="2007-02-20 04:53"><strong>18 years ago</strong></div>
+  <div class="text" id="Hcom73386">
+<div class="phpcode"><pre><code class="html">This is the simplest form I found to do a Basic authorization with retries.
+
+<span class="default">&lt;?php
+
+$valid_passwords </span><span class="keyword">= array (</span><span class="string">"mario" </span><span class="keyword">=&gt; </span><span class="string">"carbonell"</span><span class="keyword">);
+</span><span class="default">$valid_users </span><span class="keyword">= </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$valid_passwords</span><span class="keyword">);
+
+</span><span class="default">$user </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">];
+</span><span class="default">$pass </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">];
+
+</span><span class="default">$validated </span><span class="keyword">= (</span><span class="default">in_array</span><span class="keyword">(</span><span class="default">$user</span><span class="keyword">, </span><span class="default">$valid_users</span><span class="keyword">)) &amp;&amp; (</span><span class="default">$pass </span><span class="keyword">== </span><span class="default">$valid_passwords</span><span class="keyword">[</span><span class="default">$user</span><span class="keyword">]);
+
+if (!</span><span class="default">$validated</span><span class="keyword">) {
+  </span><span class="default">header</span><span class="keyword">(</span><span class="string">'WWW-Authenticate: Basic realm="My Realm"'</span><span class="keyword">);
+  </span><span class="default">header</span><span class="keyword">(</span><span class="string">'HTTP/1.0 401 Unauthorized'</span><span class="keyword">);
+  die (</span><span class="string">"Not authorized"</span><span class="keyword">);
+}
+
+</span><span class="comment">// If arrives here, is a valid user.
+</span><span class="keyword">echo </span><span class="string">"&lt;p&gt;Welcome </span><span class="default">$user</span><span class="string">.&lt;/p&gt;"</span><span class="keyword">;
+echo </span><span class="string">"&lt;p&gt;Congratulation, you are into the system.&lt;/p&gt;"</span><span class="keyword">;
+
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="76708">  <div class="votes">
+    <div id="Vu76708">
+    <a href="/manual/vote-note.php?id=76708&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd76708">
+    <a href="/manual/vote-note.php?id=76708&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V76708" title="75% like this...">
+    28
+    </div>
+  </div>
+  <a href="#76708" class="name">
+  <strong class="user"><em>gbelyh at gmail dot com</em></strong></a><a class="genanchor" href="#76708"> &para;</a><div class="date" title="2007-07-26 11:48"><strong>18 years ago</strong></div>
+  <div class="text" id="Hcom76708">
+<div class="phpcode"><pre><code class="html">Back to the autherisation in CGI mode. this is the full working example:
+
+#  Create the .htaccess file with following contents:
+# also you can use the condition (search at this page)
+RewriteEngine on
+RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization},L]
+
+# In the beginning the script checking the authorization place the code:
+
+$userpass = base64_decode(substr($_SERVER["REDIRECT_REMOTE_USER"],6)) ;
+
+$userpass = explode(":", $userpass);
+
+if (  count($userpass) == 2  ){
+     #this part work not for all.
+     #print_r($userpass);die; #&lt;- this can help find out right username and password
+     list($name, $password) = explode(':', $userpass);
+     $_SERVER['PHP_AUTH_USER'] = $name;
+     $_SERVER['PHP_AUTH_PW'] = $password;
+
+}</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="108132">  <div class="votes">
+    <div id="Vu108132">
+    <a href="/manual/vote-note.php?id=108132&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd108132">
+    <a href="/manual/vote-note.php?id=108132&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V108132" title="68% like this...">
+    34
+    </div>
+  </div>
+  <a href="#108132" class="name">
+  <strong class="user"><em>kazakevichilya at gmail dot com</em></strong></a><a class="genanchor" href="#108132"> &para;</a><div class="date" title="2012-03-30 08:20"><strong>13 years ago</strong></div>
+  <div class="text" id="Hcom108132">
+<div class="phpcode"><pre><code class="html">In case of CGI/FastCGI you would hot be able to access PHP_AUTH* info because CGI protocol does not declare such variables (that is why their names start from PHP) and server would not pass them to the interpreter. In CGI server should authenticate user itself and pass REMOTE_USER to CGI script after it. 
+
+So you need to "fetch" request headers and pass them to your script somehow. 
+
+In apache you can do it via environment variables if mod_env is installed. 
+
+Following construction in .htaccess copies request header "Authorization" to the env variable PHP_AUTH_DIGEST_RAW
+
+SetEnvIfNoCase ^Authorization$ "(.+)" PHP_AUTH_DIGEST_RAW=$1
+
+You can now access it via $_ENV.
+
+Do not forget to strip auth type ("Digest" in my case) from your env variable because PHP_AUTH_DIGEST does not have it.
+
+If mod_env is not installed you probably have mod_rewrite (everyone has it because of "human readable URLs").
+
+You can fetch header and pass it as GET parameter using rewrite rule: 
+
+RewriteRule ^.*$ site.php?PHP_AUTH_DIGEST_RAW=%{HTTP:Authorization} [NC,L]
+
+Here HTTP request header Authorization would be acessible as PHP_AUTH_DIGEST_RAW via $_GET.
+
+---
+If you use ZF you probably use Zend_Auth_Adapter_Http to auth user. 
+
+It takes Authorization info using "Zend_Controller_Request::getHeader"
+This method uses apache_request_header which is likely not to be accessible in old CGI/FastCGI installations or _$_SERVER['HTTP_&lt;HeaderName&gt;] , so you need to put your authentication data, obtained via _GET or ENV to 
+_$_SERVER['HTTP_AUTHORIZATION']. 
+It will make ZF work transparently with you solution and I believe any other framework should work also</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="126030">  <div class="votes">
+    <div id="Vu126030">
+    <a href="/manual/vote-note.php?id=126030&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd126030">
+    <a href="/manual/vote-note.php?id=126030&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V126030" title="73% like this...">
+    20
+    </div>
+  </div>
+  <a href="#126030" class="name">
+  <strong class="user"><em>bitman at bitworks dot de</em></strong></a><a class="genanchor" href="#126030"> &para;</a><div class="date" title="2021-04-22 12:14"><strong>4 years ago</strong></div>
+  <div class="text" id="Hcom126030">
+<div class="phpcode"><pre><code class="html">the alternative text should contain the complete text af a (small) valid HTML-Ressource.  It also can contain link relations to CSS.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="93427">  <div class="votes">
+    <div id="Vu93427">
+    <a href="/manual/vote-note.php?id=93427&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd93427">
+    <a href="/manual/vote-note.php?id=93427&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V93427" title="72% like this...">
+    22
+    </div>
+  </div>
+  <a href="#93427" class="name">
+  <strong class="user"><em>Anonymous</em></strong></a><a class="genanchor" href="#93427"> &para;</a><div class="date" title="2009-09-09 10:02"><strong>16 years ago</strong></div>
+  <div class="text" id="Hcom93427">
+<div class="phpcode"><pre><code class="html">The regex in http_digest_parse from Example #2 does not work for me (PHP 5.2.6), because back references are not allowed in a character class.  This worked for me:
+
+<span class="default">&lt;?php
+
+</span><span class="comment">// function to parse the http auth header
+</span><span class="keyword">function </span><span class="default">http_digest_parse</span><span class="keyword">(</span><span class="default">$txt</span><span class="keyword">)
+{
+   </span><span class="comment">// protect against missing data
+   </span><span class="default">$needed_parts </span><span class="keyword">= array(</span><span class="string">'nonce'</span><span class="keyword">=&gt;</span><span class="default">1</span><span class="keyword">, </span><span class="string">'nc'</span><span class="keyword">=&gt;</span><span class="default">1</span><span class="keyword">, </span><span class="string">'cnonce'</span><span class="keyword">=&gt;</span><span class="default">1</span><span class="keyword">, </span><span class="string">'qop'</span><span class="keyword">=&gt;</span><span class="default">1</span><span class="keyword">, </span><span class="string">'username'</span><span class="keyword">=&gt;</span><span class="default">1</span><span class="keyword">, </span><span class="string">'uri'</span><span class="keyword">=&gt;</span><span class="default">1</span><span class="keyword">, </span><span class="string">'response'</span><span class="keyword">=&gt;</span><span class="default">1</span><span class="keyword">);
+   </span><span class="default">$data </span><span class="keyword">= array();
+
+   </span><span class="default">preg_match_all</span><span class="keyword">(</span><span class="string">'@(\w+)=(?:(?:\'([^\']+)\'|"([^"]+)")|([^\s,]+))@'</span><span class="keyword">, </span><span class="default">$txt</span><span class="keyword">, </span><span class="default">$matches</span><span class="keyword">, </span><span class="default">PREG_SET_ORDER</span><span class="keyword">);
+
+   foreach (</span><span class="default">$matches </span><span class="keyword">as </span><span class="default">$m</span><span class="keyword">) {
+       </span><span class="default">$data</span><span class="keyword">[</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]] = </span><span class="default">$m</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">] ? </span><span class="default">$m</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">] : (</span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">] ? </span><span class="default">$m</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">] : </span><span class="default">$m</span><span class="keyword">[</span><span class="default">4</span><span class="keyword">]);
+       unset(</span><span class="default">$needed_parts</span><span class="keyword">[</span><span class="default">$m</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]]);
+   }
+
+   return </span><span class="default">$needed_parts </span><span class="keyword">? </span><span class="default">false </span><span class="keyword">: </span><span class="default">$data</span><span class="keyword">;
+}
+
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="107642">  <div class="votes">
+    <div id="Vu107642">
+    <a href="/manual/vote-note.php?id=107642&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd107642">
+    <a href="/manual/vote-note.php?id=107642&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V107642" title="72% like this...">
+    21
+    </div>
+  </div>
+  <a href="#107642" class="name">
+  <strong class="user"><em>vog at notjusthosting dot com</em></strong></a><a class="genanchor" href="#107642"> &para;</a><div class="date" title="2012-02-23 11:54"><strong>13 years ago</strong></div>
+  <div class="text" id="Hcom107642">
+<div class="phpcode"><pre><code class="html">You shouldn't use the "last" ("L") directive in the RewriteRule! This will prevent all further rewrite rules to be skipped whenever a Basic or Digest Auth is given, which is almost certainly not what you want.
+
+So the following lines are sufficient for the .htaccess (or httpd.conf) file:
+
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="70305">  <div class="votes">
+    <div id="Vu70305">
+    <a href="/manual/vote-note.php?id=70305&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd70305">
+    <a href="/manual/vote-note.php?id=70305&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V70305" title="71% like this...">
+    24
+    </div>
+  </div>
+  <a href="#70305" class="name">
+  <strong class="user"><em>roychri at php dot net</em></strong></a><a class="genanchor" href="#70305"> &para;</a><div class="date" title="2006-10-10 08:12"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom70305">
+<div class="phpcode"><pre><code class="html">For PHP with CGI, make sure you put the rewrite rule above any other rewrite rule you might have.
+
+In my case, I put this at the top of the .htaccess (below RewriteEngine On):
+RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization}]
+
+My symptom was that the REMOTE_USER (or REDIRECT_REMOTE_USER in my case) was not being set at all.
+The cause: I had some other RewriteRule that was kickin in and was set as LAST rule.
+I hope this helps.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="52405">  <div class="votes">
+    <div id="Vu52405">
+    <a href="/manual/vote-note.php?id=52405&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd52405">
+    <a href="/manual/vote-note.php?id=52405&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V52405" title="71% like this...">
+    23
+    </div>
+  </div>
+  <a href="#52405" class="name">
+  <strong class="user"><em>charly at towebs dot com</em></strong></a><a class="genanchor" href="#52405"> &para;</a><div class="date" title="2005-04-29 10:13"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom52405">
+<div class="phpcode"><pre><code class="html">A simpler approach on the post of:
+bernard dot paques at bigfoot dot com
+24-Sep-2004 01:42
+
+This is another "patch" to the PHP_AUTH_USER and PHP_AUTH_PW server variables problem running PHP as a CGI.
+
+First of all don't forget this fragment of code in your .htaccess (it's the only thing you need to make it work with mod_rewrite):
+
+&lt;IfModule mod_rewrite.c&gt;
+   RewriteEngine on
+   RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization},L]
+&lt;/IfModule&gt;
+
+Then login.php
+
+<span class="default">&lt;?php
+$a </span><span class="keyword">= </span><span class="default">base64_decode</span><span class="keyword">( </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">"REMOTE_USER"</span><span class="keyword">],</span><span class="default">6</span><span class="keyword">)) ;
+if ( (</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">) == </span><span class="default">0</span><span class="keyword">) || ( </span><span class="default">strcasecmp</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="string">":" </span><span class="keyword">)  == </span><span class="default">0 </span><span class="keyword">))
+{
+   </span><span class="default">header</span><span class="keyword">( </span><span class="string">'WWW-Authenticate: Basic realm="Private"' </span><span class="keyword">);
+   </span><span class="default">header</span><span class="keyword">( </span><span class="string">'HTTP/1.0 401 Unauthorized' </span><span class="keyword">);
+}
+else
+{
+   list(</span><span class="default">$name</span><span class="keyword">, </span><span class="default">$password</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">':'</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">);
+   </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">] = </span><span class="default">$name</span><span class="keyword">;
+   </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]    = </span><span class="default">$password</span><span class="keyword">;
+
+}
+
+echo </span><span class="string">'PHP_AUTH_USER =' </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;
+echo </span><span class="string">'PHP_AUTH_PW =' </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;
+echo </span><span class="string">'REMOTE_USER =' </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REMOTE_USER'</span><span class="keyword">] . </span><span class="string">'&lt;br&gt;'</span><span class="keyword">;
+</span><span class="default">?&gt;
+</span>
+First, we decode the base64 encoded string discarding the first 6 characters of "Basic " and then we do a regular validation.
+At the end of the script we print the variables to verify it's working. This should be ommited in the production version.
+
+It's a variation of the script by Bernard Paques.
+Thanks to him for that snippet.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="18618">  <div class="votes">
+    <div id="Vu18618">
+    <a href="/manual/vote-note.php?id=18618&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd18618">
+    <a href="/manual/vote-note.php?id=18618&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V18618" title="73% like this...">
+    20
+    </div>
+  </div>
+  <a href="#18618" class="name">
+  <strong class="user"><em>sjeffrey at inquesis dot com</em></strong></a><a class="genanchor" href="#18618"> &para;</a><div class="date" title="2002-01-29 03:00"><strong>23 years ago</strong></div>
+  <div class="text" id="Hcom18618">
+<div class="phpcode"><pre><code class="html">To get it to work with IIS try using this code before setting your "$auth = 0" and the "if (isset($PHP_AUTH_USER) &amp;&amp; isset($PHP_AUTH_PW))"
+
+<span class="default">&lt;?php
+</span><span class="comment">//////////////////////////////////////////
+
+</span><span class="keyword">if (</span><span class="default">$PHP_AUTH_USER </span><span class="keyword">== </span><span class="string">"" </span><span class="keyword">&amp;&amp; </span><span class="default">$PHP_AUTH_PW </span><span class="keyword">== </span><span class="string">"" </span><span class="keyword">&amp;&amp; </span><span class="default">ereg</span><span class="keyword">(</span><span class="string">"^Basic "</span><span class="keyword">, </span><span class="default">$HTTP_AUTHORIZATION</span><span class="keyword">)) 
+{ 
+  list(</span><span class="default">$PHP_AUTH_USER</span><span class="keyword">, </span><span class="default">$PHP_AUTH_PW</span><span class="keyword">) = 
+    </span><span class="default">explode</span><span class="keyword">(</span><span class="string">":"</span><span class="keyword">, </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">$HTTP_AUTHORIZATION</span><span class="keyword">, </span><span class="default">6</span><span class="keyword">))); 
+}
+
+</span><span class="comment">//////////////////////////////////////////
+</span><span class="default">?&gt;
+</span>
+It worked for me on IIS 5 and PHP 4 in ISAPI</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="118088">  <div class="votes">
+    <div id="Vu118088">
+    <a href="/manual/vote-note.php?id=118088&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd118088">
+    <a href="/manual/vote-note.php?id=118088&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V118088" title="69% like this...">
+    23
+    </div>
+  </div>
+  <a href="#118088" class="name">
+  <strong class="user"><em>jake22 at gmail dot com</em></strong></a><a class="genanchor" href="#118088"> &para;</a><div class="date" title="2015-10-01 10:42"><strong>10 years ago</strong></div>
+  <div class="text" id="Hcom118088">
+<div class="phpcode"><pre><code class="html">I came up with another approach to work around the problem of browsers caching WWW authentication credentials and creating logout problems. While most browsers have some kind of way to wipe this information, I prefer having my website to take care of the task instead of relying on the user's sanity.
+
+Even with Lalit's method of creating a random realm name, it was still possible to get back into the protected area using the back button in Firefox, so that didn't work. Here's my solution:
+
+Since browsers attach the credentials to specific URLs, use virtual paths where a component of the path is actually a PHP script, and everything following it is part of the URI, such as:
+
+<a href="http://velocitypress.ca/some_dir/login.php/auth/8f631b92/" rel="nofollow" target="_blank">http://velocitypress.ca/some_dir/login.php/auth/8f631b92/</a>
+
+By choosing a different number for the last component of the URL, browsers can be tricked into thinking that they are dealing with a completely different website, and thus prompting the user for credentials again.
+
+Note that using a random, unrestricted number will still allow the user to hit the back button to get back into the page. You should keep track of this number in a server-side file or database and regenerate it upon each successful login, so that the last number(s) become invalid. Using an invalid number might result in a 403 response or, depending on how you feel that day, a 302 to a nasty website.
+
+Care should be taken when linking from the page generated in this case, since relative links will be relative to the virtual and non-existant directory rather than the true script directory.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="44686">  <div class="votes">
+    <div id="Vu44686">
+    <a href="/manual/vote-note.php?id=44686&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd44686">
+    <a href="/manual/vote-note.php?id=44686&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V44686" title="70% like this...">
+    24
+    </div>
+  </div>
+  <a href="#44686" class="name">
+  <strong class="user"><em>php at cscott dot net</em></strong></a><a class="genanchor" href="#44686"> &para;</a><div class="date" title="2004-08-12 04:18"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom44686">
+<div class="phpcode"><pre><code class="html">Note that Microsoft has released a 'security update' which disables the use of username:password@host in http urls.
+
+   <a href="http://support.microsoft.com/default.aspx?scid=kb;en-us;834489" rel="nofollow" target="_blank">http://support.microsoft.com/default.aspx?scid=kb;en-us;834489</a>
+
+The methods described above which rely on this will no longer work in Microsoft browsers, sadly.
+
+You can re-enable this functionality as described at
+
+   <a href="http://weblogs.asp.net/cumpsd/archive/2004/02/07/69366.aspx" rel="nofollow" target="_blank">http://weblogs.asp.net/cumpsd/archive/2004/02/07/69366.aspx</a>
+
+but your users will probably be unwilling to do this.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="73642">  <div class="votes">
+    <div id="Vu73642">
+    <a href="/manual/vote-note.php?id=73642&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd73642">
+    <a href="/manual/vote-note.php?id=73642&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V73642" title="70% like this...">
+    24
+    </div>
+  </div>
+  <a href="#73642" class="name">
+  <strong class="user"><em>Nicolas Merlet - admin(at)merletn.org</em></strong></a><a class="genanchor" href="#73642"> &para;</a><div class="date" title="2007-03-05 09:37"><strong>18 years ago</strong></div>
+  <div class="text" id="Hcom73642">
+<div class="phpcode"><pre><code class="html">Be careful using http digest authentication (see above, example 34.2) if you have to use the 'setlocale' function *before* validating response with the 'http_digest_parse' function, because there's a conflict with \w in the pattern of 'preg_match_all' function :
+
+In fact, as \w is supposed to be any letter or digit or the underscore character, you must not forgot that this may vary depending on your locale configuration (eg. it accepts accented letters in french)...
+
+Due to this different pattern interpretation by the 'preg_match_all' function, the 'http_digest_parse' function will always return a false result if you have modified your locale (I mean if your locale accepts some extended characters, see <a href="http://fr.php.net/manual/en/reference.pcre.pattern.syntax.php" rel="nofollow" target="_blank">http://fr.php.net/manual/en/reference.pcre.pattern.syntax.php</a> for further information).
+
+IMHO, I suggest you not to use setlocale before having your authentication completed...
+
+PS : Here's a non-compatible setlocale declaration...
+setlocale ( LC_ALL, 'fr_FR', 'fr', 'FR', 'french', 'fra', 'france', 'French', 'fr_FR.ISO8859-1' ) ;</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="110219">  <div class="votes">
+    <div id="Vu110219">
+    <a href="/manual/vote-note.php?id=110219&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd110219">
+    <a href="/manual/vote-note.php?id=110219&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V110219" title="68% like this...">
+    25
+    </div>
+  </div>
+  <a href="#110219" class="name">
+  <strong class="user"><em>xsanychx at mail dot ru</em></strong></a><a class="genanchor" href="#110219"> &para;</a><div class="date" title="2012-10-02 09:32"><strong>13 years ago</strong></div>
+  <div class="text" id="Hcom110219">
+<div class="phpcode"><pre><code class="html">New auth:
+
+<span class="default">&lt;?php
+$login </span><span class="keyword">= </span><span class="string">'test_login'</span><span class="keyword">;
+</span><span class="default">$pass </span><span class="keyword">= </span><span class="string">'test_pass'</span><span class="keyword">;
+
+if((</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]!= </span><span class="default">$pass </span><span class="keyword">|| </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">] != </span><span class="default">$login</span><span class="keyword">)|| !</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">])
+{
+    </span><span class="default">header</span><span class="keyword">(</span><span class="string">'WWW-Authenticate: Basic realm="Test auth"'</span><span class="keyword">);
+    </span><span class="default">header</span><span class="keyword">(</span><span class="string">'HTTP/1.0 401 Unauthorized'</span><span class="keyword">);
+    echo </span><span class="string">'Auth failed'</span><span class="keyword">;
+    exit;
+}
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="118359">  <div class="votes">
+    <div id="Vu118359">
+    <a href="/manual/vote-note.php?id=118359&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd118359">
+    <a href="/manual/vote-note.php?id=118359&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V118359" title="69% like this...">
+    21
+    </div>
+  </div>
+  <a href="#118359" class="name">
+  <strong class="user"><em>john_2232 at gmail dot com</em></strong></a><a class="genanchor" href="#118359"> &para;</a><div class="date" title="2015-11-22 07:05"><strong>10 years ago</strong></div>
+  <div class="text" id="Hcom118359">
+<div class="phpcode"><pre><code class="html">Here is my attempt to create a digest authentication class that will log the user in and out without using a cookie,session,db,or file. At the core is this simple code to parse the digest string into variables works for several browsers.
+<span class="default">&lt;?php
+</span><span class="comment">// explode the digest with multibrowser support by Tony Wyatt 21jun07
+</span><span class="keyword">public function </span><span class="default">explodethedigest</span><span class="keyword">(</span><span class="default">$instring</span><span class="keyword">) {
+</span><span class="default">$quote </span><span class="keyword">= </span><span class="string">'"'</span><span class="keyword">;
+</span><span class="default">$equal </span><span class="keyword">= </span><span class="string">'='</span><span class="keyword">;
+</span><span class="default">$comma </span><span class="keyword">= </span><span class="string">','</span><span class="keyword">;
+</span><span class="default">$space </span><span class="keyword">= </span><span class="string">' '</span><span class="keyword">;
+</span><span class="default">$a </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$comma</span><span class="keyword">, </span><span class="default">$instring</span><span class="keyword">);
+</span><span class="default">$ax </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="default">$space</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);
+</span><span class="default">$b </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$ax</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$c </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$d </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">2</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$e </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">3</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$f </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">4</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$g </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">5</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$h </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">6</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$i </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">7</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$j </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">8</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$k </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">9</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$l </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">( </span><span class="default">$equal</span><span class="keyword">, </span><span class="default">$a</span><span class="keyword">[</span><span class="default">10</span><span class="keyword">], </span><span class="default">2</span><span class="keyword">);
+</span><span class="default">$parts </span><span class="keyword">= array(</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$b</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$b</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$c</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$d</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$d</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$e</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$f</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$g</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$g</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$h</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$h</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$j</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$j</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$k</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$k</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">), </span><span class="default">trim</span><span class="keyword">(</span><span class="default">$l</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">])=&gt;</span><span class="default">trim</span><span class="keyword">(</span><span class="default">$l</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">], </span><span class="string">'"'</span><span class="keyword">));
+
+return </span><span class="default">$parts</span><span class="keyword">;
+}
+</span><span class="default">?&gt;
+</span>Give it a try at <a href="http://www.creativetheory.ca/" rel="nofollow" target="_blank">http://www.creativetheory.ca/</a> /tests/ta1.php Log in with user test password pass or user guest password guest. Go to page two for links to the code. Comments, ideas, suggestions, or critique welcome.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="121898">  <div class="votes">
+    <div id="Vu121898">
+    <a href="/manual/vote-note.php?id=121898&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd121898">
+    <a href="/manual/vote-note.php?id=121898&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V121898" title="70% like this...">
+    18
+    </div>
+  </div>
+  <a href="#121898" class="name">
+  <strong class="user"><em>Carlos</em></strong></a><a class="genanchor" href="#121898"> &para;</a><div class="date" title="2017-11-22 10:44"><strong>8 years ago</strong></div>
+  <div class="text" id="Hcom121898">
+<div class="phpcode"><pre><code class="html">Simpler WorkAround for missing Authorization header under CGI/FastCGI available in Apache HTTP Server 2.4.13 and later
+
+     CGIPassAuth On
+
+Please don't enable Authorization header with Basic Authentication, is very insecure.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="67146">  <div class="votes">
+    <div id="Vu67146">
+    <a href="/manual/vote-note.php?id=67146&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd67146">
+    <a href="/manual/vote-note.php?id=67146&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V67146" title="69% like this...">
+    23
+    </div>
+  </div>
+  <a href="#67146" class="name">
+  <strong class="user"><em>Louis</em></strong></a><a class="genanchor" href="#67146"> &para;</a><div class="date" title="2006-06-03 03:51"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom67146">
+<div class="phpcode"><pre><code class="html">I couldn't get authentication to work properly with any of the examples. Finally, I started from ZEND's tutorial example at:
+<a href="http://www.zend.com/zend/tut/authentication.php?article=authentication" rel="nofollow" target="_blank">http://www.zend.com/zend/tut/authentication.php?article=authentication</a> (validate using .htpasswd) and tried to deal with the additional cases. My general conclusion is that changing the realm is the only reliable way to cause the browser to ask again, and I like to thank the person who put that example in the manual, as it got me on the right path. No matter what, the browser refuses to discard the values that it already has in mind otherwise. The problem with changing the realm, of course, is that you don't want to do it within a given session, else it causes a new request for a password. So, here goes, hopefully the spacing isn't too messed up by the cut'n'paste.
+
+I spent the better part of a day getting this to work right. I had a very hard time thinking through what the browser does when it encounters an authentication request: seems to me that it tries to get the password, then reloads the page... so the HTML doesn't get run. At least, this was the case with IE, I haven't tested it with anything else.
+
+<span class="default">&lt;?php
+session_start</span><span class="keyword">() ;
+if (!isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'realm'</span><span class="keyword">])) {
+        </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'realm'</span><span class="keyword">] = </span><span class="default">mt_rand</span><span class="keyword">( </span><span class="default">1</span><span class="keyword">, </span><span class="default">1000000000 </span><span class="keyword">).
+                </span><span class="string">" SECOND level: Enter your !!!COMPANY!!! password."</span><span class="keyword">;
+
+        </span><span class="default">header</span><span class="keyword">( </span><span class="string">"WWW-Authenticate: Basic realm="</span><span class="keyword">.</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'realm'</span><span class="keyword">] );
+
+        </span><span class="comment">//  Below here runs HTML-wise only if there isn't a $_SESSION,
+        // and the browser *can't* set $PHP_AUTH_USER... normally
+        // the browser, having gotten the auth info, runs the page
+        // again without getting here.
+        //  What I'm basically getting to is that the way to get
+        // here is to escape past the login screen. I tried
+        // putting a session_destroy() here originally, but the
+        // problem is that the PHP runs regardless, so the
+        // REFRESH seems like the best way to deal with it.
+        </span><span class="keyword">echo </span><span class="string">"&lt;meta http-equiv=\"REFRESH\"
+                content=\"0;url=index.php\"&gt;" </span><span class="keyword">;
+        exit;
+        }
+
+if (</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'logout'</span><span class="keyword">] == </span><span class="string">"logout"</span><span class="keyword">) {
+        </span><span class="default">session_destroy</span><span class="keyword">() ;
+        </span><span class="default">header</span><span class="keyword">(</span><span class="string">'Location: comeagain.php'</span><span class="keyword">);
+        exit ;
+        }
+
+</span><span class="comment">// "standard" authentication code here, from the ZEND tutorial above.
+
+</span><span class="default">comeagain</span><span class="keyword">.</span><span class="default">php is </span><span class="keyword">as </span><span class="default">follows</span><span class="keyword">:
+
+&lt;?
+</span><span class="default">session_start</span><span class="keyword">();
+unset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'realm'</span><span class="keyword">]);
+</span><span class="default">session_destroy</span><span class="keyword">();
+echo </span><span class="string">"&lt;html&gt;&lt;head&gt;&lt;title&gt;Logged Out&lt;/title&gt;&lt;h1&gt;Logout Page&lt;/h1&gt;&lt;body&gt;" </span><span class="keyword">;
+echo </span><span class="string">"You have successfully logged out of TOGEN"</span><span class="keyword">;
+echo </span><span class="string">" at "</span><span class="keyword">.</span><span class="default">date</span><span class="keyword">(</span><span class="string">"h:m:s"</span><span class="keyword">).</span><span class="string">" on "</span><span class="keyword">.</span><span class="default">date</span><span class="keyword">(</span><span class="string">"d F Y"</span><span class="keyword">) ;
+echo </span><span class="string">"&lt;p&gt;&lt;a href=\"index.php\"&gt;Login Again&lt;/a&gt;" </span><span class="keyword">;
+echo </span><span class="string">"&lt;/body&gt;&lt;/html&gt;" </span><span class="keyword">;
+</span><span class="default">?&gt;
+</span>
+The idea is to be able to trash the session (and thus reset the realm) without prompting the browser to ask again... because it has been redirected to logout.php.
+
+With this combination, I get things to work. Just make sure not to have apache run htpasswd authentication at the same time, then things get really weird :-).</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="28491">  <div class="votes">
+    <div id="Vu28491">
+    <a href="/manual/vote-note.php?id=28491&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd28491">
+    <a href="/manual/vote-note.php?id=28491&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V28491" title="72% like this...">
+    18
+    </div>
+  </div>
+  <a href="#28491" class="name">
+  <strong class="user"><em>emmanuel dot keller at net2000 dot ch</em></strong></a><a class="genanchor" href="#28491"> &para;</a><div class="date" title="2003-01-14 02:14"><strong>22 years ago</strong></div>
+  <div class="text" id="Hcom28491">
+<div class="phpcode"><pre><code class="html">Some servers won't support the HTTP1.0 specification and will give an error 500 (for instance). This happened with a server where I uploaded an authentication script.
+
+If it happens, you can try the HTTP1.1 header syntax :
+
+<span class="default">&lt;?php
+header</span><span class="keyword">(</span><span class="string">"WWW-Authenticate: Basic realm=\"My Realm\""</span><span class="keyword">);
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'status: 401 Unauthorized'</span><span class="keyword">);
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="42372">  <div class="votes">
+    <div id="Vu42372">
+    <a href="/manual/vote-note.php?id=42372&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd42372">
+    <a href="/manual/vote-note.php?id=42372&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V42372" title="75% like this...">
+    12
+    </div>
+  </div>
+  <a href="#42372" class="name">
+  <strong class="user"><em>nuno at mail dot ideianet dot pt</em></strong></a><a class="genanchor" href="#42372"> &para;</a><div class="date" title="2004-05-13 03:33"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom42372">
+<div class="phpcode"><pre><code class="html">In Windows 2003 Server/IIS6 with the php4+ cgi I only get HTTP authentication working with:
+<span class="default">&lt;?php header</span><span class="keyword">(</span><span class="string">"Status: 401 Access Denied"</span><span class="keyword">); </span><span class="default">?&gt;
+</span>with
+<span class="default">&lt;?php header</span><span class="keyword">(</span><span class="string">'HTTP/1.0 401 Unauthorized'</span><span class="keyword">); </span><span class="default">?&gt;
+</span>doesn't work !
+I also need in "Custom Errors" to select the range of "401;1" through "401;5" and click the "Set to Default" button.
+Thanks rob at theblip dot com</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="70693">  <div class="votes">
+    <div id="Vu70693">
+    <a href="/manual/vote-note.php?id=70693&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd70693">
+    <a href="/manual/vote-note.php?id=70693&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V70693" title="69% like this...">
+    21
+    </div>
+  </div>
+  <a href="#70693" class="name">
+  <strong class="user"><em>SlamJam</em></strong></a><a class="genanchor" href="#70693"> &para;</a><div class="date" title="2006-10-23 11:28"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom70693">
+<div class="phpcode"><pre><code class="html">I used Louis example (03-Jun-2006) and it works well for me (thanks).
+
+However, I added some lines, to make sure, the user does only get the Authentification-Window a few times:
+
+<span class="default">&lt;?php
+$realm </span><span class="keyword">= </span><span class="default">mt_rand</span><span class="keyword">( </span><span class="default">1</span><span class="keyword">, </span><span class="default">1000000000</span><span class="keyword">).</span><span class="string">"@YourCompany"</span><span class="keyword">;
+</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'realm'</span><span class="keyword">] = </span><span class="default">$realm</span><span class="keyword">;
+
+</span><span class="comment">// In the beginning, when the realm ist defined:
+</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'CountTrials'</span><span class="keyword">] = </span><span class="default">1</span><span class="keyword">;
+</span><span class="default">?&gt;
+</span>
+And then when it comes to check the authentification (ZEND-Tutorial):
+
+<span class="default">&lt;?php
+
+</span><span class="comment">// Not more than 3 Trials
+</span><span class="keyword">if (!</span><span class="default">$auth</span><span class="keyword">) {
+   </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'CountTrials'</span><span class="keyword">]++;
+   if (</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'CountTrials'</span><span class="keyword">] == </span><span class="default">4</span><span class="keyword">) {   
+       </span><span class="default">session_destroy</span><span class="keyword">() ;
+       </span><span class="default">header</span><span class="keyword">(</span><span class="string">'Location: noentry.php'</span><span class="keyword">);
+       exit ;   
+   } else {
+       </span><span class="default">header</span><span class="keyword">(</span><span class="string">"WWW-Authenticate: Basic realm="</span><span class="keyword">.</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'realm'</span><span class="keyword">]);
+       </span><span class="default">header</span><span class="keyword">(</span><span class="string">"HTTP/1.0 401 Unauthorized"</span><span class="keyword">);
+       echo </span><span class="string">'Authorization Required.'</span><span class="keyword">;
+       exit;
+   }
+} else {
+         echo </span><span class="string">'&lt;P&gt;You are authorized!&lt;/P&gt;'</span><span class="keyword">;
+}
+</span><span class="default">?&gt;
+</span>
+noentry.php is slightely different from comeagain.php.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="88957">  <div class="votes">
+    <div id="Vu88957">
+    <a href="/manual/vote-note.php?id=88957&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd88957">
+    <a href="/manual/vote-note.php?id=88957&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V88957" title="66% like this...">
+    25
+    </div>
+  </div>
+  <a href="#88957" class="name">
+  <strong class="user"><em>Yuriy</em></strong></a><a class="genanchor" href="#88957"> &para;</a><div class="date" title="2009-02-15 06:11"><strong>16 years ago</strong></div>
+  <div class="text" id="Hcom88957">
+<div class="phpcode"><pre><code class="html">Good day.
+Sorry for my english.
+This example shows programming "LOGIN", "LOGOUT" and "RE-LOGIN".
+This script must use in the protected pages.
+For work this script the browser address string must be following:
+"<a href="http://localhost/admin/?login" rel="nofollow" target="_blank">http://localhost/admin/?login</a>" - for Login,
+"<a href="http://localhost/admin/?logout" rel="nofollow" target="_blank">http://localhost/admin/?logout</a>" - for Logout,
+"<a href="http://localhost/admin/?logout&amp;login" rel="nofollow" target="_blank">http://localhost/admin/?logout&amp;login</a>" - for Re-Login.
+<span class="default">&lt;?php
+session_start</span><span class="keyword">();
+
+</span><span class="default">$authorized </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">;
+
+</span><span class="comment"># LOGOUT
+</span><span class="keyword">if (isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'logout'</span><span class="keyword">]) &amp;&amp; !isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"login"</span><span class="keyword">]) &amp;&amp; isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'auth'</span><span class="keyword">]))
+{
+    </span><span class="default">$_SESSION </span><span class="keyword">= array();
+    unset(</span><span class="default">$_COOKIE</span><span class="keyword">[</span><span class="default">session_name</span><span class="keyword">()]);
+    </span><span class="default">session_destroy</span><span class="keyword">();
+    echo </span><span class="string">"logging out..."</span><span class="keyword">;
+}
+
+</span><span class="comment"># checkup login and password
+</span><span class="keyword">if (isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]) &amp;&amp; isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]))
+{
+    </span><span class="default">$user </span><span class="keyword">= </span><span class="string">'test'</span><span class="keyword">;
+    </span><span class="default">$pass </span><span class="keyword">= </span><span class="string">'test'</span><span class="keyword">;
+    if ((</span><span class="default">$user </span><span class="keyword">== </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]) &amp;&amp; (</span><span class="default">$pass </span><span class="keyword">== (</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">])) &amp;&amp; isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'auth'</span><span class="keyword">]))
+    {
+    </span><span class="default">$authorized </span><span class="keyword">= </span><span class="default">true</span><span class="keyword">;
+    }
+}
+
+</span><span class="comment"># login
+</span><span class="keyword">if (isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"login"</span><span class="keyword">]) &amp;&amp; !</span><span class="default">$authorized </span><span class="keyword">||
+</span><span class="comment"># relogin
+    </span><span class="keyword">isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"login"</span><span class="keyword">]) &amp;&amp; isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"logout"</span><span class="keyword">]) &amp;&amp; !isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'reauth'</span><span class="keyword">]))
+{
+    </span><span class="default">header</span><span class="keyword">(</span><span class="string">'WWW-Authenticate: Basic Realm="Login please"'</span><span class="keyword">);
+    </span><span class="default">header</span><span class="keyword">(</span><span class="string">'HTTP/1.0 401 Unauthorized'</span><span class="keyword">);
+    </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'auth'</span><span class="keyword">] = </span><span class="default">true</span><span class="keyword">;
+    </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'reauth'</span><span class="keyword">] = </span><span class="default">true</span><span class="keyword">;
+    echo </span><span class="string">"Login now or forever hold your clicks..."</span><span class="keyword">;
+    exit;
+}
+</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'reauth'</span><span class="keyword">] = </span><span class="default">null</span><span class="keyword">;
+</span><span class="default">?&gt;
+</span>&lt;h1&gt;you have &lt;? echo ($authorized) ? (isset($_GET["login"]) &amp;&amp; isset($_GET["logout"]) ? 're' : '') : 'not '; ?&gt;logged!&lt;/h1&gt;</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="96970">  <div class="votes">
+    <div id="Vu96970">
+    <a href="/manual/vote-note.php?id=96970&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd96970">
+    <a href="/manual/vote-note.php?id=96970&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V96970" title="67% like this...">
+    21
+    </div>
+  </div>
+  <a href="#96970" class="name">
+  <strong class="user"><em>Ome Ko</em></strong></a><a class="genanchor" href="#96970"> &para;</a><div class="date" title="2010-03-25 03:04"><strong>15 years ago</strong></div>
+  <div class="text" id="Hcom96970">
+<div class="phpcode"><pre><code class="html">a link to <a href="http://logout:logout@" rel="nofollow" target="_blank">http://logout:logout@</a><span class="default">&lt;?=$_SERVER</span><span class="keyword">[</span><span class="string">'HTTP_HOST'</span><span class="keyword">];</span><span class="default">?&gt;</span>/SECRET/ would force a fresh login for the /SECRET directory if no user logout with password logout exists.
+
+
+[NOTE BY danbrown AT php DOT net: The following note was added by "Anonymous" on 01-APR-2010 (though we presume it's not an April Fool's Day joke).]
+
+this logout method does not work 100% anymore, because of another bulls**t from M$:
+<a href="http://support.microsoft.com/kb/834489" rel="nofollow" target="_blank">http://support.microsoft.com/kb/834489</a></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="118089">  <div class="votes">
+    <div id="Vu118089">
+    <a href="/manual/vote-note.php?id=118089&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd118089">
+    <a href="/manual/vote-note.php?id=118089&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V118089" title="69% like this...">
+    16
+    </div>
+  </div>
+  <a href="#118089" class="name">
+  <strong class="user"><em>dan223 at gmail dot com</em></strong></a><a class="genanchor" href="#118089"> &para;</a><div class="date" title="2015-10-01 10:45"><strong>10 years ago</strong></div>
+  <div class="text" id="Hcom118089">
+<div class="phpcode"><pre><code class="html">A simple script for SSL Client Certificate authentication with a basic authentication fall-back. I use this on my site using LDAP server to check username/passwords and client certificate to user mapping.
+
+&lt;? 
+// Check if and how we are authenticated
+if ($_SERVER['SSL_CLIENT_VERIFY'] != "SUCCESS") { // Not using a client certificate
+    if ((!$_SERVER['PHP_AUTH_USER']) &amp;&amp; (!$_SERVER['PHP_AUTH_PW'])) { // Not logged in using basic authentication
+        authenticate(); // Send basic authentication headers
+    }
+}
+
+if ($_SERVER['SSL_CLIENT_S_DN_CN'] != "chris") { // Check CN name of cert
+
+    if (!(($_SERVER['PHP_AUTH_USER'] == "test") &amp;&amp; ($_SERVER['PHP_AUTH_PW'] == "123"))) { // Check username and password
+        authenticate(); // Send basic authentication headers because username and/or password didnot match
+    } 
+} 
+
+phpinfo();
+
+// Call authentication display
+function authenticate() {
+    Header("WWW-Authenticate: Basic realm=Website");
+        Header("HTTP/1.0 401 Unauthorized");
+        error401();
+        exit;
+}
+?&gt;
+
+See my website (<a href="http://velocitypress.ca/index.php?page=/manuals/" rel="nofollow" target="_blank">http://velocitypress.ca/index.php?page=/manuals/</a>) for more details on client certificate with Apache and PHP.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="117415">  <div class="votes">
+    <div id="Vu117415">
+    <a href="/manual/vote-note.php?id=117415&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd117415">
+    <a href="/manual/vote-note.php?id=117415&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V117415" title="66% like this...">
+    20
+    </div>
+  </div>
+  <a href="#117415" class="name">
+  <strong class="user"><em>sergio dot carvalho at gmail dot com</em></strong></a><a class="genanchor" href="#117415"> &para;</a><div class="date" title="2015-06-07 04:01"><strong>10 years ago</strong></div>
+  <div class="text" id="Hcom117415">
+<div class="phpcode"><pre><code class="html">The only effective way I've found to wipe out the PHP_AUTH_DIGEST or PHP_AUTH_USER AND PHP_AUTH_PW credentials is to call the header HTTP/1.1 401 Unauthorized.
+
+function clear_admin_access(){
+    header('HTTP/1.1 401 Unauthorized');
+    die('Admin access turned off');
+}</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="106285">  <div class="votes">
+    <div id="Vu106285">
+    <a href="/manual/vote-note.php?id=106285&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd106285">
+    <a href="/manual/vote-note.php?id=106285&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V106285" title="68% like this...">
+    17
+    </div>
+  </div>
+  <a href="#106285" class="name">
+  <strong class="user"><em>h3ndrik</em></strong></a><a class="genanchor" href="#106285"> &para;</a><div class="date" title="2011-10-24 05:32"><strong>14 years ago</strong></div>
+  <div class="text" id="Hcom106285">
+<div class="phpcode"><pre><code class="html">On my configuration with php-cgi - after setting the RewriteRule - the correct variable would be: $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+
+So the workaround for PhpCGI is:
+Set in your .htaccess:
+
+RewriteEngine on
+RewriteRule .* - [env=HTTP_AUTHORIZATION:%{HTTP:Authorization},last]
+
+Php workaround:
+<span class="default">&lt;?php
+</span><span class="comment">//set http auth headers for apache+php-cgi work around
+</span><span class="keyword">if (isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'HTTP_AUTHORIZATION'</span><span class="keyword">]) &amp;&amp; </span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/Basic\s+(.*)$/i'</span><span class="keyword">, </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'HTTP_AUTHORIZATION'</span><span class="keyword">], </span><span class="default">$matches</span><span class="keyword">)) {
+    list(</span><span class="default">$name</span><span class="keyword">, </span><span class="default">$password</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">':'</span><span class="keyword">, </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]));
+    </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">] = </span><span class="default">strip_tags</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">);
+    </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">] = </span><span class="default">strip_tags</span><span class="keyword">(</span><span class="default">$password</span><span class="keyword">);
+}
+
+</span><span class="comment">//set http auth headers for apache+php-cgi work around if variable gets renamed by apache
+</span><span class="keyword">if (isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REDIRECT_HTTP_AUTHORIZATION'</span><span class="keyword">]) &amp;&amp; </span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/Basic\s+(.*)$/i'</span><span class="keyword">, </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REDIRECT_HTTP_AUTHORIZATION'</span><span class="keyword">], </span><span class="default">$matches</span><span class="keyword">)) {
+    list(</span><span class="default">$name</span><span class="keyword">, </span><span class="default">$password</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">':'</span><span class="keyword">, </span><span class="default">base64_decode</span><span class="keyword">(</span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]));
+    </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">] = </span><span class="default">strip_tags</span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">);
+    </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">] = </span><span class="default">strip_tags</span><span class="keyword">(</span><span class="default">$password</span><span class="keyword">);
+}
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="114080">  <div class="votes">
+    <div id="Vu114080">
+    <a href="/manual/vote-note.php?id=114080&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd114080">
+    <a href="/manual/vote-note.php?id=114080&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V114080" title="67% like this...">
+    19
+    </div>
+  </div>
+  <a href="#114080" class="name">
+  <strong class="user"><em>Robb_Bean at gmx dot net</em></strong></a><a class="genanchor" href="#114080"> &para;</a><div class="date" title="2014-01-09 04:55"><strong>11 years ago</strong></div>
+  <div class="text" id="Hcom114080">
+<div class="phpcode"><pre><code class="html">In the german example #2 (digest), the <span class="default">&lt;?php $realm </span><span class="keyword">= </span><span class="string">"Geschützter Bereich"</span><span class="keyword">; </span><span class="default">?&gt;</span>. As far as I have tested the umlaut ü is problematic, resulting in an password enter infinity loop. In my case it was written in UTF-8. So I suggest using only plain ASCII characters for the realm.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="70864">  <div class="votes">
+    <div id="Vu70864">
+    <a href="/manual/vote-note.php?id=70864&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd70864">
+    <a href="/manual/vote-note.php?id=70864&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V70864" title="66% like this...">
+    22
+    </div>
+  </div>
+  <a href="#70864" class="name">
+  <strong class="user"><em>admin at isprohosting dot com</em></strong></a><a class="genanchor" href="#70864"> &para;</a><div class="date" title="2006-11-01 06:21"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom70864">
+<div class="phpcode"><pre><code class="html">There are .htaccess which actually works for us (cPanel + phpsuexec) unless others failed. Perhaps it may help someone.
+
+# PHP (CGI mode) HTTP Authorization with ModRewrite:
+RewriteEngine on
+RewriteCond %{HTTP:Authorization} ^(.*)
+RewriteRule ^(.*) - [E=HTTP_AUTHORIZATION:%1]
+
+Then you need small piece of php code to parse this line and then everything will work like with mod_php:
+
+if (isset($_SERVER['HTTP_AUTHORIZATION']))
+{
+$ha = base64_decode( substr($_SERVER['HTTP_AUTHORIZATION'],6) );
+list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', $ha);
+unset $ha;
+}
+
+Enjoy!</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="66468">  <div class="votes">
+    <div id="Vu66468">
+    <a href="/manual/vote-note.php?id=66468&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd66468">
+    <a href="/manual/vote-note.php?id=66468&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V66468" title="70% like this...">
+    14
+    </div>
+  </div>
+  <a href="#66468" class="name">
+  <strong class="user"><em>kembl at example dot com</em></strong></a><a class="genanchor" href="#66468"> &para;</a><div class="date" title="2006-05-23 08:06"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom66468">
+<div class="phpcode"><pre><code class="html"># PHP (CGI mode) HTTP Authorization with ModRewrite: 
+# most right example with header check for non empty:
+ RewriteEngine on
+ RewriteCond %{HTTP:Authorization}  !^$
+ RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization}, \
+E=PHP_AUTH_USER:%{HTTP:Authorization},L]</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="44745">  <div class="votes">
+    <div id="Vu44745">
+    <a href="/manual/vote-note.php?id=44745&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd44745">
+    <a href="/manual/vote-note.php?id=44745&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V44745" title="69% like this...">
+    14
+    </div>
+  </div>
+  <a href="#44745" class="name">
+  <strong class="user"><em>jason</em></strong></a><a class="genanchor" href="#44745"> &para;</a><div class="date" title="2004-08-14 10:12"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom44745">
+<div class="phpcode"><pre><code class="html">on the php+mysql auth code by tigran at freenet dot am
+
+There are some security weaknesses.
+
+First
+$user 
+  and 
+$pass
+
+are both insecure, they could leave this code open to SQL injection, you should always remove invalid characters in both, or at least encode them.
+
+Actually storing passwords as MD5 hashes leaves you less work to secure.
+
+Second security risks
+The same mysql user has rights to both update and select, and possibly even insert and on your auth database no less.
+Again the SQL inject attack may occur with this., and the end user could then change the users username, password, or anything else in relation to this.
+
+Third items is more of a performance issue,
+  
+Do you really need to update the database, as updates are slower then selects, and if you do them every time they access the page, you are costing some speed penalty.  
+
+One option, if you want to use sql (I think mysql has it) is memory only databases, and create a table within memory, the stores a unique session identifier for each user, that is logged in, or alternatively if it's a single front end system, you could use db files.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="126079">  <div class="votes">
+    <div id="Vu126079">
+    <a href="/manual/vote-note.php?id=126079&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd126079">
+    <a href="/manual/vote-note.php?id=126079&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V126079" title="67% like this...">
+    12
+    </div>
+  </div>
+  <a href="#126079" class="name">
+  <strong class="user"><em>spam at angstzustaen dot de</em></strong></a><a class="genanchor" href="#126079"> &para;</a><div class="date" title="2021-05-16 05:35"><strong>4 years ago</strong></div>
+  <div class="text" id="Hcom126079">
+<div class="phpcode"><pre><code class="html">public function loginUser(){
+        $username = filter_var($_GET['username'],FILTER_SANITIZE_STRING);
+        $pw = filter_var($_GET['pw'],FILTER_SANITIZE_STRING);
+        $row = $this-&gt;userModel-&gt;selectUser($username);
+
+       if (password_verify($pw,$row['pw'])){
+           $_SESSION["userId"] = $row['id'];
+
+           $this-&gt;isLogin();
+       } else{
+           new Msg(true,"Benutzername und Passwort stimmen nicht überein!");
+       }
+
+    }
+
+A short example for an user Login</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="53962">  <div class="votes">
+    <div id="Vu53962">
+    <a href="/manual/vote-note.php?id=53962&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd53962">
+    <a href="/manual/vote-note.php?id=53962&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V53962" title="68% like this...">
+    13
+    </div>
+  </div>
+  <a href="#53962" class="name">
+  <strong class="user"><em>snagnever at gmail dot com</em></strong></a><a class="genanchor" href="#53962"> &para;</a><div class="date" title="2005-06-18 03:39"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom53962">
+<div class="phpcode"><pre><code class="html">It forces a auth each time the page is accessed:
+(maybe can save someone)
+
+&lt;?
+header("Expires: Sat, 01 Jan 2000 00:00:00 GMT");
+header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+header("Cache-Control: post-check=0, pre-check=0",false);
+header("Pragma: no-cache");
+session_cache_limiter("public, no-store");
+session_start();
+
+function http_auth()
+{
+    $_SESSION['AUTH'] = 1;
+    header('HTTP/1.0 401 Unauthorized');
+    header('WWW-Authenticate: Basic realm="sn4g auth system"');
+    // The actions to be done when the user clicks on 'cancel'
+    exit();
+}
+
+if( !isset($_SERVER['PHP_AUTH_USER']) or @$_SESSION['AUTH'] != 1 )
+{
+    http_auth();
+    exit();
+}
+
+// Actions do be done when the user has logged
+
+// rest, must clean the session array
+$_SESSION = array();
+session_destroy();
+?&gt;</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="100396">  <div class="votes">
+    <div id="Vu100396">
+    <a href="/manual/vote-note.php?id=100396&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd100396">
+    <a href="/manual/vote-note.php?id=100396&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V100396" title="62% like this...">
+    22
+    </div>
+  </div>
+  <a href="#100396" class="name">
+  <strong class="user"><em>ceo at l-i-e dot com</em></strong></a><a class="genanchor" href="#100396"> &para;</a><div class="date" title="2010-10-13 03:51"><strong>15 years ago</strong></div>
+  <div class="text" id="Hcom100396">
+<div class="phpcode"><pre><code class="html">To force a logout with Basic Auth, you can change the Realm out from under them to a different Realm.
+
+This forces a new set of credentials for a new "Realm" on your server.
+
+You just need to track the Realm name with the user/pass and change it around to something new/random as they log in and out.
+
+I believe that this is the only 100% guaranteed way to get a logout in HTTP Basic Auth, and if it were part of the docs a whole lot of BAD user-contributed comments here could be deleted.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="81049">  <div class="votes">
+    <div id="Vu81049">
+    <a href="/manual/vote-note.php?id=81049&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd81049">
+    <a href="/manual/vote-note.php?id=81049&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V81049" title="66% like this...">
+    14
+    </div>
+  </div>
+  <a href="#81049" class="name">
+  <strong class="user"><em>Lars Stecken</em></strong></a><a class="genanchor" href="#81049"> &para;</a><div class="date" title="2008-02-12 10:23"><strong>17 years ago</strong></div>
+  <div class="text" id="Hcom81049">
+<div class="phpcode"><pre><code class="html">To anybody who tried the digest example above and didn't get it to work.
+
+For me the problem seemed to be the deprecated use of '\' (backslash) in the regex instead of the '$' (Dollar) to indicate a backreference. Also the results have to be trimmed off the remaining double and single quotes. 
+
+Here's the working example:
+
+// function to parse the http auth header
+function http_digest_parse($txt)
+{
+    
+    // protect against missing data
+    $needed_parts = array('nonce'=&gt;1, 'nc'=&gt;1, 'cnonce'=&gt;1, 'qop'=&gt;1, 'username'=&gt;1, 'uri'=&gt;1, 'response'=&gt;1);
+    $data = array();
+
+    preg_match_all('@(\w+)=(?:([\'"])([^$2]+)$2|([^\s,]+))@', $txt, $matches, PREG_SET_ORDER);
+    
+    foreach ($matches as $m) {
+        $data[$m[1]] = $m[3] ? trim($m[3],"\",'") : trim($m[4],"\",'"); 
+        unset($needed_parts[$m[1]]);
+    }
+    
+    return $needed_parts ? false : $data;
+}
+
+Probably there's a more sophisticated way to trim the quotes within the regex, but I couldn't be bothered :-)
+
+Greets, Lars</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="60503">  <div class="votes">
+    <div id="Vu60503">
+    <a href="/manual/vote-note.php?id=60503&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd60503">
+    <a href="/manual/vote-note.php?id=60503&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V60503" title="65% like this...">
+    12
+    </div>
+  </div>
+  <a href="#60503" class="name">
+  <strong class="user"><em>marco dot moser at oltrefersina dot it</em></strong></a><a class="genanchor" href="#60503"> &para;</a><div class="date" title="2006-01-09 06:29"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom60503">
+<div class="phpcode"><pre><code class="html">I suggest to demand user's authentication and management to the web server (by .htaccess, ...):
+
+1. configure a global /logon/ directory with a .htaccess file restricted access
+
+2. use fopen wrapper:
+
+  $hh = @fopen("<a href="http://{$_SERVER[" rel="nofollow" target="_blank">http://{$_SERVER[</a>'PHP_AUTH_USER']}:{$_SERVER['PHP_AUTH_PW']}".
+    @{$_SERVER['SERVER_NAME']}/logon/", "r");
+  if (!$hh) authenticate(); // usual header WWW-Authenticate ...
+  fclose($hh);</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="68088">  <div class="votes">
+    <div id="Vu68088">
+    <a href="/manual/vote-note.php?id=68088&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd68088">
+    <a href="/manual/vote-note.php?id=68088&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V68088" title="64% like this...">
+    12
+    </div>
+  </div>
+  <a href="#68088" class="name">
+  <strong class="user"><em>web at kwi dot dk</em></strong></a><a class="genanchor" href="#68088"> &para;</a><div class="date" title="2006-07-12 10:23"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom68088">
+<div class="phpcode"><pre><code class="html">While Digest authentication is still far superior to Basic authentication, there are a number of security issues that one must keep in mind.
+
+In this respect, the Digest example given above is somewhat flawed, because the nonce never times out or otherwise become invalid. It thus becomes a password-equivalent (although to that specific URL only) and can be used by an eavesdropper to fetch the page at any time in the future, thus allowing the attacker to always access the latest version of the page, or (much worse) repeatedly invoke a CGI script -- for instance, if the user requests the URL "/filemanager?delete=somefile", the attacker can repeat this deletion at any point in the future, possibly after the file has been recreated.
+
+And while it might not be possible to change GET data without reauthentication, cookies and POST data *can* be changed.
+
+To protect against the first problem, the nonce can be made to include a timestamp, and a check added to ensure that nonces older than e.g. 30 minutes result in a new authentication request. 
+
+To solve the second problem, a one-time only nonce needs to be generated -- that is, all further requests using a particular nonce must be refused.
+
+One way to do this: When the user requests an action such as "deletefile", store a randomly generated nonce in a session variable, issue a 401 authentication challenge with that nonce, and then check against the stored value when receiving the authentication (and clear the session variable).
+
+This way, although a possible eavesdropper receives the nonce and thus gains the ability to perform the action, he can only perform it once -- and the user was going to perform it anyway. (Only the user or the attacker, but not both, gets to perform the action, so it's safe.)
+
+Of course, at some point, the security can only be improved by switching to HTTPS / SSL / TLS (this is for instance the only way to defend against man-in-the-middle attacks). You decide the level of security.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="41941">  <div class="votes">
+    <div id="Vu41941">
+    <a href="/manual/vote-note.php?id=41941&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd41941">
+    <a href="/manual/vote-note.php?id=41941&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V41941" title="65% like this...">
+    10
+    </div>
+  </div>
+  <a href="#41941" class="name">
+  <strong class="user"><em>najprogramato at post dot sk</em></strong></a><a class="genanchor" href="#41941"> &para;</a><div class="date" title="2004-04-27 05:08"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom41941">
+<div class="phpcode"><pre><code class="html">Don't use apache authentification in plain text. Is more better to use own script to generete new ID which is relevant to password. Apache auth data are sent to every page, so the posible mistake are known.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="61922">  <div class="votes">
+    <div id="Vu61922">
+    <a href="/manual/vote-note.php?id=61922&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd61922">
+    <a href="/manual/vote-note.php?id=61922&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V61922" title="63% like this...">
+    12
+    </div>
+  </div>
+  <a href="#61922" class="name">
+  <strong class="user"><em>djreficul at yahoo dot com</em></strong></a><a class="genanchor" href="#61922"> &para;</a><div class="date" title="2006-02-15 02:14"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom61922">
+<div class="phpcode"><pre><code class="html">Well, I think it's easy to make authentification works correctly. I use a session var to force authentication everytime a user visit the logging area.
+
+<span class="default">&lt;?php
+</span><span class="keyword">if (!isset (</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'firstauthenticate'</span><span class="keyword">])) {
+    </span><span class="default">session_start</span><span class="keyword">();
+}
+  function </span><span class="default">authenticate</span><span class="keyword">() {
+    </span><span class="default">header</span><span class="keyword">(</span><span class="string">'WWW-Authenticate: Basic realm="Sistema autentificaci?n UnoAutoSur"'</span><span class="keyword">);
+    </span><span class="default">header</span><span class="keyword">(</span><span class="string">'HTTP/1_0 401 Unauthorized'</span><span class="keyword">);
+</span><span class="comment">//    header("Status: 401 Access Denied"); 
+    </span><span class="keyword">echo </span><span class="string">"Unauthorized\n"</span><span class="keyword">;
+    exit;
+  }
+ if (!isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]) || </span><span class="default">strcmp </span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">],</span><span class="default">$user</span><span class="keyword">)!=</span><span class="default">0 </span><span class="keyword">|| 
+      !isset (</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]) || </span><span class="default">strcmp</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">],</span><span class="default">$pass</span><span class="keyword">)!=</span><span class="default">0 </span><span class="keyword">|| !isset (</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'firstauthenticate'</span><span class="keyword">]) || !</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'firstauthenticate'</span><span class="keyword">]) {
+     </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'firstauthenticate'</span><span class="keyword">]=</span><span class="default">true</span><span class="keyword">;
+   </span><span class="default">authenticate</span><span class="keyword">();
+ } else {
+            </span><span class="comment">//I destroy the session var now
+    </span><span class="default">session_unset</span><span class="keyword">();
+            </span><span class="comment">//Your code below
+ </span><span class="keyword">}
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="93376">  <div class="votes">
+    <div id="Vu93376">
+    <a href="/manual/vote-note.php?id=93376&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd93376">
+    <a href="/manual/vote-note.php?id=93376&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V93376" title="63% like this...">
+    9
+    </div>
+  </div>
+  <a href="#93376" class="name">
+  <strong class="user"><em>s dot i dot g at gmx dot com</em></strong></a><a class="genanchor" href="#93376"> &para;</a><div class="date" title="2009-09-06 12:34"><strong>16 years ago</strong></div>
+  <div class="text" id="Hcom93376">
+<div class="phpcode"><pre><code class="html"><span class="default">&lt;?php
+
+</span><span class="comment">// try to mimic cpanel logout style
+// only diff is usr &amp; pwd field is cleared when re-login
+// tested with ff2 &amp; ie8
+
+</span><span class="default">session_start</span><span class="keyword">();
+
+</span><span class="default">$username </span><span class="keyword">= </span><span class="string">"test"</span><span class="keyword">;
+</span><span class="default">$password </span><span class="keyword">= </span><span class="string">"test"</span><span class="keyword">;
+
+if(isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'logout'</span><span class="keyword">]))
+{
+  unset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">"login"</span><span class="keyword">]);
+  echo </span><span class="string">"You have logout ... "</span><span class="keyword">;
+  echo </span><span class="string">"[&lt;a href='" </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_SELF'</span><span class="keyword">] . </span><span class="string">"'&gt;Login&lt;/a&gt;]"</span><span class="keyword">;
+  exit;
+}
+
+if (!isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]) || !isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]) || !isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">"login"</span><span class="keyword">]))
+{
+  </span><span class="default">header</span><span class="keyword">(</span><span class="string">"WWW-Authenticate: Basic realm=\"Test\""</span><span class="keyword">);
+  </span><span class="default">header</span><span class="keyword">(</span><span class="string">"HTTP/1.0 401 Unauthorized"</span><span class="keyword">);
+  </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">"login"</span><span class="keyword">] = </span><span class="default">true</span><span class="keyword">;
+  echo </span><span class="string">"You are unauthorized ... "</span><span class="keyword">;
+  echo </span><span class="string">"[&lt;a href='" </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_SELF'</span><span class="keyword">] . </span><span class="string">"'&gt;Login&lt;/a&gt;]"</span><span class="keyword">;
+  exit;
+}
+else
+{
+  if(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">] == </span><span class="default">$username </span><span class="keyword">&amp;&amp; </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">] == </span><span class="default">$password</span><span class="keyword">)
+  {
+    echo </span><span class="string">"You have logged in ... "</span><span class="keyword">;
+    echo </span><span class="string">"[&lt;a href='" </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_SELF'</span><span class="keyword">] . </span><span class="string">"?logout'&gt;Logout&lt;/a&gt;]"</span><span class="keyword">;
+  }
+  else
+  {
+    unset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">"login"</span><span class="keyword">]);
+    </span><span class="default">header</span><span class="keyword">(</span><span class="string">"Location: " </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_SELF'</span><span class="keyword">]);
+  }
+}
+
+</span><span class="comment">// content here
+
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="100101">  <div class="votes">
+    <div id="Vu100101">
+    <a href="/manual/vote-note.php?id=100101&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd100101">
+    <a href="/manual/vote-note.php?id=100101&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V100101" title="62% like this...">
+    11
+    </div>
+  </div>
+  <a href="#100101" class="name">
+  <strong class="user"><em>Ollie L</em></strong></a><a class="genanchor" href="#100101"> &para;</a><div class="date" title="2010-09-24 04:16"><strong>15 years ago</strong></div>
+  <div class="text" id="Hcom100101">
+<div class="phpcode"><pre><code class="html">I tried example 7, and at first I couldn't get it to work. It took me a while to spot that somewhere along the line, probably by the server, a seemingly random number was being added to the realm - so the valid_result variable wasn't calculated using the correct realm.
+
+To get around this, or any similar problems, make the following changes to the example:
+
+Around line 43 (44 if after next step ;) ):
+$needed_parts = array('nonce'=&gt;1, 'nc'=&gt;1, 'cnonce'=&gt;1, 'qop'=&gt;1, 'username'=&gt;1, 'uri'=&gt;1, 'response'=&gt;1, 'realm'=&gt;1);
+
+Before line 24:
+$realm = $data['realm'];
+
+These two steps get the real realm used for the authentication request, and substitute it into the "valid_response" query.
+
+Hope this helps :)</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="99348">  <div class="votes">
+    <div id="Vu99348">
+    <a href="/manual/vote-note.php?id=99348&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd99348">
+    <a href="/manual/vote-note.php?id=99348&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V99348" title="60% like this...">
+    13
+    </div>
+  </div>
+  <a href="#99348" class="name">
+  <strong class="user"><em>idbobby at rambler dot ru</em></strong></a><a class="genanchor" href="#99348"> &para;</a><div class="date" title="2010-08-12 02:31"><strong>15 years ago</strong></div>
+  <div class="text" id="Hcom99348">
+<div class="phpcode"><pre><code class="html">First of all, sorry for my English.
+One more authorization script with logout solution.
+In script given by meint_at_meint_dot_net (<a href="http://www.php.net/manual/en/features.http-auth.php#93859" rel="nofollow" target="_blank">http://www.php.net/manual/en/features.http-auth.php#93859</a>) rewrite_module is used. If there are any problems with that module and possibilities of administration of the web-server are restricted (including restrictions for use of .htaccess) then you can use this solution.
+
+index.php
+---------
+
+<span class="default">&lt;?php
+
+$auth_realm </span><span class="keyword">= </span><span class="string">'My realm'</span><span class="keyword">;
+
+require_once </span><span class="string">'auth.php'</span><span class="keyword">;
+
+echo </span><span class="string">"You've logged in as </span><span class="keyword">{</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'username'</span><span class="keyword">]}</span><span class="string">&lt;br&gt;"</span><span class="keyword">;
+echo </span><span class="string">'&lt;p&gt;&lt;a href="?action=logOut"&gt;LogOut&lt;/a&gt;&lt;/p&gt;'
+
+</span><span class="default">?&gt;
+</span>
+auth.php
+--------
+
+<span class="default">&lt;?php
+
+$_user_ </span><span class="keyword">= </span><span class="string">'test'</span><span class="keyword">;
+</span><span class="default">$_password_ </span><span class="keyword">= </span><span class="string">'test'</span><span class="keyword">;
+
+</span><span class="default">session_start</span><span class="keyword">();
+
+</span><span class="default">$url_action </span><span class="keyword">= (empty(</span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="string">'action'</span><span class="keyword">])) ? </span><span class="string">'logIn' </span><span class="keyword">: </span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="string">'action'</span><span class="keyword">];
+</span><span class="default">$auth_realm </span><span class="keyword">= (isset(</span><span class="default">$auth_realm</span><span class="keyword">)) ? </span><span class="default">$auth_realm </span><span class="keyword">: </span><span class="string">''</span><span class="keyword">;
+
+if (isset(</span><span class="default">$url_action</span><span class="keyword">)) {
+    if (</span><span class="default">is_callable</span><span class="keyword">(</span><span class="default">$url_action</span><span class="keyword">)) {
+        </span><span class="default">call_user_func</span><span class="keyword">(</span><span class="default">$url_action</span><span class="keyword">);
+    } else {
+        echo </span><span class="string">'Function does not exist, request terminated'</span><span class="keyword">;
+    };
+};
+
+function </span><span class="default">logIn</span><span class="keyword">() {
+    global </span><span class="default">$auth_realm</span><span class="keyword">;
+
+    if (!isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'username'</span><span class="keyword">])) {
+        if (!isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'login'</span><span class="keyword">])) {
+            </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'login'</span><span class="keyword">] = </span><span class="default">TRUE</span><span class="keyword">;
+            </span><span class="default">header</span><span class="keyword">(</span><span class="string">'WWW-Authenticate: Basic realm="'</span><span class="keyword">.</span><span class="default">$auth_realm</span><span class="keyword">.</span><span class="string">'"'</span><span class="keyword">);
+            </span><span class="default">header</span><span class="keyword">(</span><span class="string">'HTTP/1.0 401 Unauthorized'</span><span class="keyword">);
+            echo </span><span class="string">'You must enter a valid login and password'</span><span class="keyword">;
+            echo </span><span class="string">'&lt;p&gt;&lt;a href="?action=logOut"&gt;Try again&lt;/a&gt;&lt;/p&gt;'</span><span class="keyword">;
+            exit;
+        } else {
+            </span><span class="default">$user </span><span class="keyword">= isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]) ? </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">] : </span><span class="string">''</span><span class="keyword">;
+            </span><span class="default">$password </span><span class="keyword">= isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]) ? </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">] : </span><span class="string">''</span><span class="keyword">;
+            </span><span class="default">$result </span><span class="keyword">= </span><span class="default">authenticate</span><span class="keyword">(</span><span class="default">$user</span><span class="keyword">, </span><span class="default">$password</span><span class="keyword">);
+            if (</span><span class="default">$result </span><span class="keyword">== </span><span class="default">0</span><span class="keyword">) {
+                </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'username'</span><span class="keyword">] = </span><span class="default">$user</span><span class="keyword">;
+            } else {
+                </span><span class="default">session_unset</span><span class="keyword">(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'login'</span><span class="keyword">]);
+                </span><span class="default">errMes</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">);
+                echo </span><span class="string">'&lt;p&gt;&lt;a href=""&gt;Try again&lt;/a&gt;&lt;/p&gt;'</span><span class="keyword">;
+                exit;
+            };
+        };
+    };
+}
+
+function </span><span class="default">authenticate</span><span class="keyword">(</span><span class="default">$user</span><span class="keyword">, </span><span class="default">$password</span><span class="keyword">) {
+    global </span><span class="default">$_user_</span><span class="keyword">;
+    global </span><span class="default">$_password_</span><span class="keyword">;
+
+    if ((</span><span class="default">$user </span><span class="keyword">== </span><span class="default">$_user_</span><span class="keyword">)&amp;&amp;(</span><span class="default">$password </span><span class="keyword">== </span><span class="default">$_password_</span><span class="keyword">)) { return </span><span class="default">0</span><span class="keyword">; }
+    else { return </span><span class="default">1</span><span class="keyword">; };
+}
+
+function </span><span class="default">errMes</span><span class="keyword">(</span><span class="default">$errno</span><span class="keyword">) {
+    switch (</span><span class="default">$errno</span><span class="keyword">) {
+        case </span><span class="default">0</span><span class="keyword">:
+            break;
+        case </span><span class="default">1</span><span class="keyword">:
+            echo </span><span class="string">'The username or password you entered is incorrect'</span><span class="keyword">;
+            break;
+        default:
+            echo </span><span class="string">'Unknown error'</span><span class="keyword">;
+    };
+}
+
+function </span><span class="default">logOut</span><span class="keyword">() {
+
+    </span><span class="default">session_destroy</span><span class="keyword">();
+    if (isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'username'</span><span class="keyword">])) {
+        </span><span class="default">session_unset</span><span class="keyword">(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'username'</span><span class="keyword">]);
+        echo </span><span class="string">"You've successfully logged out&lt;br&gt;"</span><span class="keyword">;
+        echo </span><span class="string">'&lt;p&gt;&lt;a href="?action=logIn"&gt;LogIn&lt;/a&gt;&lt;/p&gt;'</span><span class="keyword">;
+    } else {
+        </span><span class="default">header</span><span class="keyword">(</span><span class="string">"Location: ?action=logIn"</span><span class="keyword">, </span><span class="default">TRUE</span><span class="keyword">, </span><span class="default">301</span><span class="keyword">);
+    };
+    if (isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'login'</span><span class="keyword">])) { </span><span class="default">session_unset</span><span class="keyword">(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'login'</span><span class="keyword">]); };
+    exit;
+}
+
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="42198">  <div class="votes">
+    <div id="Vu42198">
+    <a href="/manual/vote-note.php?id=42198&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd42198">
+    <a href="/manual/vote-note.php?id=42198&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V42198" title="62% like this...">
+    8
+    </div>
+  </div>
+  <a href="#42198" class="name">
+  <strong class="user"><em>steuber at aego dot de</em></strong></a><a class="genanchor" href="#42198"> &para;</a><div class="date" title="2004-05-07 04:15"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom42198">
+<div class="phpcode"><pre><code class="html">Quite a good solution for the logout problem:
+
+Just tell browser that it is successfully logged in!
+This works as follows:
+1. User clicks logout button
+2. Script sends 401 Header
+3. User does NOT enter a password
+4. If no password is entered, script sends 200 Header
+
+So the browser remembers no password as a valid password.
+
+Example:
+
+<span class="default">&lt;?php
+</span><span class="keyword">if (
+       (!isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]))
+    ||(
+           (</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"login"</span><span class="keyword">]==</span><span class="string">"login"</span><span class="keyword">) 
+    &amp;&amp; !(
+             (</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]==</span><span class="string">"validuser"</span><span class="keyword">) 
+             &amp;&amp; (</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]==</span><span class="string">"validpass"</span><span class="keyword">)
+           )
+        )
+    ||(
+           (</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"logout"</span><span class="keyword">]==</span><span class="string">"logout"</span><span class="keyword">) 
+     &amp;&amp; !(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]==</span><span class="string">""</span><span class="keyword">)
+        )
+     ) {
+</span><span class="default">Header</span><span class="keyword">(</span><span class="string">"WWW-Authenticate: Basic realm=\"Realm\""</span><span class="keyword">);
+</span><span class="default">Header</span><span class="keyword">(</span><span class="string">"HTTP/1.0 401 Unauthorized"</span><span class="keyword">);
+echo </span><span class="string">"Not logged out...&lt;br&gt;\n"</span><span class="keyword">;
+echo </span><span class="string">"&lt;a href=\"index.php?login=login\"&gt;Login&lt;/a&gt;"</span><span class="keyword">;
+exit;
+} else if (</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]==</span><span class="string">""</span><span class="keyword">) {
+echo </span><span class="string">"Logged out...&lt;br&gt;\n"</span><span class="keyword">;
+echo </span><span class="string">"&lt;a href=\"index.php?login=login\"&gt;Login&lt;/a&gt;"</span><span class="keyword">;
+exit;
+}
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="40445">  <div class="votes">
+    <div id="Vu40445">
+    <a href="/manual/vote-note.php?id=40445&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd40445">
+    <a href="/manual/vote-note.php?id=40445&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V40445" title="60% like this...">
+    9
+    </div>
+  </div>
+  <a href="#40445" class="name">
+  <strong class="user"><em>rob at theblip dot com</em></strong></a><a class="genanchor" href="#40445"> &para;</a><div class="date" title="2004-03-03 08:47"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom40445">
+<div class="phpcode"><pre><code class="html">Regarding HTTP authentication in IIS with the php cgi 4.3.4, there's one more step. I searched mightily and didn't find this information anywhere else, so here goes. When using HTTP auth with the php CGI, you need to do the following things:
+
+1. In your php.ini file, set "cgi.rfc2616_headers = 0"
+
+2. In Web Site Properties -&gt; File/Directory Security -&gt; Anonymous Access dialog box, check the "Anonymous access" checkbox and uncheck any other checkboxes (i.e. uncheck "Basic authentication," "Integrated Windows authentication," and "Digest" if it's enabled.) Click OK.
+
+3. In "Custom Errors", select the range of "401;1" through "401;5" and click the "Set to Default" button.
+
+It's this last step that is crucial, yet not documented anywhere. If you don't, instead of the headers asking for credentials, IIS will return its own fancy but useless 'you are not authenticated' page. But if you do, then the browser will properly ask for credentials, and supply them in the $_SERVER['PHP_AUTH_*'] elements.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="56134">  <div class="votes">
+    <div id="Vu56134">
+    <a href="/manual/vote-note.php?id=56134&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd56134">
+    <a href="/manual/vote-note.php?id=56134&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V56134" title="60% like this...">
+    7
+    </div>
+  </div>
+  <a href="#56134" class="name">
+  <strong class="user"><em>siberion at hotmail dot com</em></strong></a><a class="genanchor" href="#56134"> &para;</a><div class="date" title="2005-08-24 09:11"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom56134">
+<div class="phpcode"><pre><code class="html">I came up with another approach to work around the problem of browsers caching WWW authentication credentials and creating logout problems. While most browsers have some kind of way to wipe this information, I prefer having my website to take care of the task instead of relying on the user's sanity.
+
+Even with Lalit's method of creating a random realm name, it was still possible to get back into the protected area using the back button in Firefox, so that didn't work. Here's my solution:
+
+Since browsers attach the credentials to specific URLs, use virtual paths where a component of the path is actually a PHP script, and everything following it is part of the URI, such as:
+
+<a href="http://www.example.com/some_dir/login.php/auth/8f631b92/" rel="nofollow" target="_blank">http://www.example.com/some_dir/login.php/auth/8f631b92/</a>
+
+By choosing a different number for the last component of the URL, browsers can be tricked into thinking that they are dealing with a completely different website, and thus prompting the user for credentials again.
+
+Note that using a random, unrestricted number will still allow the user to hit the back button to get back into the page. You should keep track of this number in a server-side file or database and regenerate it upon each successful login, so that the last number(s) become invalid. Using an invalid number might result in a 403 response or, depending on how you feel that day, a 302 to a nasty website.
+
+Care should be taken when linking from the page generated in this case, since relative links will be relative to the virtual and non-existant directory rather than the true script directory.
+
+Hope this helps somebody.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="37280">  <div class="votes">
+    <div id="Vu37280">
+    <a href="/manual/vote-note.php?id=37280&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd37280">
+    <a href="/manual/vote-note.php?id=37280&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V37280" title="59% like this...">
+    6
+    </div>
+  </div>
+  <a href="#37280" class="name">
+  <strong class="user"><em>Paul</em></strong></a><a class="genanchor" href="#37280"> &para;</a><div class="date" title="2003-11-08 03:53"><strong>22 years ago</strong></div>
+  <div class="text" id="Hcom37280">
+<div class="phpcode"><pre><code class="html">Here is a extremely easy way to successfully logout.
+
+<span class="default">&lt;?php
+</span><span class="keyword">if ( </span><span class="default">$realm </span><span class="keyword">== </span><span class="string">'' </span><span class="keyword">)
+</span><span class="default">$realm </span><span class="keyword">= </span><span class="default">mt_rand</span><span class="keyword">( </span><span class="default">1</span><span class="keyword">, </span><span class="default">1000000000 </span><span class="keyword">);
+    </span><span class="default">header</span><span class="keyword">( </span><span class="string">'WWW-Authenticate: Basic realm='</span><span class="keyword">.</span><span class="default">$realm </span><span class="keyword">); 
+</span><span class="default">?&gt;
+</span>
+To log the user out simply change the value of $realm</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="125122">  <div class="votes">
+    <div id="Vu125122">
+    <a href="/manual/vote-note.php?id=125122&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd125122">
+    <a href="/manual/vote-note.php?id=125122&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V125122" title="54% like this...">
+    3
+    </div>
+  </div>
+  <a href="#125122" class="name">
+  <strong class="user"><em>patrick dot moire at socopa dot fr</em></strong></a><a class="genanchor" href="#125122"> &para;</a><div class="date" title="2020-06-17 12:12"><strong>5 years ago</strong></div>
+  <div class="text" id="Hcom125122">
+<div class="phpcode"><pre><code class="html">Samples Login / Logout script
+
+login.php :
+
+<span class="default">&lt;?php
+
+    </span><span class="comment">// Initisalition
+    </span><span class="keyword">if (</span><span class="default">$_COOKIE</span><span class="keyword">[</span><span class="string">"SESSION"</span><span class="keyword">]==</span><span class="string">''</span><span class="keyword">) {
+        </span><span class="default">setcookie</span><span class="keyword">(</span><span class="string">"SESSION"</span><span class="keyword">, </span><span class="string">'AUTH'</span><span class="keyword">, </span><span class="default">0</span><span class="keyword">,</span><span class="string">'/'</span><span class="keyword">); 
+        
+    </span><span class="comment">// Identification perdu (time-out ou logoff)
+    </span><span class="keyword">} else if (</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]!=</span><span class="string">'' </span><span class="keyword">&amp;&amp; </span><span class="default">$_COOKIE</span><span class="keyword">[</span><span class="string">"USER_SESSION"</span><span class="keyword">]==</span><span class="string">''</span><span class="keyword">) {
+        </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">] = </span><span class="string">''</span><span class="keyword">;
+    }
+
+    </span><span class="comment">// Controle identification à la base 
+    </span><span class="default">$ident </span><span class="keyword">= </span><span class="default">executeSQL</span><span class="keyword">(</span><span class="string">"SELECT * FROM UTILISATEURS WHERE upper(IDENTIFIANT)=Upper('"</span><span class="keyword">.</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">].</span><span class="string">"')"</span><span class="keyword">);
+    if (</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]!=</span><span class="string">'' </span><span class="keyword">&amp;&amp; </span><span class="default">strtoupper</span><span class="keyword">(</span><span class="default">$ident</span><span class="keyword">[</span><span class="string">'IDENTIFIANT'</span><span class="keyword">])==</span><span class="default">strtoupper</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">]) &amp;&amp; </span><span class="default">$ident</span><span class="keyword">[</span><span class="string">'MOT_DE_PASSE'</span><span class="keyword">]==</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_PW'</span><span class="keyword">]) {
+        </span><span class="default">$user </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_AUTH_USER'</span><span class="keyword">];
+        </span><span class="default">setcookie</span><span class="keyword">(</span><span class="string">"USER_SESSION"</span><span class="keyword">, </span><span class="default">$user</span><span class="keyword">, </span><span class="default">time</span><span class="keyword">()+</span><span class="default">300</span><span class="keyword">,</span><span class="string">'/'</span><span class="keyword">); </span><span class="comment">// 5 Minutes !
+    
+    // Mot de passe incorecte : demande identification
+    </span><span class="keyword">} else {
+        </span><span class="default">setcookie</span><span class="keyword">(</span><span class="string">"SESSION"</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">,</span><span class="string">'/'</span><span class="keyword">); 
+        </span><span class="default">header</span><span class="keyword">(</span><span class="string">'WWW-Authenticate: Basic realm="My Realm"'</span><span class="keyword">);
+        </span><span class="default">header</span><span class="keyword">(</span><span class="string">'HTTP/1.0 401 Unauthorized'</span><span class="keyword">);
+        die;
+    }
+    
+</span><span class="default">?&gt;
+</span>&lt;html&gt;
+    &lt;body &gt;
+
+        Bonjour <span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">$ident</span><span class="keyword">[</span><span class="string">'NOM'</span><span class="keyword">].</span><span class="string">' '</span><span class="keyword">.</span><span class="default">$ident</span><span class="keyword">[</span><span class="string">'PRENOM'</span><span class="keyword">]; </span><span class="default">?&gt;
+</span>        &lt;br&gt;
+        &lt;br&gt;
+        &lt;a href="<a href="http://logout.php" rel="nofollow" target="_blank">http://logout.php</a>"&gt;Deconnexion&lt;/a&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+
+logout.php :
+
+<span class="default">&lt;?php
+setcookie</span><span class="keyword">(</span><span class="string">"USER_SESSION"</span><span class="keyword">, </span><span class="string">''</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">,</span><span class="string">'/'</span><span class="keyword">);
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Location: <a href="http://login.php" rel="nofollow" target="_blank">http://login.php</a>'</span><span class="keyword">);
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="71069">  <div class="votes">
+    <div id="Vu71069">
+    <a href="/manual/vote-note.php?id=71069&amp;page=features.http-auth&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd71069">
+    <a href="/manual/vote-note.php?id=71069&amp;page=features.http-auth&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V71069" title="47% like this...">
+    -2
+    </div>
+  </div>
+  <a href="#71069" class="name">
+  <strong class="user"><em>Whatabrain</em></strong></a><a class="genanchor" href="#71069"> &para;</a><div class="date" title="2006-11-10 07:05"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom71069">
+<div class="phpcode"><pre><code class="html">Back to the problem of authenticating in CGI mode... mcbethh suggested using this to set a local variable in php:
+RewriteRule .* - [E=REMOTE_USER:%{HTTP:Authorization},L]
+
+It didn't work. I couldn't see the variable. My solution is pretty round-about, but it works:
+
+RewriteEngine on 
+RewriteCond %{HTTP:Authorization} !^$ 
+RewriteCond %{REQUEST_METHOD} =GET 
+RewriteCond %{QUERY_STRING} ="" 
+RewriteRule ^page.php$ page.php?login=%{HTTP:Authorization}$1 
+
+This causes the Auth string to be added to the URL if there are no parameters and it's a GET request. This prevents POSTs and parameter lists from being corrupted. 
+
+Then, in the PHP script, I store the Auth string as a session cookie.
+
+So the only way to log in to my script is to go to the url with no parameters.</code></pre></div>
+  </div>
+ </div></div>
+<div class="foot"><a href="/manual/add-note.php?sect=features.http-auth&amp;repo=en&amp;redirect=https://www.php.net/manual/en/features.http-auth.php">＋<small>add a note</small></a></div>
+</section>    </section><!-- layout-content -->
+        <aside class='layout-menu'>
+
+        <ul class='parent-menu-list'>
+                                    <li>
+                <a href="features.php">Features</a>
+
+                                    <ul class='child-menu-list'>
+
+                                                <li class="current">
+                            <a href="features.http-auth.php" title="HTTP authentication with PHP">HTTP authentication with PHP</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.cookies.php" title="Cookies">Cookies</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.sessions.php" title="Sessions">Sessions</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.file-upload.php" title="Handling file uploads">Handling file uploads</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.remote-files.php" title="Using remote files">Using remote files</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.connection-handling.php" title="Connection handling">Connection handling</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.persistent-connections.php" title="Persistent Database Connections">Persistent Database Connections</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.commandline.php" title="Command line usage">Command line usage</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.gc.php" title="Garbage Collection">Garbage Collection</a>
+                        </li>
+                                                <li class="">
+                            <a href="features.dtrace.php" title="DTrace Dynamic Tracing">DTrace Dynamic Tracing</a>
+                        </li>
+                        
+                    </ul>
+                
+            </li>
+                        
+                    </ul>
+    </aside>
+
+
+  </div><!-- layout -->
+
+  <footer>
+    <div class="container footer-content">
+      <div class="row-fluid">
+      <ul class="footmenu">
+        <li><a href="/manual/en/copyright.php">Copyright &copy; 2001-2025 The PHP Documentation Group</a></li>
+        <li><a href="/my.php">My PHP.net</a></li>
+        <li><a href="/contact.php">Contact</a></li>
+        <li><a href="/sites.php">Other PHP.net sites</a></li>
+        <li><a href="/privacy.php">Privacy policy</a></li>
+      </ul>
+      </div>
+    </div>
+  </footer>
+    
+<script src="/cached.php?t=1756715876&amp;f=/js/ext/jquery-3.6.0.min.js"></script>
+<script src="/cached.php?t=1756715876&amp;f=/js/ext/FuzzySearch.min.js"></script>
+<script src="/cached.php?t=1756715876&amp;f=/js/ext/mousetrap.min.js"></script>
+<script src="/cached.php?t=1756715876&amp;f=/js/ext/jquery.scrollTo.min.js"></script>
+<script src="/cached.php?t=1762397401&amp;f=/js/search.js"></script>
+<script src="/cached.php?t=1763563802&amp;f=/js/common.js"></script>
+<script type="module" src="/cached.php?t=1759587603&amp;f=/js/interactive-examples.js"></script>
+
+<a id="toTop" href="javascript:;"><span id="toTopHover"></span><img width="40" height="40" alt="To Top" src="/images/to-top@2x.png"></a>
+
+<div id="search-modal__backdrop" class="search-modal__backdrop">
+  <div
+    role="dialog"
+    aria-label="Search modal"
+    id="search-modal"
+    class="search-modal"
+  >
+    <div class="search-modal__header">
+      <div class="search-modal__form">
+        <div class="search-modal__input-icon">
+          <!-- https://feathericons.com search -->
+          <svg xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            width="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <input
+          type="search"
+          id="search-modal__input"
+          class="search-modal__input"
+          placeholder="Search docs"
+          aria-label="Search docs"
+        />
+      </div>
+
+      <button aria-label="Close" class="search-modal__close">
+        <!-- https://pictogrammers.com/library/mdi/icon/close/ -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+          width="24"
+          viewBox="0 0 24 24"
+        >
+          <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+        </svg>
+      </button>
+    </div>
+    <div
+      role="listbox"
+      aria-label="Search results"
+      id="search-modal__results"
+      class="search-modal__results"
+    ></div>
+    <div class="search-modal__helper-text">
+      <div>
+        <kbd>↑</kbd> and <kbd>↓</kbd> to navigate •
+        <kbd>Enter</kbd> to select •
+        <kbd>Esc</kbd> to close • <kbd>/</kbd> to open
+      </div>
+      <div>
+        Press <kbd>Enter</kbd> without
+        selection to search using Google
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
