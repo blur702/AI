@@ -63,40 +63,6 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 }
 ```
 
-### Traycer (VS Code Extension)
-
-Traycer supports MCP servers via its "Remote MCP Servers" feature.
-
-#### Option 1: Local MCP Server (Recommended)
-
-1. Open VS Code with the Traycer extension
-2. Click the **MCP icon** in the Traycer panel (top-right)
-3. Add a new local MCP server:
-   - **Name:** `Codebase Search`
-   - **Command:** `python`
-   - **Args:** `-m mcp_servers.documentation.main`
-   - **Working Directory:** `D:\AI`
-
-#### Option 2: Configure in VS Code Settings
-
-Add to your VS Code `settings.json`:
-
-```json
-{
-  "traycer.mcpServers": {
-    "documentation": {
-      "command": "python",
-      "args": ["-m", "mcp_servers.documentation.main"],
-      "cwd": "D:\\AI",
-      "env": {
-        "WEAVIATE_URL": "http://localhost:8080",
-        "OLLAMA_API_ENDPOINT": "http://127.0.0.1:11434"
-      }
-    }
-  }
-}
-```
-
 ## Tool Reference
 
 ### search_documentation
@@ -207,7 +173,7 @@ Environment variables (set in `.env` or shell):
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │   AI Assistant  │     │   MCP Server    │     │    Weaviate     │
-│  (Claude/Traycer)│────▶│  (STDIO/JSON)   │────▶│  (Vector DB)    │
+│     (Claude)     │────▶│  (STDIO/JSON)   │────▶│  (Vector DB)    │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
                                │
                                ▼
