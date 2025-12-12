@@ -81,22 +81,29 @@ async def capture_idea(
     source: str = "dev-session",
     session_id: Optional[str] = None,
 ) -> Idea:
-    """Capture a new idea to the database."""
-    async with AsyncSessionLocal() as session:
-        idea = Idea(
-            prompt=prompt,
-            category=category,
-            context=context,
-            tags=tags,
-            priority=priority,
-            source=source,
-            session_id=session_id,
-            status=IdeaStatus.captured,
-        )
-        session.add(idea)
-        await session.commit()
-        await session.refresh(idea)
-        return idea
+    """Capture a new idea to the database.
+
+    Raises:
+        RuntimeError: If database operation fails.
+    """
+    try:
+        async with AsyncSessionLocal() as session:
+            idea = Idea(
+                prompt=prompt,
+                category=category,
+                context=context,
+                tags=tags,
+                priority=priority,
+                source=source,
+                session_id=session_id,
+                status=IdeaStatus.captured,
+            )
+            session.add(idea)
+            await session.commit()
+            await session.refresh(idea)
+            return idea
+    except Exception as exc:
+        raise RuntimeError(f"Failed to capture idea: {exc}") from exc
 
 
 async def list_ideas(
@@ -105,39 +112,59 @@ async def list_ideas(
     status: Optional[str] = None,
     search: Optional[str] = None,
 ) -> List[Idea]:
-    """List ideas with optional filters."""
-    async with AsyncSessionLocal() as session:
-        query = select(Idea).order_by(Idea.created_at.desc())
+    """List ideas with optional filters.
 
-        if category:
-            query = query.where(Idea.category == category)
+    Raises:
+        RuntimeError: If database query fails.
+        ValueError: If invalid status provided.
+    """
+    try:
+        async with AsyncSessionLocal() as session:
+            query = select(Idea).order_by(Idea.created_at.desc())
 
-        if status:
-            query = query.where(Idea.status == IdeaStatus(status))
+            if category:
+                query = query.where(Idea.category == category)
 
-        if search:
-            search_pattern = f"%{search}%"
-            query = query.where(
-                or_(
-                    Idea.prompt.ilike(search_pattern),
-                    Idea.context.ilike(search_pattern),
-                    Idea.notes.ilike(search_pattern),
+            if status:
+                try:
+                    query = query.where(Idea.status == IdeaStatus(status))
+                except ValueError as exc:
+                    raise ValueError(f"Invalid status '{status}'") from exc
+
+            if search:
+                search_pattern = f"%{search}%"
+                query = query.where(
+                    or_(
+                        Idea.prompt.ilike(search_pattern),
+                        Idea.context.ilike(search_pattern),
+                        Idea.notes.ilike(search_pattern),
+                    )
                 )
-            )
 
-        query = query.limit(limit)
-        result = await session.execute(query)
-        return list(result.scalars().all())
+            query = query.limit(limit)
+            result = await session.execute(query)
+            return list(result.scalars().all())
+    except ValueError:
+        raise
+    except Exception as exc:
+        raise RuntimeError(f"Failed to list ideas: {exc}") from exc
 
 
 async def get_idea(idea_id: str) -> Optional[Idea]:
-    """Get a single idea by ID (supports short ID prefix matching)."""
-    async with AsyncSessionLocal() as session:
-        # Support short ID prefix matching (first 8 chars)
-        result = await session.execute(
-            select(Idea).where(Idea.id.startswith(idea_id))
-        )
-        return result.scalar_one_or_none()
+    """Get a single idea by ID (supports short ID prefix matching).
+
+    Raises:
+        RuntimeError: If database query fails.
+    """
+    try:
+        async with AsyncSessionLocal() as session:
+            # Support short ID prefix matching (first 8 chars)
+            result = await session.execute(
+                select(Idea).where(Idea.id.startswith(idea_id))
+            )
+            return result.scalar_one_or_none()
+    except Exception as exc:
+        raise RuntimeError(f"Failed to get idea: {exc}") from exc
 
 
 async def update_idea_status(
@@ -145,31 +172,38 @@ async def update_idea_status(
     status: IdeaStatus,
     notes: Optional[str] = None,
 ) -> Optional[Idea]:
-    """Update an idea's status (supports short ID prefix matching)."""
-    async with AsyncSessionLocal() as session:
-        # Support short ID prefix matching (first 8 chars)
-        result = await session.execute(
-            select(Idea).where(Idea.id.startswith(idea_id))
-        )
-        idea = result.scalar_one_or_none()
+    """Update an idea's status (supports short ID prefix matching).
 
-        if not idea:
-            return None
+    Raises:
+        RuntimeError: If database operation fails.
+    """
+    try:
+        async with AsyncSessionLocal() as session:
+            # Support short ID prefix matching (first 8 chars)
+            result = await session.execute(
+                select(Idea).where(Idea.id.startswith(idea_id))
+            )
+            idea = result.scalar_one_or_none()
 
-        idea.status = status
+            if not idea:
+                return None
 
-        if notes:
-            idea.notes = notes
+            idea.status = status
 
-        now = datetime.now(timezone.utc)
-        if status == IdeaStatus.reviewed:
-            idea.reviewed_at = now
-        elif status == IdeaStatus.implemented:
-            idea.implemented_at = now
+            if notes:
+                idea.notes = notes
 
-        await session.commit()
-        await session.refresh(idea)
-        return idea
+            now = datetime.now(timezone.utc)
+            if status == IdeaStatus.reviewed:
+                idea.reviewed_at = now
+            elif status == IdeaStatus.implemented:
+                idea.implemented_at = now
+
+            await session.commit()
+            await session.refresh(idea)
+            return idea
+    except Exception as exc:
+        raise RuntimeError(f"Failed to update idea status: {exc}") from exc
 
 
 def format_idea(idea: Idea, verbose: bool = False) -> str:
