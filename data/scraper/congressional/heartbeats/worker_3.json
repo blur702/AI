@@ -1,0 +1,12 @@
+{
+  "worker_id": 3,
+  "pid": 41160,
+  "started_at": "2025-12-12T17:56:46.809421+00:00",
+  "last_heartbeat": "2025-12-12T18:02:22.674391+00:00",
+  "current_member": "Craig A. Goldman",
+  "members_processed": 3,
+  "members_total": 23,
+  "pages_scraped": 14,
+  "status": "running",
+  "error": null
+}

@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "supervisor": {
+    "worker_count": 20,
+    "heartbeat_timeout_seconds": 300,
+    "health_check_interval_seconds": 30,
+    "max_restarts_per_worker": 3,
+    "restart_cooldown_seconds": 60,
+    "stale_heartbeat_kill_timeout_seconds": 600
+  },
+  "worker": {
+    "request_delay": 2.0,
+    "batch_size": 10,
+    "batch_delay": 5.0,
+    "max_pages_per_member": 5,
+    "checkpoint_interval": 5
+  },
+  "paths": {
+    "data_dir": "D:/AI/data/scraper/congressional",
+    "heartbeat_dir": "D:/AI/data/scraper/congressional/heartbeats",
+    "checkpoint_dir": "D:/AI/data/scraper/congressional/checkpoints",
+    "log_dir": "D:/AI/logs/congressional_scraper",
+    "pid_file": "D:/AI/data/scraper/congressional/supervisor.pid"
+  },
+  "task_scheduler": {
+    "task_name": "CongressionalScraperSupervisor",
+    "interval_minutes": 5
+  }
+}

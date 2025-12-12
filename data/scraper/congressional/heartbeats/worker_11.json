@@ -1,0 +1,12 @@
+{
+  "worker_id": 11,
+  "pid": 47036,
+  "started_at": "2025-12-12T17:56:47.805366+00:00",
+  "last_heartbeat": "2025-12-12T18:02:22.658773+00:00",
+  "current_member": "Marcy Kaptur",
+  "members_processed": 3,
+  "members_total": 23,
+  "pages_scraped": 15,
+  "status": "running",
+  "error": null
+}

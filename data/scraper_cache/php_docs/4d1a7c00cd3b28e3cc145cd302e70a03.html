@@ -1,0 +1,2175 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+     <base href="https://www.php.net/manual/en/language.references.php">
+  
+  <title>PHP: References Explained - Manual</title>
+
+      <link rel="stylesheet" type="text/css" href="/cached.php?t=1756715876&amp;f=/fonts/Fira/fira.css" media="screen">
+      <link rel="stylesheet" type="text/css" href="/cached.php?t=1756715876&amp;f=/fonts/Font-Awesome/css/fontello.css" media="screen">
+      <link rel="stylesheet" type="text/css" href="/cached.php?t=1763585401&amp;f=/styles/theme-base.css" media="screen">
+      <link rel="stylesheet" type="text/css" href="/cached.php?t=1763575802&amp;f=/styles/theme-medium.css" media="screen">
+  
+ <link rel="icon" type="image/svg+xml" sizes="any" href="https://www.php.net/favicon.svg?v=2">
+ <link rel="icon" type="image/png" sizes="196x196" href="https://www.php.net/favicon-196x196.png?v=2">
+ <link rel="icon" type="image/png" sizes="32x32" href="https://www.php.net/favicon-32x32.png?v=2">
+ <link rel="icon" type="image/png" sizes="16x16" href="https://www.php.net/favicon-16x16.png?v=2">
+ <link rel="shortcut icon" href="https://www.php.net/favicon.ico?v=2">
+
+ <link rel="search" type="application/opensearchdescription+xml" href="https://www.php.net/phpnetimprovedsearch.src" title="Add PHP.net search">
+ <link rel="alternate" type="application/atom+xml" href="https://www.php.net/releases/feed.php" title="PHP Release feed">
+ <link rel="alternate" type="application/atom+xml" href="https://www.php.net/feed.atom" title="PHP: Hypertext Preprocessor">
+
+ <link rel="canonical" href="https://www.php.net/manual/en/language.references.php">
+ <link rel="shorturl" href="https://www.php.net/references">
+ <link rel="alternate" href="https://www.php.net/references" hreflang="x-default">
+
+ <link rel="contents" href="https://www.php.net/manual/en/index.php">
+ <link rel="index" href="https://www.php.net/manual/en/langref.php">
+ <link rel="prev" href="https://www.php.net/manual/en/language.attributes.classes.php">
+ <link rel="next" href="https://www.php.net/manual/en/language.references.whatare.php">
+
+ <link rel="alternate" href="https://www.php.net/manual/en/language.references.php" hreflang="en">
+ <link rel="alternate" href="https://www.php.net/manual/de/language.references.php" hreflang="de">
+ <link rel="alternate" href="https://www.php.net/manual/es/language.references.php" hreflang="es">
+ <link rel="alternate" href="https://www.php.net/manual/fr/language.references.php" hreflang="fr">
+ <link rel="alternate" href="https://www.php.net/manual/it/language.references.php" hreflang="it">
+ <link rel="alternate" href="https://www.php.net/manual/ja/language.references.php" hreflang="ja">
+ <link rel="alternate" href="https://www.php.net/manual/pt_BR/language.references.php" hreflang="pt_BR">
+ <link rel="alternate" href="https://www.php.net/manual/ru/language.references.php" hreflang="ru">
+ <link rel="alternate" href="https://www.php.net/manual/tr/language.references.php" hreflang="tr">
+ <link rel="alternate" href="https://www.php.net/manual/uk/language.references.php" hreflang="uk">
+ <link rel="alternate" href="https://www.php.net/manual/zh/language.references.php" hreflang="zh">
+
+<link rel="stylesheet" type="text/css" href="/cached.php?t=1756715876&amp;f=/fonts/Fira/fira.css" media="screen">
+<link rel="stylesheet" type="text/css" href="/cached.php?t=1756715876&amp;f=/fonts/Font-Awesome/css/fontello.css" media="screen">
+<link rel="stylesheet" type="text/css" href="/cached.php?t=1763585401&amp;f=/styles/theme-base.css" media="screen">
+<link rel="stylesheet" type="text/css" href="/cached.php?t=1763575802&amp;f=/styles/theme-medium.css" media="screen">
+
+
+ <base href="https://www.php.net/manual/en/language.references.php">
+
+<meta name="Description" content="References Explained" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@official_php" />
+<meta name="twitter:title" content="PHP: References Explained - Manual" />
+<meta name="twitter:description" content="References Explained" />
+<meta name="twitter:creator" content="@official_php" />
+<meta name="twitter:image:src" content="https://www.php.net/images/meta-image.png" />
+
+<meta itemprop="name" content="PHP: References Explained - Manual" />
+<meta itemprop="description" content="References Explained" />
+<meta itemprop="image" content="https://www.php.net/images/meta-image.png" />
+
+<meta property="og:image" content="https://www.php.net/images/meta-image.png" />
+<meta property="og:description" content="References Explained" />
+
+<link href="https://fosstodon.org/@php" rel="me" />
+<!-- Matomo -->
+<script>
+    var _paq = window._paq = window._paq || [];
+    /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+    _paq.push(["setDoNotTrack", true]);
+    _paq.push(["disableCookies"]);
+    _paq.push(['trackPageView']);
+    _paq.push(['enableLinkTracking']);
+    (function() {
+        var u="https://analytics.php.net/";
+        _paq.push(['setTrackerUrl', u+'matomo.php']);
+        _paq.push(['setSiteId', '1']);
+        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+        g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
+    })();
+</script>
+<!-- End Matomo Code -->
+</head>
+<body class="docs "><a href="/x-myracloud-5958a2bbbed300a9b9ac631223924e0b/1765441907.938" style="display:  none">update page now</a>
+
+<nav class="navbar navbar-fixed-top">
+  <div class="navbar__inner">
+    <a href="/" aria-label="PHP Home" class="navbar__brand">
+      <img
+        src="/images/logos/php-logo-white.svg"
+        aria-hidden="true"
+        width="80"
+        height="40"
+      >
+    </a>
+
+    <div
+      id="navbar__offcanvas"
+      tabindex="-1"
+      class="navbar__offcanvas"
+      aria-label="Menu"
+    >
+      <button
+        id="navbar__close-button"
+        class="navbar__icon-item navbar_icon-item--visually-aligned navbar__close-button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" /></svg>
+      </button>
+
+      <ul class="navbar__nav">
+                            <li class="navbar__item">
+              <a
+                href="/downloads.php"
+                                class="navbar__link  "
+              >
+                                  Downloads                              </a>
+          </li>
+                            <li class="navbar__item">
+              <a
+                href="/docs.php"
+                aria-current="page"                class="navbar__link navbar__link--active "
+              >
+                                  Documentation                              </a>
+          </li>
+                            <li class="navbar__item">
+              <a
+                href="/get-involved.php"
+                                class="navbar__link  "
+              >
+                                  Get Involved                              </a>
+          </li>
+                            <li class="navbar__item">
+              <a
+                href="/support.php"
+                                class="navbar__link  "
+              >
+                                  Help                              </a>
+          </li>
+                            <li class="navbar__item">
+              <a
+                href="/releases/8.5/index.php"
+                                class="navbar__link  navbar__release"
+              >
+                                  <img src="/images/php8/logo_php8_5.svg" alt="PHP 8.5">
+                              </a>
+          </li>
+              </ul>
+    </div>
+
+    <div class="navbar__right">
+        
+      
+      <!-- Desktop default search -->
+      <form
+        action="/manual-lookup.php"
+        class="navbar__search-form"
+      >
+        <label for="navbar__search-input" aria-label="Search docs">
+          <svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8"></circle>
+  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>        </label>
+        <input
+          type="search"
+          name="pattern"
+          id="navbar__search-input"
+          class="navbar__search-input"
+          placeholder="Search docs"
+          accesskey="s"
+        >
+        <input type="hidden" name="scope" value="quickref">
+      </form>
+
+      <!-- Desktop encanced search -->
+      <button
+        id="navbar__search-button"
+        class="navbar__search-button"
+        hidden
+      >
+        <svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8"></circle>
+  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>        Search docs
+      </button>
+
+        
+      <!-- Mobile default items -->
+      <a
+        id="navbar__search-link"
+        href="/lookup-form.php"
+        aria-label="Search docs"
+        class="navbar__icon-item navbar__search-link"
+      >
+        <svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8"></circle>
+  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>      </a>
+      <a
+        id="navbar__menu-link"
+        href="/menu.php"
+        aria-label="Menu"
+        class="navbar__icon-item navbar_icon-item--visually-aligned navbar_menu-link"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+>
+  <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+</svg>      </a>
+
+      <!-- Mobile enhanced items -->
+      <button
+        id="navbar__search-button-mobile"
+        aria-label="Search docs"
+        class="navbar__icon-item navbar__search-button-mobile"
+        hidden
+      >
+        <svg
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <circle cx="11" cy="11" r="8"></circle>
+  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>      </button>
+      <button
+        id="navbar__menu-button"
+        aria-label="Menu"
+        class="navbar__icon-item navbar_icon-item--visually-aligned"
+        hidden
+      >
+        <svg xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  width="24"
+  viewBox="0 0 24 24"
+  fill="currentColor"
+>
+  <path d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z" />
+</svg>      </button>
+    </div>
+
+    <div
+      id="navbar__backdrop"
+      class="navbar__backdrop"
+    ></div>
+  </div>
+
+  <div id="flash-message"></div>
+</nav>
+<nav id="trick"><div><dl>
+<dt><a href='/manual/en/getting-started.php'>Getting Started</a></dt>
+	<dd><a href='/manual/en/introduction.php'>Introduction</a></dd>
+	<dd><a href='/manual/en/tutorial.php'>A simple tutorial</a></dd>
+<dt><a href='/manual/en/langref.php'>Language Reference</a></dt>
+	<dd><a href='/manual/en/language.basic-syntax.php'>Basic syntax</a></dd>
+	<dd><a href='/manual/en/language.types.php'>Types</a></dd>
+	<dd><a href='/manual/en/language.variables.php'>Variables</a></dd>
+	<dd><a href='/manual/en/language.constants.php'>Constants</a></dd>
+	<dd><a href='/manual/en/language.expressions.php'>Expressions</a></dd>
+	<dd><a href='/manual/en/language.operators.php'>Operators</a></dd>
+	<dd><a href='/manual/en/language.control-structures.php'>Control Structures</a></dd>
+	<dd><a href='/manual/en/language.functions.php'>Functions</a></dd>
+	<dd><a href='/manual/en/language.oop5.php'>Classes and Objects</a></dd>
+	<dd><a href='/manual/en/language.namespaces.php'>Namespaces</a></dd>
+	<dd><a href='/manual/en/language.enumerations.php'>Enumerations</a></dd>
+	<dd><a href='/manual/en/language.errors.php'>Errors</a></dd>
+	<dd><a href='/manual/en/language.exceptions.php'>Exceptions</a></dd>
+	<dd><a href='/manual/en/language.fibers.php'>Fibers</a></dd>
+	<dd><a href='/manual/en/language.generators.php'>Generators</a></dd>
+	<dd><a href='/manual/en/language.attributes.php'>Attributes</a></dd>
+	<dd><a href='/manual/en/language.references.php'>References Explained</a></dd>
+	<dd><a href='/manual/en/reserved.variables.php'>Predefined Variables</a></dd>
+	<dd><a href='/manual/en/reserved.exceptions.php'>Predefined Exceptions</a></dd>
+	<dd><a href='/manual/en/reserved.interfaces.php'>Predefined Interfaces and Classes</a></dd>
+	<dd><a href='/manual/en/reserved.attributes.php'>Predefined Attributes</a></dd>
+	<dd><a href='/manual/en/context.php'>Context options and parameters</a></dd>
+	<dd><a href='/manual/en/wrappers.php'>Supported Protocols and Wrappers</a></dd>
+</dl>
+<dl>
+<dt><a href='/manual/en/security.php'>Security</a></dt>
+	<dd><a href='/manual/en/security.intro.php'>Introduction</a></dd>
+	<dd><a href='/manual/en/security.general.php'>General considerations</a></dd>
+	<dd><a href='/manual/en/security.cgi-bin.php'>Installed as CGI binary</a></dd>
+	<dd><a href='/manual/en/security.apache.php'>Installed as an Apache module</a></dd>
+	<dd><a href='/manual/en/security.sessions.php'>Session Security</a></dd>
+	<dd><a href='/manual/en/security.filesystem.php'>Filesystem Security</a></dd>
+	<dd><a href='/manual/en/security.database.php'>Database Security</a></dd>
+	<dd><a href='/manual/en/security.errors.php'>Error Reporting</a></dd>
+	<dd><a href='/manual/en/security.variables.php'>User Submitted Data</a></dd>
+	<dd><a href='/manual/en/security.hiding.php'>Hiding PHP</a></dd>
+	<dd><a href='/manual/en/security.current.php'>Keeping Current</a></dd>
+<dt><a href='/manual/en/features.php'>Features</a></dt>
+	<dd><a href='/manual/en/features.http-auth.php'>HTTP authentication with PHP</a></dd>
+	<dd><a href='/manual/en/features.cookies.php'>Cookies</a></dd>
+	<dd><a href='/manual/en/features.sessions.php'>Sessions</a></dd>
+	<dd><a href='/manual/en/features.file-upload.php'>Handling file uploads</a></dd>
+	<dd><a href='/manual/en/features.remote-files.php'>Using remote files</a></dd>
+	<dd><a href='/manual/en/features.connection-handling.php'>Connection handling</a></dd>
+	<dd><a href='/manual/en/features.persistent-connections.php'>Persistent Database Connections</a></dd>
+	<dd><a href='/manual/en/features.commandline.php'>Command line usage</a></dd>
+	<dd><a href='/manual/en/features.gc.php'>Garbage Collection</a></dd>
+	<dd><a href='/manual/en/features.dtrace.php'>DTrace Dynamic Tracing</a></dd>
+</dl>
+<dl>
+<dt><a href='/manual/en/funcref.php'>Function Reference</a></dt>
+	<dd><a href='/manual/en/refs.basic.php.php'>Affecting PHP's Behaviour</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.audio.php'>Audio Formats Manipulation</a></dd>
+	<dd><a href='/manual/en/refs.remote.auth.php'>Authentication Services</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.cmdline.php'>Command Line Specific Extensions</a></dd>
+	<dd><a href='/manual/en/refs.compression.php'>Compression and Archive Extensions</a></dd>
+	<dd><a href='/manual/en/refs.crypto.php'>Cryptography Extensions</a></dd>
+	<dd><a href='/manual/en/refs.database.php'>Database Extensions</a></dd>
+	<dd><a href='/manual/en/refs.calendar.php'>Date and Time Related Extensions</a></dd>
+	<dd><a href='/manual/en/refs.fileprocess.file.php'>File System Related Extensions</a></dd>
+	<dd><a href='/manual/en/refs.international.php'>Human Language and Character Encoding Support</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.image.php'>Image Processing and Generation</a></dd>
+	<dd><a href='/manual/en/refs.remote.mail.php'>Mail Related Extensions</a></dd>
+	<dd><a href='/manual/en/refs.math.php'>Mathematical Extensions</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.nontext.php'>Non-Text MIME Output</a></dd>
+	<dd><a href='/manual/en/refs.fileprocess.process.php'>Process Control Extensions</a></dd>
+	<dd><a href='/manual/en/refs.basic.other.php'>Other Basic Extensions</a></dd>
+	<dd><a href='/manual/en/refs.remote.other.php'>Other Services</a></dd>
+	<dd><a href='/manual/en/refs.search.php'>Search Engine Extensions</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.server.php'>Server Specific Extensions</a></dd>
+	<dd><a href='/manual/en/refs.basic.session.php'>Session Extensions</a></dd>
+	<dd><a href='/manual/en/refs.basic.text.php'>Text Processing</a></dd>
+	<dd><a href='/manual/en/refs.basic.vartype.php'>Variable and Type Related Extensions</a></dd>
+	<dd><a href='/manual/en/refs.webservice.php'>Web Services</a></dd>
+	<dd><a href='/manual/en/refs.utilspec.windows.php'>Windows Only Extensions</a></dd>
+	<dd><a href='/manual/en/refs.xml.php'>XML Manipulation</a></dd>
+	<dd><a href='/manual/en/refs.ui.php'>GUI Extensions</a></dd>
+</dl>
+<dl>
+<dt>Keyboard Shortcuts</dt><dt>?</dt>
+<dd>This help</dd>
+<dt>j</dt>
+<dd>Next menu item</dd>
+<dt>k</dt>
+<dd>Previous menu item</dd>
+<dt>g p</dt>
+<dd>Previous man page</dd>
+<dt>g n</dt>
+<dd>Next man page</dd>
+<dt>G</dt>
+<dd>Scroll to bottom</dd>
+<dt>g g</dt>
+<dd>Scroll to top</dd>
+<dt>g h</dt>
+<dd>Goto homepage</dd>
+<dt>g s</dt>
+<dd>Goto search<br>(current page)</dd>
+<dt>/</dt>
+<dd>Focus search box</dd>
+</dl></div></nav>
+<div id="goto">
+    <div class="search">
+         <div class="text"></div>
+         <div class="results"><ul></ul></div>
+   </div>
+</div>
+
+  <div id="breadcrumbs" class="clearfix">
+    <div id="breadcrumbs-inner">
+          <div class="next">
+        <a href="language.references.whatare.php">
+          What References Are &raquo;
+        </a>
+      </div>
+              <div class="prev">
+        <a href="language.attributes.classes.php">
+          &laquo; Declaring Attribute Classes        </a>
+      </div>
+          <ul>
+            <li><a href='index.php'>PHP Manual</a></li>      <li><a href='langref.php'>Language Reference</a></li>      </ul>
+    </div>
+  </div>
+
+
+
+
+<div id="layout" class="clearfix">
+  <section id="layout-content">
+  <div class="page-tools">
+    <div class="change-language">
+      <form action="/manual/change.php" method="get" id="changelang" name="changelang">
+        <fieldset>
+          <label for="changelang-langs">Change language:</label>
+          <select onchange="document.changelang.submit()" name="page" id="changelang-langs">
+            <option value='en/language.references.php' selected="selected">English</option>
+            <option value='de/language.references.php'>German</option>
+            <option value='es/language.references.php'>Spanish</option>
+            <option value='fr/language.references.php'>French</option>
+            <option value='it/language.references.php'>Italian</option>
+            <option value='ja/language.references.php'>Japanese</option>
+            <option value='pt_BR/language.references.php'>Brazilian Portuguese</option>
+            <option value='ru/language.references.php'>Russian</option>
+            <option value='tr/language.references.php'>Turkish</option>
+            <option value='uk/language.references.php'>Ukrainian</option>
+            <option value='zh/language.references.php'>Chinese (Simplified)</option>
+            <option value='help-translate.php'>Other</option>
+          </select>
+        </fieldset>
+      </form>
+    </div>
+  </div><div id="language.references" class="chapter">
+  <h1 class="title">References Explained</h1>
+<h2>Table of Contents</h2><ul class="chunklist chunklist_chapter"><li><a href="language.references.whatare.php">What References Are</a></li><li><a href="language.references.whatdo.php">What References Do</a></li><li><a href="language.references.arent.php">What References Are Not</a></li><li><a href="language.references.pass.php">Passing by Reference</a></li><li><a href="language.references.return.php">Returning References</a></li><li><a href="language.references.unset.php">Unsetting References</a></li><li><a href="language.references.spot.php">Spotting References</a></li></ul>
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+ </div>
+    <div class="contribute">
+      <h3 class="title">Found A Problem?</h3>
+      <div>
+         
+      </div>
+      <div class="edit-bug">
+        <a href="https://github.com/php/doc-base/blob/master/README.md" title="This will take you to our contribution guidelines on GitHub" target="_blank" rel="noopener noreferrer">Learn How To Improve This Page</a>
+        •
+        <a href="https://github.com/php/doc-en/blob/master/language/references.xml">Submit a Pull Request</a>
+        •
+        <a href="https://github.com/php/doc-en/issues/new?body=From%20manual%20page:%20https:%2F%2Fphp.net%2Flanguage.references%0A%0A---">Report a Bug</a>
+      </div>
+    </div><section id="usernotes">
+ <div class="head">
+  <span class="action"><a href="/manual/add-note.php?sect=language.references&amp;repo=en&amp;redirect=https://www.php.net/manual/en/language.references.php">＋<small>add a note</small></a></span>
+  <h3 class="title">User Contributed Notes <span class="count">35 notes</span></h3>
+ </div><div id="allnotes">
+  <div class="note" id="83325">  <div class="votes">
+    <div id="Vu83325">
+    <a href="/manual/vote-note.php?id=83325&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd83325">
+    <a href="/manual/vote-note.php?id=83325&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V83325" title="62% like this...">
+    83
+    </div>
+  </div>
+  <a href="#83325" class="name">
+  <strong class="user"><em>Dave at SymmetricDesigns dot com</em></strong></a><a class="genanchor" href="#83325"> &para;</a><div class="date" title="2008-05-20 11:24"><strong>17 years ago</strong></div>
+  <div class="text" id="Hcom83325">
+<div class="phpcode"><pre><code class="html">Another example of something to watch out for when using references with arrays.  It seems that even an usused reference to an array cell modifies the *source* of the reference.  Strange behavior for an assignment statement (is this why I've seen it written as an =&amp; operator?  - although this doesn't happen with regular variables).
+<span class="default">&lt;?php
+    $array1 </span><span class="keyword">= array(</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">);
+    </span><span class="default">$x </span><span class="keyword">= &amp;</span><span class="default">$array1</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];   </span><span class="comment">// Unused reference
+    </span><span class="default">$array2 </span><span class="keyword">= </span><span class="default">$array1</span><span class="keyword">;  </span><span class="comment">// reference now also applies to $array2 !
+    </span><span class="default">$array2</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]=</span><span class="default">22</span><span class="keyword">;      </span><span class="comment">// (changing [0] will not affect $array1)
+    </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$array1</span><span class="keyword">);
+</span><span class="default">?&gt;
+</span>Produces:
+    Array
+    (
+    [0] =&gt; 1
+    [1] =&gt; 22    // var_dump() will show the &amp; here
+    )
+
+I fixed my bug by rewriting the code without references, but it can also be fixed with the unset() function:
+<span class="default">&lt;?php
+    $array1 </span><span class="keyword">= array(</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">);
+    </span><span class="default">$x </span><span class="keyword">= &amp;</span><span class="default">$array1</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];
+    </span><span class="default">$array2 </span><span class="keyword">= </span><span class="default">$array1</span><span class="keyword">;
+    unset(</span><span class="default">$x</span><span class="keyword">); </span><span class="comment">// Array copy is now unaffected by above reference
+    </span><span class="default">$array2</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]=</span><span class="default">22</span><span class="keyword">;
+    </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$array1</span><span class="keyword">);
+</span><span class="default">?&gt;
+</span>Produces:
+    Array
+    (
+    [0] =&gt; 1
+    [1] =&gt; 2
+    )</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="50950">  <div class="votes">
+    <div id="Vu50950">
+    <a href="/manual/vote-note.php?id=50950&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd50950">
+    <a href="/manual/vote-note.php?id=50950&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V50950" title="69% like this...">
+    17
+    </div>
+  </div>
+  <a href="#50950" class="name">
+  <strong class="user"><em>Carlos</em></strong></a><a class="genanchor" href="#50950"> &para;</a><div class="date" title="2005-03-14 12:09"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom50950">
+<div class="phpcode"><pre><code class="html">in the example below, you would get the same result if you change the function to something like:
+
+function test_ref(&amp;$arr) {
+   $time = time();
+   $size = sizeof($arr);       // &lt;--- this makes difference...
+   for($n=0; $n&lt;$size; $n++) {
+       $x = 1;
+   }
+
+   echo "&lt;br /&gt;The function using a reference took ".(time() - $time)." s";
+}</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="99644">  <div class="votes">
+    <div id="Vu99644">
+    <a href="/manual/vote-note.php?id=99644&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd99644">
+    <a href="/manual/vote-note.php?id=99644&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V99644" title="66% like this...">
+    14
+    </div>
+  </div>
+  <a href="#99644" class="name">
+  <strong class="user"><em>gnuffo1 at gmail dot com</em></strong></a><a class="genanchor" href="#99644"> &para;</a><div class="date" title="2010-08-27 07:07"><strong>15 years ago</strong></div>
+  <div class="text" id="Hcom99644">
+<div class="phpcode"><pre><code class="html">If you want to know the reference count of a particular variable, then here's a function that makes use of debug_zval_dump() to do so:
+
+<span class="default">&lt;?php
+</span><span class="keyword">function </span><span class="default">refcount</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">)
+{
+    </span><span class="default">ob_start</span><span class="keyword">();
+    </span><span class="default">debug_zval_dump</span><span class="keyword">(</span><span class="default">$var</span><span class="keyword">);
+    </span><span class="default">$dump </span><span class="keyword">= </span><span class="default">ob_get_clean</span><span class="keyword">();
+
+    </span><span class="default">$matches </span><span class="keyword">= array();
+    </span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/refcount\(([0-9]+)/'</span><span class="keyword">, </span><span class="default">$dump</span><span class="keyword">, </span><span class="default">$matches</span><span class="keyword">);
+
+    </span><span class="default">$count </span><span class="keyword">= </span><span class="default">$matches</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];
+
+    </span><span class="comment">//3 references are added, including when calling debug_zval_dump()
+    </span><span class="keyword">return </span><span class="default">$count </span><span class="keyword">- </span><span class="default">3</span><span class="keyword">;
+}
+</span><span class="default">?&gt;
+</span>
+debug_zval_dump() is a confusing function, as explained in its documentation, as among other things, it adds a reference count when being called as there is a reference within the function. refcount() takes account of these extra references by subtracting them for the return value.
+
+It's also even more confusing when dealing with variables that have been assigned by reference (=&amp;), either on the right or left side of the assignment, so for that reason, the above function doesn't really work for those sorts of variables. I'd use it more on object instances.
+
+However, even taking into account that passing a variable to a function adds one to the reference count; which should mean that calling refcount() adds one, and then calling debug_zval_dump() adds another, refcount() seems to have aquired another reference from somewhere; hence subtracting 3 instead of 2 in the return line. Not quite sure where that comes from.
+
+I've only tested this on 5.3; due to the nature of debug_zval_dump(), the results may be completely different on other versions.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="87532">  <div class="votes">
+    <div id="Vu87532">
+    <a href="/manual/vote-note.php?id=87532&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd87532">
+    <a href="/manual/vote-note.php?id=87532&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V87532" title="57% like this...">
+    32
+    </div>
+  </div>
+  <a href="#87532" class="name">
+  <strong class="user"><em>ivan at mailinator dot com</em></strong></a><a class="genanchor" href="#87532"> &para;</a><div class="date" title="2008-12-09 05:09"><strong>17 years ago</strong></div>
+  <div class="text" id="Hcom87532">
+<div class="phpcode"><pre><code class="html">A little gotcha (be careful with references!):
+
+<span class="default">&lt;?php
+$arr </span><span class="keyword">= array(</span><span class="string">'a'</span><span class="keyword">=&gt;</span><span class="string">'first'</span><span class="keyword">, </span><span class="string">'b'</span><span class="keyword">=&gt;</span><span class="string">'second'</span><span class="keyword">, </span><span class="string">'c'</span><span class="keyword">=&gt;</span><span class="string">'third'</span><span class="keyword">);
+foreach (</span><span class="default">$arr </span><span class="keyword">as &amp;</span><span class="default">$a</span><span class="keyword">); </span><span class="comment">// do nothing. maybe?
+</span><span class="keyword">foreach (</span><span class="default">$arr </span><span class="keyword">as </span><span class="default">$a</span><span class="keyword">);  </span><span class="comment">// do nothing. maybe?
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">);
+</span><span class="default">?&gt;
+</span>Output:
+
+Array
+(
+    [a] =&gt; first
+    [b] =&gt; second
+    [c] =&gt; second
+)
+
+Add 'unset($a)' between the foreachs to obtain the 'correct' output:
+
+Array
+(
+    [a] =&gt; first
+    [b] =&gt; second
+    [c] =&gt; third
+)</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="45696">  <div class="votes">
+    <div id="Vu45696">
+    <a href="/manual/vote-note.php?id=45696&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd45696">
+    <a href="/manual/vote-note.php?id=45696&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V45696" title="69% like this...">
+    10
+    </div>
+  </div>
+  <a href="#45696" class="name">
+  <strong class="user"><em>hkmaly at bigfoot dot com</em></strong></a><a class="genanchor" href="#45696"> &para;</a><div class="date" title="2004-09-15 08:11"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom45696">
+<div class="phpcode"><pre><code class="html">It seems like PHP has problems with references, like that it can't work properly with circular references or free properly structure with more references. See <a href="http://bugs.php.net/?id=30053." rel="nofollow" target="_blank">http://bugs.php.net/?id=30053.</a>
+
+I have big problem with this and I hope someone from PHP add proper warning with explanation IN manual, if they can't fix it.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="56115">  <div class="votes">
+    <div id="Vu56115">
+    <a href="/manual/vote-note.php?id=56115&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd56115">
+    <a href="/manual/vote-note.php?id=56115&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V56115" title="66% like this...">
+    13
+    </div>
+  </div>
+  <a href="#56115" class="name">
+  <strong class="user"><em>php at REMOVEMEkennel17 dot co dot uk</em></strong></a><a class="genanchor" href="#56115"> &para;</a><div class="date" title="2005-08-23 06:56"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom56115">
+<div class="phpcode"><pre><code class="html">I found a very useful summary of how references work in PHP4 (and some of the common pitfalls) in this article: <a href="http://www.obdev.at/developers/articles/00002.html" rel="nofollow" target="_blank">http://www.obdev.at/developers/articles/00002.html</a>
+
+It deals with some subtle situations and I recommend it to anyone having difficulty with their references.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="114620">  <div class="votes">
+    <div id="Vu114620">
+    <a href="/manual/vote-note.php?id=114620&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd114620">
+    <a href="/manual/vote-note.php?id=114620&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V114620" title="64% like this...">
+    11
+    </div>
+  </div>
+  <a href="#114620" class="name">
+  <strong class="user"><em>alexander at gamerev dot org</em></strong></a><a class="genanchor" href="#114620"> &para;</a><div class="date" title="2014-03-13 02:47"><strong>11 years ago</strong></div>
+  <div class="text" id="Hcom114620">
+<div class="phpcode"><pre><code class="html">Simply put, here's an example of what referencing IS:
+
+<span class="default">&lt;?php
+    $foo  </span><span class="keyword">= </span><span class="default">5</span><span class="keyword">;
+    </span><span class="default">$bar </span><span class="keyword">= &amp;</span><span class="default">$foo</span><span class="keyword">;
+    </span><span class="default">$bar</span><span class="keyword">++;
+    
+    echo </span><span class="default">$foo</span><span class="keyword">;
+</span><span class="default">?&gt;
+</span>
+The above example will output the value 6, because $bar references the value of $foo, therefore, when changing $bar's value, you also change $foo's value too.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="41114">  <div class="votes">
+    <div id="Vu41114">
+    <a href="/manual/vote-note.php?id=41114&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd41114">
+    <a href="/manual/vote-note.php?id=41114&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V41114" title="64% like this...">
+    11
+    </div>
+  </div>
+  <a href="#41114" class="name">
+  <strong class="user"><em>iryoku at terra dot es</em></strong></a><a class="genanchor" href="#41114"> &para;</a><div class="date" title="2004-03-30 10:22"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom41114">
+<div class="phpcode"><pre><code class="html">You should have in mind that php4 keep assigned variables "automagically" referenced until they are overwritten. So the variable copy is not executed on assignment, but on modification. Say you have this:
+
+$var1 = 5;
+$var2 = $var1; // In this point these two variables share the same memory location
+$var1 = 3; // Here $var1 and $var2 have they own memory locations with values 3 and 5 respectively
+
+Don't use references in function parameters to speed up aplications, because this is automatically done. I think that this should be in the manual, because it can lead to confusion.
+
+More about this here:
+<a href="http://www.zend.com/zend/art/ref-count.php" rel="nofollow" target="_blank">http://www.zend.com/zend/art/ref-count.php</a></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="79220">  <div class="votes">
+    <div id="Vu79220">
+    <a href="/manual/vote-note.php?id=79220&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd79220">
+    <a href="/manual/vote-note.php?id=79220&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V79220" title="63% like this...">
+    12
+    </div>
+  </div>
+  <a href="#79220" class="name">
+  <strong class="user"><em>marco at greenlightsolutions dot nl</em></strong></a><a class="genanchor" href="#79220"> &para;</a><div class="date" title="2007-11-15 02:38"><strong>18 years ago</strong></div>
+  <div class="text" id="Hcom79220">
+<div class="phpcode"><pre><code class="html">I ran into a bit of a problem recently, with an array copy resulting in a reference copy of one of the elements instead of a clone. Sample code:
+
+<span class="default">&lt;?php
+$a</span><span class="keyword">=array(</span><span class="default">1 </span><span class="keyword">=&gt; </span><span class="string">"A"</span><span class="keyword">);
+</span><span class="default">$b</span><span class="keyword">=&amp;</span><span class="default">$a</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];
+</span><span class="default">$c</span><span class="keyword">=</span><span class="default">$a</span><span class="keyword">; </span><span class="comment">// should be a deep cloning
+</span><span class="default">$c</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]=</span><span class="string">"C"</span><span class="keyword">;
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]); </span><span class="comment">// yields 'C' instead of 'A'
+</span><span class="default">?&gt;
+</span>
+After some searching, I found that it was a known bug which would be too costly to fix (see <a href="http://bugs.php.net/bug.php?id=20993" rel="nofollow" target="_blank">http://bugs.php.net/bug.php?id=20993</a>). There was supposed to be some documentation on this behaviour on this page:
+
+"Due to peculiarities of the internal workings of PHP, if a reference  is made to a single element of an array and then the array is copied, whether by assignment or when passed by value in a function call, the reference is copied as part of the array.  This means that changes to any such elements in either array will be duplicated in the other array (and in the other references), even if the arrays have different scopes (e.g. one is an argument inside a function and the other is global)!  Elements that did not have references at the time of the copy, as well as references assigned to those other elements after the copy of the array, will behave normally (i.e. independent of the other array)."
+
+However, this paragraph appears to have been removed from this page at some point, presumably because it was a bit obscure. The comments section seem to be a proper place for this, though.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="41300">  <div class="votes">
+    <div id="Vu41300">
+    <a href="/manual/vote-note.php?id=41300&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd41300">
+    <a href="/manual/vote-note.php?id=41300&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V41300" title="62% like this...">
+    14
+    </div>
+  </div>
+  <a href="#41300" class="name">
+  <strong class="user"><em>nathan</em></strong></a><a class="genanchor" href="#41300"> &para;</a><div class="date" title="2004-04-05 10:53"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom41300">
+<div class="phpcode"><pre><code class="html">On the post that says php4 automagically makes references, this appears to *not* apply to objects:
+
+<a href="http://www.php.net/manual/en/language.references.whatdo.php" rel="nofollow" target="_blank">http://www.php.net/manual/en/language.references.whatdo.php</a>
+
+"Note:  Not using the &amp; operator causes a copy of the object to be made. If you use $this in the class it will operate on the current instance of the class. The assignment without &amp; will copy the instance (i.e. the object) and $this will operate on the copy, which is not always what is desired. Usually you want to have a single instance to work with, due to performance and memory consumption issues."</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="83737">  <div class="votes">
+    <div id="Vu83737">
+    <a href="/manual/vote-note.php?id=83737&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd83737">
+    <a href="/manual/vote-note.php?id=83737&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V83737" title="60% like this...">
+    16
+    </div>
+  </div>
+  <a href="#83737" class="name">
+  <strong class="user"><em>dnhuff at acm dot org</em></strong></a><a class="genanchor" href="#83737"> &para;</a><div class="date" title="2008-06-09 12:40"><strong>17 years ago</strong></div>
+  <div class="text" id="Hcom83737">
+<div class="phpcode"><pre><code class="html">This is discussed before (below) but bears repeating:
+
+$a = null; ($a =&amp; null; does not parse) is NOT the same as unset($a);
+
+$a = null; replaces the value at the destination of $a with the null value;
+
+If you chose to use a convention like $NULL = NULL;
+
+THEN, you could say $a =&amp; $NULL to break any previous reference assignment to $a (setting it of course to $NULL), which could still get you into trouble if you forgot and then said $a = '5'. Now $NULL would be '5'.
+
+Moral: use unset when it is called for.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="89264">  <div class="votes">
+    <div id="Vu89264">
+    <a href="/manual/vote-note.php?id=89264&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd89264">
+    <a href="/manual/vote-note.php?id=89264&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V89264" title="58% like this...">
+    18
+    </div>
+  </div>
+  <a href="#89264" class="name">
+  <strong class="user"><em>midir</em></strong></a><a class="genanchor" href="#89264"> &para;</a><div class="date" title="2009-02-28 11:44"><strong>16 years ago</strong></div>
+  <div class="text" id="Hcom89264">
+<div class="phpcode"><pre><code class="html">Here is a good magazine article (PDF format) that explains the internals of PHP's reference mechanism in detail: <a href="http://derickrethans.nl/files/phparch-php-variables-article.pdf" rel="nofollow" target="_blank">http://derickrethans.nl/files/phparch-php-variables-article.pdf</a>
+
+It should explain some of the odd behavior PHP sometimes seems to exhibit, as well as why you can't create "references to references" (unlike in C++), and why you should never attempt to use references to speed up passing of large strings or arrays (it will make no difference, or it will slow things down).
+
+It was written for PHP 4 but it still applies. The only difference is in how PHP 5 handles objects: passing object variables by value only copies an internal pointer to the object. Objects in PHP 5 are only ever duplicated if you explicitly use the clone keyword.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="84088">  <div class="votes">
+    <div id="Vu84088">
+    <a href="/manual/vote-note.php?id=84088&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd84088">
+    <a href="/manual/vote-note.php?id=84088&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V84088" title="63% like this...">
+    8
+    </div>
+  </div>
+  <a href="#84088" class="name">
+  <strong class="user"><em>mpapec</em></strong></a><a class="genanchor" href="#84088"> &para;</a><div class="date" title="2008-06-26 05:23"><strong>17 years ago</strong></div>
+  <div class="text" id="Hcom84088">
+<div class="phpcode"><pre><code class="html">It's strange that function definition AND call to the same function must have "&amp;" before them. 
+
+$arr = array();
+$ref =&amp; oras($arr['blah'], array());
+$ref []= "via ref";
+print_r($arr);
+
+/* result
+Array
+(
+    [blah] =&gt; Array
+        (
+            [0] =&gt; via ref
+        )
+
+)
+*/
+
+// perl like ||=
+function &amp;oras (&amp;$v, $new) {
+  $v or $v = $new;
+  return $v;
+}</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="107946">  <div class="votes">
+    <div id="Vu107946">
+    <a href="/manual/vote-note.php?id=107946&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd107946">
+    <a href="/manual/vote-note.php?id=107946&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V107946" title="62% like this...">
+    7
+    </div>
+  </div>
+  <a href="#107946" class="name">
+  <strong class="user"><em>sneskid at hotmail dot com</em></strong></a><a class="genanchor" href="#107946"> &para;</a><div class="date" title="2012-03-15 10:19"><strong>13 years ago</strong></div>
+  <div class="text" id="Hcom107946">
+<div class="phpcode"><pre><code class="html">There is no built in method (yet) to check if two variables are references to the same piece of data, but you can do a "reference sniff" test. This is rarely needed, but can be very useful. The function bellow is a slightly modified version of this technique I saw in a forum regarding this comparison limitation.
+
+<span class="default">&lt;?php
+</span><span class="keyword">function </span><span class="default">is_ref_to</span><span class="keyword">(&amp;</span><span class="default">$a</span><span class="keyword">, &amp;</span><span class="default">$b</span><span class="keyword">)
+{
+    </span><span class="default">$t </span><span class="keyword">= </span><span class="default">$a</span><span class="keyword">;
+    if(</span><span class="default">$r</span><span class="keyword">=(</span><span class="default">$b</span><span class="keyword">===(</span><span class="default">$a</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">))){ </span><span class="default">$r </span><span class="keyword">= (</span><span class="default">$b</span><span class="keyword">===(</span><span class="default">$a</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">)); }
+    </span><span class="default">$a </span><span class="keyword">= </span><span class="default">$t</span><span class="keyword">;
+    return </span><span class="default">$r</span><span class="keyword">;
+}
+
+</span><span class="default">$varA </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;
+</span><span class="default">$varB </span><span class="keyword">= </span><span class="default">$varA</span><span class="keyword">;
+</span><span class="default">$varC </span><span class="keyword">=&amp;</span><span class="default">$varA</span><span class="keyword">;
+
+</span><span class="default">var_dump</span><span class="keyword">( </span><span class="default">is_ref_to</span><span class="keyword">(</span><span class="default">$varA</span><span class="keyword">, </span><span class="default">$varB</span><span class="keyword">) ); </span><span class="comment">// bool(false)
+</span><span class="default">var_dump</span><span class="keyword">( </span><span class="default">is_ref_to</span><span class="keyword">(</span><span class="default">$varA</span><span class="keyword">, </span><span class="default">$varC</span><span class="keyword">) ); </span><span class="comment">// bool(true)
+</span><span class="default">?&gt;
+</span>
+The test above uses a two step process to be 100% generic.
+But if you are sure the variables being tested will not be a certain value, example null, then use that value to allow a one step check.
+
+<span class="default">&lt;?php
+</span><span class="keyword">function </span><span class="default">is_ref_to_1step</span><span class="keyword">(&amp;</span><span class="default">$a</span><span class="keyword">, &amp;</span><span class="default">$b</span><span class="keyword">)
+{
+    </span><span class="default">$t </span><span class="keyword">= </span><span class="default">$a</span><span class="keyword">;
+    </span><span class="default">$r</span><span class="keyword">=(</span><span class="default">$b</span><span class="keyword">===(</span><span class="default">$a</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">));
+    </span><span class="default">$a </span><span class="keyword">= </span><span class="default">$t</span><span class="keyword">;
+    return </span><span class="default">$r</span><span class="keyword">;
+}
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="73663">  <div class="votes">
+    <div id="Vu73663">
+    <a href="/manual/vote-note.php?id=73663&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd73663">
+    <a href="/manual/vote-note.php?id=73663&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V73663" title="61% like this...">
+    8
+    </div>
+  </div>
+  <a href="#73663" class="name">
+  <strong class="user"><em>sneskid at hotmail dot com</em></strong></a><a class="genanchor" href="#73663"> &para;</a><div class="date" title="2007-03-06 12:47"><strong>18 years ago</strong></div>
+  <div class="text" id="Hcom73663">
+<div class="phpcode"><pre><code class="html">(v5.1.4)
+One cool thing about var_dump is it shows which variables are references (when dumping arrays), symbolized by '∫' for int/null, and by '&amp;' for boolean/double/string/array/object. I don't know why the difference in symmmmbolism.
+After playing around I found a better way to implement detaching (twas by accident). var_dump can show what's going on.
+
+<span class="default">&lt;?php
+</span><span class="keyword">function &amp;</span><span class="default">detach</span><span class="keyword">(</span><span class="default">$v</span><span class="keyword">=</span><span class="default">null</span><span class="keyword">){return </span><span class="default">$v</span><span class="keyword">;}
+
+</span><span class="default">$A</span><span class="keyword">=array(</span><span class="string">'x' </span><span class="keyword">=&gt; </span><span class="default">123</span><span class="keyword">, </span><span class="string">'y' </span><span class="keyword">=&gt; </span><span class="default">321</span><span class="keyword">);
+</span><span class="default">$A</span><span class="keyword">[</span><span class="string">'x'</span><span class="keyword">] = &amp;</span><span class="default">$A</span><span class="keyword">[</span><span class="string">'x'</span><span class="keyword">];
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$A</span><span class="keyword">);
+</span><span class="comment">/* x became it's own reference...
+array(2) {
+  ["x"]=&gt; ∫(123)
+  ["y"]=&gt; int(321)
+}*/
+
+</span><span class="default">$A</span><span class="keyword">[</span><span class="string">'y'</span><span class="keyword">]=&amp;</span><span class="default">$A</span><span class="keyword">[</span><span class="string">'x'</span><span class="keyword">];
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$A</span><span class="keyword">);
+</span><span class="comment">/* now both are references
+array(2) {
+  ["x"]=&gt; ∫(123)
+  ["y"]=&gt; ∫(123)
+}*/
+
+</span><span class="default">$z </span><span class="keyword">= </span><span class="string">'hi'</span><span class="keyword">;
+</span><span class="default">$A</span><span class="keyword">[</span><span class="string">'y'</span><span class="keyword">]=&amp;</span><span class="default">detach</span><span class="keyword">(&amp;</span><span class="default">$z</span><span class="keyword">);
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$A</span><span class="keyword">);
+</span><span class="comment">/* x is still a reference, y and z share
+array(2) {
+  ["x"]=&gt; ∫(123)
+  ["y"]=&gt; &amp;string(2) "hi"
+}*/
+
+</span><span class="default">$A</span><span class="keyword">[</span><span class="string">'x'</span><span class="keyword">] = </span><span class="default">$A</span><span class="keyword">[</span><span class="string">'x'</span><span class="keyword">];
+</span><span class="default">$A</span><span class="keyword">[</span><span class="string">'y'</span><span class="keyword">]=&amp;</span><span class="default">detach</span><span class="keyword">();
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$A</span><span class="keyword">,</span><span class="default">$z</span><span class="keyword">);
+</span><span class="comment">/* x returned to normal, y is on its own, z is still "hi"
+array(2) {
+  ["x"]=&gt; int(123)
+  ["y"]=&gt; NULL
+}*/
+</span><span class="default">?&gt;
+</span>
+For detach to work you need to use '&amp;' in the function declaration, and every time you call it.
+
+Use this when you know a variable is a reference, and you want to assign a new value without effecting other vars referencing that piece of memory. You can initialize it with a new constant value, or variable, or new reference all in once step.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="118500">  <div class="votes">
+    <div id="Vu118500">
+    <a href="/manual/vote-note.php?id=118500&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd118500">
+    <a href="/manual/vote-note.php?id=118500&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V118500" title="58% like this...">
+    10
+    </div>
+  </div>
+  <a href="#118500" class="name">
+  <strong class="user"><em>Someone</em></strong></a><a class="genanchor" href="#118500"> &para;</a><div class="date" title="2015-12-16 09:37"><strong>9 years ago</strong></div>
+  <div class="text" id="Hcom118500">
+<div class="phpcode"><pre><code class="html">Another example of something to watch out for when using references with arrays.  It seems that even an usused reference to an array cell modifies the *source* of the reference.  Strange behavior for an assignment statement (is this why I've seen it written as an =&amp; operator?  - although this doesn't happen with regular variables).
+<span class="default">&lt;?php
+    $array1 </span><span class="keyword">= array(</span><span class="default">1</span><span class="keyword">,</span><span class="default">2</span><span class="keyword">);
+    </span><span class="default">$x </span><span class="keyword">= &amp;</span><span class="default">$array1</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">];   </span><span class="comment">// Unused reference
+    </span><span class="default">$array2 </span><span class="keyword">= </span><span class="default">$array1</span><span class="keyword">;  </span><span class="comment">// reference now also applies to $array2 !
+    </span><span class="default">$array2</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]=</span><span class="default">22</span><span class="keyword">;      </span><span class="comment">// (changing [0] will not affect $array1)
+    </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$array1</span><span class="keyword">);
+</span><span class="default">?&gt;
+</span>Produces:
+    Array
+    (
+    [0] =&gt; 1
+    [1] =&gt; 22    // var_dump() will show the &amp; here
+    )
+
+//above was Noted By Dave at SymmetricDesign dot com//
+//and below is my opinion to this simple problem. //
+
+This is an normal referencing problem.
+
+when you gain an reference to a memory at some variable.
+this variable, means "memory itself". (in above example, this would be -&gt;  $x = &amp;$array1[1];   // Unused reference)
+
+and you've copied original one($array1) to another one($array2).
+and the copy means "paste everything on itself". including references or pointers, etcs. so, when you copied $array1 to $array2, this $array2 has same referencers that original $array1 has. meaning that $x = &amp;$array1[1]  = &amp;$array2[1];
+and again i said above. this reference means "memory itself".
+when you choose to inserting some values to $array2[1], 
+$x; reference is affected by $array2[1]'s value. because, in allocated memory, $array2[1] is a copy of $array1[1]. this means that $array2[1] = $array1[1], also means &amp;$array2[1] = &amp;$array1[1]  as said above. this causes memory's  value reallocation on $array1[1]. at this moment. the problem of this topic is cleared by '$x', the memory itself.  and this problem was solved by unsetting the '$x'. unsetting this reference triggers memory reallocation of $array2[1]. this closes the reference link between the copied one($array1, which is the original) and copy($array2). this is where that bug(clearly, it's not a bug. it's just a missunderstanding) has triggered by. closing reference link makes two array object to be separated on memory. and this work was done through the unset() function. this topic was posted 7 years ago, but i just want to clarify that it's not a bug.
+
+if there's some problems in my notes, plz, note that on above.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="113187">  <div class="votes">
+    <div id="Vu113187">
+    <a href="/manual/vote-note.php?id=113187&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd113187">
+    <a href="/manual/vote-note.php?id=113187&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V113187" title="60% like this...">
+    5
+    </div>
+  </div>
+  <a href="#113187" class="name">
+  <strong class="user"><em>shooo dot xz at gmail dot com</em></strong></a><a class="genanchor" href="#113187"> &para;</a><div class="date" title="2013-09-10 12:53"><strong>12 years ago</strong></div>
+  <div class="text" id="Hcom113187">
+<div class="phpcode"><pre><code class="html">Hi, i've worked a abit on reference stuff.
+Here is what i've noticed.
+
+The problem: Sort mysql result through columns
+
+$rewrite_self = gt::recombine(array('lang', 'id'), 'value_column', $sql_result);
+
+public static function recombine($keys, $value, &amp;$arr) {
+        $ref = array();
+        $main = &amp;$ref;
+        foreach($arr as $data) {
+            foreach($keys as $key) {
+                if (!is_array($ref[$data[$key]])) $ref[$data[$key]] = array();
+                $ref = &amp;$ref[$data[$key]];
+            }
+            $ref = $data[$value];
+            $ref = &amp;$main;
+        }
+        return $main;
+}
+
+array(2) {
+  ["pl"]=&gt;
+  array(2) {
+    [2]=&gt;
+    string(4) "value_column_str"
+    [3]=&gt;
+    string(4) "value_column_str2"
+  }
+  ["en"]=&gt;
+  array(1) {
+    [13]=&gt;
+    string(7) "value_column_str3"
+  }
+}
+
+Enjoy!</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="70852">  <div class="votes">
+    <div id="Vu70852">
+    <a href="/manual/vote-note.php?id=70852&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd70852">
+    <a href="/manual/vote-note.php?id=70852&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V70852" title="58% like this...">
+    11
+    </div>
+  </div>
+  <a href="#70852" class="name">
+  <strong class="user"><em>sneskid at hotmail dot com</em></strong></a><a class="genanchor" href="#70852"> &para;</a><div class="date" title="2006-10-31 09:33"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom70852">
+<div class="phpcode"><pre><code class="html">in addition to what 'jw at jwscripts dot com' wrote about unset; it can also be used to "detach" the variable alias so that it may work on a unique piece of memory again.
+
+here's an example
+
+<span class="default">&lt;?php
+define</span><span class="keyword">(</span><span class="string">'NL'</span><span class="keyword">, </span><span class="string">"\r\n"</span><span class="keyword">);
+
+</span><span class="default">$v1 </span><span class="keyword">= </span><span class="string">'shared'</span><span class="keyword">;
+</span><span class="default">$v2 </span><span class="keyword">= &amp;</span><span class="default">$v1</span><span class="keyword">;
+</span><span class="default">$v3 </span><span class="keyword">= &amp;</span><span class="default">$v2</span><span class="keyword">;
+</span><span class="default">$v4 </span><span class="keyword">= &amp;</span><span class="default">$v3</span><span class="keyword">;
+
+echo </span><span class="string">'before:'</span><span class="keyword">.</span><span class="default">NL</span><span class="keyword">;
+echo </span><span class="string">'v1=' </span><span class="keyword">. </span><span class="default">$v1 </span><span class="keyword">. </span><span class="default">NL</span><span class="keyword">;
+echo </span><span class="string">'v2=' </span><span class="keyword">. </span><span class="default">$v2 </span><span class="keyword">. </span><span class="default">NL</span><span class="keyword">;
+echo </span><span class="string">'v3=' </span><span class="keyword">. </span><span class="default">$v3 </span><span class="keyword">. </span><span class="default">NL</span><span class="keyword">;
+echo </span><span class="string">'v4=' </span><span class="keyword">. </span><span class="default">$v4 </span><span class="keyword">. </span><span class="default">NL</span><span class="keyword">;
+
+</span><span class="comment">// detach messy
+</span><span class="default">$detach </span><span class="keyword">= </span><span class="default">$v1</span><span class="keyword">;
+unset(</span><span class="default">$v1</span><span class="keyword">);
+</span><span class="default">$v1 </span><span class="keyword">= </span><span class="default">$detach</span><span class="keyword">;
+
+</span><span class="comment">// detach pretty, but slower
+</span><span class="keyword">eval(</span><span class="default">detach</span><span class="keyword">(</span><span class="string">'$v2'</span><span class="keyword">));
+
+</span><span class="default">$v1 </span><span class="keyword">.= </span><span class="string">'?'</span><span class="keyword">;
+</span><span class="default">$v2 </span><span class="keyword">.= </span><span class="string">' no more'</span><span class="keyword">;
+</span><span class="default">$v3 </span><span class="keyword">.= </span><span class="string">' sti'</span><span class="keyword">;
+</span><span class="default">$v4 </span><span class="keyword">.= </span><span class="string">'ll'</span><span class="keyword">;
+
+echo </span><span class="default">NL</span><span class="keyword">.</span><span class="string">'after:'</span><span class="keyword">.</span><span class="default">NL</span><span class="keyword">;
+echo </span><span class="string">'v1=' </span><span class="keyword">. </span><span class="default">$v1 </span><span class="keyword">. </span><span class="default">NL</span><span class="keyword">;
+echo </span><span class="string">'v2=' </span><span class="keyword">. </span><span class="default">$v2 </span><span class="keyword">. </span><span class="default">NL</span><span class="keyword">;
+echo </span><span class="string">'v3=' </span><span class="keyword">. </span><span class="default">$v3 </span><span class="keyword">. </span><span class="default">NL</span><span class="keyword">;
+echo </span><span class="string">'v4=' </span><span class="keyword">. </span><span class="default">$v4 </span><span class="keyword">. </span><span class="default">NL</span><span class="keyword">;
+
+function </span><span class="default">detach</span><span class="keyword">(</span><span class="default">$v</span><span class="keyword">) {
+    </span><span class="default">$e </span><span class="keyword">= </span><span class="string">'$detach = ' </span><span class="keyword">. </span><span class="default">$v </span><span class="keyword">. </span><span class="string">';'</span><span class="keyword">;
+    </span><span class="default">$e </span><span class="keyword">.= </span><span class="string">'unset('</span><span class="keyword">.</span><span class="default">$v</span><span class="keyword">.</span><span class="string">');'</span><span class="keyword">;
+    </span><span class="default">$e </span><span class="keyword">.= </span><span class="default">$v </span><span class="keyword">. </span><span class="string">' = $detach;'</span><span class="keyword">;
+    return </span><span class="default">$e</span><span class="keyword">;
+}
+</span><span class="default">?&gt;
+</span>
+output {
+before:
+v1=shared
+v2=shared
+v3=shared
+v4=shared
+
+after:
+v1=shared?
+v2=shared no more
+v3=shared still
+v4=shared still
+}
+
+<a href="http://www.obdev.at/developers/articles/00002.html" rel="nofollow" target="_blank">http://www.obdev.at/developers/articles/00002.html</a> says there's no such thing as an "object reference" in PHP, but with detaching it becomes possible.
+
+Hopefully detach, or something like it, will become a language construct in the future.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="46590">  <div class="votes">
+    <div id="Vu46590">
+    <a href="/manual/vote-note.php?id=46590&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd46590">
+    <a href="/manual/vote-note.php?id=46590&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V46590" title="60% like this...">
+    6
+    </div>
+  </div>
+  <a href="#46590" class="name">
+  <strong class="user"><em>jw at jwscripts dot com</em></strong></a><a class="genanchor" href="#46590"> &para;</a><div class="date" title="2004-10-16 05:18"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom46590">
+<div class="phpcode"><pre><code class="html">Re-using variables which where references before, without unsetting them first, leads to unexpected behaviour.
+
+The following code:
+
+<span class="default">&lt;?php
+
+$numbers </span><span class="keyword">= array();
+
+for (</span><span class="default">$i </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">4</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++) {
+    </span><span class="default">$numbers</span><span class="keyword">[] = </span><span class="default">null</span><span class="keyword">;
+    </span><span class="default">$num </span><span class="keyword">= </span><span class="default">count</span><span class="keyword">(</span><span class="default">$numbers</span><span class="keyword">);
+    </span><span class="default">$index </span><span class="keyword">=&amp; </span><span class="default">$numbers</span><span class="keyword">[</span><span class="default">$num </span><span class="keyword">? </span><span class="default">$num </span><span class="keyword">- </span><span class="default">1 </span><span class="keyword">: </span><span class="default">$num</span><span class="keyword">];
+    </span><span class="default">$index </span><span class="keyword">= </span><span class="default">$i</span><span class="keyword">;
+}
+
+foreach (</span><span class="default">$numbers </span><span class="keyword">as </span><span class="default">$index</span><span class="keyword">) {
+    print </span><span class="string">"</span><span class="default">$index</span><span class="string">\n"</span><span class="keyword">;
+}
+
+</span><span class="default">?&gt;
+</span>
+Does not produce:
+1
+2
+3
+
+But instead:
+1
+2
+2
+
+Applying unset($index) before re-using the variable fixes this and the expected list will be produced:
+1
+2
+3</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="68747">  <div class="votes">
+    <div id="Vu68747">
+    <a href="/manual/vote-note.php?id=68747&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd68747">
+    <a href="/manual/vote-note.php?id=68747&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V68747" title="61% like this...">
+    4
+    </div>
+  </div>
+  <a href="#68747" class="name">
+  <strong class="user"><em>gunter dot sammet at gmail dot com</em></strong></a><a class="genanchor" href="#68747"> &para;</a><div class="date" title="2006-08-09 01:23"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom68747">
+<div class="phpcode"><pre><code class="html">I tried to create an array with n depth using a recursive function passing array references around. So far I haven't had much luck and I couldn't find anything on the web. So I ended up using eval() and it seems to work well:
+<span class="default">&lt;?php
+      </span><span class="keyword">foreach(</span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">quantity_array</span><span class="keyword">) AS </span><span class="default">$key</span><span class="keyword">){
+        if(</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">quantity_array</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] &gt; </span><span class="default">0</span><span class="keyword">){
+          </span><span class="default">$combinations </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'-'</span><span class="keyword">, </span><span class="default">$key</span><span class="keyword">);
+          </span><span class="default">$eval_string </span><span class="keyword">= </span><span class="string">'$eval_array'</span><span class="keyword">;
+          foreach(</span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$combinations</span><span class="keyword">) AS </span><span class="default">$key2</span><span class="keyword">){
+            </span><span class="default">$option_key_value </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'_'</span><span class="keyword">, </span><span class="default">$combinations</span><span class="keyword">[</span><span class="default">$key2</span><span class="keyword">]);
+            </span><span class="default">$eval_string </span><span class="keyword">.= </span><span class="string">'['</span><span class="keyword">.</span><span class="default">$option_key_value</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">].</span><span class="string">']['</span><span class="keyword">.</span><span class="default">$option_key_value</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">].</span><span class="string">']'</span><span class="keyword">;
+          }
+          </span><span class="default">$eval_string </span><span class="keyword">.= </span><span class="string">' = '</span><span class="keyword">.</span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">quantity_array</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">].</span><span class="string">';'</span><span class="keyword">;
+          eval(</span><span class="default">$eval_string</span><span class="keyword">);
+        }
+      }
+</span><span class="default">?&gt;
+</span>
+This produces an n dimensional array that will be available in the $eval_array variable. Hope it helps somebody!</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="60986">  <div class="votes">
+    <div id="Vu60986">
+    <a href="/manual/vote-note.php?id=60986&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd60986">
+    <a href="/manual/vote-note.php?id=60986&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V60986" title="60% like this...">
+    6
+    </div>
+  </div>
+  <a href="#60986" class="name">
+  <strong class="user"><em>Ed</em></strong></a><a class="genanchor" href="#60986"> &para;</a><div class="date" title="2006-01-22 11:29"><strong>19 years ago</strong></div>
+  <div class="text" id="Hcom60986">
+<div class="phpcode"><pre><code class="html">Responding to Slava Kudinov.  The only reason why your script takes longer when you pass by reference is that you do not at all modify the array that your passing to your functions.  If you do that the diffrences in execution time will be a lot smaller.  In fact  passing by reference will be faster if just by a little bit.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="74950">  <div class="votes">
+    <div id="Vu74950">
+    <a href="/manual/vote-note.php?id=74950&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd74950">
+    <a href="/manual/vote-note.php?id=74950&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V74950" title="59% like this...">
+    6
+    </div>
+  </div>
+  <a href="#74950" class="name">
+  <strong class="user"><em>trucex at gmail dot com</em></strong></a><a class="genanchor" href="#74950"> &para;</a><div class="date" title="2007-05-05 01:49"><strong>18 years ago</strong></div>
+  <div class="text" id="Hcom74950">
+<div class="phpcode"><pre><code class="html">In response to Xor and Slava:
+
+I recommend you read up a bit more on the way PHP handles memory management. Take the following code for example:
+
+<span class="default">&lt;?php
+
+$data </span><span class="keyword">= </span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'lotsofdata'</span><span class="keyword">];
+</span><span class="default">$data2 </span><span class="keyword">= </span><span class="default">$data</span><span class="keyword">;
+</span><span class="default">$data3 </span><span class="keyword">= </span><span class="default">$data</span><span class="keyword">;
+</span><span class="default">$data4 </span><span class="keyword">= </span><span class="default">$data</span><span class="keyword">;
+</span><span class="default">$data5 </span><span class="keyword">= </span><span class="default">$data</span><span class="keyword">;
+
+</span><span class="default">?&gt;
+</span>
+Assuming we post 10MB of data to this PHP file, what will PHP do with the memory? 
+
+PHP uses a table of sorts that maps variable names to the data that variable refers to in memory. The $_POST superglobal will actually be the first instance of that data in the execution, so it will be the first variable referenced to that data in the memory. It will consume 10MB. Each $data var will simply point to the same data in memory. Until you change that data PHP will NOT duplicate it.
+
+Passing a variable by value does just what I did with each $data var. There is no significant overhead to assigning a new name to the same data. It is only when you modify the data passed to the function that it must allocate memory for the data. Passing a variable by reference will do essentially the same thing when you pass the data to the function, only modifying it will modify the data that is in the memory already versus copying it to a new location in memory.
+
+If for learning purposes you choose to disregard the obvious pointlessness in benchmarking the difference between these two methods of passing arguments, you will need to modify the data when it is passed to the function in order to obtain more accurate results.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="49829">  <div class="votes">
+    <div id="Vu49829">
+    <a href="/manual/vote-note.php?id=49829&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd49829">
+    <a href="/manual/vote-note.php?id=49829&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V49829" title="58% like this...">
+    6
+    </div>
+  </div>
+  <a href="#49829" class="name">
+  <strong class="user"><em>Francis dot a at gmx dot net</em></strong></a><a class="genanchor" href="#49829"> &para;</a><div class="date" title="2005-02-09 10:53"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom49829">
+<div class="phpcode"><pre><code class="html">I don't know if this is a bug (I'm using PHP 5.01) but you should be careful when using  references on arrays.
+I had a for-loop that was incredibly slow and it took me some time to find out that most of the time was wasted with the  function sizeof() at every loop, and even more time I spent  finding out that this problem it must be somehow related to the fact, that I used a reference of the array. Take a look at the following example:
+
+function test_ref(&amp;$arr) {
+    $time = time();
+    for($n=0; $n&lt;sizeof($arr); $n++) {
+        $x = 1;
+    }
+    echo "&lt;br /&gt;The function using a reference took ".(time() - $time)." s";
+}
+
+function test_val($arr) {
+    $time = time();
+    for($n=0; $n&lt;sizeof($arr); $n++) {
+        $x = 1;
+    }
+    echo "&lt;br /&gt;The funktion using a value took: ".(time() - $time)." s";
+}
+
+// fill array
+for($n=0; $n&lt;2000; $n++) {
+    $ar[] = "test".$n;
+}
+
+test_ref($ar);
+test_val($ar);
+echo "&lt;br /&gt;Done";
+
+When I tested it, the first function was done after 9 seconds, while the second (although the array must be copied) was done in not even one.
+
+The difference is inproportional smaller when the array size is reduced:
+When using 1000 loops the first function was running for 1 second, when using 4000 it wasn't even done after 30 Seconds.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="79086">  <div class="votes">
+    <div id="Vu79086">
+    <a href="/manual/vote-note.php?id=79086&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd79086">
+    <a href="/manual/vote-note.php?id=79086&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V79086" title="58% like this...">
+    5
+    </div>
+  </div>
+  <a href="#79086" class="name">
+  <strong class="user"><em>warnickr at gmail dot com</em></strong></a><a class="genanchor" href="#79086"> &para;</a><div class="date" title="2007-11-10 01:15"><strong>18 years ago</strong></div>
+  <div class="text" id="Hcom79086">
+<div class="phpcode"><pre><code class="html">I must say that it has been rather confusing following all of the explanations of PHP references, especially since I've worked a lot with C pointers.  As far as I can tell PHP references are the same as C pointers for all practical purposes.  I think a lot of the confusion comes from examples like the one shown below where people expect that a C pointer version of this would change what $bar references.  
+
+<span class="default">&lt;?php
+</span><span class="keyword">function </span><span class="default">foo</span><span class="keyword">(&amp;</span><span class="default">$var</span><span class="keyword">)
+{
+    </span><span class="default">$var </span><span class="keyword">=&amp; </span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">"baz"</span><span class="keyword">];
+}
+</span><span class="default">foo</span><span class="keyword">(</span><span class="default">$bar</span><span class="keyword">); 
+</span><span class="default">?&gt;</span> 
+
+This is not the case.  In fact, a C pointer version of this example (shown below) would behave exactly the same way (it would not modify what bar references) as the PHP reference version.
+
+int baz = 5;
+int* bar;
+void foo(int* var)
+{
+    var = &amp;baz;
+}
+foo(bar);
+
+In this case, just as in the case of PHP references, the call foo(bar) doesn't change what bar references.  If you wanted to change what bar references, then you would need to work with a double pointer like so:
+
+int baz = 5;
+int* bar;
+void foo(int** var)
+{
+    *var = &amp;baz;
+}
+foo(&amp;bar);</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="59611">  <div class="votes">
+    <div id="Vu59611">
+    <a href="/manual/vote-note.php?id=59611&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd59611">
+    <a href="/manual/vote-note.php?id=59611&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V59611" title="58% like this...">
+    4
+    </div>
+  </div>
+  <a href="#59611" class="name">
+  <strong class="user"><em>cesoid at yahoo dot com</em></strong></a><a class="genanchor" href="#59611"> &para;</a><div class="date" title="2005-12-10 06:28"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom59611">
+<div class="phpcode"><pre><code class="html">Responding to post from nathan (who was responding to iryoku).
+
+It is important to note the difference between what php is doing from the programmer's point of view and what it is doing internally. The note that nathan refers to, about how (for example) $something = $this makes a "copy" of the current object, is talking about making a "copy" from the programmer's perspective. That is, for the programmer, for all practical purposes, $something is a copy, even if internally nothing has been copied yet. For example, changing the data in member $something-&gt;somethingVar will not change your current object's data (i.e. it will not change $this-&gt;somethingVar).
+
+What it does internally is a totally different story. I've tested  "copying" an object which contains a 200,000 element array, it takes almost no time at all until you finally change something in one of the copies, because internally it only makes the copy when it becomes necessary. The original assignment takes less than a millisecond, but when I alter one of the copies, it takes something like a quarter of a second. But this only happens if I alter the 200,000 element array, if I alter a single integer of the object, it takes less than a microsecond again, so the interpretter seems to be smart enough to make copies of some of the objects variables and not others.
+
+The result is that when you change a function to pass by reference, it will only become more efficient if, inside the function, the passed variable is having its data altered, in which case passing by reference causes your code to alter the data of the original copy. If you are passing an object and calling a function in that object, that function may alter the object without you even knowing, which means that you should pass an object by reference as long as it is ok for the original copy to be effected by what you do with the object inside the function.
+
+I think the real moral of the story is this:
+1) Pass by reference anything that should refer to and affect the original copy.
+2) Pass not by reference things that will definitely not be altered in the function (for an object, it may be impossible to know whether it alters itself upon calling one of its functions).
+3) If something needs to be altered inside a function without effecting the original copy, pass it not by reference, and pass the smallest practical part that needs to change, rather than passing, for example, a huge array of which one little integer will be altered.
+
+Or a shorter version: Only pass things by reference when you need to refer to the original copy! (And don't pass huge arrays or long strings when you need to change just a small part of them!)</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="44203">  <div class="votes">
+    <div id="Vu44203">
+    <a href="/manual/vote-note.php?id=44203&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd44203">
+    <a href="/manual/vote-note.php?id=44203&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V44203" title="56% like this...">
+    3
+    </div>
+  </div>
+  <a href="#44203" class="name">
+  <strong class="user"><em>jlaing at gmail dot com</em></strong></a><a class="genanchor" href="#44203"> &para;</a><div class="date" title="2004-07-17 08:28"><strong>21 years ago</strong></div>
+  <div class="text" id="Hcom44203">
+<div class="phpcode"><pre><code class="html">While trying to do object references with the special $this variable I found that this will not work:
+class foo {
+  function bar() {
+    ...
+    $this =&amp; $some_other_foo_obj;
+  }
+}
+
+If you want to emulate this functionality you must iterate through the vars of the class and assign references like this:
+
+$vars = get_class_vars('foo');
+foreach (array_keys($vars) as $field) {
+  $this-&gt;$field =&amp; $some_other_foo_obj-&gt;$field;
+}
+
+Now if you modify values within $this they will be modified within $some_other_foo_obj and vice versa.
+
+Hope that helps some people!
+
+p.s.
+developer at sirspot dot com's note about object references doesn't seem correct to me.
+
+  $temp =&amp; $object;
+  $object =&amp; $temp-&gt;getNext();
+
+Does the same exact thing as:
+
+  $object =&amp; $object-&gt;getNext();
+
+when you refernce $temp to $object all it does is make $temp an alias to the same memory as $object, so doing $temp-&gt;getNext(); and $object-&gt;getNext(); are calling the same function on the same object.  Try it out if you don't believe me.</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="100451">  <div class="votes">
+    <div id="Vu100451">
+    <a href="/manual/vote-note.php?id=100451&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd100451">
+    <a href="/manual/vote-note.php?id=100451&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V100451" title="53% like this...">
+    3
+    </div>
+  </div>
+  <a href="#100451" class="name">
+  <strong class="user"><em>zoranbankovic at gmail dot com</em></strong></a><a class="genanchor" href="#100451"> &para;</a><div class="date" title="2010-10-16 01:59"><strong>15 years ago</strong></div>
+  <div class="text" id="Hcom100451">
+<div class="phpcode"><pre><code class="html">If someone wants to add slashes to multidimensional array directly, can use recursive (pass-by-reference) function like this:
+<span class="default">&lt;?php
+</span><span class="keyword">function </span><span class="default">slashit</span><span class="keyword">(&amp;</span><span class="default">$aray</span><span class="keyword">, </span><span class="default">$db_link</span><span class="keyword">)
+{
+  foreach (</span><span class="default">$aray </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; &amp;</span><span class="default">$value</span><span class="keyword">)
+   if(</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">)) </span><span class="default">slashit</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="default">$link</span><span class="keyword">);
+   else </span><span class="default">$aray</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">mysql_real_escape_string</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">, </span><span class="default">$db_link</span><span class="keyword">);
+}
+
+</span><span class="comment">// Test:
+</span><span class="default">$fruits </span><span class="keyword">= array (
+    </span><span class="string">"fruits"  </span><span class="keyword">=&gt; array(</span><span class="string">"a" </span><span class="keyword">=&gt; </span><span class="string">"or'ange"</span><span class="keyword">, </span><span class="string">"b" </span><span class="keyword">=&gt; </span><span class="string">"ban'ana"</span><span class="keyword">, </span><span class="string">"c" </span><span class="keyword">=&gt; </span><span class="string">"apple'"</span><span class="keyword">),
+    </span><span class="string">"numbers" </span><span class="keyword">=&gt; array(</span><span class="default">1</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">, </span><span class="default">3</span><span class="keyword">, </span><span class="default">4</span><span class="keyword">, </span><span class="default">5</span><span class="keyword">, </span><span class="default">6</span><span class="keyword">),
+    </span><span class="string">"holes"   </span><span class="keyword">=&gt; array(</span><span class="string">"fir'st"</span><span class="keyword">, </span><span class="default">5 </span><span class="keyword">=&gt; </span><span class="string">"sec'ond"</span><span class="keyword">, </span><span class="string">"thir'd"</span><span class="keyword">),
+    </span><span class="string">"odma"    </span><span class="keyword">=&gt; </span><span class="string">"jugo'slavija"
+</span><span class="keyword">);
+
+</span><span class="comment">// You have to make link to the database or can use addslashes instead of mysql_real_escape_string and remove $link from function definition
+
+</span><span class="default">slashit</span><span class="keyword">(</span><span class="default">$fruits</span><span class="keyword">, </span><span class="default">$dbLink</span><span class="keyword">);
+echo </span><span class="string">"&lt;pre&gt;"</span><span class="keyword">; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$fruits</span><span class="keyword">); echo </span><span class="string">"&lt;/pre&gt;"</span><span class="keyword">;
+</span><span class="default">?&gt;
+</span>
+// Output:
+Array
+(
+    [fruits] =&gt; Array
+        (
+            [a] =&gt; or\'ange
+            [b] =&gt; ban\'ana
+            [c] =&gt; apple\'
+        )
+
+    [numbers] =&gt; Array
+        (
+            [0] =&gt; 1
+            [1] =&gt; 2
+            [2] =&gt; 3
+            [3] =&gt; 4
+            [4] =&gt; 5
+            [5] =&gt; 6
+        )
+
+    [holes] =&gt; Array
+        (
+            [0] =&gt; fir\'st
+            [5] =&gt; sec\'ond
+            [6] =&gt; thir\'d
+        )
+
+    [odma] =&gt; jugo\'slavija
+)</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="57732">  <div class="votes">
+    <div id="Vu57732">
+    <a href="/manual/vote-note.php?id=57732&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd57732">
+    <a href="/manual/vote-note.php?id=57732&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V57732" title="54% like this...">
+    2
+    </div>
+  </div>
+  <a href="#57732" class="name">
+  <strong class="user"><em>mramirez (at) star (minus) dev (dot) com</em></strong></a><a class="genanchor" href="#57732"> &para;</a><div class="date" title="2005-10-12 09:10"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom57732">
+<div class="phpcode"><pre><code class="html">For php programmers that come from pascal,
+in object pascal (delphi),
+variable references are used with the "absolute" keyword.
+
+PHP example:
+
+<span class="default">&lt;?php
+
+</span><span class="keyword">global </span><span class="default">$myglobal</span><span class="keyword">;
+
+</span><span class="default">$myglobal </span><span class="keyword">= </span><span class="default">5</span><span class="keyword">;
+
+function </span><span class="default">test</span><span class="keyword">()
+{
+global </span><span class="default">$myglobal</span><span class="keyword">;
+
+</span><span class="comment">/*local*/ </span><span class="default">$mylocal </span><span class="keyword">=&amp; </span><span class="default">$myglobal</span><span class="keyword">;
+
+echo </span><span class="string">"local: " </span><span class="keyword">. </span><span class="default">$mylocal </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;
+echo </span><span class="string">"gloal: " </span><span class="keyword">. </span><span class="default">$myglobal </span><span class="keyword">. </span><span class="string">"\n"</span><span class="keyword">;
+}
+
+</span><span class="default">test</span><span class="keyword">();
+
+</span><span class="default">?&gt;
+</span>
+Pascal example:
+
+program dontcare;
+
+var myglobal: integer;
+
+procedure test;
+var mylocal ABSOLUTE myglobal;
+begin
+  write("local: ", mylocal);
+  write("global: ", myglobal);
+end;
+
+begin
+  myglobal := 5;
+  test;
+end.
+
+By the way, a "local" keyword in php for local variables,
+could be welcome :-)</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="50994">  <div class="votes">
+    <div id="Vu50994">
+    <a href="/manual/vote-note.php?id=50994&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd50994">
+    <a href="/manual/vote-note.php?id=50994&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V50994" title="53% like this...">
+    2
+    </div>
+  </div>
+  <a href="#50994" class="name">
+  <strong class="user"><em>nslater at gmail dot com</em></strong></a><a class="genanchor" href="#50994"> &para;</a><div class="date" title="2005-03-15 07:12"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom50994">
+<div class="phpcode"><pre><code class="html">In addition to the note made by "Francis dot a at gmx dot net" you should not normally be using a function such as sizeof() or count() in a control structure such as FOR because the same value is being calculated repeatedly for each iteration. This can slow things down immensely, regardless of whether you pass by value or reference.
+
+It is generally much better to calculate the static values before the defining the looping control structure.
+
+Example:
+
+<span class="default">&lt;?php
+
+$intSize </span><span class="keyword">= </span><span class="default">sizeof</span><span class="keyword">(</span><span class="default">$arrData</span><span class="keyword">);
+
+for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">0</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$intSize</span><span class="keyword">; </span><span class="default">$n</span><span class="keyword">++) {
+    </span><span class="comment">// Do stuff
+</span><span class="keyword">}
+
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="95154">  <div class="votes">
+    <div id="Vu95154">
+    <a href="/manual/vote-note.php?id=95154&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd95154">
+    <a href="/manual/vote-note.php?id=95154&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V95154" title="52% like this...">
+    1
+    </div>
+  </div>
+  <a href="#95154" class="name">
+  <strong class="user"><em>Youssef Omar</em></strong></a><a class="genanchor" href="#95154"> &para;</a><div class="date" title="2009-12-15 12:27"><strong>15 years ago</strong></div>
+  <div class="text" id="Hcom95154">
+<div class="phpcode"><pre><code class="html">This is to show the affect of changing property of object A through another object B when you pass object A as a property of another object B.
+
+<span class="default">&lt;?php
+ </span><span class="comment">// data class to be passed to another class as an object
+ </span><span class="keyword">class </span><span class="default">A</span><span class="keyword">{
+     public </span><span class="default">$info</span><span class="keyword">;
+    function </span><span class="default">__construct</span><span class="keyword">(){
+        </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">info </span><span class="keyword">= </span><span class="string">"eeee"</span><span class="keyword">;
+    }
+ }
+ 
+ </span><span class="comment">// B class to change the info in A obj
+ </span><span class="keyword">class </span><span class="default">B_class</span><span class="keyword">{
+     public </span><span class="default">$A_obj</span><span class="keyword">;
+    
+    function </span><span class="default">__construct</span><span class="keyword">(</span><span class="default">$A_obj</span><span class="keyword">){
+        </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">A_obj </span><span class="keyword">=  </span><span class="default">$A_obj</span><span class="keyword">;
+    }
+    public function </span><span class="default">change</span><span class="keyword">(</span><span class="default">$newVal</span><span class="keyword">){
+        </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">A_obj</span><span class="keyword">-&gt;</span><span class="default">info </span><span class="keyword">= </span><span class="default">$newVal</span><span class="keyword">;
+    }
+ }
+
+ </span><span class="comment">// create data object from the A
+ </span><span class="default">$A_obj </span><span class="keyword">= new </span><span class="default">A</span><span class="keyword">();
+ </span><span class="comment">// print the info property
+ </span><span class="keyword">echo </span><span class="string">'A_obj info: ' </span><span class="keyword">. </span><span class="default">$A_obj</span><span class="keyword">-&gt;</span><span class="default">info </span><span class="keyword">. </span><span class="string">'&lt;br/&gt;'</span><span class="keyword">;
+ 
+ </span><span class="comment">// create the B object and pass the A_obj we created above
+ </span><span class="default">$B_obj </span><span class="keyword">= new </span><span class="default">B_class</span><span class="keyword">(</span><span class="default">$A_obj</span><span class="keyword">);
+ </span><span class="comment">// print the info property through the B object to make sure it has the same value 'eeee'
+ </span><span class="keyword">echo </span><span class="string">'B_obj info: ' </span><span class="keyword">. </span><span class="default">$B_obj</span><span class="keyword">-&gt;</span><span class="default">A_obj</span><span class="keyword">-&gt;</span><span class="default">info </span><span class="keyword">. </span><span class="string">'&lt;br/&gt;'</span><span class="keyword">;
+ 
+ </span><span class="comment">// chage the info property
+ </span><span class="default">$B_obj</span><span class="keyword">-&gt;</span><span class="default">change</span><span class="keyword">(</span><span class="string">'xxxxx'</span><span class="keyword">);
+ </span><span class="comment">// print the info property through the B object to make sure it changed the value to 'xxxxxx'
+ </span><span class="keyword">echo </span><span class="string">'B_obj info after change: ' </span><span class="keyword">. </span><span class="default">$B_obj</span><span class="keyword">-&gt;</span><span class="default">A_obj</span><span class="keyword">-&gt;</span><span class="default">info </span><span class="keyword">. </span><span class="string">'&lt;br/&gt;'</span><span class="keyword">;
+ </span><span class="comment">// print the info property from the A_obj to see if the change through B_obj has affected it
+ </span><span class="keyword">echo </span><span class="string">'A_obj info: ' </span><span class="keyword">. </span><span class="default">$A_obj</span><span class="keyword">-&gt;</span><span class="default">info </span><span class="keyword">. </span><span class="string">'&lt;br/&gt;'</span><span class="keyword">;
+
+</span><span class="default">?&gt;
+</span>
+The result:
+
+A_obj info: eeee
+B_obj info: eeee
+B_obj info after change: xxxxx
+A_obj info: xxxxx</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="130363">  <div class="votes">
+    <div id="Vu130363">
+    <a href="/manual/vote-note.php?id=130363&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd130363">
+    <a href="/manual/vote-note.php?id=130363&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V130363" title="no votes...">
+    0
+    </div>
+  </div>
+  <a href="#130363" class="name">
+  <strong class="user"><em>info at comfortnet dot de</em></strong></a><a class="genanchor" href="#130363"> &para;</a><div class="date" title="2025-06-11 12:14"><strong>5 months ago</strong></div>
+  <div class="text" id="Hcom130363">
+<div class="phpcode"><pre><code class="html">You should be careful when using pointers. The following example shows how an array is unintentionally distorted if the pointer variable is not treated with unset
+
+<span class="default">&lt;?php
+
+</span><span class="keyword">echo </span><span class="string">'&lt;pre&gt;'</span><span class="keyword">;
+
+</span><span class="default">$arr </span><span class="keyword">= array ( </span><span class="string">'a' </span><span class="keyword">=&gt; </span><span class="string">'a' </span><span class="keyword">, </span><span class="string">'b' </span><span class="keyword">=&gt; </span><span class="string">'b' </span><span class="keyword">) ;
+
+</span><span class="default">var_dump </span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">) ;
+
+foreach ( </span><span class="default">$arr </span><span class="keyword">as </span><span class="default">$index </span><span class="keyword">=&gt; &amp;</span><span class="default">$data </span><span class="keyword">) {}
+
+</span><span class="default">var_dump </span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">) ;
+
+</span><span class="comment">// unset($data);
+
+</span><span class="keyword">foreach ( </span><span class="default">$arr </span><span class="keyword">as </span><span class="default">$index </span><span class="keyword">=&gt; </span><span class="default">$data </span><span class="keyword">) {}
+
+</span><span class="default">var_dump </span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">) ;
+
+</span><span class="default">?&gt;
+</span>
+Output:
+
+array(2) {
+  ["a"]=&gt;
+  string(1) "a"
+  ["b"]=&gt;
+  string(1) "b"
+}
+array(2) {
+  ["a"]=&gt;
+  string(1) "a"
+  ["b"]=&gt;
+  &amp;string(1) "b"
+}
+array(2) {
+  ["a"]=&gt;
+  string(1) "a"
+  ["b"]=&gt;
+  &amp;string(1) "a"
+}</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="55766">  <div class="votes">
+    <div id="Vu55766">
+    <a href="/manual/vote-note.php?id=55766&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd55766">
+    <a href="/manual/vote-note.php?id=55766&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V55766" title="52% like this...">
+    1
+    </div>
+  </div>
+  <a href="#55766" class="name">
+  <strong class="user"><em>grayson at uiuc dot edu</em></strong></a><a class="genanchor" href="#55766"> &para;</a><div class="date" title="2005-08-12 08:59"><strong>20 years ago</strong></div>
+  <div class="text" id="Hcom55766">
+<div class="phpcode"><pre><code class="html">I found a subtle feature of references that caused a bug in one of my PHP applications.  In short, if an object passes one of its members to an external function that takes a reference as an argument, the external function can turn that member into a reference to an anonymous point in memory.
+
+Why is this a problem?  Later, when you copy the object with $a = $b, the copy and the original share memory.
+
+Solution: If you want to have a function that uses references to modify a member of your object, your object should never pass the member to the function directly. It should first make a copy of the member. Then give that copy to the function.  Then copy the new value of that copy in to your original object member.
+
+Below is some code that can reporoduce the this feature and demonstrate the workaround.
+
+function modify1 ( &amp;$pointer_obj ){
+  $pointer_obj-&gt;property = 'Original Value';
+}
+
+function modify2 ( &amp;$pointer_obj ){
+  $newObj-&gt;property = 'Original Value';
+  $pointer_obj = $newObj;
+}
+
+class a {
+  var $i;   # an object with properties
+
+  function corrupt1(){
+    modify1 ($this-&gt;i);
+  }
+
+  function doNotCorrupt1(){
+    $tmpi = $this-&gt;i;
+    modify1 ($tmpi);
+    $this-&gt;i = $tmpi;
+  }
+
+  function corrupt2(){
+    modify2 ($this-&gt;i);
+  }
+
+  function doNotCorrupt2(){
+    $tmpi = $this-&gt;i;
+    modify2 ($tmpi);
+    $this-&gt;i = $tmpi;
+  }
+
+}
+
+$functions = array ('corrupt1', 'corrupt2', 'doNotCorrupt1', 'doNotCorrupt2');
+
+foreach ($functions as $func){
+
+  $original = new a;
+
+  ### Load some data in to the orginal with one of the four $functions
+  $original-&gt;$func();
+
+  $copy = $original;
+
+  $copy-&gt;i-&gt;property = "Changed after the copy was made.";
+
+  echo "\n{$func}: \$original-&gt;i-&gt;property = '" . $original-&gt;i-&gt;property . "'";
+}
+
+The script generates output:
+
+corrupt1: $original-&gt;i-&gt;property = 'Changed after the copy was made.'
+corrupt2: $original-&gt;i-&gt;property = 'Changed after the copy was made.'
+doNotCorrupt1: $original-&gt;i-&gt;property = 'Original Value'
+doNotCorrupt2: $original-&gt;i-&gt;property = 'Original Value'</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="122814">  <div class="votes">
+    <div id="Vu122814">
+    <a href="/manual/vote-note.php?id=122814&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd122814">
+    <a href="/manual/vote-note.php?id=122814&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V122814" title="50% like this...">
+    0
+    </div>
+  </div>
+  <a href="#122814" class="name">
+  <strong class="user"><em>dallgoot</em></strong></a><a class="genanchor" href="#122814"> &para;</a><div class="date" title="2018-06-09 04:09"><strong>7 years ago</strong></div>
+  <div class="text" id="Hcom122814">
+<div class="phpcode"><pre><code class="html">After some headaches, here is a function to check if, between 2 variables $a,$b check if one is a reference to the other.
+It means they "point" to the same value.
+Tested on :
+PHP 7.2.2 (cli) (built: Jan 31 2018 19:31:17) ( ZTS MSVC15 (Visual C++ 2017) x64 )
+Hope that helps...
+<span class="default">&lt;?php
+
+</span><span class="keyword">function </span><span class="default">are_references</span><span class="keyword">(&amp;</span><span class="default">$a</span><span class="keyword">, &amp;</span><span class="default">$b</span><span class="keyword">){
+    </span><span class="default">$mem </span><span class="keyword">= </span><span class="default">$a</span><span class="keyword">;     </span><span class="comment">//memorize
+    </span><span class="default">$a </span><span class="keyword">= </span><span class="default">uniqid </span><span class="keyword">(</span><span class="string">"REFERENCE???"</span><span class="keyword">, </span><span class="default">true </span><span class="keyword">); </span><span class="comment">//change $a
+    </span><span class="default">$same </span><span class="keyword">= </span><span class="default">$a </span><span class="keyword">=== </span><span class="default">$b</span><span class="keyword">; </span><span class="comment">//compare
+    </span><span class="default">$a </span><span class="keyword">= </span><span class="default">$mem</span><span class="keyword">; </span><span class="comment">//restore $a
+    </span><span class="keyword">return </span><span class="default">$same</span><span class="keyword">;
+}
+echo </span><span class="string">"***distinct vars AND distinct values\n"</span><span class="keyword">;
+</span><span class="default">$a </span><span class="keyword">= </span><span class="string">"toto"</span><span class="keyword">;
+</span><span class="default">$b </span><span class="keyword">= </span><span class="string">"tata"</span><span class="keyword">;
+
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">, </span><span class="default">are_references</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">));
+echo </span><span class="string">"verify original values: </span><span class="default">$a</span><span class="string">, </span><span class="default">$b</span><span class="string">\n"</span><span class="keyword">;
+
+echo </span><span class="string">"***distinct vars BUT SAME values\n"</span><span class="keyword">;
+</span><span class="default">$a </span><span class="keyword">= </span><span class="string">"toto"</span><span class="keyword">;
+</span><span class="default">$b </span><span class="keyword">= </span><span class="string">"toto"</span><span class="keyword">;
+
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">, </span><span class="default">are_references</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">));
+echo </span><span class="string">"verify original values: </span><span class="default">$a</span><span class="string">, </span><span class="default">$b</span><span class="string">\n"</span><span class="keyword">;
+
+echo </span><span class="string">'*** $b is a reference of $a'</span><span class="keyword">.</span><span class="string">"\n"</span><span class="keyword">;
+</span><span class="default">$a </span><span class="keyword">= </span><span class="string">"titi"</span><span class="keyword">;
+</span><span class="default">$b </span><span class="keyword">= &amp;</span><span class="default">$a</span><span class="keyword">;
+
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">, </span><span class="default">are_references</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">));
+echo </span><span class="string">"verify original values: </span><span class="default">$a</span><span class="string">, </span><span class="default">$b</span><span class="string">\n"</span><span class="keyword">;
+
+echo </span><span class="string">'*** $a is a reference of $b'</span><span class="keyword">.</span><span class="string">"\n"</span><span class="keyword">;
+</span><span class="default">$b </span><span class="keyword">= </span><span class="string">"titi"</span><span class="keyword">;
+</span><span class="default">$a </span><span class="keyword">= &amp;</span><span class="default">$b</span><span class="keyword">;
+
+</span><span class="default">var_dump</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">, </span><span class="default">are_references</span><span class="keyword">(</span><span class="default">$a</span><span class="keyword">, </span><span class="default">$b</span><span class="keyword">));
+echo </span><span class="string">"verify original values: </span><span class="default">$a</span><span class="string">, </span><span class="default">$b</span><span class="string">\n"</span><span class="keyword">;
+</span><span class="default">?&gt;
+</span>Result:
+***distinct vars AND distinct values
+string(4) "toto"
+string(4) "tata"
+bool(false)
+verify original values: toto, tata
+***distinct vars BUT SAME values
+string(4) "toto"
+string(4) "toto"
+bool(false)
+verify original values: toto, toto
+*** $b is a reference of $a
+string(4) "titi"
+string(4) "titi"
+bool(true)
+verify original values: titi, titi
+*** $a is a reference of $b
+string(4) "titi"
+string(4) "titi"
+bool(true)
+verify original values: titi, titi</code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="119048">  <div class="votes">
+    <div id="Vu119048">
+    <a href="/manual/vote-note.php?id=119048&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd119048">
+    <a href="/manual/vote-note.php?id=119048&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V119048" title="50% like this...">
+    0
+    </div>
+  </div>
+  <a href="#119048" class="name">
+  <strong class="user"><em>jszoja at gmail dot com</em></strong></a><a class="genanchor" href="#119048"> &para;</a><div class="date" title="2016-03-23 11:09"><strong>9 years ago</strong></div>
+  <div class="text" id="Hcom119048">
+<div class="phpcode"><pre><code class="html">Be aware of a reference to another reference. It is probably bad practice to even do that.
+
+<span class="default">&lt;?php
+    </span><span class="keyword">class </span><span class="default">Obj1 </span><span class="keyword">{ public </span><span class="default">$name </span><span class="keyword">= </span><span class="string">'Obj1'</span><span class="keyword">; }
+    class </span><span class="default">Obj2 </span><span class="keyword">{ public </span><span class="default">$name </span><span class="keyword">= </span><span class="string">'Obj2'</span><span class="keyword">; }
+
+    </span><span class="default">$objects </span><span class="keyword">= [];
+    </span><span class="default">$toLoad </span><span class="keyword">= [ </span><span class="string">'Obj1'</span><span class="keyword">, </span><span class="string">'Obj2' </span><span class="keyword">];
+
+    foreach( </span><span class="default">$toLoad </span><span class="keyword">as </span><span class="default">$i </span><span class="keyword">=&gt; </span><span class="default">$obj </span><span class="keyword">)
+    {
+        </span><span class="default">$ref </span><span class="keyword">= new </span><span class="default">$obj</span><span class="keyword">();
+        </span><span class="default">$objects</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">] =&amp; </span><span class="default">$ref</span><span class="keyword">; </span><span class="comment">// a reference to a reference
+        // $objects[$i] = $ref; // that would work
+    </span><span class="keyword">}
+
+    echo </span><span class="default">$objects</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]-&gt;</span><span class="default">name</span><span class="keyword">;
+        </span><span class="comment">// outputs 'Obj2' !
+</span><span class="default">?&gt;</span></code></pre></div>
+  </div>
+ </div>
+  <div class="note" id="84378">  <div class="votes">
+    <div id="Vu84378">
+    <a href="/manual/vote-note.php?id=84378&amp;page=language.references&amp;vote=up" title="Vote up!" class="usernotes-voteu">up</a>
+    </div>
+    <div id="Vd84378">
+    <a href="/manual/vote-note.php?id=84378&amp;page=language.references&amp;vote=down" title="Vote down!" class="usernotes-voted">down</a>
+    </div>
+    <div class="tally" id="V84378" title="50% like this...">
+    0
+    </div>
+  </div>
+  <a href="#84378" class="name">
+  <strong class="user"><em>jasonpvp at gmail dot com</em></strong></a><a class="genanchor" href="#84378"> &para;</a><div class="date" title="2008-07-10 04:16"><strong>17 years ago</strong></div>
+  <div class="text" id="Hcom84378">
+<div class="phpcode"><pre><code class="html">To change values in a multi-dimensional array while looping through:
+
+$var=array('a'=&gt;array(1,2,3),'b'=&gt;array(4,5,6));
+
+foreach ($var as &amp;$sub) {
+  foreach ($sub as &amp;$element) {
+    $element=$element+1;
+  }
+}
+
+var_dump($var);
+
+------------------------------
+produces:
+------------------------------
+array(2) {
+  ["a"]=&gt;
+  array(3) {
+    [0]=&gt;
+    int(2)
+    [1]=&gt;
+    int(3)
+    [2]=&gt;
+    int(4)
+  }
+  ["b"]=&gt;
+  array(3) {
+    [0]=&gt;
+    int(5)
+    [1]=&gt;
+    int(6)
+    [2]=&gt;
+    int(7)
+  }
+}</code></pre></div>
+  </div>
+ </div></div>
+<div class="foot"><a href="/manual/add-note.php?sect=language.references&amp;repo=en&amp;redirect=https://www.php.net/manual/en/language.references.php">＋<small>add a note</small></a></div>
+</section>    </section><!-- layout-content -->
+        <aside class='layout-menu'>
+
+        <ul class='parent-menu-list'>
+                                    <li>
+                <a href="langref.php">Language Reference</a>
+
+                                    <ul class='child-menu-list'>
+
+                                                <li class="">
+                            <a href="language.basic-syntax.php" title="Basic syntax">Basic syntax</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.types.php" title="Types">Types</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.variables.php" title="Variables">Variables</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.constants.php" title="Constants">Constants</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.expressions.php" title="Expressions">Expressions</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.operators.php" title="Operators">Operators</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.control-structures.php" title="Control Structures">Control Structures</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.functions.php" title="Functions">Functions</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.oop5.php" title="Classes and Objects">Classes and Objects</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.namespaces.php" title="Namespaces">Namespaces</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.enumerations.php" title="Enumerations">Enumerations</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.errors.php" title="Errors">Errors</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.exceptions.php" title="Exceptions">Exceptions</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.fibers.php" title="Fibers">Fibers</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.generators.php" title="Generators">Generators</a>
+                        </li>
+                                                <li class="">
+                            <a href="language.attributes.php" title="Attributes">Attributes</a>
+                        </li>
+                                                <li class="current">
+                            <a href="language.references.php" title="References Explained">References Explained</a>
+                        </li>
+                                                <li class="">
+                            <a href="reserved.variables.php" title="Predefined Variables">Predefined Variables</a>
+                        </li>
+                                                <li class="">
+                            <a href="reserved.exceptions.php" title="Predefined Exceptions">Predefined Exceptions</a>
+                        </li>
+                                                <li class="">
+                            <a href="reserved.interfaces.php" title="Predefined Interfaces and Classes">Predefined Interfaces and Classes</a>
+                        </li>
+                                                <li class="">
+                            <a href="reserved.attributes.php" title="Predefined Attributes">Predefined Attributes</a>
+                        </li>
+                                                <li class="">
+                            <a href="context.php" title="Context options and parameters">Context options and parameters</a>
+                        </li>
+                                                <li class="">
+                            <a href="wrappers.php" title="Supported Protocols and Wrappers">Supported Protocols and Wrappers</a>
+                        </li>
+                        
+                    </ul>
+                
+            </li>
+                        
+                    </ul>
+    </aside>
+
+
+  </div><!-- layout -->
+
+  <footer>
+    <div class="container footer-content">
+      <div class="row-fluid">
+      <ul class="footmenu">
+        <li><a href="/manual/en/copyright.php">Copyright &copy; 2001-2025 The PHP Documentation Group</a></li>
+        <li><a href="/my.php">My PHP.net</a></li>
+        <li><a href="/contact.php">Contact</a></li>
+        <li><a href="/sites.php">Other PHP.net sites</a></li>
+        <li><a href="/privacy.php">Privacy policy</a></li>
+      </ul>
+      </div>
+    </div>
+  </footer>
+    
+<script src="/cached.php?t=1756715876&amp;f=/js/ext/jquery-3.6.0.min.js"></script>
+<script src="/cached.php?t=1756715876&amp;f=/js/ext/FuzzySearch.min.js"></script>
+<script src="/cached.php?t=1756715876&amp;f=/js/ext/mousetrap.min.js"></script>
+<script src="/cached.php?t=1756715876&amp;f=/js/ext/jquery.scrollTo.min.js"></script>
+<script src="/cached.php?t=1762397401&amp;f=/js/search.js"></script>
+<script src="/cached.php?t=1763563802&amp;f=/js/common.js"></script>
+<script type="module" src="/cached.php?t=1759587603&amp;f=/js/interactive-examples.js"></script>
+
+<a id="toTop" href="javascript:;"><span id="toTopHover"></span><img width="40" height="40" alt="To Top" src="/images/to-top@2x.png"></a>
+
+<div id="search-modal__backdrop" class="search-modal__backdrop">
+  <div
+    role="dialog"
+    aria-label="Search modal"
+    id="search-modal"
+    class="search-modal"
+  >
+    <div class="search-modal__header">
+      <div class="search-modal__form">
+        <div class="search-modal__input-icon">
+          <!-- https://feathericons.com search -->
+          <svg xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            width="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <input
+          type="search"
+          id="search-modal__input"
+          class="search-modal__input"
+          placeholder="Search docs"
+          aria-label="Search docs"
+        />
+      </div>
+
+      <button aria-label="Close" class="search-modal__close">
+        <!-- https://pictogrammers.com/library/mdi/icon/close/ -->
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+          width="24"
+          viewBox="0 0 24 24"
+        >
+          <path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+        </svg>
+      </button>
+    </div>
+    <div
+      role="listbox"
+      aria-label="Search results"
+      id="search-modal__results"
+      class="search-modal__results"
+    ></div>
+    <div class="search-modal__helper-text">
+      <div>
+        <kbd>↑</kbd> and <kbd>↓</kbd> to navigate •
+        <kbd>Enter</kbd> to select •
+        <kbd>Esc</kbd> to close • <kbd>/</kbd> to open
+      </div>
+      <div>
+        Press <kbd>Enter</kbd> without
+        selection to search using Google
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
