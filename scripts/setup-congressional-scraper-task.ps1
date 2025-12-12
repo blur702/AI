@@ -82,7 +82,7 @@ if ($LASTEXITCODE -eq 0 -and -not $Force) {
     exit 1
 }
 
-# Build schtasks arguments
+# First create the periodic task
 $schtasksArgs = @(
     "/create"
     "/tn", $TaskName
@@ -101,25 +101,42 @@ Write-Host "Creating scheduled task..." -ForegroundColor Yellow
 
 try {
     $result = & schtasks @schtasksArgs 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "Task '$TaskName' created successfully!" -ForegroundColor Green
-        Write-Host ""
-        Write-Host "The supervisor will check worker health every $IntervalMinutes minutes."
-        Write-Host ""
-        Write-Host "Management commands:" -ForegroundColor Cyan
-        Write-Host "  View task:     schtasks /query /tn $TaskName /v"
-        Write-Host "  Run now:       schtasks /run /tn $TaskName"
-        Write-Host "  Delete task:   schtasks /delete /tn $TaskName /f"
-        Write-Host ""
-        Write-Host "Supervisor commands:" -ForegroundColor Cyan
-        Write-Host "  Start workers: python -m api_gateway.services.congressional_parallel_supervisor start"
-        Write-Host "  Check health:  python -m api_gateway.services.congressional_parallel_supervisor check"
-        Write-Host "  View status:   python -m api_gateway.services.congressional_parallel_supervisor status"
-        Write-Host "  Stop workers:  python -m api_gateway.services.congressional_parallel_supervisor stop"
-    } else {
+    if ($LASTEXITCODE -ne 0) {
         Write-Error "Failed to create task: $result"
         exit 1
     }
+    Write-Host "Periodic task created." -ForegroundColor Green
+
+    # Now add a startup trigger using PowerShell's ScheduledTasks module
+    Write-Host "Adding startup trigger..." -ForegroundColor Yellow
+    try {
+        $task = Get-ScheduledTask -TaskName $TaskName
+        $startupTrigger = New-ScheduledTaskTrigger -AtStartup
+        $existingTriggers = $task.Triggers
+        $allTriggers = @($existingTriggers) + @($startupTrigger)
+        Set-ScheduledTask -TaskName $TaskName -Trigger $allTriggers | Out-Null
+        Write-Host "Startup trigger added." -ForegroundColor Green
+    } catch {
+        Write-Warning "Could not add startup trigger: $_"
+        Write-Warning "The task will still run every $IntervalMinutes minutes, but not at boot."
+    }
+
+    Write-Host ""
+    Write-Host "Task '$TaskName' created successfully!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "The supervisor will check worker health every $IntervalMinutes minutes."
+    Write-Host "It will also start automatically when Windows boots."
+    Write-Host ""
+    Write-Host "Management commands:" -ForegroundColor Cyan
+    Write-Host "  View task:     schtasks /query /tn $TaskName /v"
+    Write-Host "  Run now:       schtasks /run /tn $TaskName"
+    Write-Host "  Delete task:   schtasks /delete /tn $TaskName /f"
+    Write-Host ""
+    Write-Host "Supervisor commands:" -ForegroundColor Cyan
+    Write-Host "  Start workers: python -m api_gateway.services.congressional_parallel_supervisor start"
+    Write-Host "  Check health:  python -m api_gateway.services.congressional_parallel_supervisor check"
+    Write-Host "  View status:   python -m api_gateway.services.congressional_parallel_supervisor status"
+    Write-Host "  Stop workers:  python -m api_gateway.services.congressional_parallel_supervisor stop"
 } catch {
     Write-Error "Failed to create task: $_"
     exit 1
