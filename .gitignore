@@ -35,6 +35,11 @@ data/scraper/jobs.json
 data/scraper/*_stdout.log
 data/scraper/*_stderr.log
 
+# Congressional scraper temp files
+data/scraper/congressional/checkpoints/
+data/scraper/congressional/heartbeats/
+data/scraper_cache/congressional_docs/
+
 # VSCode workspace settings (machine-specific)
 .vscode/settings.json
 
