@@ -12,7 +12,10 @@
     "request_delay": 2.0,
     "batch_size": 10,
     "batch_delay": 5.0,
-    "max_pages_per_member": 5,
+    "max_pages_per_member": 10,
+    "max_press_pages": 500,
+    "scrape_rss": true,
+    "discover_newsroom": true,
     "checkpoint_interval": 5
   },
   "paths": {

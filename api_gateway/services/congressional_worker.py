@@ -61,6 +61,9 @@ class WorkerConfig:
     batch_size: int = 10
     batch_delay: float = 5.0
     max_pages_per_member: int = 5
+    max_press_pages: int = 500  # Higher limit for press/news pages
+    scrape_rss: bool = True  # Scrape RSS feeds
+    discover_newsroom: bool = True  # Try common newsroom URL patterns
     checkpoint_interval: int = 5
 
 
@@ -252,6 +255,9 @@ class CongressionalWorker:
                 batch_size=self.config.batch_size,
                 batch_delay=self.config.batch_delay,
                 max_pages_per_member=self.config.max_pages_per_member,
+                max_press_pages=self.config.max_press_pages,
+                scrape_rss=self.config.scrape_rss,
+                discover_newsroom=self.config.discover_newsroom,
                 max_members=len(assigned_members),
             )
 
@@ -352,6 +358,75 @@ class CongressionalWorker:
         finally:
             self._stop_heartbeat_thread()
 
+    def _upsert_data(
+        self,
+        data,
+        collection,
+    ) -> tuple[bool, str]:
+        """
+        Upsert a CongressionalData object to Weaviate.
+
+        Returns: (success, action) where action is 'inserted', 'updated', 'unchanged', or 'error'
+        """
+        try:
+            # Classify topics
+            try:
+                classification = classify_text(data.title, data.content_text)
+                data.policy_topics = classification.topics
+            except Exception as clf_exc:
+                logger.warning("Classification failed: %s", clf_exc)
+                data.policy_topics = []
+
+            # Get embedding
+            vector = get_embedding(data.content_text)
+
+            # Check if exists
+            try:
+                existing = collection.query.fetch_object_by_id(data.uuid)
+            except Exception:
+                existing = None
+
+            if existing and getattr(existing, "properties", None):
+                props = existing.properties or {}
+                if props.get("content_hash") == data.content_hash:
+                    return True, "unchanged"
+
+                collection.data.update(
+                    uuid=data.uuid,
+                    properties=data.to_properties(),
+                    vector=vector,
+                )
+                return True, "updated"
+            else:
+                collection.data.insert(
+                    uuid=data.uuid,
+                    properties=data.to_properties(),
+                    vector=vector,
+                )
+                return True, "inserted"
+
+        except Exception as e:
+            logger.warning("Failed to upsert: %s", e)
+            return False, "error"
+
+    def _discover_rss_feeds(self, member: MemberInfo) -> List[str]:
+        """Discover RSS feed URLs for a member."""
+        feeds = []
+        if member.rss_feed_url:
+            feeds.append(member.rss_feed_url)
+
+        # Try common RSS patterns
+        base = member.website_url.rstrip("/")
+        rss_patterns = [
+            "/feed", "/rss", "/feed.xml", "/rss.xml",
+            "/news/feed", "/news/rss", "/media/feed",
+            "/press/feed", "/press/rss",
+        ]
+        for pattern in rss_patterns:
+            feeds.append(f"{base}{pattern}")
+
+        return feeds
+
     def _scrape_member(
         self,
         member: MemberInfo,
@@ -359,7 +434,7 @@ class CongressionalWorker:
         collection,
     ) -> tuple[int, int, int, int]:
         """
-        Scrape a single member's website.
+        Scrape a single member's website and RSS feeds.
 
         Returns: (pages_scraped, pages_inserted, pages_updated, errors)
         """
@@ -374,55 +449,48 @@ class CongressionalWorker:
 
         # Create scraper instance and scrape this member
         with CongressionalDocScraper(scrape_config) as scraper:
+            # 1. Scrape website pages
             try:
-                # Scrape member pages using the new single-member method
                 for data in scraper.scrape_single_member(member):
                     pages_scraped += 1
-
-                    try:
-                        # Classify topics
-                        try:
-                            classification = classify_text(data.title, data.content_text)
-                            data.policy_topics = classification.topics
-                        except Exception as clf_exc:
-                            logger.warning("Classification failed: %s", clf_exc)
-                            data.policy_topics = []
-
-                        # Get embedding
-                        vector = get_embedding(data.content_text)
-
-                        # Check if exists
-                        try:
-                            existing = collection.query.fetch_object_by_id(data.uuid)
-                        except Exception:
-                            existing = None
-
-                        if existing and getattr(existing, "properties", None):
-                            props = existing.properties or {}
-                            if props.get("content_hash") == data.content_hash:
-                                continue  # Unchanged
-
-                            collection.data.update(
-                                uuid=data.uuid,
-                                properties=data.to_properties(),
-                                vector=vector,
-                            )
-                            pages_updated += 1
-                        else:
-                            collection.data.insert(
-                                uuid=data.uuid,
-                                properties=data.to_properties(),
-                                vector=vector,
-                            )
-                            pages_inserted += 1
-
-                    except Exception as e:
-                        logger.warning("Failed to upsert page: %s", e)
+                    success, action = self._upsert_data(data, collection)
+                    if action == "inserted":
+                        pages_inserted += 1
+                    elif action == "updated":
+                        pages_updated += 1
+                    elif action == "error":
                         errors += 1
 
             except Exception as e:
                 logger.warning("Failed to scrape member %s: %s", member.name, e)
                 errors += 1
+
+            # 2. Scrape RSS feeds if enabled
+            if scrape_config.scrape_rss:
+                rss_feeds = self._discover_rss_feeds(member)
+                scraped_urls = set()  # Track URLs to avoid duplicates
+
+                for rss_url in rss_feeds:
+                    try:
+                        rss_entries = scraper.parse_rss_feed(rss_url, member)
+                        for data in rss_entries:
+                            # Skip if we already scraped this URL
+                            if data.url in scraped_urls:
+                                continue
+                            scraped_urls.add(data.url)
+
+                            pages_scraped += 1
+                            success, action = self._upsert_data(data, collection)
+                            if action == "inserted":
+                                pages_inserted += 1
+                            elif action == "updated":
+                                pages_updated += 1
+                            elif action == "error":
+                                errors += 1
+
+                    except Exception as e:
+                        # RSS feed errors are expected (many don't exist)
+                        logger.debug("RSS feed %s failed: %s", rss_url, e)
 
         return pages_scraped, pages_inserted, pages_updated, errors
 
@@ -455,6 +523,9 @@ def main():
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="Config file path")
     parser.add_argument("--request-delay", type=float, help="Request delay override")
     parser.add_argument("--max-pages", type=int, help="Max pages per member override")
+    parser.add_argument("--max-press-pages", type=int, help="Max press pages override")
+    parser.add_argument("--no-rss", action="store_true", help="Disable RSS feed scraping")
+    parser.add_argument("--no-newsroom-discovery", action="store_true", help="Disable newsroom URL discovery")
 
     args = parser.parse_args()
 
@@ -475,6 +546,9 @@ def main():
         batch_size=worker_config.get("batch_size", 10),
         batch_delay=worker_config.get("batch_delay", 5.0),
         max_pages_per_member=args.max_pages or worker_config.get("max_pages_per_member", 5),
+        max_press_pages=args.max_press_pages or worker_config.get("max_press_pages", 500),
+        scrape_rss=not args.no_rss and worker_config.get("scrape_rss", True),
+        discover_newsroom=not args.no_newsroom_discovery and worker_config.get("discover_newsroom", True),
         checkpoint_interval=worker_config.get("checkpoint_interval", 5),
     )
 

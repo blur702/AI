@@ -51,6 +51,9 @@ class ScrapeConfig:
     batch_delay: float = DEFAULT_BATCH_DELAY
     max_members: Optional[int] = None
     max_pages_per_member: int = 5
+    max_press_pages: int = 500  # Higher limit for press/news pages
+    scrape_rss: bool = True  # Scrape RSS feeds for press releases
+    discover_newsroom: bool = True  # Try common newsroom URL patterns
     dry_run: bool = False
     scrape_votes: bool = False
     max_votes: int = 100
@@ -619,13 +622,78 @@ class CongressionalDocScraper(BaseDocScraper):
                     if link not in visited and link not in queue:
                         queue.append(link)
 
+    def _is_press_url(self, url: str) -> bool:
+        """Check if URL is a press/news page."""
+        path = urlparse(url).path.lower()
+        press_patterns = [
+            "/press", "/news", "/media", "/newsroom",
+            "/press-release", "/pressrelease", "/press_release",
+            "/releases", "/statements", "/announcement",
+            "/media-center", "/mediacenter",
+        ]
+        return any(pattern in path for pattern in press_patterns)
+
+    def _discover_newsroom_urls(self, member: MemberInfo) -> List[str]:
+        """Generate common newsroom URL patterns to try for a member."""
+        base = member.website_url.rstrip("/")
+        # Only try the most common patterns to avoid excessive requests
+        patterns = [
+            "/media", "/media-center", "/news", "/newsroom",
+        ]
+        return [f"{base}{p}" for p in patterns]
+
+    def _extract_pagination_links(self, soup: BeautifulSoup, base_url: str) -> List[str]:
+        """Extract pagination links from press listing pages."""
+        pagination_links = []
+        parsed_base = urlparse(base_url)
+
+        # Common pagination patterns
+        pagination_selectors = [
+            "a.page-link", "a.pagination-link", ".pagination a",
+            "a[rel='next']", ".pager a", ".nav-links a",
+            "a.next", "a.older", "a[aria-label*='next']",
+            "a[aria-label*='Next']", ".next-page a",
+        ]
+
+        for selector in pagination_selectors:
+            try:
+                for link in soup.select(selector):
+                    href = link.get("href")
+                    if href:
+                        # Handle relative URLs
+                        if href.startswith("/"):
+                            href = f"{parsed_base.scheme}://{parsed_base.netloc}{href}"
+                        elif not href.startswith("http"):
+                            continue
+                        if href not in pagination_links:
+                            pagination_links.append(href)
+            except Exception:
+                continue
+
+        # Also look for ?page= or /page/ patterns in any links
+        for link in soup.find_all("a", href=True):
+            href = link.get("href", "")
+            if "page=" in href or "/page/" in href:
+                if href.startswith("/"):
+                    href = f"{parsed_base.scheme}://{parsed_base.netloc}{href}"
+                elif not href.startswith("http"):
+                    continue
+                if href not in pagination_links:
+                    pagination_links.append(href)
+
+        return pagination_links
+
     def scrape_single_member(
         self, member: MemberInfo
     ) -> Generator[CongressionalData, None, None]:
         """
-        Scrape a single member's website.
+        Scrape a single member's website with full press release coverage.
 
-        Used by parallel workers to scrape individual members.
+        Uses separate limits for press vs non-press pages:
+        - Non-press pages: limited by max_pages_per_member
+        - Press pages: limited by max_press_pages (much higher)
+
+        Also discovers newsroom URLs and follows pagination.
 
         Args:
             member: MemberInfo object with member details
@@ -634,23 +702,41 @@ class CongressionalDocScraper(BaseDocScraper):
             CongressionalData objects for each scraped page
         """
         visited: set[str] = set()
-        queue: List[str] = [member.website_url]
-        pages_scraped = 0
+        press_queue: List[str] = []
+        general_queue: List[str] = [member.website_url]
+        press_pages_scraped = 0
+        general_pages_scraped = 0
 
-        while queue and pages_scraped < self.scrape_config.max_pages_per_member:
-            queue = self._sort_queue_by_priority(queue)
+        # Discover newsroom URLs if enabled
+        if self.scrape_config.discover_newsroom:
+            newsroom_urls = self._discover_newsroom_urls(member)
+            for url in newsroom_urls:
+                if url not in press_queue:
+                    press_queue.append(url)
 
+        # Main scraping loop - prioritize press content
+        while press_queue or general_queue:
             if self._is_cancelled():
                 break
 
             while self._is_paused():
                 time.sleep(1.0)
 
-            url = queue.pop(0)
+            # Prioritize press queue, but respect limits
+            if press_queue and press_pages_scraped < self.scrape_config.max_press_pages:
+                url = press_queue.pop(0)
+            elif general_queue and general_pages_scraped < self.scrape_config.max_pages_per_member:
+                url = general_queue.pop(0)
+            else:
+                # Both queues exhausted or limits reached
+                break
+
+            # Skip if already visited
             if url in visited:
                 continue
             visited.add(url)
 
+            # Fetch the page
             html = self.fetch_page(url)
             if not html:
                 continue
@@ -658,6 +744,28 @@ class CongressionalDocScraper(BaseDocScraper):
             soup = BeautifulSoup(html, "html.parser")
             title = self._extract_title_from_page(soup, url)
             content = self._extract_content_from_page(soup)
+
+            # Extract links regardless of content
+            new_links = self.extract_links(url, html)
+            is_press = self._is_press_url(url)
+
+            # If this is a press listing page, also get pagination links
+            if is_press:
+                pagination_links = self._extract_pagination_links(soup, url)
+                new_links.extend(pagination_links)
+
+            # Add discovered links to appropriate queues
+            for link in new_links:
+                if link in visited:
+                    continue
+                if self._is_press_url(link):
+                    if link not in press_queue:
+                        press_queue.append(link)
+                else:
+                    if link not in general_queue:
+                        general_queue.append(link)
+
+            # Skip pages without content
             if not content:
                 continue
 
@@ -691,16 +799,19 @@ class CongressionalDocScraper(BaseDocScraper):
                 uuid=uuid_str,
             )
 
-            pages_scraped += 1
+            if is_press:
+                press_pages_scraped += 1
+            else:
+                general_pages_scraped += 1
+
             yield data
 
-            # Discover additional links
-            new_links = self.extract_links(url, html)
-            for link in new_links:
-                if pages_scraped + len(queue) >= self.scrape_config.max_pages_per_member:
-                    break
-                if link not in visited and link not in queue:
-                    queue.append(link)
+        logger.info(
+            "Scraped %s: %d press pages, %d general pages",
+            member.name,
+            press_pages_scraped,
+            general_pages_scraped,
+        )
 
     # ------------------------------------------------------------------
     # Voting record scraping (clerk.house.gov)

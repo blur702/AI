@@ -103,6 +103,7 @@ GET  /jobs/{job_id}
 | `Documentation` | Markdown docs |
 | `ClaudeConversation` | Past Claude sessions |
 | `DrupalAPI` | Drupal 11.x API reference |
+| `CongressionalData` | House member websites, press releases, voting records |
 
 ### Indexing
 
@@ -180,3 +181,81 @@ POSTGRES_DB=ai_gateway
 ```
 
 Tables: `jobs`, `api_keys`, `todos`, `errors`, `ideas`
+
+## Congressional Scraper
+
+Parallel scraper system for House of Representatives member websites. Scrapes member pages, press releases, and voting records into Weaviate's `CongressionalData` collection.
+
+### Architecture
+
+- **Supervisor** (`congressional_parallel_supervisor.py`): Orchestrates 20 parallel workers
+- **Workers** (`congressional_worker.py`): Each scrapes assigned subset of members
+- **Scraper** (`congressional_scraper.py`): Core scraping logic with rate limiting
+
+### Data Flow
+
+```
+House.gov JSON Feed → Supervisor divides 441 members among 20 workers
+    ↓
+Workers scrape member websites (max 5 pages each)
+    ↓
+Content + embeddings → Weaviate CongressionalData collection
+```
+
+### Commands
+
+```bash
+# Start parallel scrape (20 workers)
+python -m api_gateway.services.congressional_parallel_supervisor start
+
+# Check worker status
+python -m api_gateway.services.congressional_parallel_supervisor status
+
+# Stop all workers
+python -m api_gateway.services.congressional_parallel_supervisor stop
+
+# Single-threaded scrape (for testing)
+python -m api_gateway.services.congressional_scraper scrape --limit 5
+
+# Scrape voting records only
+python -m api_gateway.services.congressional_scraper scrape --votes-only --max-votes 100
+
+# Check collection stats
+python -m api_gateway.services.congressional_scraper status
+```
+
+### File Locations
+
+| Path | Purpose |
+|------|---------|
+| `data/scraper/congressional/` | Config, PID, work assignments |
+| `data/scraper/congressional/heartbeats/` | Worker heartbeat files (health monitoring) |
+| `data/scraper/congressional/checkpoints/` | Resume state for crashed workers |
+| `logs/congressional_scraper/` | Per-worker log files |
+
+### Configuration
+
+`data/scraper/congressional/congressional_parallel_config.json`:
+
+```json
+{
+  "supervisor": {
+    "worker_count": 20,
+    "heartbeat_timeout_seconds": 300,
+    "max_restarts_per_worker": 3
+  },
+  "worker": {
+    "request_delay": 2.0,
+    "max_pages_per_member": 5,
+    "checkpoint_interval": 5
+  }
+}
+```
+
+### Data Schema
+
+CongressionalData collection fields:
+- `member_name`, `state`, `district`, `party`, `chamber`
+- `title`, `topic`, `content_text`, `url`
+- `policy_topics` (auto-classified via Ollama)
+- `scraped_at`, `content_hash`, `uuid`
