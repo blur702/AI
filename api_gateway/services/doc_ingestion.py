@@ -25,6 +25,7 @@ from typing import Callable, Dict, Iterable, List, Optional
 
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property, VectorDistances
+from weaviate.classes.query import Filter
 
 from ..config import settings
 from ..utils.embeddings import get_embedding
@@ -562,6 +563,44 @@ def collection_status(client: weaviate.WeaviateClient) -> Dict[str, int]:
   total = agg.total_count or 0
   logger.info("Collection '%s' total objects: %s", DOCUMENTATION_COLLECTION_NAME, total)
   return {"object_count": int(total)}
+
+
+def verify_files_by_path(
+  client: weaviate.WeaviateClient,
+  file_paths: List[str],
+) -> Dict[str, int]:
+  """
+  Return per-file chunk counts for the Documentation collection.
+
+  Args:
+      client: Connected Weaviate client
+      file_paths: List of workspace-relative file_path values
+
+  Returns:
+      Dict mapping file_path -> number of chunks found
+  """
+  if not client.collections.exists(DOCUMENTATION_COLLECTION_NAME):
+    logger.info(
+      "Collection '%s' does not exist",
+      DOCUMENTATION_COLLECTION_NAME,
+    )
+    return {fp: 0 for fp in file_paths}
+
+  collection = client.collections.get(DOCUMENTATION_COLLECTION_NAME)
+  counts: Dict[str, int] = {}
+
+  for file_path in file_paths:
+    try:
+      resp = collection.query.fetch_objects(
+        filters=Filter.by_property("file_path").equal(file_path),
+        limit=1000,
+      )
+      counts[file_path] = len(resp.objects or [])
+    except Exception as exc:  # noqa: BLE001
+      logger.exception("Failed to verify file_path '%s': %s", file_path, exc)
+      counts[file_path] = 0
+
+  return counts
 
 
 def _configure_logging(verbose: bool) -> None:
