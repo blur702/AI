@@ -28,12 +28,10 @@ import json
 import logging
 import re
 import subprocess
-import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select, delete
+from sqlalchemy import delete
 
 from api_gateway.models.database import (
     AsyncSessionLocal,

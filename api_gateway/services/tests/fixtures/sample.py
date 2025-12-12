@@ -7,10 +7,8 @@ ability to extract functions, classes, variables, and other entities.
 
 from __future__ import annotations
 
-import json
-import os
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, Dict, Optional, TypeVar
 
 # Module-level constant
 DEFAULT_TIMEOUT: int = 30
