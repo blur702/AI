@@ -1,0 +1,82 @@
+case 'webform_list':
+    $storage = \Drupal::entityTypeManager()->getStorage('webform');
+    $webforms = $storage->loadMultiple();
+    $result = [];
+    foreach ($webforms as $webform) {
+        $result[] = [
+            'id' => $webform->id(),
+            'title' => $webform->label(),
+            'status' => $webform->get('status'),
+            'open' => $webform->isOpen(),
+        ];
+    }
+    output(['webforms' => $result]);
+    break;
+case 'webform_get':
+    if (!isset($args['id'])) error('id required');
+    $storage = \Drupal::entityTypeManager()->getStorage('webform');
+    $webform = $storage->load($args['id']);
+    if (!$webform) error('Webform not found');
+    $elements = $webform->getElementsDecoded();
+    output([
+        'id' => $webform->id(),
+        'title' => $webform->label(),
+        'status' => $webform->get('status'),
+        'elements' => $elements,
+        'settings' => $webform->getSettings(),
+    ]);
+    break;
+case 'webform_create':
+    if (!isset($args['id']) || !isset($args['title'])) error('id and title required');
+    $storage = \Drupal::entityTypeManager()->getStorage('webform');
+    $elements = [];
+    if (isset($args['elements']) && is_array($args['elements'])) {
+        $elements = $args['elements'];
+    }
+    $webform = $storage->create([
+        'id' => $args['id'],
+        'title' => $args['title'],
+        'elements' => \Drupal\Component\Serialization\Yaml::encode($elements),
+        'status' => 'open',
+    ]);
+    $webform->save();
+    output(['success' => true, 'id' => $webform->id(), 'elements' => $elements]);
+    break;
+case 'webform_delete':
+    if (!isset($args['id'])) error('id required');
+    $storage = \Drupal::entityTypeManager()->getStorage('webform');
+    $webform = $storage->load($args['id']);
+    if (!$webform) error('Webform not found');
+    $webform->delete();
+    output(['success' => true]);
+    break;
+case 'webform_submission_list':
+    if (!isset($args['webform_id'])) error('webform_id required');
+    $storage = \Drupal::entityTypeManager()->getStorage('webform_submission');
+    $query = $storage->getQuery()->accessCheck(TRUE)->condition('webform_id', $args['webform_id'])->range(0, $args['limit'] ?? 50);
+    $ids = $query->execute();
+    $submissions = $storage->loadMultiple($ids);
+    $result = [];
+    foreach ($submissions as $submission) {
+        $result[] = [
+            'sid' => $submission->id(),
+            'created' => date('Y-m-d H:i:s', $submission->getCreatedTime()),
+            'data' => $submission->getData(),
+        ];
+    }
+    output(['submissions' => $result]);
+    break;
+case 'webform_element_add':
+    if (!isset($args['webform_id']) || !isset($args['key']) || !isset($args['type'])) error('webform_id, key, type required');
+    $storage = \Drupal::entityTypeManager()->getStorage('webform');
+    $webform = $storage->load($args['webform_id']);
+    if (!$webform) error('Webform not found');
+    $elements = $webform->getElementsDecoded();
+    $element = ['#type' => $args['type'], '#title' => $args['title'] ?? ucfirst($args['key'])];
+    if (isset($args['required'])) $element['#required'] = (bool)$args['required'];
+    if (isset($args['options'])) $element['#options'] = $args['options'];
+    $elements[$args['key']] = $element;
+    $webform->setElements($elements);
+    $webform->save();
+    output(['success' => true, 'element' => $element]);
+    break;

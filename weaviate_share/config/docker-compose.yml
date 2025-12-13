@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  weaviate:
+    image: semitechnologies/weaviate:1.28.4
+    container_name: weaviate
+    restart: unless-stopped
+    ports:
+      - "8080:8080"    # HTTP API
+      - "50051:50051"  # gRPC
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      PERSISTENCE_DATA_PATH: '/var/lib/weaviate'
+      DEFAULT_VECTORIZER_MODULE: 'none'  # We use Ollama for embeddings externally
+      ENABLE_MODULES: ''
+      CLUSTER_HOSTNAME: 'node1'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # Allows container to reach host (for Ollama)
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+
+  # Optional: Web console for browsing data
+  weaviate-console:
+    image: semitechnologies/weaviate-console:latest
+    container_name: weaviate-console
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    depends_on:
+      - weaviate
+
+volumes:
+  weaviate_data:
