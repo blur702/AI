@@ -856,3 +856,6 @@ dashboard/frontend/dist/assets/index-CapFI5Yq.js
 dashboard/frontend/src/App.tsx
 mcp_servers/README.md
 mcp_servers/README.md
+CLAUDE.md
+api_gateway/services/congressional_scraper.py
+api_gateway/services/congressional_worker.py

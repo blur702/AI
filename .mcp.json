@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "drupal-remote": {
+      "command": "C:\\Program Files\\PuTTY\\plink.exe",
+      "args": [
+        "-ssh",
+        "-pw", "T917nY9ILYmJGtUq",
+        "-hostkey", "ssh-ed25519 255 SHA256:EnWadrWQBKWVjQ8UV9ynQuSJbAjEuaMimajwlXoZecw",
+        "root@65.181.112.77",
+        "/opt/mcp-server/run.sh"
+      ]
+    }
+  }
+}

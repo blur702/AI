@@ -8,25 +8,37 @@ Local AI development workspace with integrated generation tools (audio, image, m
 
 **External access**: `https://ssdd.kevinalthaus.com` (HTTPS via nginx)
 
-## Database Quick Reference
+## IMPORTANT: Query the Vector Database FIRST
 
-| Database | Port | Contents | When to Use |
-|----------|------|----------|-------------|
-| **Weaviate** | 8080 | Code, docs, conversations | "How does X work?", "Find code that does Y" |
-| **PostgreSQL** | 5432 | Errors, todos, jobs | "What errors occurred?", "What tasks are pending?" |
+Before using `Glob`, `Grep`, or file searches, **always query Weaviate first** for coding questions. The database contains semantically indexed code and documentation that provides faster, more relevant results.
 
 ### Weaviate MCP Tools
 
 ```
-search_code          - Find functions/classes by description
+search_code          - Find functions/classes/methods by description
 search_documentation - Find docs by concept
-search_codebase      - Search both code and docs
+search_codebase      - Search BOTH code AND docs (use for broad questions)
+search_drupal_api    - Search Drupal 11.x API (16k+ PHP classes/functions/hooks)
+search_congressional - Search House member press releases and voting records
+search_mdn           - Search MDN JavaScript and Web API documentation
 ```
 
 **Filters for search_code:**
 - `entity_type`: function, method, class, struct, trait, enum, impl, style, animation
 - `service_name`: core, alltalk, audiocraft, comfyui, diffrhythm, musicgpt, stable_audio, wan2gp, yue
 - `language`: python, typescript, javascript, css, rust
+
+**Filters for search_drupal_api:**
+- `entity_type`: class, interface, trait, function, method, hook, constant
+
+**Filters for search_congressional:**
+- `state`: Two-letter state code (e.g., "CA", "TX")
+- `party`: "Republican" or "Democrat"
+
+**Filters for search_mdn:**
+- `collection`: "javascript" or "webapi" (or omit for both)
+
+**Embedding model check (do this BEFORE any Weaviate query):** Silently run `ollama ps` to check if `snowflake-arctic-embed:l` is loaded. If not, load it with `ollama run snowflake-arctic-embed:l ""` and inform user of loading progress.
 
 ### PostgreSQL CLI
 
@@ -103,6 +115,8 @@ GET  /jobs/{job_id}
 | `Documentation` | Markdown docs |
 | `ClaudeConversation` | Past Claude sessions |
 | `DrupalAPI` | Drupal 11.x API reference |
+| `DrupalModuleDocs` | Drupal module READMEs and documentation (from remote server) |
+| `DrupalTwigTemplates` | Drupal Twig templates from core, contrib, and custom themes |
 | `CongressionalData` | House member websites, press releases, voting records |
 
 ### Indexing
@@ -114,6 +128,14 @@ python -m api_gateway.services.incremental_indexer --git-diff
 # Full reindex
 python -m api_gateway.services.code_ingestion reindex --service all
 python -m api_gateway.services.doc_ingestion reindex
+
+# Drupal module docs (fetches from remote server via SSH)
+python -m api_gateway.services.drupal_doc_ingestion ingest --verbose
+python -m api_gateway.services.drupal_doc_ingestion status
+
+# Drupal Twig templates (fetches from remote server via SSH)
+python -m api_gateway.services.drupal_twig_ingestion ingest --verbose
+python -m api_gateway.services.drupal_twig_ingestion status
 ```
 
 ## Project Structure
@@ -136,7 +158,7 @@ tests/                 # Playwright tests
 
 ## Critical Notes
 
-1. **Vector DB First**: Use `search_code`/`search_codebase` before Glob/Grep
+1. **Vector DB First**: ALWAYS use `search_code`/`search_codebase`/`search_documentation` BEFORE Glob/Grep. The semantic index is faster and more accurate.
 2. **Single-Port**: Flask serves React + API on port 80. Run `npm run build` after frontend changes
 3. **VRAM**: Monitor constantly - services can exhaust 24GB
 4. **Virtual Envs**: Each AI service has its own venv
@@ -158,16 +180,6 @@ tests/                 # Playwright tests
 ```bash
 "C:\Program Files\GitHub CLI\gh.exe" pr create --title "Title" --body "Body"
 "C:\Program Files\GitHub CLI\gh.exe" pr view 123
-```
-
-## Error Tracking
-
-Errors auto-tracked in PostgreSQL via post-edit hook.
-
-```bash
-python -m api_gateway.services.error_tracker list      # View errors
-python -m api_gateway.services.error_tracker stats     # Statistics
-python -m api_gateway.services.error_tracker resolve --error-id "uuid" --resolution "Fixed by..."
 ```
 
 ## PostgreSQL Setup
