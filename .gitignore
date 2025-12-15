@@ -47,6 +47,10 @@ data/scraper_cache/congressional_docs/
 nginx/ssl/*.key
 nginx/ssl/*.pem
 
+# Weaviate data backups (too large for git)
+weaviate_share/data/*.tar.gz
+weaviate_share/data/*.tar
+
 # Misc
 nul
 .DS_Store
