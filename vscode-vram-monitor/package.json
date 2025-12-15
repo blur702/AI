@@ -1,0 +1,203 @@
+{
+  "name": "vscode-vram-monitor",
+  "displayName": "VRAM Monitor & Ollama Manager",
+  "description": "Monitor GPU VRAM usage and manage Ollama models",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "keywords": [
+    "vram",
+    "gpu",
+    "nvidia",
+    "ollama",
+    "model-management",
+    "ai",
+    "machine-learning",
+    "monitoring",
+    "resource-manager"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blur702/AI"
+  },
+  "bugs": {
+    "url": "https://github.com/blur702/AI/issues"
+  },
+  "homepage": "https://github.com/blur702/AI#readme",
+  "galleryBanner": {
+    "color": "#1e1e1e",
+    "theme": "dark"
+  },
+  "categories": [
+    "Other",
+    "Visualization",
+    "Machine Learning"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "icon": "media/icon.png",
+  "main": "./out/extension.js",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "axios": "^1.5.1"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "vramMonitor.showDashboard",
+        "title": "VRAM Monitor: Show Dashboard"
+      },
+      {
+        "command": "vramMonitor.refreshStats",
+        "title": "VRAM Monitor: Refresh Stats"
+      },
+      {
+        "command": "vramMonitor.loadModel",
+        "title": "VRAM Monitor: Load Ollama Model"
+      },
+      {
+        "command": "vramMonitor.unloadAllModels",
+        "title": "VRAM Monitor: Unload All Ollama Models"
+      },
+      {
+        "command": "vramMonitor.showOllamaDiagnostics",
+        "title": "VRAM Monitor: Show Ollama Diagnostics"
+      },
+      {
+        "command": "vramMonitor.toggleStatusBar",
+        "title": "VRAM Monitor: Toggle Status Bar"
+      },
+      {
+        "command": "vramMonitor.showOutput",
+        "title": "VRAM Monitor: Show Output"
+      },
+      {
+        "command": "vramMonitor.showDiagnostics",
+        "title": "VRAM Monitor: Show Diagnostics"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "vramMonitor.showDashboard",
+        "key": "ctrl+shift+v ctrl+shift+d",
+        "mac": "cmd+shift+v cmd+shift+d"
+      },
+      {
+        "command": "vramMonitor.refreshStats",
+        "key": "ctrl+shift+v ctrl+shift+r",
+        "mac": "cmd+shift+v cmd+shift+r"
+      }
+    ],
+    "configuration": {
+      "title": "VRAM Monitor",
+      "properties": {
+        "vramMonitor.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to the Python executable used to run vram_manager.py"
+        },
+        "vramMonitor.vramManagerPath": {
+          "type": "string",
+          "default": "${workspaceFolder}/vram_manager.py",
+          "description": "Path to the vram_manager.py script"
+        },
+        "vramMonitor.pollInterval": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 1000,
+          "description": "Polling interval in milliseconds for VRAM stats"
+        },
+        "vramMonitor.ollamaUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Base URL for the Ollama API"
+        },
+        "vramMonitor.ollamaLoadTimeout": {
+          "type": "number",
+          "default": 60000,
+          "minimum": 5000,
+          "description": "Timeout in milliseconds for loading Ollama models"
+        },
+        "vramMonitor.ollamaHealthCheckTimeout": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 1000,
+          "description": "Timeout for Ollama health checks and listings"
+        },
+        "vramMonitor.showTotalVRAM": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show total VRAM in status bar text, tooltip, and dashboard"
+        },
+        "vramMonitor.showUsedVRAM": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show used VRAM bytes in status bar text, tooltip, and dashboard"
+        },
+        "vramMonitor.showFreeVRAM": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show free VRAM bytes in status bar tooltip and dashboard"
+        },
+        "vramMonitor.showUtilization": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show GPU utilization percentage in status bar and dashboard"
+        },
+        "vramMonitor.showLoadedModels": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display loaded Ollama models in the status bar tooltip and dashboard"
+        },
+        "vramMonitor.showGPUProcesses": {
+          "type": "boolean",
+          "default": true,
+          "description": "Display GPU processes in the status bar tooltip and dashboard"
+        },
+        "vramMonitor.showGPUName": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show GPU name in the status bar tooltip and dashboard header"
+        },
+        "vramMonitor.showProgressBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the VRAM utilization progress bar in the status bar tooltip and dashboard"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vramMonitor",
+          "title": "VRAM Monitor",
+          "icon": "media/icon.png"
+        }
+      ]
+    },
+    "views": {
+      "vramMonitor": [
+        {
+          "type": "webview",
+          "id": "vramMonitor.dashboardView",
+          "name": "Dashboard"
+        }
+      ]
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^22.8.1",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.6.3",
+    "vsce": "^2.0.0"
+  }
+}
