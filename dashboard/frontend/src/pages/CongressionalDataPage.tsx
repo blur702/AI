@@ -28,6 +28,7 @@ import { CongressionalFilters, CongressionalFilterState } from '../components/Co
 import { CongressionalResultCard } from '../components/CongressionalResultCard';
 import { CongressionalAnalytics } from '../components/CongressionalAnalytics';
 import { CongressionalScrapeDialog } from '../components/CongressionalScrapeDialog';
+import { CongressionalChat } from '../components/CongressionalChat';
 
 function getStatusColor(status: string): 'default' | 'success' | 'warning' | 'error' {
   switch (status) {
@@ -62,6 +63,7 @@ export default function CongressionalDataPage() {
     pauseScrape,
     resumeScrape,
     queryData,
+    askQuestion,
   } = useCongressional();
 
   const [queryText, setQueryText] = useState<string>('');
@@ -384,11 +386,20 @@ export default function CongressionalDataPage() {
               onChange={(_, v) => setActiveTab(v)}
               sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
             >
+              <Tab label="Chat" />
               <Tab label="Results" />
               <Tab label="Analytics" />
             </Tabs>
 
             {activeTab === 0 && (
+              <CongressionalChat
+                askQuestion={askQuestion}
+                memberFilter={filters.member_name}
+                error={error}
+              />
+            )}
+
+            {activeTab === 1 && (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {/* Chat transcript */}
                 {messages.length > 0 && (
@@ -471,7 +482,7 @@ export default function CongressionalDataPage() {
               </Box>
             )}
 
-            {activeTab === 1 && collectionStats && (
+            {activeTab === 2 && collectionStats && (
               <CongressionalAnalytics stats={collectionStats} queryResults={queryResults} />
             )}
           </Box>

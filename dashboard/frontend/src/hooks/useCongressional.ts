@@ -6,6 +6,8 @@ import {
   CongressionalQueryRequest,
   CongressionalQueryResponse,
   CongressionalScrapeConfig,
+  CongressionalChatRequest,
+  CongressionalChatResponse,
 } from '../types';
 import { getApiBase } from '../config/services';
 
@@ -19,6 +21,7 @@ interface UseCongressionalReturn {
   pauseScrape: () => Promise<boolean>;
   resumeScrape: () => Promise<boolean>;
   queryData: (request: CongressionalQueryRequest) => Promise<CongressionalQueryResponse | null>;
+  askQuestion: (request: CongressionalChatRequest) => Promise<CongressionalChatResponse | null>;
   refreshStatus: () => Promise<void>;
 }
 
@@ -254,6 +257,32 @@ export function useCongressional(): UseCongressionalReturn {
     }
   }, []);
 
+  const askQuestion = useCallback(async (request: CongressionalChatRequest) => {
+    setError(null);
+    try {
+      const response = await fetch(`${getApiBase()}/api/congressional/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(request),
+      });
+      const data: CongressionalChatResponse = await response.json();
+      if (!response.ok || !data.success) {
+        console.error('Congressional chat failed', response.status, data);
+        const message =
+          data?.error ||
+          `Chat request failed (HTTP ${response.status})`;
+        setError(message);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.error('Error in congressional chat:', err);
+      setError('Connection error while processing your question');
+      return null;
+    }
+  }, []);
+
   return {
     status,
     progress,
@@ -264,6 +293,7 @@ export function useCongressional(): UseCongressionalReturn {
     pauseScrape,
     resumeScrape,
     queryData,
+    askQuestion,
     refreshStatus: fetchStatus,
   };
 }
