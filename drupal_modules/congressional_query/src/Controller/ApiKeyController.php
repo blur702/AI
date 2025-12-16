@@ -4,7 +4,6 @@ namespace Drupal\congressional_query\Controller;
 
 use Drupal\congressional_query\Service\ApiKeyManager;
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Url;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -124,16 +123,6 @@ class ApiKeyController extends ControllerBase {
     }
 
     return $this->redirect('congressional_query.api_keys');
-  }
-
-  /**
-   * Redirects to the API keys management page.
-   *
-   * @return \Symfony\Component\HttpFoundation\RedirectResponse
-   *   Redirect response.
-   */
-  protected function redirect(string $route): RedirectResponse {
-    return new RedirectResponse(Url::fromRoute($route)->toString());
   }
 
 }
