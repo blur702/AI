@@ -43,6 +43,9 @@ data/scraper_cache/congressional_docs/
 # VSCode workspace settings (machine-specific)
 .vscode/settings.json
 
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json
+
 # SSL certificates and private keys (never commit private keys!)
 nginx/ssl/*.key
 nginx/ssl/*.pem
