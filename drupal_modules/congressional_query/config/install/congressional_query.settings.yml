@@ -1,0 +1,40 @@
+ssh:
+  host: ''
+  port: 22
+  username: ''
+  password: ''
+  private_key_path: ''
+  connection_timeout: 30
+  command_timeout: 120
+  max_retries: 3
+  health_check_interval: 300
+  remote_os: 'windows'
+ollama:
+  endpoint: 'http://localhost:11434'
+  model: 'qwen3-coder-roo:latest'
+  fallback_model: ''
+  embedding_model: 'snowflake-arctic-embed:l'
+  temperature: 0.3
+  num_predict: 2048
+  top_p: null
+  top_k: null
+  repeat_penalty: null
+  seed: null
+  stop_sequences: []
+  generation_timeout: 120
+  response_cache_ttl: 3600
+  debug_mode: false
+weaviate:
+  url: 'http://localhost:8080'
+  grpc_port: 50051
+  collection: 'CongressionalData'
+tunnel:
+  local_ollama_port: 11434
+  local_weaviate_http_port: 8080
+  local_weaviate_grpc_port: 50051
+query:
+  default_num_sources: 8
+  max_context_length: 1500
+  log_retention_days: 90
+  session_timeout_hours: 24
+  max_stored_turns: 20

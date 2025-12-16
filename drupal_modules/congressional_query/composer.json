@@ -1,0 +1,15 @@
+{
+  "name": "drupal/congressional_query",
+  "type": "drupal-custom-module",
+  "description": "Congressional query module with SSH tunnel to remote LLM",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "phpseclib/phpseclib": "^3.0",
+    "guzzlehttp/guzzle": "^7.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Drupal\\congressional_query\\": "src/"
+    }
+  }
+}

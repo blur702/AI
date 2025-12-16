@@ -1,0 +1,49 @@
+{#
+/**
+ * @file
+ * Template for the congressional query form.
+ *
+ * Available variables:
+ * - form: The form render array.
+ * - example_questions: Array of example question strings.
+ */
+#}
+<div class="congressional-query-page">
+  <div class="congressional-query-form-wrapper">
+    {# Header section #}
+    <header class="query-form-header">
+      <h2 class="query-form-title">{{ 'Ask Questions About Congressional Members'|t }}</h2>
+      <p class="query-form-description" id="question-help-text">
+        {{ 'Get answers about voting records, policy positions, press releases, and member information from the House of Representatives.'|t }}
+      </p>
+    </header>
+
+    {# Loading overlay (hidden by default) #}
+    <div class="loading-overlay hidden" aria-hidden="true" role="alert">
+      <div class="loading-spinner">
+        <div class="spinner-animation"></div>
+        <p class="loading-text">{{ 'Processing your question...'|t }}</p>
+        <p class="loading-subtext">{{ 'This may take a few moments as we search through congressional records.'|t }}</p>
+      </div>
+    </div>
+
+    {# Main form #}
+    <div class="query-form-main">
+      {{ form }}
+    </div>
+
+    {# Tips section #}
+    <aside class="query-form-tips" aria-label="{{ 'Query tips'|t }}">
+      <h4 class="tips-title">{{ 'Tips for better results'|t }}</h4>
+      <ul class="tips-list">
+        <li>{{ 'Be specific about the topic or member you are interested in'|t }}</li>
+        <li>{{ 'Use the member filter to focus on a specific representative'|t }}</li>
+        <li>{{ 'Ask about voting records, policy positions, or recent statements'|t }}</li>
+        <li><kbd>Ctrl</kbd> + <kbd>Enter</kbd> {{ 'to submit quickly'|t }}</li>
+      </ul>
+    </aside>
+
+    {# ARIA live region for status announcements #}
+    <div class="visually-hidden" aria-live="polite" id="query-form-status"></div>
+  </div>
+</div>

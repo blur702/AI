@@ -1,0 +1,129 @@
+{#
+/**
+ * @file
+ * Template for displaying a single source item.
+ *
+ * Available variables:
+ * - member_name: Name of the congressional member.
+ * - title: Title of the source document.
+ * - content: Preview of the content (may be truncated).
+ * - content_truncated: Truncated content (from preprocess).
+ * - content_full: Full content text (from preprocess).
+ * - has_more_content: Boolean indicating if content was truncated (from preprocess).
+ * - url: Link to the source.
+ * - party: Party affiliation.
+ * - state: State code.
+ * - topic: Topic classification.
+ * - distance: Vector distance (optional, lower = more relevant).
+ * - party_class: CSS class for party affiliation (from preprocess).
+ * - relevance_score: Calculated relevance percentage (from preprocess).
+ */
+#}
+{% set party_class = 'party-other' %}
+{% set party_label = 'Independent' %}
+{% if party|lower starts with 'republican' or party|lower == 'r' %}
+  {% set party_class = 'party-republican' %}
+  {% set party_label = 'Republican' %}
+{% elseif party|lower starts with 'democrat' or party|lower == 'd' %}
+  {% set party_class = 'party-democrat' %}
+  {% set party_label = 'Democrat' %}
+{% endif %}
+
+{# Calculate relevance percentage from distance (0 = perfect match, 1 = no match) #}
+{% set relevance_score = distance is not null ? ((1 - distance) * 100)|round : null %}
+
+<article class="source-item {{ party_class }}" itemscope itemtype="https://schema.org/Article">
+  <header class="source-header">
+    {# Member info with party-colored indicator #}
+    <div class="member-info">
+      <span class="party-indicator {{ party_class }}" aria-hidden="true"></span>
+      <span class="member-chip {{ party_class }}" itemprop="author" itemscope itemtype="https://schema.org/Person">
+        <span itemprop="name">{{ member_name }}</span>
+        <span class="member-details">
+          ({{ party|default('?')|first|upper }}-{{ state|default('??') }})
+        </span>
+      </span>
+    </div>
+
+    {# Relevance indicator #}
+    {% if relevance_score is not null %}
+      <div class="relevance-indicator" title="{{ 'Relevance: @score%'|t({'@score': relevance_score|number_format}) }}">
+        <span class="relevance-label visually-hidden">{{ 'Relevance score'|t }}</span>
+        <div class="relevance-bar" role="progressbar" aria-valuenow="{{ relevance_score }}" aria-valuemin="0" aria-valuemax="100">
+          <div class="relevance-fill {% if relevance_score >= 80 %}high{% elseif relevance_score >= 50 %}medium{% else %}low{% endif %}"
+               style="width: {{ relevance_score }}%"></div>
+        </div>
+        <span class="relevance-value">{{ relevance_score|number_format }}%</span>
+      </div>
+    {% endif %}
+  </header>
+
+  {# Topic badge #}
+  {% if topic %}
+    <div class="source-topics">
+      <span class="topic-badge" itemprop="about">
+        <span class="topic-icon" aria-hidden="true">&#128218;</span>
+        {{ topic }}
+      </span>
+    </div>
+  {% endif %}
+
+  {# Source title #}
+  <h4 class="source-title" itemprop="headline">{{ title }}</h4>
+
+  {# Content preview with expand option #}
+  {% if content or content_truncated %}
+    <div class="source-content-wrapper">
+      {# Show truncated content if available, otherwise show content #}
+      {% if has_more_content %}
+        <div class="source-content" itemprop="description">{{ content_truncated|default(content) }}</div>
+        <div class="source-content-full" style="display: none;">{{ content_full|default(content) }}</div>
+        <button type="button" class="expand-content-btn" aria-expanded="false">
+          <span class="expand-icon" aria-hidden="true">&#8942;</span>
+          <span class="btn-text">{{ 'Read more'|t }}</span>
+        </button>
+      {% else %}
+        <div class="source-content" itemprop="description">{{ content }}</div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {# Source actions #}
+  <footer class="source-footer">
+    <div class="source-actions">
+      {% if url %}
+        <a href="{{ url }}"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="source-link"
+           itemprop="url">
+          <span class="link-icon" aria-hidden="true">&#128279;</span>
+          {{ 'View source'|t }}
+          <span class="external-icon" aria-hidden="true">&#8599;</span>
+        </a>
+      {% endif %}
+
+      <button type="button"
+              class="source-action-btn filter-member-btn"
+              data-member="{{ member_name }}"
+              title="{{ 'Filter by this member'|t }}">
+        <span class="action-icon" aria-hidden="true">&#128270;</span>
+        {{ 'More from this member'|t }}
+      </button>
+    </div>
+
+    {# Source metadata #}
+    <div class="source-meta">
+      {% if state %}
+        <span class="meta-item state-meta" itemprop="locationCreated" itemscope itemtype="https://schema.org/State">
+          <span class="meta-icon" aria-hidden="true">&#127968;</span>
+          <span itemprop="name">{{ state }}</span>
+        </span>
+      {% endif %}
+      <span class="meta-item party-meta">
+        <span class="meta-icon {{ party_class }}" aria-hidden="true">&#9679;</span>
+        {{ party_label }}
+      </span>
+    </div>
+  </footer>
+</article>

@@ -1,0 +1,213 @@
+{#
+/**
+ * @file
+ * Template for the chat interface.
+ *
+ * Available variables:
+ * - conversation_id: The conversation UUID.
+ * - messages: Array of previous messages.
+ * - member_filter: Current member filter.
+ * - example_questions: Array of example question strings.
+ */
+#}
+<div class="congressional-query-page">
+  <div class="congressional-chat-container" role="main" aria-label="{{ 'Congressional Chat Interface'|t }}">
+    <div class="chat-header">
+      <h2 id="chat-title">{{ 'Congressional Chat'|t }}</h2>
+      {% if member_filter %}
+        <span class="filter-badge" aria-label="{{ 'Active filter'|t }}">
+          <span class="badge-icon" aria-hidden="true">&#128269;</span>
+          {{ 'Filtering: '|t }}{{ member_filter }}
+        </span>
+      {% endif %}
+      <div class="chat-header-actions">
+        <button type="button" class="new-conversation-btn" aria-label="{{ 'Start new conversation'|t }}" title="{{ 'New conversation'|t }}">
+          <span aria-hidden="true">+</span> {{ 'New'|t }}
+        </button>
+        <button type="button" class="export-conversation-btn" aria-label="{{ 'Export conversation'|t }}" title="{{ 'Export'|t }}">
+          <span aria-hidden="true">&#8595;</span> {{ 'Export'|t }}
+        </button>
+      </div>
+    </div>
+
+    <div class="chat-messages"
+         role="log"
+         aria-live="polite"
+         aria-label="{{ 'Chat conversation'|t }}"
+         aria-describedby="chat-title"
+         tabindex="0">
+
+      {% if messages|length == 0 %}
+        <div class="chat-welcome" role="region" aria-label="{{ 'Welcome message'|t }}">
+          <p>{{ 'Ask questions about congressional members, their positions, voting records, and press releases.'|t }}</p>
+
+          {% if example_questions|length > 0 %}
+            <div class="example-questions" role="region" aria-label="{{ 'Example questions'|t }}">
+              <h4 id="example-questions-heading">{{ 'Try one of these questions:'|t }}</h4>
+              <div class="example-chips" role="group" aria-labelledby="example-questions-heading">
+                {% for question in example_questions %}
+                  <button type="button"
+                          class="example-question-chip"
+                          data-question="{{ question }}"
+                          aria-label="{{ 'Ask: '|t }}{{ question }}">
+                    {{ question }}
+                  </button>
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      {% else %}
+        {% for message in messages %}
+          <div class="chat-message message-{{ message.role }}"
+               role="article"
+               aria-label="{{ message.role == 'user' ? 'Your message'|t : 'Assistant response'|t }}"
+               data-message-index="{{ loop.index0 }}">
+            <div class="message-avatar" aria-hidden="true">
+              {% if message.role == 'user' %}U{% else %}AI{% endif %}
+            </div>
+            <div class="message-content-wrapper">
+              <div class="message-content">{{ message.content }}</div>
+
+              {% if message.role == 'user' %}
+                <div class="message-actions" role="group" aria-label="{{ 'Message actions'|t }}">
+                  <button type="button"
+                          class="edit-message-btn"
+                          aria-label="{{ 'Edit this message'|t }}"
+                          data-message-index="{{ loop.index0 }}">
+                    <span aria-hidden="true">&#9998;</span> {{ 'Edit'|t }}
+                  </button>
+                  <button type="button"
+                          class="delete-message-btn"
+                          aria-label="{{ 'Delete this message'|t }}"
+                          data-message-index="{{ loop.index0 }}">
+                    <span aria-hidden="true">&#10005;</span> {{ 'Delete'|t }}
+                  </button>
+                </div>
+              {% endif %}
+
+              {% if message.edited is defined and message.edited %}
+                <span class="edited-indicator" aria-label="{{ 'Message was edited'|t }}">({{ 'edited'|t }})</span>
+              {% endif %}
+
+              {% if message.sources|length > 0 %}
+                <div class="message-sources" aria-label="{{ 'Source documents'|t }}">
+                  <button class="source-toggle"
+                          aria-expanded="false"
+                          aria-controls="sources-{{ loop.index0 }}">
+                    <span class="toggle-icon" aria-hidden="true">+</span>
+                    {{ message.sources|length }} {{ 'sources'|t }}
+                  </button>
+                  <div class="sources-list"
+                       id="sources-{{ loop.index0 }}"
+                       role="list"
+                       aria-hidden="true">
+                    {% for source in message.sources %}
+                      <div class="source-item" role="listitem">
+                        <div class="source-header">
+                          <span class="member-chip {{ source.party_class|default('party-other') }}">
+                            {{ source.member_name }} ({{ source.party|default('?') }}-{{ source.state|default('??') }})
+                          </span>
+                        </div>
+                        <div class="source-title">{{ source.title }}</div>
+                        <div class="source-content">{{ source.content }}</div>
+                        {% if source.url %}
+                          <a href="{{ source.url }}"
+                             target="_blank"
+                             rel="noopener noreferrer"
+                             class="source-link"
+                             aria-label="{{ 'View source: '|t }}{{ source.title }} ({{ 'opens in new tab'|t }})">
+                            {{ 'View source'|t }}
+                            <span class="external-icon" aria-hidden="true">&#8599;</span>
+                          </a>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+
+              {% if message.role == 'assistant' %}
+                <div class="message-meta" role="contentinfo">
+                  <span class="model-name" aria-label="{{ 'AI model used'|t }}">{{ message.metadata.model|default('') }}</span>
+                  <button class="copy-answer-btn"
+                          aria-label="{{ 'Copy response to clipboard'|t }}"
+                          data-content="{{ message.content }}">
+                    <span aria-hidden="true">&#128203;</span> {{ 'Copy'|t }}
+                  </button>
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <div class="typing-indicator hidden"
+         role="status"
+         aria-live="polite"
+         aria-label="{{ 'Assistant is typing'|t }}">
+      <div class="message-avatar" aria-hidden="true">AI</div>
+      <div class="dots" aria-hidden="true">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+      <span class="sr-only">{{ 'Assistant is thinking...'|t }}</span>
+    </div>
+
+    <div class="draft-recovery-banner hidden"
+         role="alert"
+         aria-live="assertive">
+      <span>{{ 'You have an unsent message. Would you like to restore it?'|t }}</span>
+      <button type="button" class="restore-draft-btn">{{ 'Restore'|t }}</button>
+      <button type="button" class="discard-draft-btn">{{ 'Discard'|t }}</button>
+    </div>
+
+    <div class="chat-input-container">
+      <form class="chat-input-form" role="form" aria-label="{{ 'Send a message'|t }}">
+        <label for="chat-message-input" class="sr-only">{{ 'Your question'|t }}</label>
+        <textarea
+          id="chat-message-input"
+          class="chat-message-input"
+          placeholder="{{ 'Ask a question about congressional members...'|t }}"
+          rows="1"
+          aria-describedby="input-help"
+          maxlength="2000"
+        ></textarea>
+        <span id="input-help" class="sr-only">
+          {{ 'Press Enter to send, Shift+Enter for new line. Maximum 2000 characters.'|t }}
+        </span>
+        <div class="input-footer">
+          <span class="character-count" aria-live="polite" aria-atomic="true">
+            <span class="current-count">0</span>/2000
+          </span>
+          <button type="submit"
+                  class="chat-send-button"
+                  aria-label="{{ 'Send message'|t }}">
+            {{ 'Send'|t }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="keyboard-shortcuts-hint" aria-hidden="true">
+      <kbd>Enter</kbd> {{ 'to send'|t }} &bull; <kbd>Shift</kbd>+<kbd>Enter</kbd> {{ 'for new line'|t }}
+    </div>
+  </div>
+</div>
+
+{# Screen reader only styles #}
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
