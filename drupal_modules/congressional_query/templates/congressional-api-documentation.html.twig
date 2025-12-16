@@ -1,0 +1,199 @@
+{#
+/**
+ * @file
+ * Template for API documentation page.
+ *
+ * Available variables:
+ * - base_url: The base URL for API requests.
+ * - endpoints: Array of endpoint definitions.
+ * - error_codes: Array of error codes.
+ * - rate_limit: Default rate limit.
+ * - rate_limit_window: Rate limit window in minutes.
+ * - api_key_url: URL to API key management.
+ */
+#}
+<div class="congressional-api-documentation">
+  <div class="api-doc-section">
+    <h2>{{ 'Overview'|t }}</h2>
+    <p>{{ 'The Congressional Query API provides programmatic access to query congressional member information using natural language questions. The API uses AI-powered responses based on official congressional data.'|t }}</p>
+  </div>
+
+  <div class="api-doc-section">
+    <h2>{{ 'Authentication'|t }}</h2>
+    <p>{{ 'All API requests (except public endpoints) require an API key. Include the key in the request header:'|t }}</p>
+    <pre><code>X-API-Key: your_api_key_here</code></pre>
+    <p>{{ 'To obtain an API key, visit the'|t }} <a href="{{ api_key_url }}">{{ 'API Key Management'|t }}</a> {{ 'page.'|t }}</p>
+  </div>
+
+  <div class="api-doc-section">
+    <h2>{{ 'Rate Limiting'|t }}</h2>
+    <p>{{ 'API requests are rate limited to prevent abuse:'|t }}</p>
+    <ul>
+      <li><strong>{{ rate_limit }}</strong> {{ 'requests per'|t }} {{ rate_limit_window }} {{ 'minutes'|t }}</li>
+      <li>{{ 'Rate limits are applied per API key'|t }}</li>
+      <li>{{ 'Anonymous requests have stricter limits'|t }}</li>
+    </ul>
+    <p>{{ 'Rate limit information is included in response headers:'|t }}</p>
+    <pre><code>X-RateLimit-Limit: {{ rate_limit }}
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1703001234</code></pre>
+  </div>
+
+  <div class="api-doc-section">
+    <h2>{{ 'Response Format'|t }}</h2>
+    <p>{{ 'All API responses use a consistent JSON format:'|t }}</p>
+
+    <h3>{{ 'Success Response'|t }}</h3>
+    <pre><code>{
+  "success": true,
+  "data": {
+    // Response data here
+  },
+  "timestamp": "2024-12-16T12:00:00Z"
+}</code></pre>
+
+    <h3>{{ 'Error Response'|t }}</h3>
+    <pre><code>{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Description of the error",
+    "details": {
+      "fields": {
+        "question": "Question is required"
+      }
+    }
+  },
+  "timestamp": "2024-12-16T12:00:00Z"
+}</code></pre>
+  </div>
+
+  <div class="api-doc-section">
+    <h2>{{ 'Endpoints'|t }}</h2>
+
+    {% for endpoint in endpoints %}
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method method-{{ endpoint.method|lower }}">{{ endpoint.method }}</span>
+          <code class="endpoint-path">{{ endpoint.path }}</code>
+          {% if not endpoint.auth_required %}
+            <span class="badge badge-public">{{ 'Public'|t }}</span>
+          {% endif %}
+        </div>
+
+        <p class="endpoint-description">{{ endpoint.description }}</p>
+
+        {% if endpoint.request_body %}
+          <h4>{{ 'Request Body'|t }}</h4>
+          <table class="params-table">
+            <thead>
+              <tr>
+                <th>{{ 'Parameter'|t }}</th>
+                <th>{{ 'Type'|t }}</th>
+                <th>{{ 'Required'|t }}</th>
+                <th>{{ 'Description'|t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for name, param in endpoint.request_body %}
+                <tr>
+                  <td><code>{{ name }}</code></td>
+                  <td>{{ param.type }}</td>
+                  <td>{{ param.required ? 'Yes'|t : 'No'|t }}</td>
+                  <td>{{ param.description }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+
+        <h4>{{ 'Response'|t }}</h4>
+        <table class="params-table">
+          <thead>
+            <tr>
+              <th>{{ 'Field'|t }}</th>
+              <th>{{ 'Description'|t }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for name, description in endpoint.response %}
+              <tr>
+                <td><code>{{ name }}</code></td>
+                <td>{{ description }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="api-doc-section">
+    <h2>{{ 'Error Codes'|t }}</h2>
+    <table class="error-codes-table">
+      <thead>
+        <tr>
+          <th>{{ 'Code'|t }}</th>
+          <th>{{ 'HTTP Status'|t }}</th>
+          <th>{{ 'Description'|t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for error in error_codes %}
+          <tr>
+            <td><code>{{ error.code }}</code></td>
+            <td>{{ error.status }}</td>
+            <td>{{ error.description }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="api-doc-section">
+    <h2>{{ 'Examples'|t }}</h2>
+
+    <h3>{{ 'cURL'|t }}</h3>
+    <pre><code>curl -X POST {{ base_url }}/api/congressional/query \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your_api_key_here" \
+  -d '{
+    "question": "What has Nancy Pelosi said about climate change?",
+    "num_sources": 5
+  }'</code></pre>
+
+    <h3>{{ 'JavaScript (fetch)'|t }}</h3>
+    <pre><code>const response = await fetch('{{ base_url }}/api/congressional/query', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'your_api_key_here'
+  },
+  body: JSON.stringify({
+    question: 'What has Nancy Pelosi said about climate change?',
+    num_sources: 5
+  })
+});
+
+const data = await response.json();
+console.log(data.data.answer);</code></pre>
+
+    <h3>{{ 'Python (requests)'|t }}</h3>
+    <pre><code>import requests
+
+response = requests.post(
+    '{{ base_url }}/api/congressional/query',
+    headers={
+        'Content-Type': 'application/json',
+        'X-API-Key': 'your_api_key_here'
+    },
+    json={
+        'question': 'What has Nancy Pelosi said about climate change?',
+        'num_sources': 5
+    }
+)
+
+data = response.json()
+print(data['data']['answer'])</code></pre>
+  </div>
+</div>

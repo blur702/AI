@@ -1,0 +1,1669 @@
+/**
+ * @file
+ * Congressional Query module styles.
+ */
+
+/* Base styles */
+.congressional-query-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Query Form */
+.congressional-query-form .form-item-question textarea {
+  width: 100%;
+  min-height: 100px;
+  font-size: 16px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.congressional-query-form .form-item-question textarea:focus {
+  border-color: #0071b8;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 113, 184, 0.2);
+}
+
+/* Example Questions */
+.example-questions {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.example-questions h4 {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.example-question-chip {
+  display: inline-block;
+  padding: 8px 12px;
+  margin: 4px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.example-question-chip:hover {
+  background: #0071b8;
+  color: #fff;
+  border-color: #0071b8;
+}
+
+/* Results Page */
+.congressional-query-results {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.congressional-query-results .question-section {
+  padding: 20px;
+  background: #e8f4fc;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.congressional-query-results .answer-section {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.congressional-query-results .answer-content {
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Sources List */
+.sources-section {
+  margin-top: 20px;
+}
+
+.sources-section h3 {
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: #333;
+}
+
+.source-item {
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.source-header {
+  margin-bottom: 8px;
+}
+
+.member-chip {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.party-republican {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.party-democrat {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.party-other {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.source-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.source-content {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.source-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: #0071b8;
+  font-size: 14px;
+}
+
+/* Chat Interface */
+.congressional-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 70vh;
+  max-height: 800px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.chat-message {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.chat-message.message-user {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.message-user .message-avatar {
+  background: #0071b8;
+  color: #fff;
+}
+
+.message-assistant .message-avatar {
+  background: #6b5b95;
+  color: #fff;
+}
+
+.message-content-wrapper {
+  max-width: 80%;
+}
+
+.message-content {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.message-user .message-content {
+  background: #0071b8;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.message-assistant .message-content {
+  background: #f0f0f0;
+  color: #333;
+  border-bottom-left-radius: 4px;
+}
+
+.message-error .error-content {
+  padding: 12px 16px;
+  background: #ffebee;
+  color: #c62828;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* Message Sources */
+.message-sources {
+  margin-top: 8px;
+}
+
+.source-toggle {
+  background: none;
+  border: none;
+  color: #0071b8;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.source-toggle:hover {
+  text-decoration: underline;
+}
+
+.sources-list {
+  display: none;
+  margin-top: 10px;
+  padding: 10px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.message-sources.expanded .sources-list {
+  display: block;
+}
+
+.message-sources.expanded .toggle-icon {
+  transform: rotate(45deg);
+}
+
+.sources-list .source-item {
+  margin-bottom: 8px;
+  padding: 10px;
+  background: #fff;
+}
+
+.sources-list .source-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Message Meta */
+.message-meta {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #888;
+}
+
+.copy-answer-btn {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.copy-answer-btn:hover {
+  background: #f0f0f0;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+.typing-indicator.hidden {
+  display: none;
+}
+
+.typing-indicator .dots {
+  display: flex;
+  gap: 4px;
+  padding: 12px 16px;
+  background: #f0f0f0;
+  border-radius: 12px;
+}
+
+.typing-indicator .dot {
+  width: 8px;
+  height: 8px;
+  background: #888;
+  border-radius: 50%;
+  animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
+.typing-indicator .dot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.typing-indicator .dot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes typing-bounce {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Chat Input */
+.chat-input-container {
+  padding: 16px;
+  border-top: 1px solid #ddd;
+  background: #fafafa;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-message-input {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 15px;
+  resize: none;
+  min-height: 44px;
+  max-height: 120px;
+}
+
+.chat-message-input:focus {
+  border-color: #0071b8;
+  outline: none;
+}
+
+.chat-send-button {
+  padding: 12px 24px;
+  background: #0071b8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.chat-send-button:hover:not(:disabled) {
+  background: #005a94;
+}
+
+.chat-send-button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* Connection Status Block */
+.connection-status-block {
+  padding: 15px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.connection-status-block h3 {
+  margin: 0 0 15px 0;
+  font-size: 16px;
+}
+
+.service-status {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.service-status:last-of-type {
+  border-bottom: none;
+}
+
+.service-status-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.service-status .status-details {
+  margin-top: 8px;
+  margin-left: 22px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.service-status .status-details .detail-item {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.service-status .status-details .detail-key {
+  color: #666;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.service-status .status-details .detail-value {
+  color: #333;
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-indicator.status-ok {
+  background: #4caf50;
+}
+
+.status-indicator.status-warning {
+  background: #ff9800;
+}
+
+.status-indicator.status-error {
+  background: #f44336;
+}
+
+.status-indicator.status-unknown {
+  background: #9e9e9e;
+}
+
+.service-name {
+  font-weight: 500;
+  flex: 1;
+}
+
+.status-text {
+  font-size: 13px;
+  color: #666;
+}
+
+.last-check {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #888;
+}
+
+.refresh-status-btn {
+  margin-top: 10px;
+  padding: 6px 12px;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.refresh-status-btn:hover {
+  background: #e0e0e0;
+}
+
+.refresh-status-btn.loading {
+  opacity: 0.6;
+}
+
+/* Admin Dashboard */
+.congressional-admin-dashboard {
+  max-width: 1200px;
+}
+
+/* Quick Links Section */
+.quick-links-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 30px;
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.quick-link-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+
+.quick-link-btn:hover {
+  background: #e8e8e8;
+  border-color: #ccc;
+  text-decoration: none;
+}
+
+.quick-link-btn--primary {
+  background: #0071b8;
+  border-color: #0071b8;
+  color: #fff;
+}
+
+.quick-link-btn--primary:hover {
+  background: #005a93;
+  border-color: #005a93;
+  color: #fff;
+}
+
+.quick-link-btn--warning {
+  background: #ff9800;
+  border-color: #ff9800;
+  color: #fff;
+}
+
+.quick-link-btn--warning:hover {
+  background: #e68900;
+  border-color: #e68900;
+  color: #fff;
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0071b8;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #666;
+  margin-top: 5px;
+}
+
+.admin-quick-links {
+  margin-bottom: 30px;
+}
+
+.admin-quick-links .button {
+  margin-right: 10px;
+}
+
+/* ================================
+   Query Form Enhancements
+   ================================ */
+
+/* Form header */
+.query-form-header {
+  margin-bottom: 24px;
+}
+
+.query-form-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.query-form-description {
+  color: #666;
+  font-size: 15px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+}
+
+.loading-overlay.hidden {
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-spinner {
+  text-align: center;
+}
+
+.spinner-animation {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border: 4px solid #e0e0e0;
+  border-top-color: #0071b8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+  margin: 0 0 8px 0;
+}
+
+.loading-subtext {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+/* Character counter */
+.character-counter {
+  font-size: 12px;
+  text-align: right;
+  margin-top: 4px;
+  transition: color 0.2s;
+}
+
+.character-counter.counter-ok {
+  color: #4caf50;
+}
+
+.character-counter.counter-warning {
+  color: #ff9800;
+}
+
+.character-counter.counter-danger {
+  color: #f44336;
+  font-weight: 500;
+}
+
+/* Example chip enhancements */
+.example-question-chip.selected {
+  background: #0071b8;
+  color: #fff;
+  border-color: #0071b8;
+  transform: scale(0.98);
+}
+
+.example-question-chip:focus {
+  outline: 2px solid #0071b8;
+  outline-offset: 2px;
+}
+
+/* Tips section */
+.query-form-tips {
+  margin-top: 24px;
+  padding: 16px;
+  background: #fff8e1;
+  border-radius: 8px;
+  border-left: 4px solid #ffc107;
+}
+
+.tips-title {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5d4037;
+}
+
+.tips-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #5d4037;
+}
+
+.tips-list li {
+  margin-bottom: 6px;
+}
+
+.tips-list kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+/* Submit button states */
+.ajax-submit-btn.is-loading {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+/* ================================
+   Results Page Enhancements
+   ================================ */
+
+/* Breadcrumb */
+.results-breadcrumb {
+  margin-bottom: 20px;
+}
+
+.breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #0071b8;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+/* Section titles */
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 12px 0;
+}
+
+.section-title-small {
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  margin: 0 0 10px 0;
+}
+
+/* Filter info container */
+.filter-info-container {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f5f5f5;
+  border-radius: 6px;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #555;
+}
+
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.filter-badge .badge-icon {
+  font-size: 12px;
+}
+
+.filter-badge.filter-member {
+  background: #e8f4fc;
+  color: #0071b8;
+}
+
+.filter-badge.filter-party {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.filter-badge.filter-party.party-republican {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.filter-badge.filter-party.party-democrat {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.filter-badge.filter-state {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+/* Answer header with actions */
+.answer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.answer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.copy-answer-btn,
+.print-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.copy-answer-btn:hover,
+.print-view-btn:hover {
+  background: #e0e0e0;
+}
+
+.copy-answer-btn.copied {
+  background: #4caf50;
+  color: #fff;
+  border-color: #4caf50;
+}
+
+/* Metadata badges */
+.answer-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #f5f5f5;
+  border-radius: 16px;
+  font-size: 12px;
+  color: #666;
+}
+
+.meta-badge .badge-icon {
+  font-size: 14px;
+}
+
+/* Refine section */
+.refine-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: #f0f7ff;
+  border-radius: 8px;
+}
+
+.refine-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.refine-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Feedback section */
+.feedback-section {
+  margin: 20px 0;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.feedback-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.feedback-btn {
+  padding: 10px 16px;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 24px;
+  transition: all 0.2s;
+}
+
+.feedback-btn:hover {
+  border-color: #0071b8;
+  transform: scale(1.1);
+}
+
+.feedback-btn.selected {
+  border-color: #4caf50;
+  background: #e8f5e9;
+}
+
+.feedback-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Share section */
+.share-section {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.share-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Show more sources button */
+.show-more-sources-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background: #f5f5f5;
+  border: 1px dashed #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #0071b8;
+  transition: all 0.2s;
+}
+
+.show-more-sources-btn:hover {
+  background: #e8f4fc;
+  border-color: #0071b8;
+}
+
+/* Hidden source item */
+.source-item.hidden-source {
+  display: none;
+}
+
+/* Source highlighting */
+.source-item.highlighted {
+  box-shadow: 0 0 0 3px rgba(0, 113, 184, 0.4);
+  transform: scale(1.01);
+  transition: all 0.2s;
+}
+
+/* ================================
+   Source Item Enhancements
+   ================================ */
+
+/* Source header layout */
+.source-item .source-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.party-indicator {
+  width: 4px;
+  height: 24px;
+  border-radius: 2px;
+}
+
+.party-indicator.party-republican {
+  background: #c62828;
+}
+
+.party-indicator.party-democrat {
+  background: #1565c0;
+}
+
+.party-indicator.party-other {
+  background: #666;
+}
+
+.member-details {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* Relevance indicator */
+.relevance-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.relevance-bar {
+  width: 60px;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.relevance-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.relevance-fill.high {
+  background: #4caf50;
+}
+
+.relevance-fill.medium {
+  background: #ff9800;
+}
+
+.relevance-fill.low {
+  background: #f44336;
+}
+
+.relevance-value {
+  color: #666;
+  min-width: 35px;
+}
+
+/* Topic badges */
+.source-topics {
+  margin-bottom: 8px;
+}
+
+.topic-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: #e8f4fc;
+  border-radius: 12px;
+  font-size: 12px;
+  color: #0071b8;
+}
+
+/* Source content wrapper */
+.source-content-wrapper {
+  position: relative;
+}
+
+.expand-content-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  color: #0071b8;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.expand-content-btn:hover {
+  text-decoration: underline;
+}
+
+/* Source footer */
+.source-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+.source-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.source-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: none;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #666;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.source-action-btn:hover {
+  background: #f5f5f5;
+  color: #0071b8;
+  border-color: #0071b8;
+}
+
+.source-meta {
+  display: flex;
+  gap: 12px;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #888;
+}
+
+/* External link styling */
+.source-link .external-icon {
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+/* ================================
+   Print Styles
+   ================================ */
+
+@media print {
+  .loading-overlay,
+  .answer-actions,
+  .refine-section,
+  .feedback-section,
+  .share-section,
+  .actions-section,
+  .show-more-sources-btn,
+  .source-action-btn,
+  .expand-content-btn,
+  .results-breadcrumb {
+    display: none !important;
+  }
+
+  .congressional-query-results {
+    max-width: 100%;
+  }
+
+  .source-item {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .source-item.hidden-source {
+    display: block !important;
+  }
+}
+
+/* ================================
+   Responsive Styles
+   ================================ */
+
+@media (max-width: 768px) {
+  .congressional-chat-container {
+    height: 60vh;
+  }
+
+  .message-content-wrapper {
+    max-width: 90%;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .answer-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .answer-meta {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .source-footer {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .feedback-buttons {
+    gap: 24px;
+  }
+
+  .share-buttons {
+    flex-direction: column;
+  }
+
+  .source-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .example-question-chip {
+    display: block;
+    margin: 4px 0;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .query-form-title {
+    font-size: 20px;
+  }
+
+  .refine-actions {
+    flex-direction: column;
+  }
+
+  .source-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* Toast notifications */
+.status-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 9999;
+  animation: toast-in 0.3s ease;
+}
+
+.toast-success {
+  background: #4caf50;
+  color: #fff;
+}
+
+.toast-error {
+  background: #f44336;
+  color: #fff;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================================
+   Chat Header Actions
+   ================================ */
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #ddd;
+  background: #fafafa;
+}
+
+.chat-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.chat-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.new-conversation-btn,
+.export-conversation-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.new-conversation-btn:hover,
+.export-conversation-btn:hover {
+  background: #0071b8;
+  color: #fff;
+  border-color: #0071b8;
+}
+
+/* ================================
+   Streaming Message Styles
+   ================================ */
+
+.chat-message.streaming .message-content {
+  min-height: 20px;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  animation: cursor-blink 1s infinite;
+  color: #0071b8;
+  font-weight: bold;
+}
+
+@keyframes cursor-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ================================
+   Message Actions (Edit/Delete)
+   ================================ */
+
+.message-actions {
+  display: none;
+  margin-top: 8px;
+  gap: 8px;
+}
+
+.chat-message.message-user:hover .message-actions {
+  display: flex;
+}
+
+.edit-message-btn,
+.delete-message-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.edit-message-btn:hover {
+  background: #e8f4fc;
+  border-color: #0071b8;
+  color: #0071b8;
+}
+
+.delete-message-btn:hover {
+  background: #ffebee;
+  border-color: #c62828;
+  color: #c62828;
+}
+
+.edited-indicator {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #888;
+  font-style: italic;
+}
+
+/* Edit Form */
+.edit-form {
+  margin-top: 8px;
+}
+
+.edit-input {
+  width: 100%;
+  min-height: 60px;
+  padding: 10px;
+  border: 2px solid #0071b8;
+  border-radius: 6px;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.edit-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 113, 184, 0.2);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.save-edit-btn,
+.cancel-edit-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  border: none;
+}
+
+.save-edit-btn {
+  background: #0071b8;
+  color: #fff;
+}
+
+.save-edit-btn:hover {
+  background: #005a94;
+}
+
+.cancel-edit-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.cancel-edit-btn:hover {
+  background: #e0e0e0;
+}
+
+/* ================================
+   Draft Recovery Banner
+   ================================ */
+
+.draft-recovery-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff8e1;
+  border-bottom: 1px solid #ffc107;
+}
+
+.draft-recovery-banner.hidden {
+  display: none;
+}
+
+.draft-recovery-banner span {
+  flex: 1;
+  font-size: 14px;
+  color: #5d4037;
+}
+
+.restore-draft-btn,
+.discard-draft-btn {
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  border: none;
+}
+
+.restore-draft-btn {
+  background: #0071b8;
+  color: #fff;
+}
+
+.restore-draft-btn:hover {
+  background: #005a94;
+}
+
+.discard-draft-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+}
+
+.discard-draft-btn:hover {
+  background: #e0e0e0;
+}
+
+/* ================================
+   Input Footer & Character Count
+   ================================ */
+
+.input-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.character-count {
+  font-size: 12px;
+  color: #888;
+}
+
+.character-count.counter-warning {
+  color: #ff9800;
+}
+
+.character-count.counter-danger {
+  color: #f44336;
+  font-weight: 600;
+}
+
+/* ================================
+   Keyboard Shortcuts Hint
+   ================================ */
+
+.keyboard-shortcuts-hint {
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+  background: #fafafa;
+  border-top: 1px solid #eee;
+}
+
+.keyboard-shortcuts-hint kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 11px;
+}
+
+/* ================================
+   Focus Styles for Accessibility
+   ================================ */
+
+.chat-message-input:focus,
+.example-question-chip:focus,
+.source-toggle:focus,
+.copy-answer-btn:focus,
+.new-conversation-btn:focus,
+.export-conversation-btn:focus,
+.edit-message-btn:focus,
+.delete-message-btn:focus,
+.restore-draft-btn:focus,
+.discard-draft-btn:focus,
+.chat-send-button:focus {
+  outline: 2px solid #0071b8;
+  outline-offset: 2px;
+}
+
+.chat-messages:focus {
+  outline: 2px solid #0071b8;
+  outline-offset: -2px;
+}
+
+/* ================================
+   High Contrast Mode Support
+   ================================ */
+
+@media (prefers-contrast: high) {
+  .chat-message.message-user .message-content {
+    border: 2px solid #0071b8;
+  }
+
+  .chat-message.message-assistant .message-content {
+    border: 2px solid #333;
+  }
+
+  .source-item {
+    border: 2px solid #333;
+  }
+
+  .party-republican {
+    border: 2px solid #c62828;
+  }
+
+  .party-democrat {
+    border: 2px solid #1565c0;
+  }
+}
+
+/* ================================
+   Reduced Motion Support
+   ================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .streaming-cursor,
+  .typing-indicator .dot,
+  .status-toast {
+    animation: none;
+  }
+
+  .chat-message,
+  .source-item,
+  button {
+    transition: none;
+  }
+}

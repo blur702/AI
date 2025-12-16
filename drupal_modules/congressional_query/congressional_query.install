@@ -1,0 +1,580 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Congressional Query module.
+ */
+
+use Drupal\Core\Database\Database;
+
+/**
+ * Implements hook_schema().
+ */
+function congressional_query_schema() {
+  // API Keys table.
+  $schema['congressional_query_api_keys'] = [
+    'description' => 'Stores API keys for REST API authentication.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key.',
+      ],
+      'api_key' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'description' => 'The API key hash.',
+      ],
+      'key_prefix' => [
+        'type' => 'varchar',
+        'length' => 8,
+        'not null' => TRUE,
+        'description' => 'First 8 characters of key for identification.',
+      ],
+      'name' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Human-readable name for the key.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'User ID who owns this key.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Timestamp when key was created.',
+      ],
+      'last_used' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Timestamp when key was last used.',
+      ],
+      'is_active' => [
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+        'description' => 'Whether the key is active.',
+      ],
+      'rate_limit_override' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Custom rate limit for this key (requests per hour).',
+      ],
+      'allowed_ips' => [
+        'type' => 'text',
+        'size' => 'normal',
+        'description' => 'JSON array of allowed IP addresses.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'api_key' => ['api_key'],
+      'key_prefix' => ['key_prefix'],
+    ],
+    'indexes' => [
+      'uid' => ['uid'],
+      'is_active' => ['is_active'],
+      'last_used' => ['last_used'],
+    ],
+  ];
+
+  // API Request Logs table.
+  $schema['congressional_query_api_logs'] = [
+    'description' => 'Logs API requests for analytics and monitoring.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key.',
+      ],
+      'api_key_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Foreign key to api_keys table.',
+      ],
+      'endpoint' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'API endpoint called.',
+      ],
+      'method' => [
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'HTTP method (GET, POST, etc.).',
+      ],
+      'status_code' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'HTTP response status code.',
+      ],
+      'response_time_ms' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Response time in milliseconds.',
+      ],
+      'ip_address' => [
+        'type' => 'varchar',
+        'length' => 45,
+        'not null' => TRUE,
+        'description' => 'Client IP address.',
+      ],
+      'user_agent' => [
+        'type' => 'varchar',
+        'length' => 512,
+        'default' => NULL,
+        'description' => 'Client user agent string.',
+      ],
+      'request_body_size' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Size of request body in bytes.',
+      ],
+      'response_body_size' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Size of response body in bytes.',
+      ],
+      'error_message' => [
+        'type' => 'text',
+        'size' => 'normal',
+        'description' => 'Error message if request failed.',
+      ],
+      'timestamp' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Request timestamp.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'api_key_id' => ['api_key_id'],
+      'endpoint' => ['endpoint'],
+      'status_code' => ['status_code'],
+      'timestamp' => ['timestamp'],
+      'ip_address' => ['ip_address'],
+    ],
+  ];
+
+  // Query logs table.
+  $schema['congressional_query_logs'] = [
+    'description' => 'Stores query history for congressional queries.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'User ID who made the query.',
+      ],
+      'question' => [
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => TRUE,
+        'description' => 'The question asked.',
+      ],
+      'answer' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'The generated answer.',
+      ],
+      'model' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'The LLM model used.',
+      ],
+      'member_filter' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'Member filter applied (if any).',
+      ],
+      'num_sources' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Number of sources returned.',
+      ],
+      'sources_json' => [
+        'type' => 'text',
+        'size' => 'big',
+        'not null' => FALSE,
+        'description' => 'JSON-encoded source documents.',
+      ],
+      'response_time_ms' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'description' => 'Response time in milliseconds.',
+      ],
+      'conversation_id' => [
+        'type' => 'varchar',
+        'length' => 36,
+        'not null' => FALSE,
+        'description' => 'UUID of the conversation.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp when query was made.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'uid' => ['uid'],
+      'conversation_id' => ['conversation_id'],
+      'created' => ['created'],
+      'member_filter' => ['member_filter'],
+    ],
+  ];
+
+  $schema['congressional_query_conversations'] = [
+    'description' => 'Stores conversation metadata.',
+    'fields' => [
+      'conversation_id' => [
+        'type' => 'varchar',
+        'length' => 36,
+        'not null' => TRUE,
+        'description' => 'UUID of the conversation.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'User ID who owns the conversation.',
+      ],
+      'title' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'Conversation title (from first question).',
+      ],
+      'member_filter' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'Member filter for this conversation.',
+      ],
+      'message_count' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Number of messages in conversation.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp when conversation started.',
+      ],
+      'updated' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp of last activity.',
+      ],
+    ],
+    'primary key' => ['conversation_id'],
+    'indexes' => [
+      'uid' => ['uid'],
+      'created' => ['created'],
+      'updated' => ['updated'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Implements hook_install().
+ */
+function congressional_query_install() {
+  // Default configuration values are provided by config/install/congressional_query.settings.yml.
+  // No need to set them programmatically here as Drupal automatically imports them on install.
+
+  // Clear router cache to ensure new routes are available.
+  \Drupal::service('router.builder')->rebuild();
+
+  \Drupal::messenger()->addStatus(t('Congressional Query module has been installed. Please configure SSH settings at /admin/config/services/congressional-query'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function congressional_query_uninstall() {
+  // Delete configuration.
+  \Drupal::configFactory()->getEditable('congressional_query.settings')->delete();
+
+  // Clear state values.
+  \Drupal::state()->deleteMultiple([
+    'congressional_query.ssh_tunnel_active',
+    'congressional_query.ssh_tunnel_pid',
+    'congressional_query.last_health_check',
+  ]);
+
+  // Clear caches.
+  \Drupal::cache('default')->invalidateAll();
+
+  \Drupal::messenger()->addStatus(t('Congressional Query module has been uninstalled.'));
+}
+
+/**
+ * Implements hook_requirements().
+ */
+function congressional_query_requirements($phase) {
+  $requirements = [];
+
+  if ($phase == 'runtime') {
+    // Check for phpseclib3.
+    $phpseclib_available = class_exists('\phpseclib3\Net\SSH2');
+    $requirements['congressional_query_phpseclib'] = [
+      'title' => t('Congressional Query - phpseclib3'),
+      'value' => $phpseclib_available ? t('Available') : t('Not installed'),
+      'severity' => $phpseclib_available ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+      'description' => $phpseclib_available ? '' : t('The phpseclib3 library is required for SSH tunnel functionality. Run "composer require phpseclib/phpseclib:^3.0" in the module directory.'),
+    ];
+
+    // Check for Guzzle.
+    $guzzle_available = class_exists('\GuzzleHttp\Client');
+    $requirements['congressional_query_guzzle'] = [
+      'title' => t('Congressional Query - Guzzle HTTP'),
+      'value' => $guzzle_available ? t('Available') : t('Not installed'),
+      'severity' => $guzzle_available ? REQUIREMENT_OK : REQUIREMENT_ERROR,
+      'description' => $guzzle_available ? '' : t('The Guzzle HTTP library is required. It should be included with Drupal core.'),
+    ];
+
+    // Check SSH configuration.
+    $config = \Drupal::config('congressional_query.settings');
+    $ssh_configured = !empty($config->get('ssh.host')) && !empty($config->get('ssh.username'));
+    $requirements['congressional_query_ssh_config'] = [
+      'title' => t('Congressional Query - SSH Configuration'),
+      'value' => $ssh_configured ? t('Configured') : t('Not configured'),
+      'severity' => $ssh_configured ? REQUIREMENT_OK : REQUIREMENT_WARNING,
+      'description' => $ssh_configured ? '' : t('SSH settings need to be configured at /admin/config/services/congressional-query'),
+    ];
+  }
+
+  return $requirements;
+}
+
+/**
+ * Add API keys and API logs tables.
+ */
+function congressional_query_update_9001() {
+  $schema = [];
+
+  // API Keys table.
+  $schema['congressional_query_api_keys'] = [
+    'description' => 'Stores API keys for REST API authentication.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key.',
+      ],
+      'api_key' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'description' => 'The API key hash.',
+      ],
+      'key_prefix' => [
+        'type' => 'varchar',
+        'length' => 8,
+        'not null' => TRUE,
+        'description' => 'First 8 characters of key for identification.',
+      ],
+      'name' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'Human-readable name for the key.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'User ID who owns this key.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Timestamp when key was created.',
+      ],
+      'last_used' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Timestamp when key was last used.',
+      ],
+      'is_active' => [
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+        'description' => 'Whether the key is active.',
+      ],
+      'rate_limit_override' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Custom rate limit for this key (requests per hour).',
+      ],
+      'allowed_ips' => [
+        'type' => 'text',
+        'size' => 'normal',
+        'description' => 'JSON array of allowed IP addresses.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'api_key' => ['api_key'],
+      'key_prefix' => ['key_prefix'],
+    ],
+    'indexes' => [
+      'uid' => ['uid'],
+      'is_active' => ['is_active'],
+      'last_used' => ['last_used'],
+    ],
+  ];
+
+  // API Request Logs table.
+  $schema['congressional_query_api_logs'] = [
+    'description' => 'Logs API requests for analytics and monitoring.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Primary key.',
+      ],
+      'api_key_id' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Foreign key to api_keys table.',
+      ],
+      'endpoint' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'API endpoint called.',
+      ],
+      'method' => [
+        'type' => 'varchar',
+        'length' => 10,
+        'not null' => TRUE,
+        'description' => 'HTTP method (GET, POST, etc.).',
+      ],
+      'status_code' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'HTTP response status code.',
+      ],
+      'response_time_ms' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Response time in milliseconds.',
+      ],
+      'ip_address' => [
+        'type' => 'varchar',
+        'length' => 45,
+        'not null' => TRUE,
+        'description' => 'Client IP address.',
+      ],
+      'user_agent' => [
+        'type' => 'varchar',
+        'length' => 512,
+        'default' => NULL,
+        'description' => 'Client user agent string.',
+      ],
+      'request_body_size' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Size of request body in bytes.',
+      ],
+      'response_body_size' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => NULL,
+        'description' => 'Size of response body in bytes.',
+      ],
+      'error_message' => [
+        'type' => 'text',
+        'size' => 'normal',
+        'description' => 'Error message if request failed.',
+      ],
+      'timestamp' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Request timestamp.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      'api_key_id' => ['api_key_id'],
+      'endpoint' => ['endpoint'],
+      'status_code' => ['status_code'],
+      'timestamp' => ['timestamp'],
+      'ip_address' => ['ip_address'],
+    ],
+  ];
+
+  $database = \Drupal::database();
+  $schema_handler = $database->schema();
+
+  foreach ($schema as $table_name => $table_schema) {
+    if (!$schema_handler->tableExists($table_name)) {
+      $schema_handler->createTable($table_name, $table_schema);
+    }
+  }
+
+  // Set default API settings.
+  \Drupal::configFactory()->getEditable('congressional_query.api_settings')
+    ->set('default_rate_limit', 100)
+    ->set('rate_limit_window', 3600)
+    ->set('anonymous_rate_limit', 20)
+    ->set('log_retention_days', 90)
+    ->save();
+}

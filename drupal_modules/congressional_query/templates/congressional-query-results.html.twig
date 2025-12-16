@@ -1,0 +1,178 @@
+{#
+/**
+ * @file
+ * Template for displaying query results.
+ *
+ * Available variables:
+ * - question: The question that was asked.
+ * - answer: The generated answer.
+ * - sources: Array of source render arrays.
+ * - model: The model used for generation.
+ * - timestamp: Formatted timestamp.
+ * - query_id: The query log ID.
+ * - member_filter: The member filter applied (if any).
+ * - party_filter: The party filter applied (if any).
+ * - state_filter: The state filter applied (if any).
+ * - response_time_ms: Response time in milliseconds.
+ * - num_sources_requested: Number of sources requested.
+ * - conversation_id: The conversation ID.
+ */
+#}
+<article class="congressional-query-results" data-query-id="{{ query_id }}" itemscope itemtype="https://schema.org/Answer">
+  {# Breadcrumb navigation #}
+  <nav class="results-breadcrumb" aria-label="{{ 'Breadcrumb'|t }}">
+    <a href="{{ path('congressional_query.query_form') }}" class="breadcrumb-link">
+      <span class="breadcrumb-icon" aria-hidden="true">&larr;</span>
+      {{ 'Back to Query Form'|t }}
+    </a>
+  </nav>
+
+  {# Question section #}
+  <section class="question-section" aria-labelledby="question-heading">
+    <h3 id="question-heading" class="section-title">{{ 'Your Question'|t }}</h3>
+    <p class="question-text" itemprop="name">{{ question }}</p>
+    {% if member_filter or party_filter or state_filter %}
+      <div class="filter-info-container">
+        <span class="filter-label">
+          <span class="filter-icon" aria-hidden="true">&#128269;</span>
+          <strong>{{ 'Filters applied:'|t }}</strong>
+        </span>
+        <div class="active-filters">
+          {% if member_filter %}
+            <span class="filter-badge filter-member">
+              <span class="badge-icon" aria-hidden="true">&#128100;</span>
+              {{ 'Member:'|t }} {{ member_filter }}
+            </span>
+          {% endif %}
+          {% if party_filter %}
+            <span class="filter-badge filter-party {% if party_filter == 'Republican' %}party-republican{% elseif party_filter == 'Democrat' %}party-democrat{% endif %}">
+              <span class="badge-icon" aria-hidden="true">&#127881;</span>
+              {{ 'Party:'|t }} {{ party_filter }}
+            </span>
+          {% endif %}
+          {% if state_filter %}
+            <span class="filter-badge filter-state">
+              <span class="badge-icon" aria-hidden="true">&#127968;</span>
+              {{ 'State:'|t }} {{ state_filter }}
+            </span>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+  </section>
+
+  {# Answer section #}
+  <section class="answer-section" aria-labelledby="answer-heading">
+    <header class="answer-header">
+      <h3 id="answer-heading" class="section-title">{{ 'Answer'|t }}</h3>
+      <div class="answer-actions">
+        <button type="button" class="copy-answer-btn" title="{{ 'Copy answer to clipboard'|t }}">
+          <span class="btn-icon" aria-hidden="true">&#128203;</span>
+          <span class="btn-text">{{ 'Copy'|t }}</span>
+        </button>
+        <button type="button" class="print-view-btn" title="{{ 'Print this result'|t }}">
+          <span class="btn-icon" aria-hidden="true">&#128424;</span>
+          <span class="btn-text">{{ 'Print'|t }}</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="answer-content" itemprop="text">{{ answer }}</div>
+
+    {# Metadata badges #}
+    <div class="answer-meta">
+      <span class="meta-badge model-badge" title="{{ 'AI model used'|t }}">
+        <span class="badge-icon" aria-hidden="true">&#129302;</span>
+        {{ model }}
+      </span>
+      {% if response_time_ms %}
+        <span class="meta-badge time-badge" title="{{ 'Response time'|t }}">
+          <span class="badge-icon" aria-hidden="true">&#9201;</span>
+          {{ response_time_ms|number_format }}{{ 'ms'|t }}
+        </span>
+      {% endif %}
+      <span class="meta-badge sources-badge" title="{{ 'Number of sources'|t }}">
+        <span class="badge-icon" aria-hidden="true">&#128196;</span>
+        {{ sources|length }} {{ 'sources'|t }}
+      </span>
+      <span class="meta-badge timestamp-badge" title="{{ 'Query time'|t }}">
+        <span class="badge-icon" aria-hidden="true">&#128197;</span>
+        {{ timestamp }}
+      </span>
+    </div>
+  </section>
+
+  {# Refine answer section #}
+  <section class="refine-section" aria-labelledby="refine-heading">
+    <h4 id="refine-heading" class="section-title-small">{{ 'Refine this answer'|t }}</h4>
+    <div class="refine-actions">
+      <a href="{{ path('congressional_query.query_form') }}" class="button refine-btn follow-up-btn">
+        <span class="btn-icon" aria-hidden="true">&#8629;</span>
+        {{ 'Ask follow-up'|t }}
+      </a>
+      <a href="{{ path('congressional_query.chat') }}" class="button refine-btn chat-btn">
+        <span class="btn-icon" aria-hidden="true">&#128172;</span>
+        {{ 'Continue in chat'|t }}
+      </a>
+    </div>
+  </section>
+
+  {# Sources section #}
+  {% if sources|length > 0 %}
+    <section class="sources-section" aria-labelledby="sources-heading">
+      <header class="sources-header">
+        <h3 id="sources-heading" class="section-title">
+          {{ 'Sources'|t }}
+          <span class="sources-count">({{ sources|length }})</span>
+        </h3>
+      </header>
+      <div class="sources-list" role="list">
+        {% for source in sources %}
+          <div role="listitem">
+            {{ source }}
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
+  {# Feedback section #}
+  <section class="feedback-section" aria-labelledby="feedback-heading">
+    <h4 id="feedback-heading" class="section-title-small">{{ 'Was this answer helpful?'|t }}</h4>
+    <div class="feedback-buttons" role="group" aria-label="{{ 'Answer feedback'|t }}">
+      <button type="button" class="feedback-btn thumbs-up" data-feedback="positive" title="{{ 'Yes, helpful'|t }}">
+        <span class="feedback-icon" aria-hidden="true">&#128077;</span>
+        <span class="visually-hidden">{{ 'Yes, this was helpful'|t }}</span>
+      </button>
+      <button type="button" class="feedback-btn thumbs-down" data-feedback="negative" title="{{ 'Not helpful'|t }}">
+        <span class="feedback-icon" aria-hidden="true">&#128078;</span>
+        <span class="visually-hidden">{{ 'No, this was not helpful'|t }}</span>
+      </button>
+    </div>
+  </section>
+
+  {# Share section #}
+  <section class="share-section" aria-labelledby="share-heading">
+    <h4 id="share-heading" class="section-title-small">{{ 'Share this result'|t }}</h4>
+    <div class="share-buttons">
+      <button type="button" class="button share-btn copy-link-btn" title="{{ 'Copy link to clipboard'|t }}">
+        <span class="btn-icon" aria-hidden="true">&#128279;</span>
+        {{ 'Copy link'|t }}
+      </button>
+      <button type="button" class="button share-btn share-email-btn" title="{{ 'Share via email'|t }}">
+        <span class="btn-icon" aria-hidden="true">&#9993;</span>
+        {{ 'Email'|t }}
+      </button>
+    </div>
+  </section>
+
+  {# Navigation actions #}
+  <nav class="actions-section" aria-label="{{ 'Result actions'|t }}">
+    <a href="{{ path('congressional_query.query_form') }}" class="button button--primary">
+      {{ 'Ask Another Question'|t }}
+    </a>
+    <a href="{{ path('congressional_query.chat') }}" class="button">
+      {{ 'Use Chat Interface'|t }}
+    </a>
+  </nav>
+</article>
