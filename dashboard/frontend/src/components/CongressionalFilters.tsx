@@ -113,15 +113,24 @@ export function CongressionalFilters({
               </Select>
             </FormControl>
 
-            <TextField
-              label="Topic"
-              size="small"
-              fullWidth
-              value={filters.topic || ''}
-              onChange={(e) =>
-                setFilters((prev) => ({ ...prev, topic: e.target.value || undefined }))
-              }
-            />
+            <FormControl sx={{ minWidth: 160 }} size="small">
+              <InputLabel id="topic-label">Topic</InputLabel>
+              <Select
+                labelId="topic-label"
+                label="Topic"
+                value={filters.topic || ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, topic: e.target.value || undefined }))
+                }
+              >
+                <MenuItem value="">All</MenuItem>
+                <MenuItem value="votes">Roll Call Votes</MenuItem>
+                <MenuItem value="news">News</MenuItem>
+                <MenuItem value="press">Press Releases</MenuItem>
+                <MenuItem value="issues">Issues</MenuItem>
+                <MenuItem value="services">Services</MenuItem>
+              </Select>
+            </FormControl>
           </Box>
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>

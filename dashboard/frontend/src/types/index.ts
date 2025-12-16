@@ -332,4 +332,8 @@ export type {
   CongressionalQueryResponse,
   CongressionalScrapeConfig,
   MemberStats,
+  CongressionalChatRequest,
+  CongressionalChatSource,
+  CongressionalChatResponse,
+  ChatHistoryItem,
 } from './congressional';
