@@ -15,28 +15,24 @@ from __future__ import annotations
 import argparse
 import logging
 import re
-import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
-
+from typing import Dict, List
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property, VectorDistances
 
+from ..config import settings
 from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
+from .drupal_ssh import SSHCommandError, run_drupal_ssh
 from .weaviate_connection import WeaviateConnection
 
 logger = get_logger("api_gateway.drupal_twig_ingestion")
 
 # Weaviate collection name
 DRUPAL_TWIG_COLLECTION = "DrupalTwigTemplates"
-
-# SSH connection details
-SSH_HOST = "65.181.112.77"
-SSH_USER = "root"
-SSH_PASSWORD = "T917nY9ILYmJGtUq"
-DRUPAL_WEB_ROOT = "/var/www/drupal/web"
+DRUPAL_WEB_ROOT = settings.DRUPAL_WEB_ROOT
 
 
 @dataclass
@@ -77,19 +73,8 @@ def get_text_for_embedding(template: TwigTemplate) -> str:
 
 
 def run_ssh_command(command: str, timeout: int = 120) -> str:
-    """Execute command on remote Drupal server via SSH."""
-    plink_path = r"C:\Program Files\PuTTY\plink.exe"
-    ssh_cmd = [
-        plink_path,
-        "-ssh",
-        "-pw", SSH_PASSWORD,
-        "-hostkey", "ssh-ed25519 255 SHA256:EnWadrWQBKWVjQ8UV9ynQuSJbAjEuaMimajwlXoZecw",
-        f"{SSH_USER}@{SSH_HOST}",
-        command
-    ]
-    result = subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=timeout)
-    if result.returncode != 0:
-        logger.warning("SSH command failed: %s", result.stderr)
+    """Execute command via the shared Drupal SSH helper."""
+    result = run_drupal_ssh(command, timeout=timeout)
     return result.stdout
 
 
@@ -350,12 +335,16 @@ def main():
 
     args = parser.parse_args()
 
-    if args.command == "ingest":
-        ingest_templates(dry_run=args.dry_run, verbose=args.verbose)
-    elif args.command == "reindex":
-        reindex()
-    elif args.command == "status":
-        status()
+    try:
+        if args.command == "ingest":
+            ingest_templates(dry_run=args.dry_run, verbose=args.verbose)
+        elif args.command == "reindex":
+            reindex()
+        elif args.command == "status":
+            status()
+    except SSHCommandError as exc:
+        logger.error("SSH command failed: %s", exc)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
