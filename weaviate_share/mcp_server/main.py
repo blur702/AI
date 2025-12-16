@@ -344,23 +344,26 @@ def search_congressional(
     limit: int = 10,
     state: Optional[str] = None,
     party: Optional[str] = None,
+    topic: Optional[str] = None,
 ) -> SearchResponse:
     """
-    Search Congressional data (House members, press releases).
+    Search Congressional data (House members, press releases, voting records).
 
     Args:
-        query: Search query text (e.g., "infrastructure bill support")
+        query: Search query text (e.g., "infrastructure bill support", "HR 3668 vote")
         limit: Maximum number of results (1-100, default: 10)
         state: Filter by state abbreviation (e.g., "CA", "TX", "NY")
         party: Filter by party ("Republican", "Democrat")
+        topic: Filter by topic (e.g., "votes" for roll call votes, "news", "press")
 
     Returns:
-        List of matching content with member_name, state, party, title, url
+        List of matching content with member_name, state, party, title, url.
+        For votes (topic="votes"), content includes bill info and all member votes as JSON.
     """
     if not isinstance(limit, int) or limit < MIN_LIMIT or limit > MAX_LIMIT:
         return {"error": "invalid_limit", "message": f"limit must be {MIN_LIMIT}-{MAX_LIMIT}"}
 
-    logger.info("Searching Congressional: query=%r, limit=%d", query, limit)
+    logger.info("Searching Congressional: query=%r, limit=%d, topic=%r", query, limit, topic)
 
     try:
         query_vector = _get_embedding(query)
@@ -377,6 +380,8 @@ def search_congressional(
                 filters.append(Filter.by_property("state").equal(state.upper()))
             if party:
                 filters.append(Filter.by_property("party").equal(party))
+            if topic:
+                filters.append(Filter.by_property("topic").equal(topic.lower()))
 
             combined_filter = None
             if filters:
@@ -392,8 +397,11 @@ def search_congressional(
             for obj in response.objects:
                 props = obj.properties
                 content = props.get("content_text", "")
-                if len(content) > 500:
-                    content = content[:500] + "..."
+                obj_topic = props.get("topic", "")
+                # Allow longer content for votes (they contain member votes JSON)
+                max_content = 10000 if obj_topic == "votes" else 500
+                if len(content) > max_content:
+                    content = content[:max_content] + "..."
 
                 results.append({
                     "member_name": props.get("member_name", ""),
@@ -401,6 +409,7 @@ def search_congressional(
                     "district": props.get("district", ""),
                     "party": props.get("party", ""),
                     "title": props.get("title", ""),
+                    "topic": obj_topic,
                     "content_text": content,
                     "url": props.get("url", ""),
                     "policy_topics": props.get("policy_topics", []),
