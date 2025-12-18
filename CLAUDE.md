@@ -182,6 +182,61 @@ tests/                 # Playwright tests
 "C:\Program Files\GitHub CLI\gh.exe" pr view 123
 ```
 
+## Secret Scanning Pipeline
+
+Automated protection against committing secrets to the repository.
+
+### Protection Layers
+
+| Layer | File | Trigger |
+|-------|------|---------|
+| GitHub Actions | `.github/workflows/secret-scan.yml` | Every PR to master |
+| Pre-commit hook | `.git/hooks/pre-commit` | Every local commit |
+| Manual scanner | `scripts/check-env-secrets.py` | On-demand |
+
+### What Gets Blocked
+
+- Any `.env` file (only `.env.example` templates allowed)
+- Files containing detected secrets:
+  - API keys (OpenAI `sk-`, AWS `AKIA`, Stripe, GitHub, Slack)
+  - Database URLs with embedded passwords
+  - Private keys (RSA, PGP, SSH)
+  - JWT/Auth secrets
+
+### Safe Placeholders (Allowed)
+
+```bash
+API_KEY=your-api-key-here      # OK
+PASSWORD=changeme              # OK
+SECRET=${SECRET_KEY}           # OK (environment variable)
+DATABASE_URL=localhost:5432    # OK (no credentials)
+```
+
+### Commands
+
+```bash
+# Run secret scanner manually
+python scripts/check-env-secrets.py
+
+# Run in CI mode (stricter)
+python scripts/check-env-secrets.py --ci
+
+# Show fix suggestions
+python scripts/check-env-secrets.py --fix
+
+# Install local pre-commit hook
+.\scripts\install-hooks.ps1
+```
+
+### If Commit Is Blocked
+
+1. Remove the secret from the file
+2. Use a placeholder value instead
+3. Store real secrets in local `.env` (not tracked)
+4. Re-run `git commit`
+
+**NEVER** use `git commit --no-verify` to bypass the hook.
+
 ## PostgreSQL Setup
 
 ```bash
