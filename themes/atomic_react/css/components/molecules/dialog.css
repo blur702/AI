@@ -1,0 +1,275 @@
+/**
+ * @file
+ * Dialog molecule - Accessible modal dialog component.
+ */
+
+/* ==========================================================================
+   Dialog Backdrop
+   ========================================================================== */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-index-modal-backdrop);
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-normal), visibility var(--transition-normal);
+}
+
+.dialog-backdrop--open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ==========================================================================
+   Dialog Container
+   ========================================================================== */
+
+.dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  z-index: var(--z-index-modal);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-xl);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--transition-normal), visibility var(--transition-normal),
+    transform var(--transition-normal);
+}
+
+.dialog--open {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Dialog sizes */
+.dialog--small {
+  max-width: 400px;
+}
+
+.dialog--large {
+  max-width: 700px;
+}
+
+.dialog--fullscreen {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 0;
+}
+
+/* ==========================================================================
+   Dialog Parts
+   ========================================================================== */
+
+/* Dialog Header */
+.dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.dialog__title {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+.dialog__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-full);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.dialog__close:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-text-primary);
+}
+
+.dialog__close:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.dialog__close svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+/* Dialog Content */
+.dialog__content {
+  padding: var(--spacing-5);
+  overflow-y: auto;
+  max-height: calc(90vh - 140px);
+}
+
+.dialog--fullscreen .dialog__content {
+  max-height: calc(100vh - 140px);
+}
+
+/* Dialog Footer */
+.dialog__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4) var(--spacing-5);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.dialog__footer--start {
+  justify-content: flex-start;
+}
+
+.dialog__footer--spread {
+  justify-content: space-between;
+}
+
+/* ==========================================================================
+   Alert Dialog (Confirmation)
+   ========================================================================== */
+
+.dialog--alert .dialog__content {
+  text-align: center;
+}
+
+.dialog--alert .dialog__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--spacing-4);
+  border-radius: var(--border-radius-full);
+}
+
+.dialog--alert .dialog__icon--warning {
+  background-color: rgba(237, 108, 2, 0.1);
+  color: var(--color-warning);
+}
+
+.dialog--alert .dialog__icon--error {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: var(--color-error);
+}
+
+.dialog--alert .dialog__icon--success {
+  background-color: rgba(46, 125, 50, 0.1);
+  color: var(--color-success);
+}
+
+.dialog--alert .dialog__icon--info {
+  background-color: rgba(2, 136, 209, 0.1);
+  color: var(--color-info);
+}
+
+.dialog--alert .dialog__icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* ==========================================================================
+   Drupal Dialog Overrides
+   ========================================================================== */
+
+/* Override jQuery UI dialog styles */
+.ui-dialog {
+  position: fixed !important;
+  z-index: var(--z-index-modal) !important;
+  background-color: var(--color-background);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-xl);
+  border: none !important;
+  padding: 0 !important;
+}
+
+.ui-dialog .ui-dialog-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4) var(--spacing-5);
+  background: none;
+  border-bottom: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+}
+
+.ui-dialog .ui-dialog-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.ui-dialog .ui-dialog-titlebar-close {
+  position: static !important;
+  width: 44px;
+  height: 44px;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: none !important;
+  border: none !important;
+  border-radius: var(--border-radius-full);
+}
+
+.ui-dialog .ui-dialog-titlebar-close:hover {
+  background-color: var(--color-gray-100) !important;
+}
+
+.ui-dialog .ui-dialog-titlebar-close:focus {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+  outline-offset: var(--focus-ring-offset) !important;
+}
+
+.ui-dialog .ui-dialog-content {
+  padding: var(--spacing-5) !important;
+  color: var(--color-text-primary);
+}
+
+.ui-dialog .ui-dialog-buttonpane {
+  padding: var(--spacing-4) var(--spacing-5) !important;
+  margin: 0 !important;
+  border-top: 1px solid var(--color-gray-200) !important;
+}
+
+.ui-widget-overlay {
+  position: fixed !important;
+  inset: 0;
+  z-index: var(--z-index-modal-backdrop) !important;
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  opacity: 1 !important;
+}
+
+/* ==========================================================================
+   Accessibility: Focus Trap
+   ========================================================================== */
+
+/* Prevent scrolling when dialog is open */
+body.dialog-open {
+  overflow: hidden;
+}
+
+/* Ensure focus is trapped within dialog */
+.dialog[aria-modal="true"]:focus {
+  outline: none;
+}

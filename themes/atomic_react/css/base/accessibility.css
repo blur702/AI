@@ -1,0 +1,265 @@
+/**
+ * @file
+ * Accessibility styles - WCAG AA compliant focus states, screen reader utilities.
+ */
+
+/* ==========================================================================
+   Skip Link - Allows keyboard users to bypass navigation
+   ========================================================================== */
+
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--spacing-4);
+  z-index: var(--z-index-tooltip);
+  padding: var(--spacing-3) var(--spacing-4);
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  border-radius: var(--border-radius-md);
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: var(--spacing-4);
+  outline: var(--focus-ring-width) solid var(--color-primary-contrast);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ==========================================================================
+   Focus Styles - WCAG AA compliant focus indicators
+   ========================================================================== */
+
+/* Default focus-visible styles for all interactive elements */
+:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Ensure focus is visible on dark backgrounds */
+.bg-dark :focus-visible,
+[data-theme="dark"] :focus-visible {
+  outline-color: var(--color-primary-light);
+}
+
+/* Focus within for container elements */
+.focus-within:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ==========================================================================
+   Screen Reader Only - Visually hidden but accessible to assistive tech
+   ========================================================================== */
+
+.sr-only,
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Allow the element to be focusable when navigated to via keyboard */
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ==========================================================================
+   Reduced Motion - Respect user preferences
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   High Contrast Mode Support
+   ========================================================================== */
+
+@media (prefers-contrast: more) {
+  :root {
+    --color-primary: #0050a0;
+    --color-text-primary: #000000;
+    --color-text-secondary: #333333;
+    --color-background: #ffffff;
+    --focus-ring-width: 4px;
+  }
+
+  a {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+  }
+
+  button,
+  .button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* ==========================================================================
+   Touch Target Size - Minimum 44x44px (WCAG 2.1 Level AAA)
+   ========================================================================== */
+
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Ensure interactive elements meet touch target requirements */
+button,
+[role="button"],
+input[type="submit"],
+input[type="button"],
+input[type="reset"],
+.button {
+  min-height: 44px;
+  padding: var(--spacing-2) var(--spacing-4);
+}
+
+/* Links in navigation should have adequate touch targets */
+nav a {
+  display: inline-block;
+  padding: var(--spacing-2) var(--spacing-3);
+  min-height: 44px;
+  line-height: calc(44px - var(--spacing-4));
+}
+
+/* ==========================================================================
+   Form Accessibility
+   ========================================================================== */
+
+/* Error states must be perceivable by color and another indicator */
+[aria-invalid="true"],
+.has-error input,
+.has-error select,
+.has-error textarea {
+  border-color: var(--color-error);
+  border-width: 2px;
+}
+
+/* Error messages should be associated and visible */
+.error-message {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-1);
+}
+
+.error-message::before {
+  content: "⚠ ";
+}
+
+/* Required field indicator */
+.required-indicator::after {
+  content: " *";
+  color: var(--color-error);
+}
+
+/* Disabled states should be clearly indicated */
+[disabled],
+.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Live Regions - For dynamic content announcements
+   ========================================================================== */
+
+.live-region {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Focus Trap - For modal dialogs
+   ========================================================================== */
+
+.focus-trap-active {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* Sentinel elements for focus trap */
+.focus-trap-sentinel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+/* ==========================================================================
+   Color Contrast Utilities
+   ========================================================================== */
+
+/* Ensure text on colored backgrounds meets WCAG AA (4.5:1) */
+.text-on-primary {
+  color: var(--color-primary-contrast);
+}
+
+.text-on-dark {
+  color: var(--color-text-inverse);
+}
+
+/* ==========================================================================
+   Print Accessibility
+   ========================================================================== */
+
+@media print {
+  /* Ensure links show their destination */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: var(--font-size-sm);
+  }
+
+  /* Don't print purely decorative images */
+  img[role="presentation"],
+  img[alt=""] {
+    display: none;
+  }
+
+  /* Ensure adequate contrast for printing */
+  * {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}

@@ -1,0 +1,57 @@
+# Global styles and behaviors - loaded on every page
+global:
+  version: 1.0.0
+  css:
+    base:
+      css/base/reset.css: {}
+      css/base/variables.css: {}
+      css/base/typography.css: {}
+      css/base/accessibility.css: {}
+    layout:
+      css/layout/grid.css: {}
+      css/layout/regions.css: {}
+    component:
+      css/components/atoms/button.css: {}
+      css/components/atoms/input.css: {}
+      css/components/atoms/link.css: {}
+      css/components/molecules/card.css: {}
+      css/components/molecules/form-field.css: {}
+      css/components/organisms/header.css: {}
+      css/components/organisms/navigation.css: {}
+      css/components/organisms/footer.css: {}
+    theme:
+      css/theme/drupal-overrides.css: {}
+  js:
+    js/behaviors/skip-link.js: {}
+    js/behaviors/theme-toggle.js: {}
+    js/behaviors/focus-trap.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
+    - core/drupal.announce
+
+# Mobile navigation
+mobile-menu:
+  version: 1.0.0
+  js:
+    js/behaviors/mobile-menu.js: {}
+  dependencies:
+    - atomic_react/global
+
+# Dialog enhancements
+dialog:
+  version: 1.0.0
+  css:
+    component:
+      css/components/molecules/dialog.css: {}
+
+# React application (optional - loaded when needed)
+react-app:
+  version: 1.0.0
+  js:
+    js/react/dist/main.js: { minified: true }
+  css:
+    theme:
+      js/react/dist/main.css: { minified: true }
+  dependencies:
+    - core/drupalSettings
