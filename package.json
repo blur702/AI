@@ -45,6 +45,18 @@
     "test:vps:smoke": "cross-env TEST_ENVIRONMENT=vps npx playwright test --config=tests/config/vps.config.ts tests/tests/smoke",
     "test:vps:api": "cross-env TEST_ENVIRONMENT=vps npx playwright test --config=tests/config/vps.config.ts tests/tests/api",
     "test:vps:ui": "cross-env TEST_ENVIRONMENT=vps npx playwright test --config=tests/config/vps.config.ts tests/tests/ui",
+    "test:react-spa": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa",
+    "test:react-spa:auth": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/auth",
+    "test:react-spa:navigation": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/navigation",
+    "test:react-spa:congressional": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/congressional",
+    "test:react-spa:content": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/content",
+    "test:react-spa:password": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/password-protection",
+    "test:react-spa:admin": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/admin",
+    "test:react-spa:errors": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/errors",
+    "test:react-spa:integration": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/integration",
+    "test:react-spa:performance": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa/performance",
+    "test:react-spa:headed": "npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa --headed",
+    "test:react-spa:debug": "PWDEBUG=1 npx playwright test --config=tests/config/playwright.config.ts tests/tests/react-spa",
     "vps:setup": "npx ts-node tests/vps-runner.ts",
     "deploy:vps": "bash tests/scripts/deploy-to-vps.sh",
     "deploy:vps:win": "powershell -ExecutionPolicy Bypass -File tests/scripts/deploy-to-vps.ps1",
@@ -52,6 +64,11 @@
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "deploy:react-spa": "cd drupal_theme && npm run deploy:production",
+    "deploy:react-spa:staging": "cd drupal_theme && npm run deploy:staging",
+    "deploy:react-spa:dry-run": "cd drupal_theme && npm run deploy:dry-run",
+    "deploy:react-spa:rollback": "python scripts/deploy_react_spa.py --rollback",
+    "deploy:react-spa:list-backups": "python scripts/deploy_react_spa.py --list-backups"
   }
 }

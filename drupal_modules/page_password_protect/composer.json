@@ -1,0 +1,12 @@
+{
+    "name": "drupal/page_password_protect",
+    "type": "drupal-custom-module",
+    "description": "Password protect individual pages.",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev",
+    "autoload": {
+        "psr-4": {
+            "Drupal\\page_password_protect\\": "src/"
+        }
+    }
+}

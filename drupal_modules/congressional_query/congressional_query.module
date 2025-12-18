@@ -1,0 +1,563 @@
+<?php
+
+/**
+ * @file
+ * Congressional Query module for querying LLM about congressional members.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_theme().
+ */
+function congressional_query_theme($existing, $type, $theme, $path) {
+  return [
+    'congressional_query_form' => [
+      'variables' => [
+        'form' => NULL,
+        'example_questions' => [],
+      ],
+      'template' => 'congressional-query-form',
+    ],
+    'congressional_query_results' => [
+      'variables' => [
+        'question' => NULL,
+        'answer' => NULL,
+        'sources' => [],
+        'model' => NULL,
+        'timestamp' => NULL,
+        'query_id' => NULL,
+        'member_filter' => NULL,
+        'party_filter' => NULL,
+        'state_filter' => NULL,
+        'response_time_ms' => NULL,
+        'num_sources_requested' => NULL,
+        'conversation_id' => NULL,
+      ],
+      'template' => 'congressional-query-results',
+    ],
+    'congressional_query_chat' => [
+      'variables' => [
+        'conversation_id' => NULL,
+        'messages' => [],
+        'member_filter' => NULL,
+        'example_questions' => [],
+      ],
+      'template' => 'congressional-query-chat',
+    ],
+    'congressional_query_source' => [
+      'variables' => [
+        'member_name' => NULL,
+        'title' => NULL,
+        'content' => NULL,
+        'content_truncated' => NULL,
+        'content_full' => NULL,
+        'has_more_content' => FALSE,
+        'url' => NULL,
+        'party' => NULL,
+        'state' => NULL,
+        'topic' => NULL,
+        'distance' => NULL,
+        'party_class' => NULL,
+        'relevance_score' => NULL,
+      ],
+      'template' => 'congressional-query-source',
+    ],
+    'connection_status_block' => [
+      'variables' => [
+        'ssh_status' => NULL,
+        'ollama_status' => NULL,
+        'weaviate_status' => NULL,
+        'last_check' => NULL,
+        'show_details' => FALSE,
+      ],
+      'template' => 'connection-status-block',
+    ],
+    'congressional_admin_dashboard' => [
+      'variables' => [
+        'stats' => [],
+        'recent_queries' => [],
+        'system_status' => [],
+      ],
+      'template' => 'congressional-admin-dashboard',
+    ],
+    'congressional_query_history' => [
+      'variables' => [
+        'filter_form' => NULL,
+        'queries' => [],
+        'total' => 0,
+        'page' => 0,
+        'limit' => 50,
+        'total_pages' => 0,
+        'active_filters' => [],
+        'sort' => 'created',
+        'order' => 'DESC',
+        'export_csv_url' => NULL,
+        'export_json_url' => NULL,
+      ],
+      'template' => 'congressional-query-history',
+    ],
+    'congressional_analytics' => [
+      'variables' => [
+        'stats' => [],
+        'queries_by_model' => [],
+        'queries_by_user' => [],
+        'growth_rate' => 0,
+      ],
+      'template' => 'congressional-analytics',
+    ],
+    'congressional_api_analytics' => [
+      'variables' => [
+        'today_stats' => [],
+        'week_stats' => [],
+        'hourly_distribution' => [],
+        'top_keys' => [],
+        'recent_requests' => [],
+        'key_stats' => [],
+      ],
+      'template' => 'congressional-api-analytics',
+    ],
+    'congressional_api_documentation' => [
+      'variables' => [
+        'base_url' => NULL,
+        'endpoints' => [],
+        'error_codes' => [],
+        'rate_limit' => 100,
+        'rate_limit_window' => 60,
+        'api_key_url' => NULL,
+      ],
+      'template' => 'congressional-api-documentation',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_help().
+ */
+function congressional_query_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.congressional_query':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Congressional Query module allows users to ask questions about congressional members using a Large Language Model (LLM). The module establishes an SSH tunnel to a remote server running Ollama (for LLM inference) and Weaviate (for vector search of congressional data).') . '</p>';
+      $output .= '<h3>' . t('Features') . '</h3>';
+      $output .= '<ul>';
+      $output .= '<li>' . t('Query form for simple question submission') . '</li>';
+      $output .= '<li>' . t('Chat interface for multi-turn conversations') . '</li>';
+      $output .= '<li>' . t('Source citation display with member information') . '</li>';
+      $output .= '<li>' . t('Member filtering (e.g., filter by specific representatives)') . '</li>';
+      $output .= '<li>' . t('Connection status monitoring') . '</li>';
+      $output .= '<li>' . t('Query history and statistics') . '</li>';
+      $output .= '<li>' . t('REST API for external integrations') . '</li>';
+      $output .= '</ul>';
+      $output .= '<h3>' . t('Configuration') . '</h3>';
+      $output .= '<p>' . t('Configure the module at <a href=":url">Administration > Configuration > Web services > Congressional Query</a>.', [':url' => '/admin/config/services/congressional-query']) . '</p>';
+      $output .= '<h3>' . t('Usage') . '</h3>';
+      $output .= '<p>' . t('Access the query form at <a href=":url">/congressional/query</a> or the chat interface at <a href=":chat">/congressional/chat</a>.', [':url' => '/congressional/query', ':chat' => '/congressional/chat']) . '</p>';
+      return $output;
+
+    case 'congressional_query.admin':
+      return '<p>' . t('Configure SSH tunnel, Ollama LLM, and Weaviate connection settings for the Congressional Query module.') . '</p>';
+
+    case 'congressional_query.admin_dashboard':
+      return '<p>' . t('View query statistics and recent activity for the Congressional Query module.') . '</p>';
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function congressional_query_cron() {
+  $config = \Drupal::config('congressional_query.settings');
+  $database = \Drupal::database();
+  $time = \Drupal::time()->getRequestTime();
+  $state = \Drupal::state();
+  $logger = \Drupal::logger('congressional_query');
+
+  // Clean up old conversation sessions.
+  $session_timeout_hours = $config->get('query.session_timeout_hours') ?? 24;
+  $session_cutoff = $time - ($session_timeout_hours * 3600);
+
+  $database->delete('congressional_query_conversations')
+    ->condition('updated', $session_cutoff, '<')
+    ->execute();
+
+  // Prune query logs older than retention period.
+  $retention_days = $config->get('query.log_retention_days') ?? 90;
+  $log_cutoff = $time - ($retention_days * 86400);
+
+  $database->delete('congressional_query_logs')
+    ->condition('created', $log_cutoff, '<')
+    ->execute();
+
+  // Prune API request logs older than retention period.
+  $api_config = \Drupal::config('congressional_query.api_settings');
+  $api_retention_days = $api_config->get('log_retention_days') ?? 90;
+  $api_log_cutoff = $time - ($api_retention_days * 86400);
+
+  try {
+    $database->delete('congressional_query_api_logs')
+      ->condition('timestamp', $api_log_cutoff, '<')
+      ->execute();
+  }
+  catch (\Exception $e) {
+    $logger->warning('Failed to prune API logs: @message', ['@message' => $e->getMessage()]);
+  }
+
+  // Check if health check should run based on configured interval.
+  $health_check_interval = $config->get('ssh.health_check_interval') ?? 300;
+  $last_health_check = $state->get('congressional_query.last_health_check', 0);
+
+  if (($time - $last_health_check) < $health_check_interval) {
+    // Not time for a health check yet.
+    return;
+  }
+
+  // Update last health check timestamp.
+  $state->set('congressional_query.last_health_check', $time);
+
+  // Perform comprehensive health monitoring.
+  $health_results = [];
+
+  // 1. SSH Tunnel Health Check with automatic reconnection.
+  try {
+    /** @var \Drupal\congressional_query\Service\SSHTunnelService $ssh_service */
+    $ssh_service = \Drupal::service('congressional_query.ssh_tunnel');
+
+    // Refresh connection if stale.
+    $refreshed = $ssh_service->refreshConnection();
+    if ($refreshed) {
+      $logger->info('Cron: SSH connection refreshed (was stale or idle).');
+    }
+
+    // Check comprehensive service health.
+    $service_health = $ssh_service->checkServiceHealth();
+    $health_results['ssh'] = $service_health;
+
+    if ($service_health['status'] !== 'healthy') {
+      $logger->warning('Cron: SSH service health check returned status @status: @message', [
+        '@status' => $service_health['status'],
+        '@message' => $service_health['message'] ?? 'Unknown issue',
+      ]);
+
+      // Attempt automatic reconnection if degraded.
+      if ($service_health['status'] === 'degraded' || $service_health['status'] === 'unhealthy') {
+        $logger->info('Cron: Attempting automatic SSH reconnection...');
+        try {
+          $ssh_service->restartTunnel();
+          $logger->info('Cron: SSH tunnel successfully restarted.');
+        }
+        catch (\Exception $e) {
+          $logger->error('Cron: Failed to restart SSH tunnel: @error', [
+            '@error' => $e->getMessage(),
+          ]);
+        }
+      }
+    }
+  }
+  catch (\Exception $e) {
+    $logger->error('Cron: SSH health check failed: @message', [
+      '@message' => $e->getMessage(),
+    ]);
+    $health_results['ssh'] = [
+      'status' => 'error',
+      'message' => $e->getMessage(),
+    ];
+  }
+
+  // 2. Ollama Service Health Check.
+  try {
+    /** @var \Drupal\congressional_query\Service\OllamaLLMService $ollama_service */
+    $ollama_service = \Drupal::service('congressional_query.ollama_llm');
+    $ollama_health = $ollama_service->checkHealth();
+    $health_results['ollama'] = $ollama_health;
+
+    if ($ollama_health['status'] !== 'ok') {
+      $logger->warning('Cron: Ollama health check returned status @status: @message', [
+        '@status' => $ollama_health['status'],
+        '@message' => $ollama_health['message'] ?? 'Unknown issue',
+      ]);
+    }
+  }
+  catch (\Exception $e) {
+    $logger->error('Cron: Ollama health check failed: @message', [
+      '@message' => $e->getMessage(),
+    ]);
+    $health_results['ollama'] = [
+      'status' => 'error',
+      'message' => $e->getMessage(),
+    ];
+  }
+
+  // 3. Weaviate Service Health Check.
+  try {
+    /** @var \Drupal\congressional_query\Service\WeaviateClientService $weaviate_service */
+    $weaviate_service = \Drupal::service('congressional_query.weaviate_client');
+    $weaviate_health = $weaviate_service->checkHealth();
+    $health_results['weaviate'] = $weaviate_health;
+
+    if ($weaviate_health['status'] !== 'ok') {
+      $logger->warning('Cron: Weaviate health check returned status @status: @message', [
+        '@status' => $weaviate_health['status'],
+        '@message' => $weaviate_health['message'] ?? 'Unknown issue',
+      ]);
+    }
+  }
+  catch (\Exception $e) {
+    $logger->error('Cron: Weaviate health check failed: @message', [
+      '@message' => $e->getMessage(),
+    ]);
+    $health_results['weaviate'] = [
+      'status' => 'error',
+      'message' => $e->getMessage(),
+    ];
+  }
+
+  // Store health check results in state for UI display.
+  $state->set('congressional_query.health_results', $health_results);
+  $state->set('congressional_query.health_check_time', $time);
+
+  // Log summary if any services are unhealthy.
+  $unhealthy_services = [];
+  foreach ($health_results as $service => $result) {
+    if (!in_array($result['status'] ?? '', ['ok', 'healthy', 'connected'])) {
+      $unhealthy_services[] = $service;
+    }
+  }
+
+  if (!empty($unhealthy_services)) {
+    $logger->warning('Cron: Health check completed with issues. Unhealthy services: @services', [
+      '@services' => implode(', ', $unhealthy_services),
+    ]);
+  }
+  else {
+    $logger->info('Cron: Health check completed successfully. All services healthy.');
+  }
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function congressional_query_page_attachments(array &$attachments) {
+  // Attach base styles on congressional query pages.
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  $congressional_routes = [
+    'congressional_query.query_form',
+    'congressional_query.results',
+    'congressional_query.chat',
+  ];
+
+  if (in_array($route_name, $congressional_routes)) {
+    $attachments['#attached']['library'][] = 'congressional_query/base';
+  }
+}
+
+/**
+ * Get example questions for display.
+ *
+ * @return array
+ *   Array of example question strings.
+ */
+function congressional_query_get_example_questions() {
+  return [
+    'What are the main policy priorities for representatives from Texas?',
+    'How have members voted on recent infrastructure bills?',
+    'What positions do representatives take on healthcare reform?',
+    'Which members have spoken about climate change recently?',
+    'What committees are the most active on immigration issues?',
+  ];
+}
+
+/**
+ * Get party color class.
+ *
+ * @param string $party
+ *   The party name.
+ *
+ * @return string
+ *   CSS class for the party.
+ */
+function congressional_query_get_party_class($party) {
+  $party_lower = strtolower($party ?? '');
+  if (strpos($party_lower, 'republican') !== FALSE || $party_lower === 'r') {
+    return 'party-republican';
+  }
+  if (strpos($party_lower, 'democrat') !== FALSE || $party_lower === 'd') {
+    return 'party-democrat';
+  }
+  return 'party-other';
+}
+
+/**
+ * Format response time in milliseconds to human-readable string.
+ *
+ * @param int|float $ms
+ *   Response time in milliseconds.
+ *
+ * @return string
+ *   Human-readable response time (e.g., "1.2s" or "850ms").
+ */
+function congressional_query_format_response_time($ms) {
+  if ($ms >= 1000) {
+    return number_format($ms / 1000, 1) . 's';
+  }
+  return number_format($ms) . 'ms';
+}
+
+/**
+ * Smart truncation at word boundaries.
+ *
+ * @param string $text
+ *   The text to truncate.
+ * @param int $length
+ *   Maximum length.
+ * @param string $suffix
+ *   Suffix to append when truncated.
+ *
+ * @return string
+ *   Truncated text.
+ */
+function congressional_query_truncate_smart($text, $length = 150, $suffix = '...') {
+  $text = trim($text);
+
+  if (strlen($text) <= $length) {
+    return $text;
+  }
+
+  // Find last space before length limit.
+  $truncated = substr($text, 0, $length);
+  $last_space = strrpos($truncated, ' ');
+
+  if ($last_space !== FALSE && $last_space > $length * 0.7) {
+    $truncated = substr($truncated, 0, $last_space);
+  }
+
+  return rtrim($truncated, '.,!?:;') . $suffix;
+}
+
+/**
+ * Highlight keywords in text.
+ *
+ * @param string $text
+ *   The text to highlight in.
+ * @param array|string $keywords
+ *   Keywords to highlight.
+ * @param string $tag
+ *   HTML tag to wrap highlights (default: 'mark').
+ *
+ * @return string
+ *   Text with highlighted keywords.
+ */
+function congressional_query_highlight_keywords($text, $keywords, $tag = 'mark') {
+  if (empty($keywords)) {
+    return $text;
+  }
+
+  if (is_string($keywords)) {
+    $keywords = preg_split('/\s+/', $keywords);
+  }
+
+  $keywords = array_filter(array_map('trim', $keywords));
+
+  foreach ($keywords as $keyword) {
+    if (strlen($keyword) < 3) {
+      continue;
+    }
+    $escaped = preg_quote($keyword, '/');
+    $text = preg_replace(
+      '/\b(' . $escaped . ')\b/i',
+      '<' . $tag . ' class="highlight">$1</' . $tag . '>',
+      $text
+    );
+  }
+
+  return $text;
+}
+
+/**
+ * Get member photo URL from congressional data.
+ *
+ * @param string $member_name
+ *   The member name.
+ *
+ * @return string
+ *   Photo URL or placeholder.
+ */
+function congressional_query_get_member_photo_url($member_name) {
+  // Placeholder implementation - could be extended to fetch from API.
+  $placeholder = 'data:image/svg+xml,' . rawurlencode(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">' .
+    '<circle cx="24" cy="24" r="24" fill="#e0e0e0"/>' .
+    '<circle cx="24" cy="18" r="8" fill="#bdbdbd"/>' .
+    '<path d="M8 42c0-10 7-16 16-16s16 6 16 16" fill="#bdbdbd"/>' .
+    '</svg>'
+  );
+
+  return $placeholder;
+}
+
+/**
+ * Sanitize and validate member filter input.
+ *
+ * @param string $filter
+ *   The member filter input.
+ *
+ * @return string|null
+ *   Sanitized filter or NULL if invalid.
+ */
+function congressional_query_sanitize_member_filter($filter) {
+  if (empty($filter)) {
+    return NULL;
+  }
+
+  // Remove any characters that aren't alphanumeric, spaces, hyphens, periods, or apostrophes.
+  $sanitized = preg_replace('/[^a-zA-Z0-9\s\-\'\.]/u', '', $filter);
+  $sanitized = trim($sanitized);
+
+  // Check minimum length.
+  if (strlen($sanitized) < 2) {
+    return NULL;
+  }
+
+  // Check maximum length.
+  if (strlen($sanitized) > 100) {
+    $sanitized = substr($sanitized, 0, 100);
+  }
+
+  return $sanitized;
+}
+
+/**
+ * Implements hook_preprocess_congressional_query_results().
+ */
+function congressional_query_preprocess_congressional_query_results(&$variables) {
+  // Format response time for display.
+  if (!empty($variables['response_time_ms'])) {
+    $variables['response_time_formatted'] = congressional_query_format_response_time($variables['response_time_ms']);
+  }
+
+  // Add source count for display.
+  $variables['source_count'] = count($variables['sources'] ?? []);
+}
+
+/**
+ * Implements hook_preprocess_congressional_query_source().
+ */
+function congressional_query_preprocess_congressional_query_source(&$variables) {
+  // Add party class.
+  $variables['party_class'] = congressional_query_get_party_class($variables['party'] ?? '');
+
+  // Calculate relevance percentage from distance.
+  if (isset($variables['distance']) && is_numeric($variables['distance'])) {
+    $variables['relevance_score'] = round((1 - $variables['distance']) * 100);
+  }
+
+  // Smart truncate content if needed.
+  if (!empty($variables['content']) && strlen($variables['content']) > 300) {
+    $variables['content_truncated'] = congressional_query_truncate_smart($variables['content'], 300);
+    $variables['content_full'] = $variables['content'];
+    $variables['has_more_content'] = TRUE;
+  }
+  else {
+    $variables['has_more_content'] = FALSE;
+  }
+}

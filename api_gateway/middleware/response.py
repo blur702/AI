@@ -22,6 +22,16 @@ from ..utils.exceptions import (
 from ..utils.logger import logger
 
 
+# Import RateLimitExceededError conditionally to avoid circular imports
+def _get_rate_limit_error():
+    """Lazily import RateLimitExceededError to avoid circular imports."""
+    try:
+        from ..routes.congressional import RateLimitExceededError
+        return RateLimitExceededError
+    except ImportError:
+        return None
+
+
 def unified_response(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
     """
     Decorator that wraps endpoint results in a unified response format.
@@ -95,6 +105,30 @@ def unified_response(func: Callable[..., Awaitable[Any]]) -> Callable[..., Await
                 ).dict(),
             )
         except Exception as exc:  # noqa: BLE001
+            # Check for RateLimitExceededError (imported lazily to avoid circular imports)
+            RateLimitExceededError = _get_rate_limit_error()
+            if RateLimitExceededError and isinstance(exc, RateLimitExceededError):
+                code = getattr(exc, "code", "RATE_LIMIT_EXCEEDED")
+                message = getattr(exc, "message", str(exc))
+                retry_after = getattr(exc, "retry_after", 60)
+                logger.warning(f"{code}: {message}")
+                error = UnifiedError(code=code, message=message)
+                return JSONResponse(
+                    status_code=429,
+                    content=UnifiedResponse(
+                        success=False,
+                        data=None,
+                        error=error,
+                        job_id=None,
+                        timestamp=now,
+                    ).dict(),
+                    headers={
+                        "Retry-After": str(retry_after),
+                        "X-RateLimit-Remaining": "0",
+                        "X-RateLimit-Reset": str(retry_after),
+                    },
+                )
+            # Unhandled exception
             logger.exception("Unhandled exception")
             error = UnifiedError(code="INTERNAL_ERROR", message=str(exc))
             return JSONResponse(

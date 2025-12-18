@@ -1,0 +1,172 @@
+{#
+/**
+ * @file
+ * Template for the query history page.
+ *
+ * Available variables:
+ * - filter_form: The filter form render array.
+ * - queries: Array of query data.
+ * - total: Total number of results.
+ * - page: Current page number.
+ * - limit: Items per page.
+ * - total_pages: Total number of pages.
+ * - active_filters: Array of active filter chips.
+ * - sort: Current sort field.
+ * - order: Current sort order.
+ * - export_csv_url: URL for CSV export.
+ * - export_json_url: URL for JSON export.
+ */
+#}
+<div class="congressional-query-history">
+  <div class="history-header">
+    <h2>{{ 'Query History'|t }}</h2>
+    <div class="history-actions">
+      <a href="{{ export_csv_url }}" class="button export-btn">
+        {{ 'Export CSV'|t }}
+      </a>
+      <a href="{{ export_json_url }}" class="button export-btn">
+        {{ 'Export JSON'|t }}
+      </a>
+      <a href="{{ url('congressional_query.bulk_operations') }}" class="button button--danger">
+        {{ 'Bulk Operations'|t }}
+      </a>
+    </div>
+  </div>
+
+  <div class="filter-section">
+    {{ filter_form }}
+  </div>
+
+  {% if active_filters|length > 0 %}
+    <div class="active-filters">
+      <span class="filters-label">{{ 'Active Filters:'|t }}</span>
+      {% for filter in active_filters %}
+        <span class="filter-chip">
+          {{ filter.label }}: {{ filter.value }}
+        </span>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="results-summary">
+    {{ 'Showing @start-@end of @total results'|t({
+      '@start': page * limit + 1,
+      '@end': [page * limit + limit, total]|min,
+      '@total': total
+    }) }}
+  </div>
+
+  {% if queries|length > 0 %}
+    <table class="query-history-table">
+      <thead>
+        <tr>
+          <th class="column-id">
+            <a href="?sort=id&order={{ sort == 'id' and order == 'ASC' ? 'DESC' : 'ASC' }}">
+              {{ 'ID'|t }}
+              {% if sort == 'id' %}
+                <span class="sort-indicator">{{ order == 'ASC' ? '↑' : '↓' }}</span>
+              {% endif %}
+            </a>
+          </th>
+          <th class="column-user">{{ 'User'|t }}</th>
+          <th class="column-question">{{ 'Question'|t }}</th>
+          <th class="column-member">{{ 'Member Filter'|t }}</th>
+          <th class="column-model">{{ 'Model'|t }}</th>
+          <th class="column-response-time">
+            <a href="?sort=response_time_ms&order={{ sort == 'response_time_ms' and order == 'ASC' ? 'DESC' : 'ASC' }}">
+              {{ 'Response Time'|t }}
+              {% if sort == 'response_time_ms' %}
+                <span class="sort-indicator">{{ order == 'ASC' ? '↑' : '↓' }}</span>
+              {% endif %}
+            </a>
+          </th>
+          <th class="column-sources">{{ 'Sources'|t }}</th>
+          <th class="column-date">
+            <a href="?sort=created&order={{ sort == 'created' and order == 'ASC' ? 'DESC' : 'ASC' }}">
+              {{ 'Date'|t }}
+              {% if sort == 'created' %}
+                <span class="sort-indicator">{{ order == 'ASC' ? '↑' : '↓' }}</span>
+              {% endif %}
+            </a>
+          </th>
+          <th class="column-actions">{{ 'Actions'|t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for query in queries %}
+          <tr id="query-row-{{ query.id }}" class="query-row">
+            <td class="column-id">{{ query.id }}</td>
+            <td class="column-user">{{ query.username }}</td>
+            <td class="column-question" title="{{ query.question }}">
+              {{ query.question_truncated }}
+            </td>
+            <td class="column-member">{{ query.member_filter }}</td>
+            <td class="column-model">{{ query.model }}</td>
+            <td class="column-response-time">{{ query.response_time }}</td>
+            <td class="column-sources">{{ query.num_sources }}</td>
+            <td class="column-date">{{ query.created }}</td>
+            <td class="column-actions">
+              <a href="{{ query.view_url }}" class="action-link view-link" title="{{ 'View Details'|t }}">
+                {{ 'View'|t }}
+              </a>
+              <button type="button"
+                      class="action-link delete-link use-ajax"
+                      data-query-id="{{ query.id }}"
+                      data-delete-url="{{ url('congressional_query.delete_query_ajax', {'query_id': query.id}) }}"
+                      title="{{ 'Delete'|t }}">
+                {{ 'Delete'|t }}
+              </button>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% if total_pages > 1 %}
+      <nav class="pager" aria-label="{{ 'Pagination'|t }}">
+        <ul class="pager__items">
+          {% if page > 0 %}
+            <li class="pager__item pager__item--previous">
+              <a href="?page={{ page - 1 }}" title="{{ 'Previous page'|t }}">
+                {{ '‹ Previous'|t }}
+              </a>
+            </li>
+          {% endif %}
+
+          {% for i in range(0, total_pages - 1) %}
+            {% if i == page %}
+              <li class="pager__item is-active">
+                <span>{{ i + 1 }}</span>
+              </li>
+            {% elseif i == 0 or i == total_pages - 1 or (i >= page - 2 and i <= page + 2) %}
+              <li class="pager__item">
+                <a href="?page={{ i }}">{{ i + 1 }}</a>
+              </li>
+            {% elseif i == page - 3 or i == page + 3 %}
+              <li class="pager__item pager__item--ellipsis">...</li>
+            {% endif %}
+          {% endfor %}
+
+          {% if page < total_pages - 1 %}
+            <li class="pager__item pager__item--next">
+              <a href="?page={{ page + 1 }}" title="{{ 'Next page'|t }}">
+                {{ 'Next ›'|t }}
+              </a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+
+  {% else %}
+    <div class="no-results">
+      <p>{{ 'No queries found matching your criteria.'|t }}</p>
+    </div>
+  {% endif %}
+
+  <div class="back-link">
+    <a href="{{ url('congressional_query.admin_dashboard') }}">
+      {{ '← Back to Dashboard'|t }}
+    </a>
+  </div>
+</div>

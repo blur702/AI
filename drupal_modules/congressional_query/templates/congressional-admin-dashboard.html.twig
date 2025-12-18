@@ -1,0 +1,146 @@
+{#
+/**
+ * @file
+ * Template for the admin dashboard.
+ *
+ * Available variables:
+ * - stats: Query statistics array.
+ * - recent_queries: Array of recent queries.
+ * - system_status: System status array.
+ */
+#}
+<div class="congressional-admin-dashboard">
+  {# Quick Links Section #}
+  <div class="quick-links-section">
+    <a href="{{ url('congressional_query.admin') }}" class="quick-link-btn">
+      {{ 'Settings'|t }}
+    </a>
+    <a href="{{ url('congressional_query.query_form') }}" class="quick-link-btn">
+      {{ 'Query Form'|t }}
+    </a>
+    <a href="{{ url('congressional_query.chat') }}" class="quick-link-btn">
+      {{ 'Chat'|t }}
+    </a>
+    <a href="{{ url('congressional_query.query_history') }}" class="quick-link-btn">
+      {{ 'Query History'|t }}
+    </a>
+    <a href="{{ url('congressional_query.analytics') }}" class="quick-link-btn quick-link-btn--primary">
+      {{ 'Analytics'|t }}
+    </a>
+    <a href="{{ url('congressional_query.api_keys') }}" class="quick-link-btn">
+      {{ 'API Keys'|t }}
+    </a>
+    <a href="{{ url('congressional_query.api_analytics') }}" class="quick-link-btn">
+      {{ 'API Analytics'|t }}
+    </a>
+    <a href="{{ url('congressional_query.api_documentation') }}" class="quick-link-btn">
+      {{ 'API Docs'|t }}
+    </a>
+    <a href="{{ url('congressional_query.cache_clear') }}" class="quick-link-btn">
+      {{ 'Clear Cache'|t }}
+    </a>
+    <a href="{{ url('congressional_query.bulk_operations') }}" class="quick-link-btn quick-link-btn--warning">
+      {{ 'Bulk Operations'|t }}
+    </a>
+  </div>
+
+  <div class="admin-stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.total_queries }}</div>
+      <div class="stat-label">{{ 'Total Queries'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.queries_today }}</div>
+      <div class="stat-label">{{ 'Queries Today'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.queries_this_week }}</div>
+      <div class="stat-label">{{ 'This Week'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.unique_users }}</div>
+      <div class="stat-label">{{ 'Unique Users'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.avg_response_time }}</div>
+      <div class="stat-label">{{ 'Avg Response Time'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ stats.collection_count }}</div>
+      <div class="stat-label">{{ 'Documents Indexed'|t }}</div>
+    </div>
+  </div>
+
+  <div class="system-status-section">
+    <h3>{{ 'System Status'|t }}</h3>
+    <div class="system-status-grid">
+      {% for key, status in system_status %}
+        <div class="status-card status-{{ status.status }}">
+          <div class="status-name">{{ status.name }}</div>
+          <div class="status-indicator-large {{ 'status-' ~ status.status }}"></div>
+          <div class="status-message">{{ status.message }}</div>
+          {% if status.details.models is defined %}
+            <div class="status-extra">{{ status.details.models|length }} {{ 'models available'|t }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if stats.top_filters|length > 0 %}
+    <div class="top-filters-section">
+      <h3>{{ 'Top Member Filters'|t }}</h3>
+      <ul class="top-filters-list">
+        {% for filter in stats.top_filters %}
+          <li>
+            <span class="filter-name">{{ filter.filter }}</span>
+            <span class="filter-count">{{ filter.count }} {{ 'queries'|t }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <div class="recent-queries-section">
+    <h3>{{ 'Recent Queries'|t }}</h3>
+    {% if recent_queries|length > 0 %}
+      <table class="recent-queries-table">
+        <thead>
+          <tr>
+            <th>{{ 'Question'|t }}</th>
+            <th>{{ 'Filter'|t }}</th>
+            <th>{{ 'Model'|t }}</th>
+            <th>{{ 'Time'|t }}</th>
+            <th>{{ 'Sources'|t }}</th>
+            <th>{{ 'Date'|t }}</th>
+            <th>{{ 'Actions'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for query in recent_queries %}
+            <tr>
+              <td class="query-question" title="{{ query.question|default('') }}">
+                {{ query.question }}
+              </td>
+              <td>{{ query.member_filter }}</td>
+              <td>{{ query.model }}</td>
+              <td>{{ query.response_time }}</td>
+              <td>{{ query.num_sources }}</td>
+              <td>{{ query.created }}</td>
+              <td>
+                <a href="{{ query.view_url }}" class="view-link">{{ 'View'|t }}</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="no-queries">{{ 'No queries recorded yet.'|t }}</p>
+    {% endif %}
+  </div>
+</div>

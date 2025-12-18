@@ -85,3 +85,36 @@ export interface MemberStats {
   party?: string;
   state?: string;
 }
+
+// RAG Chat interfaces
+export interface CongressionalChatRequest {
+  message: string;
+  member_filter?: string;
+  conversation_id?: string;
+}
+
+export interface CongressionalChatSource {
+  member_name: string;
+  title: string;
+  content_preview: string;
+  url: string;
+  party: string;
+  state: string;
+}
+
+export interface CongressionalChatResponse {
+  success: boolean;
+  answer: string;
+  sources: CongressionalChatSource[];
+  conversation_id: string;
+  model: string;
+  error?: string;
+}
+
+export interface ChatHistoryItem {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: CongressionalChatSource[];
+  timestamp: Date;
+}
