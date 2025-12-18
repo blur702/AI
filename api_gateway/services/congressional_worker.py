@@ -152,12 +152,16 @@ class CongressionalWorker:
             logger.info("Deleted checkpoint for worker %d", self.config.worker_id)
 
     def _write_heartbeat(self) -> None:
-        """Write heartbeat to disk."""
+        """Write heartbeat to disk using atomic write to prevent corruption."""
         if not self.heartbeat:
             return
         self.heartbeat.last_heartbeat = datetime.now(timezone.utc).isoformat()
         heartbeat_path = self.config.heartbeat_dir / f"worker_{self.config.worker_id}.json"
-        heartbeat_path.write_text(json.dumps(self.heartbeat.to_dict(), indent=2))
+        temp_path = self.config.heartbeat_dir / f"worker_{self.config.worker_id}.json.tmp"
+
+        # Write to temp file first, then atomic rename
+        temp_path.write_text(json.dumps(self.heartbeat.to_dict(), indent=2))
+        os.replace(temp_path, heartbeat_path)
 
     def _delete_heartbeat(self) -> None:
         """Delete heartbeat file on shutdown."""

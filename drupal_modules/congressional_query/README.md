@@ -228,6 +228,27 @@ Display with Citations
 3. Ensure embedding model is loaded in Ollama
 4. Consider caching frequently asked questions
 
+## Drupal Core Updates
+
+For instructions on updating Drupal core to version 11.3.0 or higher, see the [Drupal Core Update Guide](../../docs/DRUPAL_CORE_UPDATE.md).
+
+**Important**: Keeping Drupal core updated is essential for continued security coverage. Drupal 11.2.x will reach end-of-life when Drupal 11.4.0 is released.
+
+The Congressional Query module is compatible with Drupal 11.3.0 and has been tested with:
+- Drupal 9.x, 10.x, and 11.x
+- PHP 8.1 through 8.4
+- Drush 12.x and 13.x
+
+## Related Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Drupal Core Update Guide](../../docs/DRUPAL_CORE_UPDATE.md) | Update Drupal core to 11.3.0 |
+| [Webform Libraries Installation](../WEBFORM_LIBRARIES_INSTALLATION.md) | Install external libraries for Webform module |
+| [Webform Libraries Quick Start](../WEBFORM_LIBRARIES_QUICKSTART.md) | Quick reference for library installation |
+
+**Note**: If using Webform elements in forms that interact with this module, ensure the Webform external libraries are installed locally for optimal performance. See the Webform Libraries documentation for details.
+
 ## Development
 
 ### File Structure

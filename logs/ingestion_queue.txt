@@ -859,3 +859,13 @@ mcp_servers/README.md
 CLAUDE.md
 api_gateway/services/congressional_scraper.py
 api_gateway/services/congressional_worker.py
+scripts/check-env-secrets.py
+CLAUDE.md
+api_gateway/services/congressional_scraper.py
+api_gateway/services/congressional_worker.py
+api_gateway/services/weaviate_connection.py
+docs/DRUPAL_CORE_UPDATE.md
+docs/DRUPAL_UPDATE_QUICKREF.md
+drupal_modules/WEBFORM_LIBRARIES_INSTALLATION.md
+drupal_modules/WEBFORM_LIBRARIES_QUICKSTART.md
+drupal_modules/congressional_query/README.md
