@@ -101,7 +101,7 @@ def index_code_file(
     stats = {"entities_added": 0, "entities_updated": 0, "errors": 0}
 
     if not file_path.exists():
-        logger.warning(f"File not found: {file_path}")
+        logger.warning("File not found: %s", file_path)
         stats["errors"] += 1
         return stats
 
@@ -119,7 +119,7 @@ def index_code_file(
                     entity.service_name = service_name
 
                 if dry_run:
-                    logger.info(f"  [DRY RUN] Would index: {entity.full_name}")
+                    logger.info("  [DRY RUN] Would index: %s", entity.full_name)
                     stats["entities_added"] += 1
                     continue
 
@@ -148,7 +148,7 @@ def index_code_file(
                         vector=vector,
                     )
                     stats["entities_updated"] += 1
-                    logger.debug(f"  Updated: {entity.full_name}")
+                    logger.debug("  Updated: %s", entity.full_name)
                 else:
                     # Insert new
                     collection.data.insert(
@@ -157,14 +157,14 @@ def index_code_file(
                         vector=vector,
                     )
                     stats["entities_added"] += 1
-                    logger.debug(f"  Added: {entity.full_name}")
+                    logger.debug("  Added: %s", entity.full_name)
 
             except Exception as e:
-                logger.error(f"  Error indexing entity {entity.name}: {e}")
+                logger.error("  Error indexing entity %s: %s", entity.name, e)
                 stats["errors"] += 1
 
     except Exception as e:
-        logger.error(f"Error parsing {file_path}: {e}")
+        logger.error("Error parsing %s: %s", file_path, e)
         stats["errors"] += 1
 
     return stats
@@ -185,7 +185,7 @@ def index_doc_file(
     stats = {"sections_added": 0, "sections_updated": 0, "errors": 0}
 
     if not file_path.exists():
-        logger.warning(f"File not found: {file_path}")
+        logger.warning("File not found: %s", file_path)
         stats["errors"] += 1
         return stats
 
@@ -210,7 +210,7 @@ def index_doc_file(
         for chunk in chunks:
             try:
                 if dry_run:
-                    logger.info(f"  [DRY RUN] Would index section: {chunk.title}")
+                    logger.info("  [DRY RUN] Would index section: %s", chunk.title)
                     stats["sections_added"] += 1
                     continue
 
@@ -227,11 +227,11 @@ def index_doc_file(
                 logger.debug("  Added section: %s", chunk.title)
 
             except Exception as e:
-                logger.error(f"  Error indexing section {chunk.title}: {e}")
+                logger.error("  Error indexing section %s: %s", chunk.title, e)
                 stats["errors"] += 1
 
     except Exception as e:
-        logger.error(f"Error parsing {file_path}: {e}")
+        logger.error("Error parsing %s: %s", file_path, e)
         stats["errors"] += 1
 
     return stats
@@ -268,7 +268,7 @@ def get_git_changed_files(base_branch: str = "master") -> list[Path]:
         ]
         return files
     except subprocess.CalledProcessError as e:
-        logger.error(f"Git diff failed: {e}")
+        logger.error("Git diff failed: %s", e)
         return []
 
 
@@ -289,7 +289,7 @@ def get_files_changed_since(ref: str) -> list[Path]:
         ]
         return files
     except subprocess.CalledProcessError as e:
-        logger.error(f"Git diff failed: {e}")
+        logger.error("Git diff failed: %s", e)
         return []
 
 
@@ -324,7 +324,7 @@ def index_files(
         logger.info("No indexable files found")
         return stats
 
-    logger.info(f"Found {len(code_files)} code files, {len(doc_files)} doc files to index")
+    logger.info("Found %d code files, %d doc files to index", len(code_files), len(doc_files))
 
     with WeaviateConnection() as client:
         code_parser = CodeParser()
@@ -335,7 +335,7 @@ def index_files(
             collection = client.collections.get("CodeEntity")
 
             for file_path in code_files:
-                logger.info(f"Indexing code: {file_path}")
+                logger.info("Indexing code: %s", file_path)
                 file_stats = index_code_file(
                     client, file_path, collection, code_parser, dry_run
                 )
@@ -350,7 +350,7 @@ def index_files(
             collection = client.collections.get("Documentation")
 
             for file_path in doc_files:
-                logger.info(f"Indexing docs: {file_path}")
+                logger.info("Indexing docs: %s", file_path)
                 file_stats = index_doc_file(client, file_path, collection, dry_run)
                 stats["doc_files"] += 1
                 stats["sections_added"] += file_stats["sections_added"]

@@ -90,6 +90,7 @@ class IngestionManager:
         self.started_at: Optional[float] = None
         self.cancel_requested = False
         self.lock = threading.Lock()
+        self._state_changed = threading.Condition(self.lock)
         self._stats: Dict[str, Any] = {}
 
     def get_status(self) -> Dict[str, Any]:
@@ -159,14 +160,15 @@ class IngestionManager:
             collections["error"] = str(exc)
             logger.error("Error fetching collection status: %s", exc)
 
-        return {
-            "is_running": self.is_running,
-            "paused": self.paused,
-            "task_id": self.task_id,
-            "current_type": self.current_type,
-            "started_at": self.started_at,
-            "collections": collections,
-        }
+        with self.lock:
+            return {
+                "is_running": self.is_running,
+                "paused": self.paused,
+                "task_id": self.task_id,
+                "current_type": self.current_type,
+                "started_at": self.started_at,
+                "collections": collections,
+            }
 
     def start_ingestion(
         self,
@@ -191,6 +193,27 @@ class IngestionManager:
         Returns:
             Dictionary with success status and task_id or error message.
         """
+        # Input validation
+        valid_types = {"documentation", "code", "drupal", "mdn_javascript", "mdn_webapis"}
+        invalid_types = set(types) - valid_types
+        if invalid_types:
+            return {
+                "success": False,
+                "error": f"Invalid ingestion types: {', '.join(invalid_types)}",
+            }
+
+        if drupal_limit is not None and drupal_limit < 0:
+            return {
+                "success": False,
+                "error": "drupal_limit must be non-negative",
+            }
+
+        if mdn_limit is not None and mdn_limit < 0:
+            return {
+                "success": False,
+                "error": "mdn_limit must be non-negative",
+            }
+
         with self.lock:
             if self.is_running:
                 return {
@@ -475,7 +498,7 @@ class IngestionManager:
         Returns:
             Dictionary with success status.
         """
-        with self.lock:
+        with self._state_changed:
             if not self.is_running:
                 return {
                     "success": False,
@@ -490,6 +513,7 @@ class IngestionManager:
 
             self.paused = True
             task_id = self.task_id
+            self._state_changed.notify_all()
 
         self.emit("ingestion_paused", {
             "task_id": task_id,
@@ -509,7 +533,7 @@ class IngestionManager:
         Returns:
             Dictionary with success status.
         """
-        with self.lock:
+        with self._state_changed:
             if not self.is_running:
                 return {
                     "success": False,
@@ -524,6 +548,7 @@ class IngestionManager:
 
             self.paused = False
             task_id = self.task_id
+            self._state_changed.notify_all()
 
         self.emit("ingestion_resumed", {
             "task_id": task_id,
@@ -563,8 +588,9 @@ class IngestionManager:
         Returns:
             True if cancelled during wait, False otherwise.
         """
-        while self.paused and not self.cancel_requested:
-            time.sleep(0.5)
+        with self._state_changed:
+            while self.paused and not self.cancel_requested:
+                self._state_changed.wait(timeout=0.5)
         return self.cancel_requested
 
     def check_paused(self) -> bool:
@@ -577,8 +603,9 @@ class IngestionManager:
         Returns:
             True if cancelled during pause wait, False otherwise (continue work).
         """
-        if not self.paused:
-            return self.cancel_requested
+        with self._state_changed:
+            if not self.paused:
+                return self.cancel_requested
         return self._wait_if_paused()
 
 
