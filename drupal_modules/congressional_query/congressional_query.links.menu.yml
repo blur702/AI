@@ -1,0 +1,30 @@
+# Main navigation menu items
+congressional_query.chat:
+  title: 'Congressional Chat'
+  description: 'Ask questions about congressional data using AI'
+  route_name: congressional_query.chat
+  menu_name: main
+  weight: 10
+
+congressional_query.query:
+  title: 'Congressional Search'
+  description: 'Search congressional records and press releases'
+  route_name: congressional_query.query_form
+  menu_name: main
+  weight: 11
+
+# Admin menu items (under Configuration > Web services)
+congressional_query.admin_settings:
+  title: 'Congressional Query'
+  description: 'Configure SSH tunnel, Ollama, and Weaviate connections'
+  route_name: congressional_query.admin
+  parent: system.admin_config_services
+  weight: 50
+
+# Admin menu items (under Reports)
+congressional_query.admin_reports:
+  title: 'Congressional Query'
+  description: 'View query statistics and logs'
+  route_name: congressional_query.admin_dashboard
+  parent: system.admin_reports
+  weight: 50

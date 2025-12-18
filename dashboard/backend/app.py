@@ -2670,6 +2670,68 @@ def api_congressional_query():
         }), 500
 
 
+@app.route("/api/congressional/chat", methods=["POST"])
+@require_auth
+def api_congressional_chat():
+    """Chat with congressional data using RAG (Retrieval-Augmented Generation)."""
+    if not CONGRESSIONAL_AVAILABLE or not WEAVIATE_AVAILABLE:
+        return jsonify({
+            "success": False,
+            "error": "Congressional module not available"
+        }), 500
+
+    data = request.get_json(silent=True) or {}
+    message = data.get("message", "").strip()
+
+    if not message:
+        return jsonify({
+            "success": False,
+            "error": "Message is required"
+        }), 400
+
+    try:
+        from api_gateway.services.congressional_rag import answer_question
+        import uuid
+
+        # Generate conversation ID if not provided
+        conversation_id = data.get("conversation_id") or str(uuid.uuid4())
+        member_filter = data.get("member_filter")
+
+        # Run RAG pipeline
+        response = answer_question(
+            question=message,
+            member_filter=member_filter,
+        )
+
+        # Format sources
+        sources = [
+            {
+                "member_name": src.member_name,
+                "title": src.title,
+                "content_preview": src.content_preview,
+                "url": src.url,
+                "party": src.party,
+                "state": src.state,
+            }
+            for src in response.sources
+        ]
+
+        return jsonify({
+            "success": True,
+            "answer": response.answer,
+            "sources": sources,
+            "conversation_id": conversation_id,
+            "model": response.model,
+        })
+
+    except Exception as exc:
+        logger.exception("Congressional chat failed: %s", exc)
+        return jsonify({
+            "success": False,
+            "error": f"Chat failed: {exc}"
+        }), 500
+
+
 # =============================================================================
 # Reverse Proxy for Services
 # =============================================================================

@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:production": "tsc && vite build --mode production",
+    "build:staging": "tsc && vite build --mode staging",
     "preview": "vite preview",
-    "serve": "serve -s dist -l 80"
+    "serve": "serve -s dist -l 80",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",

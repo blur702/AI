@@ -1,0 +1,171 @@
+{#
+/**
+ * @file
+ * Template for the analytics page.
+ *
+ * Available variables:
+ * - stats: Extended statistics array.
+ * - queries_by_model: Array of query counts by model.
+ * - queries_by_user: Array of query counts by user.
+ * - growth_rate: Week-over-week growth percentage.
+ */
+#}
+<div class="congressional-analytics">
+  <div class="analytics-header">
+    <h2>{{ 'Query Analytics'|t }}</h2>
+    <a href="{{ url('congressional_query.admin_dashboard') }}" class="button">
+      {{ '← Back to Dashboard'|t }}
+    </a>
+  </div>
+
+  {# Summary Cards #}
+  <div class="analytics-summary-cards">
+    <div class="summary-card">
+      <div class="card-value">{{ stats.total_queries }}</div>
+      <div class="card-label">{{ 'Total Queries'|t }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-value">{{ stats.queries_today }}</div>
+      <div class="card-label">{{ 'Queries Today'|t }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-value">{{ stats.queries_this_week }}</div>
+      <div class="card-label">{{ 'Queries This Week'|t }}</div>
+      {% if growth_rate != 0 %}
+        <div class="card-trend {{ growth_rate > 0 ? 'trend-up' : 'trend-down' }}">
+          {{ growth_rate > 0 ? '↑' : '↓' }} {{ growth_rate|abs }}%
+        </div>
+      {% endif %}
+    </div>
+    <div class="summary-card">
+      <div class="card-value">{{ stats.unique_users }}</div>
+      <div class="card-label">{{ 'Unique Users'|t }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-value">{{ stats.avg_response_time_ms ? stats.avg_response_time_ms ~ 'ms' : 'N/A' }}</div>
+      <div class="card-label">{{ 'Avg Response Time'|t }}</div>
+    </div>
+    <div class="summary-card">
+      <div class="card-value">{{ stats.avg_conversation_length }}</div>
+      <div class="card-label">{{ 'Avg Conversation Length'|t }}</div>
+    </div>
+  </div>
+
+  {# Charts Grid #}
+  <div class="analytics-charts-grid">
+    {# Hourly Distribution Chart #}
+    <div class="chart-container">
+      <h3>{{ 'Queries by Hour (Last 24h)'|t }}</h3>
+      <canvas id="hourlyChart" width="400" height="200"></canvas>
+    </div>
+
+    {# Daily Distribution Chart #}
+    <div class="chart-container">
+      <h3>{{ 'Queries by Day (Last 7 Days)'|t }}</h3>
+      <canvas id="dailyChart" width="400" height="200"></canvas>
+    </div>
+
+    {# Response Time Percentiles #}
+    <div class="chart-container">
+      <h3>{{ 'Response Time Percentiles'|t }}</h3>
+      <canvas id="responseTimeChart" width="400" height="200"></canvas>
+      <div class="percentile-legend">
+        <span class="legend-item">
+          <strong>P50:</strong> {{ stats.response_time_percentiles.p50 ? stats.response_time_percentiles.p50 ~ 'ms' : 'N/A' }}
+        </span>
+        <span class="legend-item">
+          <strong>P90:</strong> {{ stats.response_time_percentiles.p90 ? stats.response_time_percentiles.p90 ~ 'ms' : 'N/A' }}
+        </span>
+        <span class="legend-item">
+          <strong>P99:</strong> {{ stats.response_time_percentiles.p99 ? stats.response_time_percentiles.p99 ~ 'ms' : 'N/A' }}
+        </span>
+      </div>
+    </div>
+
+    {# Top Member Filters #}
+    <div class="chart-container">
+      <h3>{{ 'Top Member Filters'|t }}</h3>
+      <canvas id="memberFiltersChart" width="400" height="200"></canvas>
+    </div>
+
+    {# Queries by Model #}
+    <div class="chart-container">
+      <h3>{{ 'Queries by Model'|t }}</h3>
+      <canvas id="modelsChart" width="400" height="200"></canvas>
+    </div>
+
+    {# Top Words #}
+    <div class="chart-container">
+      <h3>{{ 'Top Words in Queries'|t }}</h3>
+      <canvas id="topWordsChart" width="400" height="200"></canvas>
+    </div>
+  </div>
+
+  {# Tables Section #}
+  <div class="analytics-tables">
+    {# Top Users Table #}
+    <div class="analytics-table-container">
+      <h3>{{ 'Top Users by Query Count'|t }}</h3>
+      <table class="analytics-table">
+        <thead>
+          <tr>
+            <th>{{ 'User'|t }}</th>
+            <th>{{ 'Queries'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in queries_by_user %}
+            <tr>
+              <td>{{ user.username }}</td>
+              <td>{{ user.count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Models Table #}
+    <div class="analytics-table-container">
+      <h3>{{ 'Models Performance'|t }}</h3>
+      <table class="analytics-table">
+        <thead>
+          <tr>
+            <th>{{ 'Model'|t }}</th>
+            <th>{{ 'Queries'|t }}</th>
+            <th>{{ 'Avg Response Time'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for model in queries_by_model %}
+            <tr>
+              <td>{{ model.model }}</td>
+              <td>{{ model.count }}</td>
+              <td>{{ model.avg_response_time }}ms</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Top Filters Table #}
+    <div class="analytics-table-container">
+      <h3>{{ 'Top Member Filters'|t }}</h3>
+      <table class="analytics-table">
+        <thead>
+          <tr>
+            <th>{{ 'Filter'|t }}</th>
+            <th>{{ 'Count'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for filter in stats.top_member_filters %}
+            <tr>
+              <td>{{ filter.filter }}</td>
+              <td>{{ filter.count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

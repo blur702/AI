@@ -201,6 +201,17 @@ class Settings:
         "stable_audio": "http://localhost:7873",
     }
 
+    # SSH and Drupal integration configuration.
+    DRUPAL_SSH_HOST: str = os.getenv("DRUPAL_SSH_HOST", "65.181.112.77")
+    DRUPAL_SSH_USER: str = os.getenv("DRUPAL_SSH_USER", "root")
+    DRUPAL_SSH_PASSWORD: str = os.getenv("DRUPAL_SSH_PASSWORD", "T917nY9ILYmJGtUq")
+    DRUPAL_WEB_ROOT: str = os.getenv("DRUPAL_WEB_ROOT", "/var/www/drupal/web")
+    PLINK_PATH: str = os.getenv("PLINK_PATH", r"C:\Program Files\PuTTY\plink.exe")
+    PSCP_PATH: str = os.getenv("PSCP_PATH", r"C:\Program Files\PuTTY\pscp.exe")
+    DRUPAL_HOSTKEY: str = os.getenv(
+        "DRUPAL_HOSTKEY",
+        "ssh-ed25519 255 SHA256:EnWadrWQBKWVjQ8UV9ynQuSJbAjEuaMimajwlXoZecw",
+    )
+
 
 settings = Settings()
-

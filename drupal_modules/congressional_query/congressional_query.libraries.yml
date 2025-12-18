@@ -1,0 +1,98 @@
+base:
+  version: 1.0
+  css:
+    theme:
+      css/congressional-query.css: {}
+  dependencies:
+    - core/drupal
+
+query-form:
+  version: 1.0
+  js:
+    js/congressional-query-form.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/once
+    - core/drupal.announce
+
+query-results:
+  version: 1.0
+  js:
+    js/congressional-query-results.js: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/once
+    - core/drupal.announce
+
+chat:
+  version: 1.0
+  js:
+    js/congressional-chat.js: {}
+  css:
+    theme:
+      css/congressional-query.css: {}
+  dependencies:
+    - core/drupal
+    - core/drupal.ajax
+    - core/jquery
+    - core/once
+
+connection-status:
+  version: 1.0
+  js:
+    js/connection-status.js: {}
+  css:
+    theme:
+      css/congressional-query.css: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/once
+
+admin:
+  version: 1.0
+  css:
+    theme:
+      css/congressional-query.css: {}
+  dependencies:
+    - core/drupal
+
+query_history:
+  version: 1.0
+  js:
+    js/congressional-query-history.js: {}
+  css:
+    theme:
+      css/congressional-query-history.css: {}
+  dependencies:
+    - core/drupal
+    - core/drupal.ajax
+    - core/jquery
+    - core/once
+
+analytics:
+  version: 1.0
+  js:
+    https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js: { type: external, minified: true }
+    js/congressional-analytics.js: {}
+  css:
+    theme:
+      css/congressional-analytics.css: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+
+api_analytics:
+  version: 1.0
+  js:
+    https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js: { type: external, minified: true }
+    js/congressional-api-analytics.js: {}
+  css:
+    theme:
+      css/congressional-analytics.css: {}
+  dependencies:
+    - core/drupal
+    - core/jquery
+    - core/once

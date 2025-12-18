@@ -1,0 +1,132 @@
+{#
+/**
+ * @file
+ * Template for API analytics page.
+ *
+ * Available variables:
+ * - today_stats: Statistics for the last 24 hours.
+ * - week_stats: Statistics for the last 7 days.
+ * - hourly_distribution: Hourly request distribution.
+ * - top_keys: Top API keys by usage.
+ * - recent_requests: Recent API requests.
+ * - key_stats: API key statistics.
+ */
+#}
+<div class="congressional-api-analytics">
+  <div class="analytics-stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">{{ today_stats.total_requests }}</div>
+      <div class="stat-label">{{ 'Requests Today'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ today_stats.success_rate }}%</div>
+      <div class="stat-label">{{ 'Success Rate'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ today_stats.avg_response_time_ms|default('N/A') }}{{ today_stats.avg_response_time_ms ? 'ms' : '' }}</div>
+      <div class="stat-label">{{ 'Avg Response Time'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ today_stats.unique_ips }}</div>
+      <div class="stat-label">{{ 'Unique IPs'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ key_stats.active_keys }}</div>
+      <div class="stat-label">{{ 'Active API Keys'|t }}</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-value">{{ key_stats.used_today }}</div>
+      <div class="stat-label">{{ 'Keys Used Today'|t }}</div>
+    </div>
+  </div>
+
+  <div class="analytics-charts">
+    <div class="chart-container">
+      <h3>{{ 'Requests (Last 24 Hours)'|t }}</h3>
+      <canvas id="hourly-chart"></canvas>
+    </div>
+
+    <div class="chart-container">
+      <h3>{{ 'Requests by Endpoint'|t }}</h3>
+      <canvas id="endpoint-chart"></canvas>
+    </div>
+  </div>
+
+  <div class="analytics-section">
+    <h3>{{ 'Week Summary'|t }}</h3>
+    <div class="week-stats-grid">
+      <div class="stat-item">
+        <strong>{{ week_stats.total_requests }}</strong> {{ 'Total Requests'|t }}
+      </div>
+      <div class="stat-item">
+        <strong>{{ week_stats.successful_requests }}</strong> {{ 'Successful'|t }}
+      </div>
+      <div class="stat-item">
+        <strong>{{ week_stats.failed_requests }}</strong> {{ 'Failed'|t }}
+      </div>
+    </div>
+  </div>
+
+  {% if top_keys|length > 0 %}
+    <div class="analytics-section">
+      <h3>{{ 'Top API Keys (Last 24 Hours)'|t }}</h3>
+      <table class="top-keys-table">
+        <thead>
+          <tr>
+            <th>{{ 'Key'|t }}</th>
+            <th>{{ 'Name'|t }}</th>
+            <th>{{ 'Requests'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for key in top_keys %}
+            <tr>
+              <td><code>{{ key.prefix }}...</code></td>
+              <td>{{ key.name }}</td>
+              <td>{{ key.count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <div class="analytics-section">
+    <h3>{{ 'Recent Requests'|t }}</h3>
+    {% if recent_requests|length > 0 %}
+      <table class="recent-requests-table">
+        <thead>
+          <tr>
+            <th>{{ 'Endpoint'|t }}</th>
+            <th>{{ 'Method'|t }}</th>
+            <th>{{ 'Status'|t }}</th>
+            <th>{{ 'Time'|t }}</th>
+            <th>{{ 'API Key'|t }}</th>
+            <th>{{ 'IP'|t }}</th>
+            <th>{{ 'Timestamp'|t }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for request in recent_requests %}
+            <tr class="{{ request.has_error ? 'has-error' : '' }}">
+              <td>{{ request.endpoint }}</td>
+              <td><span class="method-{{ request.method|lower }}">{{ request.method }}</span></td>
+              <td><span class="status-{{ request.status_code }}">{{ request.status_code }}</span></td>
+              <td>{{ request.response_time_ms }}ms</td>
+              <td>{{ request.key_name }}</td>
+              <td>{{ request.ip_address }}</td>
+              <td>{{ request.timestamp }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="no-data">{{ 'No requests recorded yet.'|t }}</p>
+    {% endif %}
+  </div>
+</div>

@@ -318,3 +318,56 @@ class CongressionalScrapeStatusResponse(BaseModel):
     completed_at: Optional[datetime] = None
     error: Optional[str] = None
 
+
+class CongressionalChatRequest(BaseModel):
+    """
+    Request model for congressional chat/RAG queries.
+
+    Attributes:
+        message: Natural language question about congressional data
+        member_filter: Optional filter to focus on one member
+        conversation_id: Optional ID to continue a conversation
+    """
+
+    message: str = Field(..., min_length=1, max_length=2000)
+    member_filter: Optional[str] = None
+    conversation_id: Optional[str] = None
+
+
+class CongressionalChatSource(BaseModel):
+    """
+    A source document referenced in the chat response.
+
+    Attributes:
+        member_name: Name of the congressional member
+        title: Document title
+        content_preview: Short preview of the content
+        url: Source URL
+        party: Political party
+        state: State code
+    """
+
+    member_name: str
+    title: str
+    content_preview: str
+    url: str
+    party: str
+    state: str
+
+
+class CongressionalChatResponse(BaseModel):
+    """
+    Response model for congressional chat/RAG queries.
+
+    Attributes:
+        answer: Generated natural language answer
+        sources: List of source documents used
+        conversation_id: ID for conversation continuity
+        model: LLM model used for generation
+    """
+
+    answer: str
+    sources: List[CongressionalChatSource]
+    conversation_id: str
+    model: str
+

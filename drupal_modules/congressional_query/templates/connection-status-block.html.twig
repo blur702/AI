@@ -1,0 +1,90 @@
+{#
+/**
+ * @file
+ * Template for the connection status block.
+ *
+ * Available variables:
+ * - ssh_status: SSH tunnel status array.
+ * - ollama_status: Ollama LLM status array.
+ * - weaviate_status: Weaviate DB status array.
+ * - last_check: Timestamp of last check.
+ * - show_details: Whether to show detailed status.
+ */
+#}
+<div class="connection-status-block">
+  <h3>{{ 'Connection Status'|t }}</h3>
+
+  <div class="service-status service-status-ssh">
+    <div class="service-status-header">
+      <span class="status-indicator {{ ssh_status.class }}"></span>
+      <span class="service-name">{{ ssh_status.name }}</span>
+      <span class="status-text">{{ ssh_status.message }}</span>
+    </div>
+    {% if show_details and ssh_status.details %}
+      <div class="status-details">
+        {% for key, value in ssh_status.details %}
+          <div class="detail-item">
+            <span class="detail-key">{{ key }}:</span>
+            <span class="detail-value">{{ value }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% elseif show_details %}
+      <div class="status-details"></div>
+    {% endif %}
+  </div>
+
+  <div class="service-status service-status-ollama">
+    <div class="service-status-header">
+      <span class="status-indicator {{ ollama_status.class }}"></span>
+      <span class="service-name">{{ ollama_status.name }}</span>
+      <span class="status-text">{{ ollama_status.message }}</span>
+      {% if ollama_status.models is defined %}
+        <span class="ollama-models">{{ ollama_status.models }} {{ 'models'|t }}</span>
+      {% endif %}
+    </div>
+    {% if show_details and ollama_status.details %}
+      <div class="status-details">
+        {% for key, value in ollama_status.details %}
+          <div class="detail-item">
+            <span class="detail-key">{{ key }}:</span>
+            <span class="detail-value">{{ value }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% elseif show_details %}
+      <div class="status-details"></div>
+    {% endif %}
+  </div>
+
+  <div class="service-status service-status-weaviate">
+    <div class="service-status-header">
+      <span class="status-indicator {{ weaviate_status.class }}"></span>
+      <span class="service-name">{{ weaviate_status.name }}</span>
+      <span class="status-text">{{ weaviate_status.message }}</span>
+      {% if weaviate_status.documents is defined %}
+        <span class="weaviate-count">{{ weaviate_status.documents }} {{ 'docs'|t }}</span>
+      {% endif %}
+    </div>
+    {% if show_details and weaviate_status.details %}
+      <div class="status-details">
+        {% for key, value in weaviate_status.details %}
+          <div class="detail-item">
+            <span class="detail-key">{{ key }}:</span>
+            <span class="detail-value">{{ value }}</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% elseif show_details %}
+      <div class="status-details"></div>
+    {% endif %}
+  </div>
+
+  <div class="last-check">
+    {{ 'Last checked:'|t }} <span class="last-check-time">{{ last_check|date('H:i:s') }}</span>
+  </div>
+
+  <button type="button" class="refresh-status-btn">
+    {{ 'Refresh'|t }}
+  </button>
+</div>
