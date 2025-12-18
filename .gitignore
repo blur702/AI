@@ -54,6 +54,19 @@ nginx/ssl/*.pem
 weaviate_share/data/*.tar.gz
 weaviate_share/data/*.tar
 
+# Environment files (NEVER commit secrets!)
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+!**/.env.example
+
+# Allow staging/production env files ONLY if they contain no secrets
+# (comment out these lines if your staging/production files have secrets)
+# !**/.env.staging
+# !**/.env.production
+
 # Misc
 nul
 .DS_Store
