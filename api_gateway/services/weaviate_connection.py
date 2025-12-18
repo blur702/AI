@@ -142,6 +142,3 @@ TYPESCRIPT_DOCS_COLLECTION_NAME = "TypeScriptDocs"  # TypeScript language docume
 
 # PHP documentation collection
 PHP_DOCS_COLLECTION_NAME = "PHPDocs"  # PHP language documentation from php.net
-
-# Congressional data collection
-CONGRESSIONAL_DATA_COLLECTION_NAME = "CongressionalData"  # US Congress member websites
