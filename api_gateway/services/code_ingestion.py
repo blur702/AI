@@ -166,6 +166,7 @@ def scan_source_files(service_name: Optional[str] = None) -> List[Path]:
     - TypeScript files (.ts, .tsx)
     - JavaScript files (.js, .jsx)
     - CSS files (.css)
+    - Rust files (.rs)
 
     Excludes:
     - Common build/dependency directories (node_modules, .git, venvs, etc.)

@@ -219,6 +219,24 @@ engine: AsyncEngine = create_async_engine(
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
+async def _add_column_if_not_exists(conn, column_sql: str) -> None:
+    """
+    Add column to errors table, ignoring if already exists.
+
+    Args:
+        conn: Database connection
+        column_sql: SQL column definition (e.g., "resolution TEXT")
+    """
+    try:
+        await conn.execute(text(f"ALTER TABLE errors ADD COLUMN {column_sql}"))
+    except Exception as exc:  # noqa: BLE001
+        # If the column already exists, swallow the error; otherwise re-raise.
+        # SQLite uses "duplicate column name", PostgreSQL uses "already exists"
+        msg = str(exc).lower()
+        if "duplicate column" not in msg and not ("column" in msg and "already exists" in msg):
+            raise
+
+
 async def init_db() -> None:
     """
     Initialize database schema by creating all tables.
@@ -231,28 +249,9 @@ async def init_db() -> None:
         # Ensure all tables exist
         await conn.run_sync(Base.metadata.create_all)
 
-        # Backwards-compatible migration for errors.resolution column.
+        # Backwards-compatible migrations for errors table columns.
         # Use ADD COLUMN and ignore duplicate-column errors so this is
         # safe to run repeatedly across SQLite and PostgreSQL.
-        try:
-            await conn.execute(
-                text("ALTER TABLE errors ADD COLUMN resolution TEXT")
-            )
-        except Exception as exc:  # noqa: BLE001
-            # If the column already exists, swallow the error; otherwise re-raise.
-            # SQLite uses "duplicate column name", PostgreSQL uses "already exists"
-            msg = str(exc).lower()
-            if "duplicate column" not in msg and not ("column" in msg and "already exists" in msg):
-                raise
-
-        # Migration for errors.ready_for_review column
-        try:
-            await conn.execute(
-                text("ALTER TABLE errors ADD COLUMN ready_for_review BOOLEAN NOT NULL DEFAULT FALSE")
-            )
-        except Exception as exc:  # noqa: BLE001
-            # SQLite uses "duplicate column name", PostgreSQL uses "already exists"
-            msg = str(exc).lower()
-            if "duplicate column" not in msg and not ("column" in msg and "already exists" in msg):
-                raise
+        await _add_column_if_not_exists(conn, "resolution TEXT")
+        await _add_column_if_not_exists(conn, "ready_for_review BOOLEAN NOT NULL DEFAULT FALSE")
 
