@@ -1,0 +1,300 @@
+/**
+ * @file
+ * Footer organism - Site footer with navigation and credits.
+ */
+
+/* ==========================================================================
+   Site Footer
+   ========================================================================== */
+
+.site-footer {
+  background-color: var(--color-gray-900);
+  color: var(--color-gray-300);
+  margin-top: auto;
+}
+
+.site-footer a {
+  color: var(--color-gray-300);
+}
+
+.site-footer a:hover {
+  color: #ffffff;
+}
+
+.site-footer a:focus-visible {
+  outline-color: var(--color-primary-light);
+}
+
+/* ==========================================================================
+   Footer Main Content
+   ========================================================================== */
+
+.site-footer__main {
+  padding: var(--spacing-12) var(--spacing-4);
+  max-width: var(--container-xl);
+  margin: 0 auto;
+}
+
+.site-footer__grid {
+  display: grid;
+  gap: var(--spacing-8);
+}
+
+@media (min-width: 640px) {
+  .site-footer__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .site-footer__grid {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: var(--spacing-12);
+  }
+}
+
+/* ==========================================================================
+   Footer Branding
+   ========================================================================== */
+
+.site-footer__branding {
+  max-width: 320px;
+}
+
+.site-footer__logo {
+  margin-bottom: var(--spacing-4);
+}
+
+.site-footer__logo img {
+  height: 48px;
+  width: auto;
+}
+
+.site-footer__description {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-gray-400);
+  margin-bottom: var(--spacing-4);
+}
+
+/* ==========================================================================
+   Footer Navigation Columns
+   ========================================================================== */
+
+.site-footer__column-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-4);
+}
+
+.site-footer__nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-footer__nav-item {
+  margin-bottom: var(--spacing-2);
+}
+
+.site-footer__nav-link {
+  display: inline-block;
+  padding: var(--spacing-1) 0;
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.site-footer__nav-link:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Footer Social Links
+   ========================================================================== */
+
+.site-footer__social {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
+.site-footer__social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background-color: var(--color-gray-800);
+  border-radius: var(--border-radius-full);
+  text-decoration: none;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.site-footer__social-link:hover {
+  background-color: var(--color-primary);
+  color: #ffffff;
+}
+
+.site-footer__social-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary-light);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.site-footer__social-link svg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+/* ==========================================================================
+   Footer Bottom Bar
+   ========================================================================== */
+
+.site-footer__bottom {
+  border-top: 1px solid var(--color-gray-800);
+  padding: var(--spacing-4);
+}
+
+.site-footer__bottom-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  max-width: var(--container-xl);
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .site-footer__bottom-inner {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.site-footer__copyright {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-500);
+}
+
+.site-footer__legal {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-4);
+  font-size: var(--font-size-sm);
+}
+
+.site-footer__legal-link {
+  color: var(--color-gray-500);
+  text-decoration: none;
+}
+
+.site-footer__legal-link:hover {
+  color: var(--color-gray-300);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Newsletter Signup (if in footer)
+   ========================================================================== */
+
+.site-footer__newsletter {
+  margin-top: var(--spacing-4);
+}
+
+.site-footer__newsletter-form {
+  display: flex;
+  gap: var(--spacing-2);
+}
+
+.site-footer__newsletter-input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--spacing-3);
+  font-size: var(--font-size-sm);
+  color: #ffffff;
+  background-color: var(--color-gray-800);
+  border: 1px solid var(--color-gray-700);
+  border-radius: var(--border-radius-md);
+}
+
+.site-footer__newsletter-input::placeholder {
+  color: var(--color-gray-500);
+}
+
+.site-footer__newsletter-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 var(--focus-ring-width) rgba(25, 118, 210, 0.3);
+}
+
+.site-footer__newsletter-button {
+  flex-shrink: 0;
+  padding: var(--spacing-3) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: #ffffff;
+  background-color: var(--color-primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.site-footer__newsletter-button:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.site-footer__newsletter-button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary-light);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* ==========================================================================
+   Back to Top Button
+   ========================================================================== */
+
+.back-to-top {
+  position: fixed;
+  bottom: var(--spacing-4);
+  right: var(--spacing-4);
+  z-index: var(--z-index-fixed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--border-radius-full);
+  box-shadow: var(--shadow-lg);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(1rem);
+  transition: opacity var(--transition-normal), visibility var(--transition-normal),
+    transform var(--transition-normal), background-color var(--transition-fast);
+}
+
+.back-to-top--visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.back-to-top:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.back-to-top:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-primary-light);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.back-to-top svg {
+  width: 1.5em;
+  height: 1.5em;
+}

@@ -1,0 +1,287 @@
+/**
+ * @file
+ * Form field molecule - Label + input + help text + error message.
+ */
+
+/* ==========================================================================
+   Form Field Container
+   ========================================================================== */
+
+.form-field {
+  margin-bottom: var(--spacing-5);
+}
+
+.form-field:last-child {
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Label
+   ========================================================================== */
+
+.form-field__label {
+  display: block;
+  margin-bottom: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* Required indicator */
+.form-field__label--required::after {
+  content: " *";
+  color: var(--color-error);
+}
+
+/* Visually hidden label (still accessible to screen readers) */
+.form-field__label--hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
+   Input Container (for icons, addons)
+   ========================================================================== */
+
+.form-field__input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.form-field__input-wrapper input {
+  flex: 1;
+}
+
+/* Input with leading icon */
+.form-field__input-wrapper--has-leading-icon input {
+  padding-left: var(--spacing-10);
+}
+
+.form-field__leading-icon {
+  position: absolute;
+  left: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25em;
+  height: 1.25em;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+/* Input with trailing icon/button */
+.form-field__input-wrapper--has-trailing-icon input {
+  padding-right: var(--spacing-10);
+}
+
+.form-field__trailing-icon {
+  position: absolute;
+  right: var(--spacing-3);
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+/* Input addons (e.g., currency symbol, URL prefix) */
+.form-field__addon {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-3);
+  background-color: var(--color-gray-100);
+  border: 2px solid var(--color-gray-400);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.form-field__addon--start {
+  border-right: none;
+  border-radius: var(--border-radius-md) 0 0 var(--border-radius-md);
+}
+
+.form-field__addon--start + input {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-field__addon--end {
+  border-left: none;
+  border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0;
+}
+
+input + .form-field__addon--end {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* ==========================================================================
+   Help Text
+   ========================================================================== */
+
+.form-field__help {
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ==========================================================================
+   Error Message
+   ========================================================================== */
+
+.form-field__error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+}
+
+.form-field__error::before {
+  content: "⚠";
+  font-size: 1em;
+}
+
+/* ==========================================================================
+   Success Message
+   ========================================================================== */
+
+.form-field__success {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-success);
+}
+
+.form-field__success::before {
+  content: "✓";
+  font-size: 1em;
+}
+
+/* ==========================================================================
+   Character Counter
+   ========================================================================== */
+
+.form-field__counter {
+  display: block;
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-align: right;
+}
+
+.form-field__counter--warning {
+  color: var(--color-warning);
+}
+
+.form-field__counter--error {
+  color: var(--color-error);
+}
+
+/* ==========================================================================
+   Inline Form Fields (horizontal layout)
+   ========================================================================== */
+
+.form-field--inline {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.form-field--inline .form-field__label {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.form-field--inline .form-field__input-wrapper {
+  flex: 1;
+}
+
+/* ==========================================================================
+   Checkbox/Radio Field
+   ========================================================================== */
+
+.form-field--checkbox,
+.form-field--radio {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.form-field--checkbox input,
+.form-field--radio input {
+  flex-shrink: 0;
+  margin-top: 0.2em;
+}
+
+.form-field--checkbox .form-field__label,
+.form-field--radio .form-field__label {
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Fieldset / Field Group
+   ========================================================================== */
+
+.form-fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.form-fieldset__legend {
+  display: block;
+  margin-bottom: var(--spacing-4);
+  padding: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* Group of related form fields */
+.form-field-group {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+@media (min-width: 640px) {
+  .form-field-group--2col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-field-group--3col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ==========================================================================
+   Error State Container
+   ========================================================================== */
+
+.form-field--has-error .form-field__label {
+  color: var(--color-error);
+}
+
+.form-field--has-error input,
+.form-field--has-error textarea,
+.form-field--has-error select {
+  border-color: var(--color-error);
+}
+
+.form-field--has-error .form-field__help {
+  display: none;
+}
