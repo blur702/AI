@@ -288,6 +288,33 @@ def delete_congressional_data_collection(client: weaviate.WeaviateClient) -> boo
     return True
 
 
+def _aggregate_by_property(collection, prop_name: str) -> Dict[str, int]:
+    """
+    Aggregate counts grouped by a property.
+
+    Args:
+        collection: Weaviate collection to aggregate
+        prop_name: Property name to group by
+
+    Returns:
+        Dictionary mapping property values to their counts.
+    """
+    counts: Dict[str, int] = {}
+    try:
+        group_agg = collection.aggregate.over_all(
+            group_by=GroupByAggregate(prop=prop_name),
+            total_count=True,
+        )
+        for group in group_agg.groups:
+            value = group.grouped_by.value
+            count = group.total_count or 0
+            if value:
+                counts[str(value)] = int(count)
+    except Exception as exc:
+        logger.warning("Failed to get %s breakdown: %s", prop_name, exc)
+    return counts
+
+
 def get_congressional_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
     """
     Get statistics for the CongressionalData collection.
@@ -328,53 +355,11 @@ def get_congressional_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
     except Exception as exc:
         logger.warning("Failed to get total count: %s", exc)
 
-    # Get member counts
-    try:
-        member_agg = collection.aggregate.over_all(
-            group_by=GroupByAggregate(prop="member_name"),
-            total_count=True,
-        )
-        for group in member_agg.groups:
-            if group.grouped_by.value:
-                stats["member_counts"][group.grouped_by.value] = group.total_count or 0
-    except Exception as exc:
-        logger.warning("Failed to get member counts: %s", exc)
-
-    # Get party counts
-    try:
-        party_agg = collection.aggregate.over_all(
-            group_by=GroupByAggregate(prop="party"),
-            total_count=True,
-        )
-        for group in party_agg.groups:
-            if group.grouped_by.value:
-                stats["party_counts"][group.grouped_by.value] = group.total_count or 0
-    except Exception as exc:
-        logger.warning("Failed to get party counts: %s", exc)
-
-    # Get state counts
-    try:
-        state_agg = collection.aggregate.over_all(
-            group_by=GroupByAggregate(prop="state"),
-            total_count=True,
-        )
-        for group in state_agg.groups:
-            if group.grouped_by.value:
-                stats["state_counts"][group.grouped_by.value] = group.total_count or 0
-    except Exception as exc:
-        logger.warning("Failed to get state counts: %s", exc)
-
-    # Get chamber counts
-    try:
-        chamber_agg = collection.aggregate.over_all(
-            group_by=GroupByAggregate(prop="chamber"),
-            total_count=True,
-        )
-        for group in chamber_agg.groups:
-            if group.grouped_by.value:
-                stats["chamber_counts"][group.grouped_by.value] = group.total_count or 0
-    except Exception as exc:
-        logger.warning("Failed to get chamber counts: %s", exc)
+    # Get breakdowns by property using helper
+    stats["member_counts"] = _aggregate_by_property(collection, "member_name")
+    stats["party_counts"] = _aggregate_by_property(collection, "party")
+    stats["state_counts"] = _aggregate_by_property(collection, "state")
+    stats["chamber_counts"] = _aggregate_by_property(collection, "chamber")
 
     return stats
 
