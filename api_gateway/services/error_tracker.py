@@ -37,7 +37,7 @@ import sys
 from datetime import datetime, timezone
 from typing import Optional
 
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 
 from api_gateway.models.database import (
     AsyncSessionLocal,
@@ -202,23 +202,25 @@ async def list_errors(
 async def get_error_stats() -> dict:
     """Get error statistics."""
     async with AsyncSessionLocal() as session:
-        # Count unresolved
-        result = await session.execute(
-            select(Error).where(Error.resolved.is_(False))
+        # Count total using SQL COUNT
+        total_result = await session.execute(
+            select(func.count(Error.id))
         )
-        unresolved = len(result.scalars().all())
+        total = total_result.scalar_one()
 
-        # Count total
-        result = await session.execute(select(Error))
-        total = len(result.scalars().all())
-
-        # Count by service
-        result = await session.execute(
-            select(Error).where(Error.resolved.is_(False))
+        # Count unresolved using SQL COUNT
+        unresolved_result = await session.execute(
+            select(func.count(Error.id)).where(Error.resolved.is_(False))
         )
-        by_service = {}
-        for error in result.scalars().all():
-            by_service[error.service] = by_service.get(error.service, 0) + 1
+        unresolved = unresolved_result.scalar_one()
+
+        # Count by service using SQL GROUP BY
+        by_service_result = await session.execute(
+            select(Error.service, func.count(Error.id))
+            .where(Error.resolved.is_(False))
+            .group_by(Error.service)
+        )
+        by_service = dict(by_service_result.all())
 
         return {
             "total": total,
@@ -228,7 +230,7 @@ async def get_error_stats() -> dict:
         }
 
 
-def main():
+def main() -> None:
     """CLI entry point."""
     parser = argparse.ArgumentParser(
         description="Track errors in PostgreSQL database"
@@ -289,7 +291,11 @@ def main():
         print(f"Error stored: {error_id}")
 
     elif args.command == "store-stdin":
-        data = json.load(sys.stdin)
+        try:
+            data = json.load(sys.stdin)
+        except json.JSONDecodeError as e:
+            print(f"Error: Invalid JSON input: {e}", file=sys.stderr)
+            sys.exit(1)
         error_id = asyncio.run(
             store_error(
                 service=data.get("service", "unknown"),

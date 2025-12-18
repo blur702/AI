@@ -1,0 +1,259 @@
+/**
+ * @file
+ * Header organism - Site header with branding and navigation.
+ */
+
+/* ==========================================================================
+   Site Header
+   ========================================================================== */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-sticky);
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  height: var(--header-height);
+  padding: 0 var(--spacing-4);
+  max-width: var(--container-xl);
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   Site Branding
+   ========================================================================== */
+
+.site-branding {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.site-branding__logo {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.site-branding__logo img {
+  height: 40px;
+  width: auto;
+}
+
+.site-branding__logo a {
+  display: block;
+  text-decoration: none;
+}
+
+.site-branding__logo a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--border-radius-sm);
+}
+
+.site-branding__text {
+  display: flex;
+  flex-direction: column;
+}
+
+.site-branding__name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.site-branding__name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-branding__name a:hover {
+  color: var(--color-primary);
+}
+
+.site-branding__slogan {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.2;
+}
+
+/* Hide slogan on small screens */
+@media (max-width: 639px) {
+  .site-branding__slogan {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Header Navigation
+   ========================================================================== */
+
+.site-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+/* Hide main navigation on mobile */
+@media (max-width: 1023px) {
+  .site-header__primary-nav {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Header Actions
+   ========================================================================== */
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* Theme toggle button */
+.site-header__theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-full);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.site-header__theme-toggle:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-text-primary);
+}
+
+.site-header__theme-toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.site-header__theme-toggle svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+/* ==========================================================================
+   Mobile Menu Toggle
+   ========================================================================== */
+
+.site-header__menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.site-header__menu-toggle:hover {
+  background-color: var(--color-gray-100);
+}
+
+.site-header__menu-toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.site-header__menu-toggle svg {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+/* Hide mobile toggle on desktop */
+@media (min-width: 1024px) {
+  .site-header__menu-toggle {
+    display: none;
+  }
+}
+
+/* Hamburger icon animation */
+.site-header__menu-toggle .icon-menu,
+.site-header__menu-toggle .icon-close {
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.site-header__menu-toggle[aria-expanded="true"] .icon-menu {
+  opacity: 0;
+  transform: rotate(45deg);
+}
+
+.site-header__menu-toggle[aria-expanded="false"] .icon-close {
+  opacity: 0;
+  transform: rotate(-45deg);
+}
+
+/* ==========================================================================
+   Search Form in Header
+   ========================================================================== */
+
+.site-header__search {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .site-header__search {
+    display: block;
+    flex-shrink: 0;
+    width: 200px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .site-header__search {
+    width: 280px;
+  }
+}
+
+.site-header__search input[type="search"] {
+  height: 40px;
+  min-height: 40px;
+  padding: var(--spacing-2) var(--spacing-3) var(--spacing-2) var(--spacing-8);
+  font-size: var(--font-size-sm);
+  border-radius: var(--border-radius-full);
+}
+
+/* ==========================================================================
+   Transparent Header (for hero sections)
+   ========================================================================== */
+
+.site-header--transparent {
+  position: absolute;
+  width: 100%;
+  background-color: transparent;
+  border-bottom: none;
+}
+
+.site-header--transparent .site-branding__name,
+.site-header--transparent .site-header__menu-toggle,
+.site-header--transparent .site-header__theme-toggle {
+  color: #ffffff;
+}
+
+.site-header--transparent .site-header__menu-toggle:hover,
+.site-header--transparent .site-header__theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}

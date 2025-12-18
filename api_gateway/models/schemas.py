@@ -180,3 +180,141 @@ class JobListResponse(BaseModel):
 
     jobs: List[JobStatusResponse]
 
+
+# -----------------------------------------------------------------------------
+# Congressional Data Schemas
+# -----------------------------------------------------------------------------
+
+
+class CongressionalMemberInfo(BaseModel):
+    """
+    Information about a congressional member.
+
+    Attributes:
+        name: Full name of the member
+        state: State represented (e.g., "CA", "TX")
+        district: Congressional district number
+        party: Political party ("D", "R", "I")
+        chamber: "House" or "Senate"
+        website_url: Member's official website URL
+        rss_feed_url: Member's RSS feed URL
+    """
+
+    name: str
+    state: str
+    district: str
+    party: str
+    chamber: str
+    website_url: str = ""
+    rss_feed_url: str = ""
+
+
+class CongressionalMemberResponse(BaseModel):
+    """
+    Response model for listing congressional members.
+
+    Attributes:
+        members: List of congressional member info objects
+    """
+
+    members: List[CongressionalMemberInfo]
+
+
+class CongressionalQueryRequest(BaseModel):
+    """
+    Request model for querying congressional content.
+
+    Attributes:
+        query: Semantic search query text
+        member_name: Filter by specific member name
+        party: Filter by party ("D", "R", "I")
+        state: Filter by state code
+        topic: Filter by topic
+        date_from: Filter by minimum scrape date
+        date_to: Filter by maximum scrape date
+        limit: Maximum number of results (default: 10)
+    """
+
+    query: str
+    member_name: Optional[str] = None
+    party: Optional[str] = None
+    state: Optional[str] = None
+    topic: Optional[str] = None
+    date_from: Optional[datetime] = None
+    date_to: Optional[datetime] = None
+    limit: int = Field(default=10, ge=1, le=100)
+
+
+class CongressionalQueryResult(BaseModel):
+    """
+    Single result from congressional content query.
+
+    Attributes:
+        member_name: Name of the congressional member
+        state: State the member represents
+        district: Congressional district
+        party: Political party
+        chamber: House or Senate
+        title: Page or article title
+        content_text: Content snippet
+        url: Source URL
+        scraped_at: ISO timestamp of scrape time
+    """
+
+    member_name: str
+    state: str
+    district: str
+    party: str
+    chamber: str
+    title: str
+    content_text: str
+    url: str
+    scraped_at: str
+
+
+class CongressionalQueryResponse(BaseModel):
+    """
+    Response model for congressional content query.
+
+    Attributes:
+        results: List of query results
+        total_results: Total number of results returned
+    """
+
+    results: List[CongressionalQueryResult]
+    total_results: int
+
+
+class CongressionalScrapeRequest(BaseModel):
+    """
+    Request model for starting a congressional scrape job.
+
+    Attributes:
+        max_members: Maximum number of members to scrape (None = all)
+        max_pages_per_member: Maximum pages to scrape per member (default: 5)
+        dry_run: If True, don't write to database
+    """
+
+    max_members: Optional[int] = None
+    max_pages_per_member: Optional[int] = 5
+    dry_run: bool = False
+
+
+class CongressionalScrapeStatusResponse(BaseModel):
+    """
+    Response model for congressional scrape job status.
+
+    Attributes:
+        status: Current job status (idle, running, completed, failed, cancelled)
+        stats: Scrape statistics (members_processed, pages_scraped, etc.)
+        started_at: Timestamp when scrape started
+        completed_at: Timestamp when scrape completed
+        error: Error message if job failed
+    """
+
+    status: str
+    stats: Dict[str, Any] = Field(default_factory=dict)
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    error: Optional[str] = None
+

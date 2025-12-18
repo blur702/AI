@@ -1,0 +1,640 @@
+"""
+Congressional scraper parallel supervisor.
+
+Manages 20 worker processes scraping House member websites in parallel.
+Monitors health via heartbeat files and auto-restarts failed workers.
+
+Usage:
+    python -m api_gateway.services.congressional_parallel_supervisor start
+    python -m api_gateway.services.congressional_parallel_supervisor check
+    python -m api_gateway.services.congressional_parallel_supervisor status
+    python -m api_gateway.services.congressional_parallel_supervisor stop
+    python -m api_gateway.services.congressional_parallel_supervisor install-task
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+import time
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from ..utils.logger import get_logger
+from .congressional_scraper import CongressionalDocScraper, MemberInfo, ScrapeConfig
+
+logger = get_logger("api_gateway.congressional_parallel_supervisor")
+
+DEFAULT_CONFIG_PATH = Path("D:/AI/data/scraper/congressional/congressional_parallel_config.json")
+
+
+@dataclass
+class SupervisorConfig:
+    """Configuration for the supervisor."""
+
+    worker_count: int = 20
+    heartbeat_timeout_seconds: int = 300
+    health_check_interval_seconds: int = 30
+    max_restarts_per_worker: int = 3
+    restart_cooldown_seconds: int = 60
+    stale_heartbeat_kill_timeout_seconds: int = 600
+
+
+@dataclass
+class WorkerPaths:
+    """Paths for worker files."""
+
+    data_dir: Path
+    heartbeat_dir: Path
+    checkpoint_dir: Path
+    log_dir: Path
+    pid_file: Path
+
+
+@dataclass
+class WorkerState:
+    """State of a single worker."""
+
+    worker_id: int
+    pid: Optional[int] = None
+    process: Optional[subprocess.Popen] = None
+    status: str = "pending"  # pending, running, crashed, completed, killed
+    start_index: int = 0
+    end_index: int = 0
+    last_heartbeat: Optional[datetime] = None
+    restart_count: int = 0
+    last_restart: Optional[datetime] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "worker_id": self.worker_id,
+            "pid": self.pid,
+            "status": self.status,
+            "start_index": self.start_index,
+            "end_index": self.end_index,
+            "last_heartbeat": self.last_heartbeat.isoformat() if self.last_heartbeat else None,
+            "restart_count": self.restart_count,
+            "last_restart": self.last_restart.isoformat() if self.last_restart else None,
+        }
+
+
+@dataclass
+class WorkAssignment:
+    """Work assignment for all workers."""
+
+    created_at: str
+    total_members: int
+    worker_count: int
+    assignments: List[Dict[str, Any]] = field(default_factory=list)
+
+
+class ParallelSupervisor:
+    """Supervisor that manages parallel worker processes."""
+
+    def __init__(self, config_path: Path = DEFAULT_CONFIG_PATH):
+        self.config_path = config_path
+        self.config = self._load_config()
+        self.paths = self._load_paths()
+        self.workers: Dict[int, WorkerState] = {}
+        self._ensure_directories()
+
+    def _load_config(self) -> SupervisorConfig:
+        """Load configuration from file."""
+        if self.config_path.exists():
+            data = json.loads(self.config_path.read_text())
+            supervisor_data = data.get("supervisor", {})
+            return SupervisorConfig(
+                worker_count=supervisor_data.get("worker_count", 20),
+                heartbeat_timeout_seconds=supervisor_data.get("heartbeat_timeout_seconds", 300),
+                health_check_interval_seconds=supervisor_data.get("health_check_interval_seconds", 30),
+                max_restarts_per_worker=supervisor_data.get("max_restarts_per_worker", 3),
+                restart_cooldown_seconds=supervisor_data.get("restart_cooldown_seconds", 60),
+                stale_heartbeat_kill_timeout_seconds=supervisor_data.get("stale_heartbeat_kill_timeout_seconds", 600),
+            )
+        return SupervisorConfig()
+
+    def _load_paths(self) -> WorkerPaths:
+        """Load paths from config file."""
+        if self.config_path.exists():
+            data = json.loads(self.config_path.read_text())
+            paths_data = data.get("paths", {})
+            return WorkerPaths(
+                data_dir=Path(paths_data.get("data_dir", "D:/AI/data/scraper/congressional")),
+                heartbeat_dir=Path(paths_data.get("heartbeat_dir", "D:/AI/data/scraper/congressional/heartbeats")),
+                checkpoint_dir=Path(paths_data.get("checkpoint_dir", "D:/AI/data/scraper/congressional/checkpoints")),
+                log_dir=Path(paths_data.get("log_dir", "D:/AI/logs/congressional_scraper")),
+                pid_file=Path(paths_data.get("pid_file", "D:/AI/data/scraper/congressional/supervisor.pid")),
+            )
+        return WorkerPaths(
+            data_dir=Path("D:/AI/data/scraper/congressional"),
+            heartbeat_dir=Path("D:/AI/data/scraper/congressional/heartbeats"),
+            checkpoint_dir=Path("D:/AI/data/scraper/congressional/checkpoints"),
+            log_dir=Path("D:/AI/logs/congressional_scraper"),
+            pid_file=Path("D:/AI/data/scraper/congressional/supervisor.pid"),
+        )
+
+    def _ensure_directories(self) -> None:
+        """Create required directories."""
+        self.paths.heartbeat_dir.mkdir(parents=True, exist_ok=True)
+        self.paths.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        self.paths.log_dir.mkdir(parents=True, exist_ok=True)
+
+    def _fetch_members(self) -> List[MemberInfo]:
+        """Fetch member list from House feed."""
+        logger.info("Fetching member list for work assignment...")
+        scrape_config = ScrapeConfig(request_delay=1.0)
+        with CongressionalDocScraper(scrape_config) as scraper:
+            members = scraper.fetch_member_feed()
+        members.sort(key=lambda m: m.name)
+        logger.info("Fetched %d members", len(members))
+        return members
+
+    def _create_work_assignments(self, members: List[MemberInfo]) -> WorkAssignment:
+        """Divide members among workers."""
+        total = len(members)
+        worker_count = self.config.worker_count
+        chunk_size = (total + worker_count - 1) // worker_count  # Ceiling division
+
+        assignments = []
+        for i in range(worker_count):
+            start = i * chunk_size
+            end = min(start + chunk_size, total)
+            if start >= total:
+                break
+            assignments.append({
+                "worker_id": i,
+                "start_index": start,
+                "end_index": end,
+                "member_count": end - start,
+            })
+
+        return WorkAssignment(
+            created_at=datetime.now(timezone.utc).isoformat(),
+            total_members=total,
+            worker_count=len(assignments),
+            assignments=assignments,
+        )
+
+    def _save_work_assignments(self, assignment: WorkAssignment) -> None:
+        """Save work assignments to file."""
+        path = self.paths.data_dir / "work_assignments.json"
+        path.write_text(json.dumps(asdict(assignment), indent=2))
+        logger.info("Saved work assignments to %s", path)
+
+    def _load_work_assignments(self) -> Optional[WorkAssignment]:
+        """Load work assignments from file."""
+        path = self.paths.data_dir / "work_assignments.json"
+        if path.exists():
+            data = json.loads(path.read_text())
+            return WorkAssignment(**data)
+        return None
+
+    def _write_pid_file(self) -> None:
+        """Write supervisor PID file."""
+        self.paths.pid_file.write_text(str(os.getpid()))
+
+    def _read_pid_file(self) -> Optional[int]:
+        """Read supervisor PID from file."""
+        if self.paths.pid_file.exists():
+            try:
+                return int(self.paths.pid_file.read_text().strip())
+            except ValueError:
+                return None
+        return None
+
+    def _delete_pid_file(self) -> None:
+        """Delete supervisor PID file."""
+        if self.paths.pid_file.exists():
+            self.paths.pid_file.unlink()
+
+    def _start_worker(self, worker_id: int, start_index: int, end_index: int) -> subprocess.Popen:
+        """Start a single worker process."""
+        cmd = [
+            sys.executable,
+            "-m", "api_gateway.services.congressional_worker",
+            "--worker-id", str(worker_id),
+            "--start-index", str(start_index),
+            "--end-index", str(end_index),
+            "--config", str(self.config_path),
+        ]
+
+        log_file = self.paths.log_dir / f"worker_{worker_id}.log"
+        logger.info("Starting worker %d (members %d-%d), log: %s", worker_id, start_index, end_index, log_file)
+
+        with open(log_file, "a") as log:
+            log.write(f"\n{'='*60}\n")
+            log.write(f"Worker {worker_id} started at {datetime.now(timezone.utc).isoformat()}\n")
+            log.write(f"{'='*60}\n\n")
+
+            # Windows: CREATE_NO_WINDOW to hide console
+            creationflags = 0
+            if sys.platform == "win32":
+                creationflags = subprocess.CREATE_NO_WINDOW
+
+            process = subprocess.Popen(
+                cmd,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                cwd=Path("D:/AI"),
+                creationflags=creationflags,
+            )
+
+        return process
+
+    def _kill_worker(self, worker_id: int) -> bool:
+        """Kill a worker process."""
+        worker = self.workers.get(worker_id)
+        if not worker or not worker.pid:
+            return False
+
+        logger.warning("Killing worker %d (PID %d)", worker_id, worker.pid)
+
+        try:
+            if sys.platform == "win32":
+                # Try graceful termination first
+                result = subprocess.run(
+                    ["taskkill", "/PID", str(worker.pid)],
+                    capture_output=True,
+                    timeout=10,
+                )
+                if result.returncode != 0:
+                    # Force kill
+                    subprocess.run(
+                        ["taskkill", "/F", "/PID", str(worker.pid)],
+                        capture_output=True,
+                    )
+            else:
+                os.kill(worker.pid, 9)
+
+            worker.status = "killed"
+            return True
+        except Exception as e:
+            logger.error("Failed to kill worker %d: %s", worker_id, e)
+            return False
+
+    def _read_heartbeat(self, worker_id: int) -> Optional[Dict[str, Any]]:
+        """Read heartbeat file for a worker."""
+        path = self.paths.heartbeat_dir / f"worker_{worker_id}.json"
+        if path.exists():
+            try:
+                return json.loads(path.read_text())
+            except Exception:
+                pass
+        return None
+
+    def _check_worker_health(self, worker_id: int) -> str:
+        """
+        Check health of a worker.
+
+        Returns: "healthy", "crashed", "stale", "completed", "unknown"
+        """
+        worker = self.workers.get(worker_id)
+        if not worker:
+            return "unknown"
+
+        # Check process status
+        if worker.process:
+            poll_result = worker.process.poll()
+            if poll_result is not None:
+                # Process exited
+                if poll_result == 0:
+                    return "completed"
+                else:
+                    logger.warning("Worker %d exited with code %d", worker_id, poll_result)
+                    return "crashed"
+
+        # Check heartbeat
+        heartbeat = self._read_heartbeat(worker_id)
+        if not heartbeat:
+            return "unknown"
+
+        # Check heartbeat status
+        if heartbeat.get("status") == "completed":
+            return "completed"
+        if heartbeat.get("status") == "failed":
+            return "crashed"
+
+        # Check heartbeat freshness
+        last_beat_str = heartbeat.get("last_heartbeat")
+        if last_beat_str:
+            last_beat = datetime.fromisoformat(last_beat_str.replace("Z", "+00:00"))
+            age = (datetime.now(timezone.utc) - last_beat).total_seconds()
+
+            if age > self.config.stale_heartbeat_kill_timeout_seconds:
+                logger.warning("Worker %d heartbeat very stale (%.0fs), needs kill", worker_id, age)
+                return "stale"
+            elif age > self.config.heartbeat_timeout_seconds:
+                logger.warning("Worker %d heartbeat stale (%.0fs)", worker_id, age)
+                return "stale"
+
+        return "healthy"
+
+    def _can_restart_worker(self, worker_id: int) -> bool:
+        """Check if worker can be restarted (within limits)."""
+        worker = self.workers.get(worker_id)
+        if not worker:
+            return True
+
+        # Check restart count
+        if worker.restart_count >= self.config.max_restarts_per_worker:
+            logger.error("Worker %d exceeded max restarts (%d)", worker_id, self.config.max_restarts_per_worker)
+            return False
+
+        # Check cooldown
+        if worker.last_restart:
+            elapsed = (datetime.now(timezone.utc) - worker.last_restart).total_seconds()
+            if elapsed < self.config.restart_cooldown_seconds:
+                logger.info("Worker %d in restart cooldown (%.0fs remaining)",
+                           worker_id, self.config.restart_cooldown_seconds - elapsed)
+                return False
+
+        return True
+
+    def start_all_workers(self) -> None:
+        """Start all worker processes."""
+        logger.info("Starting parallel supervisor with %d workers", self.config.worker_count)
+
+        # Write PID file
+        self._write_pid_file()
+
+        # Fetch members and create assignments
+        members = self._fetch_members()
+        assignment = self._create_work_assignments(members)
+        self._save_work_assignments(assignment)
+
+        # Start workers
+        for a in assignment.assignments:
+            worker_id = a["worker_id"]
+            start_index = a["start_index"]
+            end_index = a["end_index"]
+
+            process = self._start_worker(worker_id, start_index, end_index)
+
+            self.workers[worker_id] = WorkerState(
+                worker_id=worker_id,
+                pid=process.pid,
+                process=process,
+                status="running",
+                start_index=start_index,
+                end_index=end_index,
+            )
+
+        logger.info("Started %d workers", len(self.workers))
+
+    def run_health_check(self) -> Dict[str, Any]:
+        """Run a single health check on all workers."""
+        # Load existing work assignments
+        assignment = self._load_work_assignments()
+        if not assignment:
+            logger.warning("No work assignments found")
+            return {"error": "No work assignments found"}
+
+        # Initialize worker states from assignments if not already done
+        if not self.workers:
+            for a in assignment.assignments:
+                self.workers[a["worker_id"]] = WorkerState(
+                    worker_id=a["worker_id"],
+                    start_index=a["start_index"],
+                    end_index=a["end_index"],
+                )
+
+        results = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "workers": {},
+            "actions": [],
+        }
+
+        for worker_id, worker in self.workers.items():
+            health = self._check_worker_health(worker_id)
+            heartbeat = self._read_heartbeat(worker_id)
+
+            results["workers"][worker_id] = {
+                "health": health,
+                "heartbeat": heartbeat,
+                "restart_count": worker.restart_count,
+            }
+
+            # Take action based on health
+            if health == "completed":
+                worker.status = "completed"
+                results["actions"].append(f"Worker {worker_id} completed")
+
+            elif health in ("crashed", "stale"):
+                # Try to restart
+                if self._can_restart_worker(worker_id):
+                    if health == "stale":
+                        self._kill_worker(worker_id)
+
+                    process = self._start_worker(worker_id, worker.start_index, worker.end_index)
+                    worker.pid = process.pid
+                    worker.process = process
+                    worker.status = "running"
+                    worker.restart_count += 1
+                    worker.last_restart = datetime.now(timezone.utc)
+                    results["actions"].append(f"Restarted worker {worker_id}")
+                else:
+                    results["actions"].append(f"Worker {worker_id} failed, max restarts exceeded")
+
+        return results
+
+    def get_status(self) -> Dict[str, Any]:
+        """Get status of all workers."""
+        assignment = self._load_work_assignments()
+
+        status = {
+            "supervisor_pid": self._read_pid_file(),
+            "config": asdict(self.config),
+            "assignment": asdict(assignment) if assignment else None,
+            "workers": {},
+        }
+
+        if assignment:
+            for a in assignment.assignments:
+                worker_id = a["worker_id"]
+                heartbeat = self._read_heartbeat(worker_id)
+                status["workers"][worker_id] = {
+                    "assignment": a,
+                    "heartbeat": heartbeat,
+                }
+
+        return status
+
+    def stop_all_workers(self) -> None:
+        """Stop all worker processes."""
+        logger.info("Stopping all workers...")
+
+        assignment = self._load_work_assignments()
+        if not assignment:
+            return
+
+        for a in assignment.assignments:
+            worker_id = a["worker_id"]
+            heartbeat = self._read_heartbeat(worker_id)
+            if heartbeat and heartbeat.get("pid"):
+                pid = heartbeat["pid"]
+                logger.info("Killing worker %d (PID %d)", worker_id, pid)
+                try:
+                    if sys.platform == "win32":
+                        subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
+                    else:
+                        os.kill(pid, 9)
+                except Exception as e:
+                    logger.warning("Failed to kill worker %d: %s", worker_id, e)
+
+        # Delete PID file
+        self._delete_pid_file()
+        logger.info("All workers stopped")
+
+    def install_task(self, interval_minutes: int = 5) -> bool:
+        """Install Windows scheduled task for health checks."""
+        if sys.platform != "win32":
+            logger.error("Task installation only supported on Windows")
+            return False
+
+        task_name = "CongressionalScraperSupervisor"
+        python_exe = sys.executable
+        working_dir = Path("D:/AI")
+
+        cmd = f'cd /d "{working_dir}" && "{python_exe}" -m api_gateway.services.congressional_parallel_supervisor check'
+
+        logger.info("Installing scheduled task '%s' (every %d minutes)", task_name, interval_minutes)
+
+        try:
+            result = subprocess.run([
+                "schtasks", "/create",
+                "/tn", task_name,
+                "/tr", f'cmd /c "{cmd}"',
+                "/sc", "MINUTE",
+                "/mo", str(interval_minutes),
+                "/ru", "SYSTEM",
+                "/rl", "HIGHEST",
+                "/f",
+            ], capture_output=True, text=True)
+
+            if result.returncode == 0:
+                logger.info("Task installed successfully")
+                return True
+            else:
+                logger.error("Failed to install task: %s", result.stderr)
+                return False
+        except Exception as e:
+            logger.error("Failed to install task: %s", e)
+            return False
+
+    def uninstall_task(self) -> bool:
+        """Uninstall Windows scheduled task."""
+        if sys.platform != "win32":
+            logger.error("Task uninstallation only supported on Windows")
+            return False
+
+        task_name = "CongressionalScraperSupervisor"
+
+        try:
+            result = subprocess.run([
+                "schtasks", "/delete",
+                "/tn", task_name,
+                "/f",
+            ], capture_output=True, text=True)
+
+            if result.returncode == 0:
+                logger.info("Task uninstalled successfully")
+                return True
+            else:
+                logger.error("Failed to uninstall task: %s", result.stderr)
+                return False
+        except Exception as e:
+            logger.error("Failed to uninstall task: %s", e)
+            return False
+
+
+def main():
+    """Main entry point."""
+    parser = argparse.ArgumentParser(description="Congressional scraper parallel supervisor")
+    parser.add_argument("command", choices=["start", "check", "status", "stop", "install-task", "uninstall-task"])
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="Config file path")
+    parser.add_argument("--interval", type=int, default=5, help="Task scheduler interval in minutes")
+    parser.add_argument("--json", action="store_true", help="Output as JSON")
+
+    args = parser.parse_args()
+
+    supervisor = ParallelSupervisor(args.config)
+
+    if args.command == "start":
+        supervisor.start_all_workers()
+
+        # Keep running and monitor
+        print("Supervisor started. Press Ctrl+C to stop.")
+        try:
+            while True:
+                time.sleep(supervisor.config.health_check_interval_seconds)
+                results = supervisor.run_health_check()
+                if args.json:
+                    print(json.dumps(results, indent=2))
+                else:
+                    healthy = sum(1 for w in results["workers"].values() if w["health"] == "healthy")
+                    completed = sum(1 for w in results["workers"].values() if w["health"] == "completed")
+                    print(f"[{results['timestamp']}] Healthy: {healthy}, Completed: {completed}, Actions: {len(results['actions'])}")
+
+                # Check if all completed
+                all_completed = all(w["health"] == "completed" for w in results["workers"].values())
+                if all_completed:
+                    print("All workers completed!")
+                    break
+
+        except KeyboardInterrupt:
+            print("\nStopping...")
+            supervisor.stop_all_workers()
+
+    elif args.command == "check":
+        results = supervisor.run_health_check()
+        if args.json:
+            print(json.dumps(results, indent=2))
+        else:
+            print(f"Health check at {results['timestamp']}")
+            for worker_id, info in results["workers"].items():
+                print(f"  Worker {worker_id}: {info['health']}")
+            for action in results["actions"]:
+                print(f"  Action: {action}")
+
+    elif args.command == "status":
+        status = supervisor.get_status()
+        if args.json:
+            print(json.dumps(status, indent=2))
+        else:
+            print(f"Supervisor PID: {status['supervisor_pid']}")
+            print(f"Worker count: {status['config']['worker_count']}")
+            if status["assignment"]:
+                print(f"Total members: {status['assignment']['total_members']}")
+            print("\nWorkers:")
+            for worker_id, info in status["workers"].items():
+                hb = info.get("heartbeat", {})
+                status_str = hb.get("status", "unknown") if hb else "no heartbeat"
+                members = f"{hb.get('members_processed', 0)}/{hb.get('members_total', 0)}" if hb else "?"
+                print(f"  Worker {worker_id}: {status_str} ({members} members)")
+
+    elif args.command == "stop":
+        supervisor.stop_all_workers()
+        print("All workers stopped")
+
+    elif args.command == "install-task":
+        if supervisor.install_task(args.interval):
+            print(f"Task installed (interval: {args.interval} minutes)")
+        else:
+            print("Failed to install task")
+            sys.exit(1)
+
+    elif args.command == "uninstall-task":
+        if supervisor.uninstall_task():
+            print("Task uninstalled")
+        else:
+            print("Failed to uninstall task")
+            sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

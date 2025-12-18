@@ -35,12 +35,21 @@ data/scraper/jobs.json
 data/scraper/*_stdout.log
 data/scraper/*_stderr.log
 
+# Congressional scraper temp files
+data/scraper/congressional/checkpoints/
+data/scraper/congressional/heartbeats/
+data/scraper_cache/congressional_docs/
+
 # VSCode workspace settings (machine-specific)
 .vscode/settings.json
 
 # SSL certificates and private keys (never commit private keys!)
 nginx/ssl/*.key
 nginx/ssl/*.pem
+
+# Weaviate data backups (too large for git)
+weaviate_share/data/*.tar.gz
+weaviate_share/data/*.tar
 
 # Misc
 nul

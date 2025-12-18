@@ -80,6 +80,7 @@ try:
         DRUPAL_API_COLLECTION_NAME,
         MDN_JAVASCRIPT_COLLECTION_NAME,
         MDN_WEBAPIS_COLLECTION_NAME,
+        CONGRESSIONAL_DATA_COLLECTION_NAME,
     )
     WEAVIATE_AVAILABLE = True
 except ImportError:
@@ -90,6 +91,23 @@ except ImportError:
     DRUPAL_API_COLLECTION_NAME = "DrupalAPI"
     MDN_JAVASCRIPT_COLLECTION_NAME = "MDNJavaScript"
     MDN_WEBAPIS_COLLECTION_NAME = "MDNWebAPIs"
+    CONGRESSIONAL_DATA_COLLECTION_NAME = "CongressionalData"
+
+# Import Congressional scraper and schema for congressional data management
+try:
+    from api_gateway.services.congressional_schema import get_congressional_stats
+    from api_gateway.services.congressional_scraper import (
+        scrape_congressional_data,
+        ScrapeConfig as CongressionalScrapeConfig,
+    )
+    from api_gateway.utils.embeddings import get_embedding
+    CONGRESSIONAL_AVAILABLE = True
+except ImportError:
+    CONGRESSIONAL_AVAILABLE = False
+    get_congressional_stats = None
+    scrape_congressional_data = None
+    CongressionalScrapeConfig = None
+    get_embedding = None
 
 # Path to React build output
 FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend", "dist"))
@@ -2393,6 +2411,263 @@ def handle_disconnect() -> None:
         logger.info("Client disconnected. Total clients: %s", connected_clients)
         if connected_clients == 0:
             vram_thread_stop = True
+
+
+# =============================================================================
+# Congressional Data API Routes
+# =============================================================================
+
+# Simple state tracking for congressional scraping
+_congressional_state = {
+    "status": "idle",
+    "stats": {},
+    "started_at": None,
+    "completed_at": None,
+    "error": None,
+    "paused": False,
+    "cancel_flag": False,
+}
+_congressional_lock = threading.Lock()
+
+
+def _congressional_progress_callback(phase: str, current: int, total: int, message: str):
+    """Emit progress updates via WebSocket."""
+    with _congressional_lock:
+        _congressional_state["stats"]["last_phase"] = phase
+        _congressional_state["stats"]["last_message"] = message
+        _congressional_state["stats"]["current"] = current
+        _congressional_state["stats"]["total"] = total
+    socketio.emit("congressional_progress", {
+        "status": _congressional_state["status"],
+        "stats": _congressional_state["stats"],
+        "phase": phase,
+        "message": message,
+        "current": current,
+        "total": total,
+        "paused": _congressional_state["paused"],
+    })
+
+
+def _congressional_check_cancelled():
+    """Check if scraping should be cancelled."""
+    with _congressional_lock:
+        return _congressional_state["cancel_flag"]
+
+
+def _congressional_check_paused():
+    """Check if scraping is paused."""
+    with _congressional_lock:
+        return _congressional_state["paused"]
+
+
+def _run_congressional_scrape(config):
+    """Background task for running congressional scraping."""
+    global _congressional_state
+
+    with _congressional_lock:
+        _congressional_state["status"] = "running"
+        _congressional_state["started_at"] = datetime.now(timezone.utc).isoformat()
+        _congressional_state["completed_at"] = None
+        _congressional_state["error"] = None
+        _congressional_state["stats"] = {}
+
+    socketio.emit("congressional_started", {})
+
+    try:
+        stats = scrape_congressional_data(
+            config=config,
+            progress_callback=_congressional_progress_callback,
+            check_cancelled=_congressional_check_cancelled,
+            check_paused=_congressional_check_paused,
+        )
+        with _congressional_lock:
+            _congressional_state["stats"].update(stats)
+            if stats.get("cancelled"):
+                _congressional_state["status"] = "cancelled"
+                socketio.emit("congressional_cancelled", {})
+            else:
+                _congressional_state["status"] = "completed"
+                socketio.emit("congressional_complete", {"stats": stats})
+            _congressional_state["completed_at"] = datetime.now(timezone.utc).isoformat()
+    except Exception as exc:
+        logger.exception("Congressional scraping failed: %s", exc)
+        with _congressional_lock:
+            _congressional_state["status"] = "failed"
+            _congressional_state["error"] = str(exc)
+            _congressional_state["completed_at"] = datetime.now(timezone.utc).isoformat()
+        socketio.emit("congressional_error", {"error": str(exc)})
+
+
+@app.route("/api/congressional/status", methods=["GET"])
+@require_auth
+def api_congressional_status():
+    """Get congressional data status and collection statistics."""
+    if not CONGRESSIONAL_AVAILABLE or not WEAVIATE_AVAILABLE:
+        return jsonify({
+            "success": False,
+            "message": "Congressional module not available"
+        }), 500
+
+    with _congressional_lock:
+        status = dict(_congressional_state)
+
+    # Get collection stats
+    try:
+        with WeaviateConnection() as client:
+            col_stats = get_congressional_stats(client)
+        status["collections"] = {"congressional_data": col_stats}
+    except Exception as exc:
+        logger.warning("Failed to get congressional stats: %s", exc)
+        status["collections"] = {"congressional_data": {"exists": False, "object_count": 0}}
+
+    return jsonify(status)
+
+
+@app.route("/api/congressional/scrape/start", methods=["POST"])
+@require_auth
+def api_congressional_scrape_start():
+    """Start congressional scraping in the background."""
+    if not CONGRESSIONAL_AVAILABLE:
+        return jsonify({
+            "success": False,
+            "message": "Congressional module not available"
+        }), 500
+
+    with _congressional_lock:
+        if _congressional_state["status"] in {"running", "pending"}:
+            return jsonify({
+                "success": False,
+                "message": "Congressional scraping already in progress"
+            }), 409
+        _congressional_state["status"] = "pending"
+        _congressional_state["cancel_flag"] = False
+        _congressional_state["paused"] = False
+
+    data = request.get_json(silent=True) or {}
+    config = CongressionalScrapeConfig(
+        max_members=data.get("max_members"),
+        max_pages_per_member=data.get("max_pages_per_member", 5),
+        dry_run=data.get("dry_run", False),
+    )
+
+    socketio.start_background_task(_run_congressional_scrape, config)
+
+    return jsonify({"success": True, "message": "Congressional scraping started"})
+
+
+@app.route("/api/congressional/scrape/cancel", methods=["POST"])
+@require_auth
+def api_congressional_scrape_cancel():
+    """Cancel the current congressional scraping."""
+    with _congressional_lock:
+        _congressional_state["cancel_flag"] = True
+    return jsonify({"success": True, "message": "Cancellation requested"})
+
+
+@app.route("/api/congressional/scrape/pause", methods=["POST"])
+@require_auth
+def api_congressional_scrape_pause():
+    """Pause the current congressional scraping."""
+    with _congressional_lock:
+        _congressional_state["paused"] = True
+    socketio.emit("congressional_paused", {})
+    return jsonify({"success": True, "message": "Scraping paused"})
+
+
+@app.route("/api/congressional/scrape/resume", methods=["POST"])
+@require_auth
+def api_congressional_scrape_resume():
+    """Resume paused congressional scraping."""
+    with _congressional_lock:
+        _congressional_state["paused"] = False
+    socketio.emit("congressional_resumed", {})
+    return jsonify({"success": True, "message": "Scraping resumed"})
+
+
+@app.route("/api/congressional/query", methods=["POST"])
+@require_auth
+def api_congressional_query():
+    """Query congressional data with semantic search."""
+    if not CONGRESSIONAL_AVAILABLE or not WEAVIATE_AVAILABLE:
+        return jsonify({
+            "success": False,
+            "message": "Congressional module not available"
+        }), 500
+
+    data = request.get_json(silent=True) or {}
+    query = data.get("query", "").strip()
+
+    if not query:
+        return jsonify({
+            "success": False,
+            "message": "Query text is required"
+        }), 400
+
+    try:
+        # Get query embedding
+        query_vector = get_embedding(query)
+
+        with WeaviateConnection() as client:
+            if not client.collections.exists(CONGRESSIONAL_DATA_COLLECTION_NAME):
+                return jsonify({
+                    "success": True,
+                    "results": [],
+                    "total_results": 0
+                })
+
+            collection = client.collections.get(CONGRESSIONAL_DATA_COLLECTION_NAME)
+
+            # Build filters
+            from weaviate.classes.query import Filter
+            filters = []
+
+            if data.get("member_name"):
+                filters.append(Filter.by_property("member_name").equal(data["member_name"]))
+            if data.get("party"):
+                filters.append(Filter.by_property("party").equal(data["party"]))
+            if data.get("state"):
+                filters.append(Filter.by_property("state").equal(data["state"]))
+            if data.get("topic"):
+                filters.append(Filter.by_property("topic").equal(data["topic"]))
+
+            combined_filter = None
+            for f in filters:
+                combined_filter = f if combined_filter is None else combined_filter & f
+
+            # Execute search
+            limit = min(data.get("limit", 10), 100)
+            response = collection.query.near_vector(
+                near_vector=query_vector,
+                limit=limit,
+                filters=combined_filter,
+            )
+
+            results = []
+            for obj in response.objects:
+                props = obj.properties or {}
+                results.append({
+                    "member_name": props.get("member_name", ""),
+                    "state": props.get("state", ""),
+                    "district": props.get("district", ""),
+                    "party": props.get("party", ""),
+                    "chamber": props.get("chamber", ""),
+                    "title": props.get("title", ""),
+                    "content_text": props.get("content_text", "")[:500] + "..." if len(props.get("content_text", "")) > 500 else props.get("content_text", ""),
+                    "url": props.get("url", ""),
+                    "scraped_at": props.get("scraped_at", ""),
+                })
+
+            return jsonify({
+                "success": True,
+                "results": results,
+                "total_results": len(results)
+            })
+    except Exception as exc:
+        logger.exception("Congressional query failed: %s", exc)
+        return jsonify({
+            "success": False,
+            "message": f"Query failed: {exc}"
+        }), 500
 
 
 # =============================================================================

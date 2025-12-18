@@ -1,0 +1,176 @@
+/**
+ * @file
+ * Drupal region styles - Layout for theme regions.
+ */
+
+/* ==========================================================================
+   Page Layout
+   ========================================================================== */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-content {
+  flex: 1 0 auto;
+}
+
+/* ==========================================================================
+   Header Region
+   ========================================================================== */
+
+.region-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+/* ==========================================================================
+   Navigation Regions
+   ========================================================================== */
+
+.region-primary-menu {
+  display: flex;
+  align-items: center;
+}
+
+.region-secondary-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+/* ==========================================================================
+   Breadcrumb Region
+   ========================================================================== */
+
+.region-breadcrumb {
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+/* ==========================================================================
+   Highlighted Region
+   ========================================================================== */
+
+.region-highlighted {
+  padding: var(--spacing-6) 0;
+  background-color: var(--color-background-paper);
+}
+
+/* ==========================================================================
+   Help Region
+   ========================================================================== */
+
+.region-help {
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  background-color: var(--color-info-light);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-inverse);
+}
+
+/* ==========================================================================
+   Content Region
+   ========================================================================== */
+
+.region-content {
+  padding: var(--spacing-6) 0;
+}
+
+/* ==========================================================================
+   Sidebar Regions
+   ========================================================================== */
+
+.region-sidebar-first,
+.region-sidebar-second {
+  padding: var(--spacing-4);
+}
+
+@media (min-width: 1024px) {
+  .layout-with-sidebar {
+    display: grid;
+    gap: var(--spacing-8);
+  }
+
+  .layout-sidebar-first {
+    grid-template-columns: var(--sidebar-width) 1fr;
+  }
+
+  .layout-sidebar-second {
+    grid-template-columns: 1fr var(--sidebar-width);
+  }
+
+  .layout-both-sidebars {
+    grid-template-columns: var(--sidebar-width) 1fr var(--sidebar-width);
+  }
+}
+
+/* ==========================================================================
+   Footer Regions
+   ========================================================================== */
+
+.footer-regions {
+  display: grid;
+  gap: var(--spacing-6);
+  padding: var(--spacing-8) 0;
+}
+
+@media (min-width: 768px) {
+  .footer-regions {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.region-footer-first,
+.region-footer-second,
+.region-footer-third {
+  /* Allow content to flow naturally */
+}
+
+.region-footer {
+  padding: var(--spacing-4) 0;
+  border-top: 1px solid var(--color-gray-300);
+  text-align: center;
+}
+
+/* ==========================================================================
+   Page Top/Bottom Regions (for system messages)
+   ========================================================================== */
+
+.region-page-top {
+  /* Usually empty, used for system messages */
+}
+
+.region-page-bottom {
+  /* Usually empty, used for scripts/system content */
+}
+
+/* ==========================================================================
+   Empty Region Handling
+   ========================================================================== */
+
+.region:empty {
+  display: none;
+}
+
+/* ==========================================================================
+   Block Spacing within Regions
+   ========================================================================== */
+
+.region > .block {
+  margin-bottom: var(--spacing-6);
+}
+
+.region > .block:last-child {
+  margin-bottom: 0;
+}
+
+/* Sidebar blocks often need tighter spacing */
+.region-sidebar-first > .block,
+.region-sidebar-second > .block {
+  margin-bottom: var(--spacing-4);
+}

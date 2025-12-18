@@ -26,6 +26,8 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { useSocket } from './hooks/useSocket';
 import DashboardHome from './pages/DashboardHome';
 import ModelsPage from './pages/ModelsPage';
+import CongressionalDataPage from './pages/CongressionalDataPage';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import './App.css';
 
 const DRAWER_WIDTH = 240;
@@ -41,6 +43,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { id: 'models', label: 'Models', icon: <MemoryIcon />, path: '/models' },
+  { id: 'congressional', label: 'Congressional Data', icon: <AccountBalanceIcon />, path: '/congressional' },
   { id: 'main', label: 'Main Services', icon: <DashboardIcon />, path: '/', isSection: true },
   { id: 'image', label: 'Image Generation', icon: <ImageIcon />, path: '/', isSection: true },
   { id: 'music', label: 'Music Generation', icon: <MusicNoteIcon />, path: '/', isSection: true },
@@ -233,6 +236,7 @@ function App() {
         <Routes>
           <Route path="/" element={<DashboardHome />} />
           <Route path="/models" element={<ModelsPage />} />
+          <Route path="/congressional" element={<CongressionalDataPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 

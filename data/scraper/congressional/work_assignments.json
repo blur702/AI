@@ -1,0 +1,127 @@
+{
+  "created_at": "2025-12-13T02:00:04.724303+00:00",
+  "total_members": 441,
+  "worker_count": 20,
+  "assignments": [
+    {
+      "worker_id": 0,
+      "start_index": 0,
+      "end_index": 23,
+      "member_count": 23
+    },
+    {
+      "worker_id": 1,
+      "start_index": 23,
+      "end_index": 46,
+      "member_count": 23
+    },
+    {
+      "worker_id": 2,
+      "start_index": 46,
+      "end_index": 69,
+      "member_count": 23
+    },
+    {
+      "worker_id": 3,
+      "start_index": 69,
+      "end_index": 92,
+      "member_count": 23
+    },
+    {
+      "worker_id": 4,
+      "start_index": 92,
+      "end_index": 115,
+      "member_count": 23
+    },
+    {
+      "worker_id": 5,
+      "start_index": 115,
+      "end_index": 138,
+      "member_count": 23
+    },
+    {
+      "worker_id": 6,
+      "start_index": 138,
+      "end_index": 161,
+      "member_count": 23
+    },
+    {
+      "worker_id": 7,
+      "start_index": 161,
+      "end_index": 184,
+      "member_count": 23
+    },
+    {
+      "worker_id": 8,
+      "start_index": 184,
+      "end_index": 207,
+      "member_count": 23
+    },
+    {
+      "worker_id": 9,
+      "start_index": 207,
+      "end_index": 230,
+      "member_count": 23
+    },
+    {
+      "worker_id": 10,
+      "start_index": 230,
+      "end_index": 253,
+      "member_count": 23
+    },
+    {
+      "worker_id": 11,
+      "start_index": 253,
+      "end_index": 276,
+      "member_count": 23
+    },
+    {
+      "worker_id": 12,
+      "start_index": 276,
+      "end_index": 299,
+      "member_count": 23
+    },
+    {
+      "worker_id": 13,
+      "start_index": 299,
+      "end_index": 322,
+      "member_count": 23
+    },
+    {
+      "worker_id": 14,
+      "start_index": 322,
+      "end_index": 345,
+      "member_count": 23
+    },
+    {
+      "worker_id": 15,
+      "start_index": 345,
+      "end_index": 368,
+      "member_count": 23
+    },
+    {
+      "worker_id": 16,
+      "start_index": 368,
+      "end_index": 391,
+      "member_count": 23
+    },
+    {
+      "worker_id": 17,
+      "start_index": 391,
+      "end_index": 414,
+      "member_count": 23
+    },
+    {
+      "worker_id": 18,
+      "start_index": 414,
+      "end_index": 437,
+      "member_count": 23
+    },
+    {
+      "worker_id": 19,
+      "start_index": 437,
+      "end_index": 441,
+      "member_count": 4
+    }
+  ]
+}
