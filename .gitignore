@@ -72,3 +72,6 @@ nul
 .DS_Store
 Thumbs.db
 .secrets/
+
+# MCP configuration (contains SSH credentials)
+.mcp.json

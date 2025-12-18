@@ -48,6 +48,9 @@ class ScrapeConfig:
     batch_delay: float = DEFAULT_BATCH_DELAY
     max_members: Optional[int] = None
     max_pages_per_member: int = 5
+    max_press_pages: int = 500  # Higher limit for press/news pages
+    scrape_rss: bool = True  # Whether to scrape RSS feeds
+    discover_newsroom: bool = True  # Whether to discover newsroom pages
     dry_run: bool = False
 
 
@@ -379,13 +382,38 @@ class CongressionalDocScraper(BaseDocScraper):
 
         members: List[MemberInfo] = []
 
-        items = data.get("items") or data.get("members") or []
+        # Handle different feed formats:
+        # - {"items": [...]} - simple list
+        # - {"members": [...]} - list under members key
+        # - {"members": {"member": [...]}} - nested structure from house.gov
+        items = data.get("items") or []
+        if not items:
+            members_data = data.get("members")
+            if isinstance(members_data, dict):
+                items = members_data.get("member") or []
+            elif isinstance(members_data, list):
+                items = members_data
+
         for item in items:
             try:
-                name = item.get("name") or item.get("FullName") or ""
-                state = item.get("state") or item.get("State") or ""
-                district = item.get("district") or item.get("District") or ""
-                party = item.get("party") or item.get("Party") or ""
+                # Handle house.gov nested structure: {"member-info": {...}, "website": "..."}
+                member_info = item.get("member-info", {})
+                if member_info:
+                    name = member_info.get("official-name") or member_info.get("namelist") or ""
+                    state_data = member_info.get("state", {})
+                    if isinstance(state_data, dict):
+                        state = state_data.get("postal-code") or ""
+                    else:
+                        state = str(state_data) if state_data else ""
+                    district = member_info.get("district") or ""
+                    party = member_info.get("party") or ""
+                else:
+                    # Fallback for simpler feed formats
+                    name = item.get("name") or item.get("FullName") or ""
+                    state = item.get("state") or item.get("State") or ""
+                    district = item.get("district") or item.get("District") or ""
+                    party = item.get("party") or item.get("Party") or ""
+
                 chamber = item.get("chamber") or item.get("Chamber") or "House"
                 website_url = (
                     item.get("website") or item.get("WebsiteUrl") or ""
