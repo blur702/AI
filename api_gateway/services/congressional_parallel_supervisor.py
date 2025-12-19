@@ -24,7 +24,9 @@ import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+import tempfile
+import uuid
+from typing import Any, Dict, List, Optional, Set
 
 from ..utils.logger import get_logger
 from .congressional_scraper import CongressionalDocScraper, MemberInfo, ScrapeConfig
@@ -213,8 +215,21 @@ class ParallelSupervisor:
         if self.paths.pid_file.exists():
             self.paths.pid_file.unlink()
 
-    def _start_worker(self, worker_id: int, start_index: int, end_index: int) -> subprocess.Popen:
-        """Start a single worker process."""
+    def _start_worker(
+        self,
+        worker_id: int,
+        start_index: int,
+        end_index: int,
+        remaining: bool = False,
+    ) -> subprocess.Popen:
+        """Start a single worker process.
+
+        Args:
+            worker_id: The worker's ID number
+            start_index: Start index in member list
+            end_index: End index in member list
+            remaining: If True, use remaining_members.json instead of House feed
+        """
         cmd = [
             sys.executable,
             "-m", "api_gateway.services.congressional_worker",
@@ -224,12 +239,17 @@ class ParallelSupervisor:
             "--config", str(self.config_path),
         ]
 
+        if remaining:
+            cmd.append("--remaining")
+
         log_file = self.paths.log_dir / f"worker_{worker_id}.log"
-        logger.info("Starting worker %d (members %d-%d), log: %s", worker_id, start_index, end_index, log_file)
+        mode_str = "REBALANCED " if remaining else ""
+        logger.info("Starting %sworker %d (members %d-%d), log: %s",
+                   mode_str, worker_id, start_index, end_index, log_file)
 
         with open(log_file, "a") as log:
             log.write(f"\n{'='*60}\n")
-            log.write(f"Worker {worker_id} started at {datetime.now(timezone.utc).isoformat()}\n")
+            log.write(f"Worker {worker_id} {mode_str}start at {datetime.now(timezone.utc).isoformat()}\n")
             log.write(f"{'='*60}\n\n")
 
             # Windows: CREATE_NO_WINDOW to hide console
@@ -552,9 +572,9 @@ class ParallelSupervisor:
             logger.error("Failed to uninstall task: %s", e)
             return False
 
-    def _collect_completed_members(self) -> set:
+    def _collect_completed_members(self) -> Set[str]:
         """Collect all completed member names from checkpoint files."""
-        completed = set()
+        completed: Set[str] = set()
 
         for checkpoint_file in self.paths.checkpoint_dir.glob("worker_*_checkpoint.json"):
             try:
@@ -572,13 +592,25 @@ class ParallelSupervisor:
         """Clear all checkpoint and heartbeat files."""
         # Clear checkpoints
         for f in self.paths.checkpoint_dir.glob("worker_*_checkpoint.json"):
-            f.unlink()
-            logger.info("Deleted checkpoint: %s", f.name)
+            try:
+                f.unlink()
+                logger.info("Deleted checkpoint: %s", f.name)
+            except FileNotFoundError:
+                # File already deleted (possibly by concurrent operation)
+                pass
+            except OSError as e:
+                logger.warning("Failed to delete checkpoint %s: %s", f.name, e)
 
         # Clear heartbeats
         for f in self.paths.heartbeat_dir.glob("worker_*.json"):
-            f.unlink()
-            logger.info("Deleted heartbeat: %s", f.name)
+            try:
+                f.unlink()
+                logger.info("Deleted heartbeat: %s", f.name)
+            except FileNotFoundError:
+                # File already deleted (possibly by concurrent operation)
+                pass
+            except OSError as e:
+                logger.warning("Failed to delete heartbeat %s: %s", f.name, e)
 
     def _create_rebalanced_assignments(
         self,
@@ -618,12 +650,112 @@ class ParallelSupervisor:
             assignments=assignments,
         )
 
+    def _wait_for_workers_to_stop(self, timeout: float = 10.0) -> None:
+        """Wait for all tracked worker processes to terminate.
+
+        Uses deterministic process waiting instead of fixed sleep.
+        Attempts graceful termination first, then forceful kill if needed.
+
+        Args:
+            timeout: Maximum seconds to wait for each process
+        """
+        # Collect processes from heartbeat PIDs
+        assignment = self._load_work_assignments()
+        if not assignment:
+            return
+
+        processes_to_wait: List[tuple] = []  # (worker_id, pid)
+
+        for a in assignment.assignments:
+            worker_id = a["worker_id"]
+            heartbeat = self._read_heartbeat(worker_id)
+            if heartbeat and heartbeat.get("pid"):
+                processes_to_wait.append((worker_id, heartbeat["pid"]))
+
+        for worker_id, pid in processes_to_wait:
+            logger.info("Waiting for worker %d (PID %d) to terminate...", worker_id, pid)
+            try:
+                if sys.platform == "win32":
+                    # On Windows, use taskkill and then check if process exists
+                    result = subprocess.run(
+                        ["taskkill", "/PID", str(pid)],
+                        capture_output=True,
+                        timeout=timeout,
+                    )
+                    if result.returncode != 0:
+                        # Process may not exist or needs force kill
+                        logger.info("Worker %d graceful termination failed, trying force kill", worker_id)
+                        subprocess.run(
+                            ["taskkill", "/F", "/PID", str(pid)],
+                            capture_output=True,
+                            timeout=timeout,
+                        )
+                    # Wait a moment for the process to fully exit
+                    time.sleep(0.5)
+                    logger.info("Worker %d (PID %d) terminated", worker_id, pid)
+                else:
+                    # On Unix, we can use os.waitpid or just send signals
+                    try:
+                        os.kill(pid, 15)  # SIGTERM
+                        time.sleep(1)
+                        os.kill(pid, 9)  # SIGKILL if still alive
+                    except ProcessLookupError:
+                        pass  # Process already dead
+                    logger.info("Worker %d (PID %d) terminated", worker_id, pid)
+
+            except subprocess.TimeoutExpired:
+                logger.warning("Timeout waiting for worker %d (PID %d), force killing", worker_id, pid)
+                try:
+                    if sys.platform == "win32":
+                        subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
+                    else:
+                        os.kill(pid, 9)
+                except Exception as e:
+                    logger.error("Failed to force kill worker %d: %s", worker_id, e)
+
+            except Exception as e:
+                logger.warning("Error waiting for worker %d (PID %d): %s", worker_id, pid, e)
+
+    def _atomic_write_json(self, path: Path, data: Any) -> None:
+        """Write JSON data to a file atomically.
+
+        Creates a temporary file, writes data, then atomically renames.
+
+        Args:
+            path: Target file path
+            data: Data to serialize as JSON
+        """
+        # Create temp file in same directory for atomic rename
+        temp_suffix = f".tmp.{uuid.uuid4().hex[:8]}"
+        temp_path = path.with_suffix(path.suffix + temp_suffix)
+
+        try:
+            # Write to temp file
+            content = json.dumps(data, indent=2)
+            with open(temp_path, "w", encoding="utf-8") as f:
+                f.write(content)
+                f.flush()
+                os.fsync(f.fileno())
+
+            # Atomic rename (overwrites target on both Windows and Unix)
+            os.replace(temp_path, path)
+            logger.debug("Atomically wrote %s", path)
+
+        except Exception as e:
+            # Clean up temp file on error
+            try:
+                if temp_path.exists():
+                    temp_path.unlink()
+            except Exception:
+                pass
+            raise e
+
     def rebalance(self) -> Dict[str, Any]:
         """
         Rebalance work by redistributing remaining members across all workers.
 
         This method:
-        1. Stops all running workers
+        1. Stops all running workers (with deterministic waiting)
         2. Collects completed members from checkpoints
         3. Fetches fresh member list
         4. Creates new assignments for remaining members
@@ -632,10 +764,10 @@ class ParallelSupervisor:
         """
         logger.info("Starting rebalance operation...")
 
-        # Step 1: Stop all workers
+        # Step 1: Stop all workers with deterministic waiting
         logger.info("Stopping all workers...")
         self.stop_all_workers()
-        time.sleep(2)  # Give processes time to terminate
+        self._wait_for_workers_to_stop(timeout=10.0)
 
         # Step 2: Collect completed members
         completed_members = self._collect_completed_members()
@@ -674,13 +806,13 @@ class ParallelSupervisor:
         # Step 6: Create new assignments
         assignment = self._create_rebalanced_assignments(remaining_members)
 
-        # Save remaining members list for workers to use
+        # Save remaining members list for workers to use (atomic write)
         remaining_members_path = self.paths.data_dir / "remaining_members.json"
         remaining_members_data = [
             {"name": m.name, "url": m.website_url, "state": m.state, "district": m.district, "party": m.party}
             for m in remaining_members
         ]
-        remaining_members_path.write_text(json.dumps(remaining_members_data, indent=2))
+        self._atomic_write_json(remaining_members_path, remaining_members_data)
         logger.info("Saved %d remaining members to %s", len(remaining_members), remaining_members_path)
 
         # Save work assignments
@@ -694,8 +826,8 @@ class ParallelSupervisor:
             start_index = a["start_index"]
             end_index = a["end_index"]
 
-            # Start worker with --remaining flag to use remaining_members.json
-            process = self._start_worker_rebalanced(worker_id, start_index, end_index)
+            # Start worker with remaining=True to use remaining_members.json
+            process = self._start_worker(worker_id, start_index, end_index, remaining=True)
 
             self.workers[worker_id] = WorkerState(
                 worker_id=worker_id,
@@ -717,41 +849,6 @@ class ParallelSupervisor:
             "workers_started": len(self.workers),
             "members_per_worker": len(remaining_members) // len(self.workers) if self.workers else 0,
         }
-
-    def _start_worker_rebalanced(self, worker_id: int, start_index: int, end_index: int) -> subprocess.Popen:
-        """Start a worker using the remaining_members.json file."""
-        cmd = [
-            sys.executable,
-            "-m", "api_gateway.services.congressional_worker",
-            "--worker-id", str(worker_id),
-            "--start-index", str(start_index),
-            "--end-index", str(end_index),
-            "--config", str(self.config_path),
-            "--remaining",  # Flag to use remaining_members.json
-        ]
-
-        log_file = self.paths.log_dir / f"worker_{worker_id}.log"
-        logger.info("Starting rebalanced worker %d (members %d-%d), log: %s",
-                   worker_id, start_index, end_index, log_file)
-
-        with open(log_file, "a") as log:
-            log.write(f"\n{'='*60}\n")
-            log.write(f"Worker {worker_id} REBALANCED start at {datetime.now(timezone.utc).isoformat()}\n")
-            log.write(f"{'='*60}\n\n")
-
-            creationflags = 0
-            if sys.platform == "win32":
-                creationflags = subprocess.CREATE_NO_WINDOW
-
-            process = subprocess.Popen(
-                cmd,
-                stdout=log,
-                stderr=subprocess.STDOUT,
-                cwd=Path("D:/AI"),
-                creationflags=creationflags,
-            )
-
-        return process
 
 
 def main():

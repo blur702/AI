@@ -57,7 +57,7 @@ class WorkerConfig:
     heartbeat_dir: Path
     checkpoint_dir: Path
     log_dir: Path
-    data_dir: Path = None  # For remaining_members.json
+    data_dir: Optional[Path] = None  # For remaining_members.json
     request_delay: float = 2.0
     batch_size: int = 10
     batch_delay: float = 5.0
@@ -202,19 +202,40 @@ class CongressionalWorker:
             remaining_path = self.config.data_dir / "remaining_members.json"
             if remaining_path.exists():
                 logger.info("Loading members from remaining_members.json...")
-                data = json.loads(remaining_path.read_text())
-                members = [
-                    MemberInfo(
-                        name=m["name"],
-                        website_url=m["url"],
-                        state=m.get("state", ""),
-                        district=m.get("district", ""),
-                        party=m.get("party", ""),
+                try:
+                    data = json.loads(remaining_path.read_text())
+                    members = [
+                        MemberInfo(
+                            name=m["name"],
+                            website_url=m["url"],
+                            state=m.get("state", ""),
+                            district=m.get("district", ""),
+                            party=m.get("party", ""),
+                        )
+                        for m in data
+                    ]
+                    logger.info("Loaded %d remaining members from file", len(members))
+                    return members
+                except json.JSONDecodeError as e:
+                    logger.warning(
+                        "remaining_members.json is malformed (JSONDecodeError: %s), "
+                        "falling back to House feed",
+                        e,
                     )
-                    for m in data
-                ]
-                logger.info("Loaded %d remaining members from file", len(members))
-                return members
+                except (OSError, IOError) as e:
+                    logger.warning(
+                        "Failed to read remaining_members.json (%s: %s), "
+                        "falling back to House feed",
+                        type(e).__name__,
+                        e,
+                    )
+                except (KeyError, TypeError) as e:
+                    logger.warning(
+                        "remaining_members.json has invalid structure (%s: %s), "
+                        "falling back to House feed",
+                        type(e).__name__,
+                        e,
+                    )
             else:
                 logger.warning("remaining_members.json not found, falling back to House feed")
 
