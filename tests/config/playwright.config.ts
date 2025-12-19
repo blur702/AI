@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
 import * as os from 'os';
 import * as path from 'path';
+// Use CommonJS __filename and __dirname if available, otherwise fallback
+const __filename = typeof __filename !== 'undefined' ? __filename : (process.argv[1] || '');
+const __dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(__filename); 
 
 // Load environment-specific config
 const envFile = process.env.TEST_ENVIRONMENT === 'vps' ? '.env.vps' : '.env';
