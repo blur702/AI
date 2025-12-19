@@ -4,17 +4,22 @@ Store errors and solutions from the dashboard startup fix session.
 This script logs the errors discovered during the debugging session and
 their solutions to the PostgreSQL database for future reference.
 """
+
 import asyncio
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(project_root))
 
-from api_gateway.models.database import AsyncSessionLocal, Error, ErrorSeverity, init_db  # noqa: E402
-
+from api_gateway.models.database import (  # noqa: E402
+    AsyncSessionLocal,
+    Error,
+    ErrorSeverity,
+    init_db,
+)
 
 ERRORS_AND_SOLUTIONS = [
     {
@@ -109,7 +114,7 @@ async def store_errors() -> None:
                 message=error_data["message"],
                 context=error_data["context"],
                 resolved=True,
-                resolved_at=datetime.now(timezone.utc),
+                resolved_at=datetime.now(UTC),
             )
             session.add(error)
             print(f"  - {error_data['service']}: {error_data['message'][:50]}...")

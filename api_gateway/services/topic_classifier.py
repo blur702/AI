@@ -8,7 +8,6 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import List, Optional
 
 import httpx
 
@@ -16,26 +15,26 @@ logger = logging.getLogger(__name__)
 
 # Policy topic taxonomy (includes 2025 hot topics)
 TOPICS = [
-    "healthcare",           # Healthcare, Medicare, Medicaid, insurance
-    "immigration",          # Immigration, border security, asylum, visas
-    "defense",              # Military, national security, veterans affairs
-    "economy",              # Jobs, trade, tariffs, economic policy
-    "environment",          # Climate, EPA, conservation, pollution
-    "energy",               # Oil, gas, renewables, pipelines, drilling
-    "education",            # Schools, student loans, higher education
-    "infrastructure",       # Transportation, roads, bridges, broadband
-    "budget",               # Taxes, spending, debt ceiling, appropriations
-    "civil_rights",         # Voting rights, discrimination, equality
-    "gun_policy",           # Second amendment, firearms, gun control
-    "agriculture",          # Farming, rural development, food policy, farm bill
-    "foreign_policy",       # International relations, diplomacy, sanctions
-    "technology",           # Tech regulation, privacy, cybersecurity, AI
-    "crypto",               # Cryptocurrency, digital assets, blockchain, stablecoins
-    "housing",              # Housing, HUD, homelessness, rent
-    "labor",                # Workers rights, unions, wages, OSHA
-    "social_security",      # Social security, retirement, pensions
-    "criminal_justice",     # Law enforcement, prisons, courts, crime
-    "procedural",           # Parliamentary motions, rules, procedures
+    "healthcare",  # Healthcare, Medicare, Medicaid, insurance
+    "immigration",  # Immigration, border security, asylum, visas
+    "defense",  # Military, national security, veterans affairs
+    "economy",  # Jobs, trade, tariffs, economic policy
+    "environment",  # Climate, EPA, conservation, pollution
+    "energy",  # Oil, gas, renewables, pipelines, drilling
+    "education",  # Schools, student loans, higher education
+    "infrastructure",  # Transportation, roads, bridges, broadband
+    "budget",  # Taxes, spending, debt ceiling, appropriations
+    "civil_rights",  # Voting rights, discrimination, equality
+    "gun_policy",  # Second amendment, firearms, gun control
+    "agriculture",  # Farming, rural development, food policy, farm bill
+    "foreign_policy",  # International relations, diplomacy, sanctions
+    "technology",  # Tech regulation, privacy, cybersecurity, AI
+    "crypto",  # Cryptocurrency, digital assets, blockchain, stablecoins
+    "housing",  # Housing, HUD, homelessness, rent
+    "labor",  # Workers rights, unions, wages, OSHA
+    "social_security",  # Social security, retirement, pensions
+    "criminal_justice",  # Law enforcement, prisons, courts, crime
+    "procedural",  # Parliamentary motions, rules, procedures
 ]
 
 TOPIC_DESCRIPTIONS = {
@@ -66,7 +65,7 @@ TOPIC_DESCRIPTIONS = {
 class ClassificationResult:
     """Result of topic classification."""
 
-    topics: List[str]
+    topics: list[str]
     confidence: float
     reasoning: str
 
@@ -284,8 +283,8 @@ JSON response:"""
 
 def classify_vote(
     vote_question: str,
-    bill_number: Optional[str],
-    bill_title: Optional[str],
+    bill_number: str | None,
+    bill_title: str | None,
     vote_type: str,
 ) -> ClassificationResult:
     """
@@ -315,10 +314,10 @@ def classify_vote(
 
 
 def batch_classify(
-    items: List[dict],
+    items: list[dict],
     batch_size: int = 10,
     progress_callback=None,
-) -> List[ClassificationResult]:
+) -> list[ClassificationResult]:
     """
     Classify multiple items in batches.
 
@@ -366,7 +365,7 @@ def classify_congressional_collection(
         Dict with classification statistics
     """
     # Import here to avoid circular imports
-    from .weaviate_connection import WeaviateConnection, CONGRESSIONAL_DATA_COLLECTION_NAME
+    from .weaviate_connection import CONGRESSIONAL_DATA_COLLECTION_NAME, WeaviateConnection
 
     stats = {
         "total_items": 0,
@@ -471,8 +470,12 @@ if __name__ == "__main__":
 
     # Classify-all command
     classify_parser = subparsers.add_parser("classify-all", help="Classify all congressional data")
-    classify_parser.add_argument("--limit", type=int, default=0, help="Max items to classify (0=all)")
-    classify_parser.add_argument("--force", action="store_true", help="Re-classify already classified items")
+    classify_parser.add_argument(
+        "--limit", type=int, default=0, help="Max items to classify (0=all)"
+    )
+    classify_parser.add_argument(
+        "--force", action="store_true", help="Re-classify already classified items"
+    )
 
     # Warmup command
     subparsers.add_parser("warmup", help="Warm up the classification model")
@@ -509,6 +512,7 @@ if __name__ == "__main__":
             print("Failed to warm up model")
 
     elif args.command == "classify-all":
+
         def progress(current, total, msg):
             print(f"[{current}/{total}] {msg}")
 

@@ -12,8 +12,9 @@ import sys
 import threading
 import time
 import uuid
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -22,44 +23,43 @@ project_root = Path(__file__).resolve().parents[2]
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from api_gateway.services.weaviate_connection import (  # noqa: E402
-    WeaviateConnection,
-    DOCUMENTATION_COLLECTION_NAME,
-    CODE_ENTITY_COLLECTION_NAME,
-    DRUPAL_API_COLLECTION_NAME,
-    MDN_JAVASCRIPT_COLLECTION_NAME,
-    MDN_WEBAPIS_COLLECTION_NAME,
-)
-from api_gateway.services.doc_ingestion import (  # noqa: E402
-    ingest_documentation,
-    collection_status as doc_collection_status,
-)
+from api_gateway.services.code_ingestion import collection_status as code_collection_status
 from api_gateway.services.code_ingestion import (  # noqa: E402
     ingest_code_entities,
-    collection_status as code_collection_status,
+)
+from api_gateway.services.doc_ingestion import collection_status as doc_collection_status
+from api_gateway.services.doc_ingestion import (  # noqa: E402
+    ingest_documentation,
 )
 from api_gateway.services.drupal_api_schema import (  # noqa: E402
     get_collection_stats as drupal_collection_stats,
 )
+from api_gateway.services.drupal_scraper import ScrapeConfig as DrupalScrapeConfig
 from api_gateway.services.drupal_scraper import (  # noqa: E402
     scrape_drupal_api,
-    ScrapeConfig as DrupalScrapeConfig,
+)
+from api_gateway.services.mdn_javascript_scraper import ScrapeConfig as MdnJsScrapeConfig
+from api_gateway.services.mdn_javascript_scraper import (  # noqa: E402
+    scrape_mdn_javascript,
 )
 from api_gateway.services.mdn_schema import (  # noqa: E402
     get_mdn_javascript_stats,
     get_mdn_webapis_stats,
 )
-from api_gateway.services.mdn_javascript_scraper import (  # noqa: E402
-    scrape_mdn_javascript,
-    ScrapeConfig as MdnJsScrapeConfig,
-)
+from api_gateway.services.mdn_webapis_scraper import ScrapeConfig as MdnWebScrapeConfig
 from api_gateway.services.mdn_webapis_scraper import (  # noqa: E402
     scrape_mdn_webapis,
-    ScrapeConfig as MdnWebScrapeConfig,
+)
+from api_gateway.services.weaviate_connection import (  # noqa: E402
+    CODE_ENTITY_COLLECTION_NAME,
+    DOCUMENTATION_COLLECTION_NAME,
+    DRUPAL_API_COLLECTION_NAME,
+    MDN_JAVASCRIPT_COLLECTION_NAME,
+    MDN_WEBAPIS_COLLECTION_NAME,
+    WeaviateConnection,
 )
 
-
-EmitCallback = Callable[[str, Dict[str, Any]], None]
+EmitCallback = Callable[[str, dict[str, Any]], None]
 PauseCheck = Callable[[], bool]
 
 
@@ -85,15 +85,15 @@ class IngestionManager:
         self.emit = emit_callback
         self.is_running = False
         self.paused = False
-        self.task_id: Optional[str] = None
-        self.current_type: Optional[str] = None
-        self.started_at: Optional[float] = None
+        self.task_id: str | None = None
+        self.current_type: str | None = None
+        self.started_at: float | None = None
         self.cancel_requested = False
         self.lock = threading.Lock()
         self._state_changed = threading.Condition(self.lock)
-        self._stats: Dict[str, Any] = {}
+        self._stats: dict[str, Any] = {}
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """
         Get current ingestion status and collection statistics.
 
@@ -172,13 +172,13 @@ class IngestionManager:
 
     def start_ingestion(
         self,
-        types: List[str],
+        types: list[str],
         reindex: bool = False,
         code_service: str = "all",
-        drupal_limit: Optional[int] = None,
-        mdn_limit: Optional[int] = None,
-        mdn_section: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        drupal_limit: int | None = None,
+        mdn_limit: int | None = None,
+        mdn_section: str | None = None,
+    ) -> dict[str, Any]:
         """
         Start ingestion in the background.
 
@@ -238,12 +238,12 @@ class IngestionManager:
 
     def run_ingestion(
         self,
-        types: List[str],
+        types: list[str],
         reindex: bool = False,
         code_service: str = "all",
-        drupal_limit: Optional[int] = None,
-        mdn_limit: Optional[int] = None,
-        mdn_section: Optional[str] = None,
+        drupal_limit: int | None = None,
+        mdn_limit: int | None = None,
+        mdn_section: str | None = None,
     ) -> None:
         """
         Run the actual ingestion (called from background task).
@@ -259,13 +259,16 @@ class IngestionManager:
         task_id = self.task_id
         start_time = self.started_at or time.time()
 
-        self.emit("ingestion_started", {
-            "task_id": task_id,
-            "types": types,
-            "reindex": reindex,
-        })
+        self.emit(
+            "ingestion_started",
+            {
+                "task_id": task_id,
+                "types": types,
+                "reindex": reindex,
+            },
+        )
 
-        all_stats: Dict[str, Any] = {}
+        all_stats: dict[str, Any] = {}
         success = True
 
         try:
@@ -287,11 +290,14 @@ class IngestionManager:
                     )
                     all_stats["documentation"] = doc_stats
 
-                    self.emit("ingestion_phase_complete", {
-                        "task_id": task_id,
-                        "type": "documentation",
-                        "stats": doc_stats,
-                    })
+                    self.emit(
+                        "ingestion_phase_complete",
+                        {
+                            "task_id": task_id,
+                            "type": "documentation",
+                            "stats": doc_stats,
+                        },
+                    )
 
                     if doc_stats.get("cancelled"):
                         raise InterruptedError("Cancelled")
@@ -314,11 +320,14 @@ class IngestionManager:
                     )
                     all_stats["code"] = code_stats
 
-                    self.emit("ingestion_phase_complete", {
-                        "task_id": task_id,
-                        "type": "code",
-                        "stats": code_stats,
-                    })
+                    self.emit(
+                        "ingestion_phase_complete",
+                        {
+                            "task_id": task_id,
+                            "type": "code",
+                            "stats": code_stats,
+                        },
+                    )
 
                     if code_stats.get("cancelled"):
                         raise InterruptedError("Cancelled")
@@ -340,6 +349,7 @@ class IngestionManager:
                         from api_gateway.services.drupal_api_schema import (
                             create_drupal_api_collection,
                         )
+
                         create_drupal_api_collection(client, force_reindex=True)
 
                     drupal_stats = scrape_drupal_api(
@@ -352,11 +362,14 @@ class IngestionManager:
                     )
                     all_stats["drupal"] = drupal_stats
 
-                    self.emit("ingestion_phase_complete", {
-                        "task_id": task_id,
-                        "type": "drupal",
-                        "stats": drupal_stats,
-                    })
+                    self.emit(
+                        "ingestion_phase_complete",
+                        {
+                            "task_id": task_id,
+                            "type": "drupal",
+                            "stats": drupal_stats,
+                        },
+                    )
 
                     if drupal_stats.get("cancelled"):
                         raise InterruptedError("Cancelled")
@@ -378,6 +391,7 @@ class IngestionManager:
                         from api_gateway.services.mdn_schema import (
                             create_mdn_javascript_collection,
                         )
+
                         create_mdn_javascript_collection(client, force_reindex=True)
 
                     mdn_js_stats = scrape_mdn_javascript(
@@ -390,11 +404,14 @@ class IngestionManager:
                     )
                     all_stats["mdn_javascript"] = mdn_js_stats
 
-                    self.emit("ingestion_phase_complete", {
-                        "task_id": task_id,
-                        "type": "mdn_javascript",
-                        "stats": mdn_js_stats,
-                    })
+                    self.emit(
+                        "ingestion_phase_complete",
+                        {
+                            "task_id": task_id,
+                            "type": "mdn_javascript",
+                            "stats": mdn_js_stats,
+                        },
+                    )
 
                     if mdn_js_stats.get("cancelled"):
                         raise InterruptedError("Cancelled")
@@ -417,6 +434,7 @@ class IngestionManager:
                         from api_gateway.services.mdn_schema import (
                             create_mdn_webapis_collection,
                         )
+
                         create_mdn_webapis_collection(client, force_reindex=True)
 
                     mdn_web_stats = scrape_mdn_webapis(
@@ -429,11 +447,14 @@ class IngestionManager:
                     )
                     all_stats["mdn_webapis"] = mdn_web_stats
 
-                    self.emit("ingestion_phase_complete", {
-                        "task_id": task_id,
-                        "type": "mdn_webapis",
-                        "stats": mdn_web_stats,
-                    })
+                    self.emit(
+                        "ingestion_phase_complete",
+                        {
+                            "task_id": task_id,
+                            "type": "mdn_webapis",
+                            "stats": mdn_web_stats,
+                        },
+                    )
 
                     if mdn_web_stats.get("cancelled"):
                         raise InterruptedError("Cancelled")
@@ -445,22 +466,28 @@ class IngestionManager:
         except Exception as exc:
             success = False
             logger.error("Ingestion error for task %s: %s", task_id, exc)
-            self.emit("ingestion_error", {
-                "task_id": task_id,
-                "error": str(exc),
-                "type": self.current_type,
-            })
+            self.emit(
+                "ingestion_error",
+                {
+                    "task_id": task_id,
+                    "error": str(exc),
+                    "type": self.current_type,
+                },
+            )
 
         finally:
             duration = time.time() - start_time
 
             if success:
-                self.emit("ingestion_complete", {
-                    "task_id": task_id,
-                    "success": True,
-                    "stats": all_stats,
-                    "duration_seconds": round(duration, 2),
-                })
+                self.emit(
+                    "ingestion_complete",
+                    {
+                        "task_id": task_id,
+                        "success": True,
+                        "stats": all_stats,
+                        "duration_seconds": round(duration, 2),
+                    },
+                )
 
             with self.lock:
                 self.is_running = False
@@ -470,7 +497,7 @@ class IngestionManager:
                 self.started_at = None
                 self._stats = all_stats
 
-    def cancel_ingestion(self) -> Dict[str, Any]:
+    def cancel_ingestion(self) -> dict[str, Any]:
         """
         Request cancellation of the current ingestion.
 
@@ -491,7 +518,7 @@ class IngestionManager:
                 "task_id": self.task_id,
             }
 
-    def pause_ingestion(self) -> Dict[str, Any]:
+    def pause_ingestion(self) -> dict[str, Any]:
         """
         Pause the current ingestion.
 
@@ -515,10 +542,13 @@ class IngestionManager:
             task_id = self.task_id
             self._state_changed.notify_all()
 
-        self.emit("ingestion_paused", {
-            "task_id": task_id,
-            "timestamp": time.time(),
-        })
+        self.emit(
+            "ingestion_paused",
+            {
+                "task_id": task_id,
+                "timestamp": time.time(),
+            },
+        )
 
         return {
             "success": True,
@@ -526,7 +556,7 @@ class IngestionManager:
             "task_id": task_id,
         }
 
-    def resume_ingestion(self) -> Dict[str, Any]:
+    def resume_ingestion(self) -> dict[str, Any]:
         """
         Resume a paused ingestion.
 
@@ -550,10 +580,13 @@ class IngestionManager:
             task_id = self.task_id
             self._state_changed.notify_all()
 
-        self.emit("ingestion_resumed", {
-            "task_id": task_id,
-            "timestamp": time.time(),
-        })
+        self.emit(
+            "ingestion_resumed",
+            {
+                "task_id": task_id,
+                "timestamp": time.time(),
+            },
+        )
 
         return {
             "success": True,
@@ -571,15 +604,18 @@ class IngestionManager:
         message: str,
     ) -> None:
         """Emit a progress update via WebSocket."""
-        self.emit("ingestion_progress", {
-            "task_id": task_id,
-            "type": ingestion_type,
-            "phase": phase,
-            "current": current,
-            "total": total,
-            "message": message,
-            "paused": self.paused,
-        })
+        self.emit(
+            "ingestion_progress",
+            {
+                "task_id": task_id,
+                "type": ingestion_type,
+                "phase": phase,
+                "current": current,
+                "total": total,
+                "message": message,
+                "paused": self.paused,
+            },
+        )
 
     def _wait_if_paused(self) -> bool:
         """
@@ -610,10 +646,10 @@ class IngestionManager:
 
 
 # Singleton instance (initialized by app.py)
-_manager: Optional[IngestionManager] = None
+_manager: IngestionManager | None = None
 
 
-def get_ingestion_manager(emit_callback: Optional[EmitCallback] = None) -> IngestionManager:
+def get_ingestion_manager(emit_callback: EmitCallback | None = None) -> IngestionManager:
     """
     Get or create the singleton IngestionManager instance.
 

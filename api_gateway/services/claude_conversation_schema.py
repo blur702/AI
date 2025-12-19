@@ -30,8 +30,8 @@ import logging
 import sys
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property, VectorDistances
@@ -65,11 +65,11 @@ class ClaudeConversationTurn:
     timestamp: str
     user_message: str
     assistant_response: str
-    tool_calls: Optional[str] = None  # JSON array
-    file_paths: Optional[str] = None  # JSON array
-    tags: Optional[str] = None  # JSON array
+    tool_calls: str | None = None  # JSON array
+    file_paths: str | None = None  # JSON array
+    tags: str | None = None  # JSON array
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to dictionary for Weaviate insertion.
 
@@ -134,9 +134,7 @@ def create_claude_conversation_collection(
         client.collections.create(
             name=CLAUDE_CONVERSATION_COLLECTION_NAME,
             vectorizer_config=Configure.Vectorizer.none(),
-            vector_index_config=Configure.VectorIndex.hnsw(
-                distance_metric=VectorDistances.COSINE
-            ),
+            vector_index_config=Configure.VectorIndex.hnsw(distance_metric=VectorDistances.COSINE),
             properties=[
                 Property(name="session_id", data_type=DataType.TEXT),
                 Property(name="timestamp", data_type=DataType.TEXT),
@@ -152,9 +150,7 @@ def create_claude_conversation_collection(
             CLAUDE_CONVERSATION_COLLECTION_NAME,
         )
     else:
-        logger.info(
-            "Collection '%s' already exists", CLAUDE_CONVERSATION_COLLECTION_NAME
-        )
+        logger.info("Collection '%s' already exists", CLAUDE_CONVERSATION_COLLECTION_NAME)
 
 
 def insert_conversation_turn(
@@ -203,8 +199,8 @@ def search_conversations(
     client: weaviate.WeaviateClient,
     query: str,
     limit: int = 10,
-    session_id: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+    session_id: str | None = None,
+) -> list[dict[str, Any]]:
     """
     Search conversations by semantic similarity.
 
@@ -237,6 +233,7 @@ def search_conversations(
     filters = None
     if session_id:
         from weaviate.classes.query import Filter
+
         filters = Filter.by_property("session_id").equal(session_id)
 
     results = collection.query.near_vector(
@@ -264,7 +261,7 @@ def search_conversations(
     return conversations
 
 
-def get_conversation_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_conversation_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for ClaudeConversation collection.
 
@@ -286,6 +283,7 @@ def get_conversation_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
 
     # Count unique sessions
     from weaviate.classes.aggregate import GroupByAggregate
+
     session_count = 0
     try:
         grouped = collection.aggregate.over_all(
@@ -333,7 +331,7 @@ def store_from_stdin() -> None:
 
     turn = ClaudeConversationTurn(
         session_id=session_id,
-        timestamp=datetime.now(timezone.utc).isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         user_message=user_message,
         assistant_response=assistant_response,
         tool_calls=json.dumps(data.get("tool_calls", [])),
@@ -351,7 +349,7 @@ def store_from_stdin() -> None:
         sys.exit(1)
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI interface for Claude conversation management.
 
@@ -410,7 +408,7 @@ def main(argv: Optional[List[str]] = None) -> None:
             if args.command == "store":
                 turn = ClaudeConversationTurn(
                     session_id=args.session_id or str(uuid.uuid4()),
-                    timestamp=datetime.now(timezone.utc).isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     user_message=args.user_message,
                     assistant_response=args.assistant_response,
                     tool_calls=args.tool_calls,
@@ -433,7 +431,7 @@ def main(argv: Optional[List[str]] = None) -> None:
                     print(f"Time: {r['timestamp']}")
                     print(f"User: {r['user_message'][:100]}...")
                     print(f"Response: {r['assistant_response'][:100]}...")
-                    print(f"Distance: {r['distance']:.4f}" if r['distance'] else "")
+                    print(f"Distance: {r['distance']:.4f}" if r["distance"] else "")
                     print("-" * 40)
 
             elif args.command == "stats":

@@ -7,6 +7,7 @@ model: claude-sonnet-4-20250514
 # Gitlab Ci Expert
 
 ## Focus Areas
+
 - YAML syntax and best practices for GitLab CI configuration
 - Efficient job and stage orchestration
 - Advanced caching strategies to speed up pipelines
@@ -19,6 +20,7 @@ model: claude-sonnet-4-20250514
 - Parallel job execution and resource management
 
 ## Approach
+
 - Start with a clear pipeline architecture defined in YAML files
 - Use `.gitlab-ci.yml` include feature for modular pipeline configurations
 - Optimize job dependencies to minimize unnecessary pipeline runs
@@ -31,6 +33,7 @@ model: claude-sonnet-4-20250514
 - Document common pipeline patterns for team-wide use
 
 ## Quality Checklist
+
 - YAML `.gitlab-ci.yml` is syntax-validated and follows best practices
 - All jobs and stages are named descriptively and organized logically
 - Caching is correctly configured and reduces redundant work
@@ -43,6 +46,7 @@ model: claude-sonnet-4-20250514
 - Documentation includes pipeline overview and architecture
 
 ## Output
+
 - Fully functional `.gitlab-ci.yml` configured per project requirements
 - Optimized pipeline with reduced job execution time and resource use
 - Secure handling of environment variables and secrets

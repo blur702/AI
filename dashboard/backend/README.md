@@ -1,30 +1,37 @@
 # Dashboard Backend API
 
 ## Overview
+
 Flask REST API server for GPU VRAM monitoring and Ollama model management. Provides real-time WebSocket updates for VRAM status.
 
 ## Prerequisites
+
 - Python 3.10+
 - NVIDIA GPU with nvidia-smi installed
 - Ollama installed and running on localhost:11434
 
 ## Installation
+
 ```bash
 cd d:/AI/dashboard/backend
 pip install -r requirements.txt
 ```
 
 ## Configuration
-The dashboard requires authentication credentials to be set via environment variables. 
+
+The dashboard requires authentication credentials to be set via environment variables.
 
 ### Option 1: Using .env file (Recommended)
+
 Copy the example file and edit it with your credentials:
+
 ```bash
 cp .env.example .env
 # Edit .env and set DASHBOARD_AUTH_USERNAME and DASHBOARD_AUTH_PASSWORD
 ```
 
 ### Option 2: System Environment Variables
+
 Set the required variables in your system environment:
 
 ```bash
@@ -44,13 +51,15 @@ MAX_PROXY_REQUEST_SIZE=104857600  # 100MB default
 PROXY_TIMEOUT_SECONDS=30
 ```
 
-**Security Note:** 
+**Security Note:**
+
 - Never commit credentials to source control. The `.env` file is already in `.gitignore`.
 - Session tokens use cryptographically secure random generation (256-bit entropy)
 - Sessions are stored in-memory and expire after configured hours (default 24h)
 - For production, consider using Redis or a database for session persistence
 
 ## Running the Server
+
 ```bash
 # With .env file (recommended)
 python app.py
@@ -65,6 +74,7 @@ Server runs on `http://localhost:5000`
 
 1. **GET /api/vram/status** - Get current GPU memory status  
    Response:
+
    ```json
    {
      "gpu": {
@@ -80,6 +90,7 @@ Server runs on `http://localhost:5000`
 
 2. **GET /api/models/ollama/list** - List all available Ollama models  
    Response:
+
    ```json
    {
      "models": [
@@ -95,6 +106,7 @@ Server runs on `http://localhost:5000`
 
 3. **GET /api/models/ollama/loaded** - List currently loaded models  
    Response:
+
    ```json
    {
      "models": [
@@ -111,12 +123,15 @@ Server runs on `http://localhost:5000`
 
 4. **POST /api/models/ollama/load** - Load a model into memory  
    Request:
+
    ```json
    {
      "model_name": "llama2"
    }
    ```
+
    Response:
+
    ```json
    {
      "success": true,
@@ -127,12 +142,15 @@ Server runs on `http://localhost:5000`
 
 5. **POST /api/models/ollama/unload** - Unload a model from memory  
    Request:
+
    ```json
    {
      "model_name": "llama2"
    }
    ```
+
    Response:
+
    ```json
    {
      "success": true,
@@ -162,6 +180,7 @@ Server runs on `http://localhost:5000`
 
 - **vram_update** (receive) - Real-time GPU status updates every 2 seconds  
   Payload:
+
   ```json
   {
     "gpu": {
@@ -187,11 +206,14 @@ Server runs on `http://localhost:5000`
   ```
 
 ## Testing
+
 Use curl or Postman to test endpoints:
+
 ```bash
 curl http://localhost:5000/api/vram/status
 curl -X POST http://localhost:5000/api/models/ollama/load -H "Content-Type: application/json" -d '{"model_name":"llama2"}'
 ```
 
 ## Architecture
+
 Reuses logic from `d:/AI/vram_manager.py` for GPU monitoring and Ollama CLI operations. Extends with WebSocket support for real-time updates.

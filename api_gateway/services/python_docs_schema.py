@@ -28,7 +28,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
@@ -37,7 +37,6 @@ from weaviate.exceptions import WeaviateBaseError
 
 from ..utils.logger import get_logger
 from .weaviate_connection import PYTHON_DOCS_COLLECTION_NAME
-
 
 logger = get_logger("api_gateway.python_docs_schema")
 
@@ -54,6 +53,7 @@ PYTHON_DOCS_UUID_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "python-docs-ns")
 # -----------------------------------------------------------------------------
 # Helper Functions
 # -----------------------------------------------------------------------------
+
 
 def compute_python_content_hash(
     title: str,
@@ -94,9 +94,7 @@ def compute_python_content_hash(
     section_type_norm = (section_type or "").strip()
 
     # Concatenate with pipe separator for canonical representation
-    canonical = (
-        f"{title_norm}|{content_norm}|{version_norm}|{section_type_norm}"
-    )
+    canonical = f"{title_norm}|{content_norm}|{version_norm}|{section_type_norm}"
 
     # Compute SHA256 hash
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -146,6 +144,7 @@ def generate_python_docs_uuid(url: str, title: str, version: str) -> str:
 # Dataclasses
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class PythonDoc:
     """
@@ -191,7 +190,7 @@ class PythonDoc:
     content_hash: str
     uuid: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to Weaviate properties dict for insertion.
 
@@ -214,6 +213,7 @@ class PythonDoc:
 # -----------------------------------------------------------------------------
 # PythonDocs Collection Lifecycle Functions
 # -----------------------------------------------------------------------------
+
 
 def create_python_docs_collection(
     client: weaviate.WeaviateClient,
@@ -327,7 +327,7 @@ def python_docs_collection_exists(client: weaviate.WeaviateClient) -> bool:
     return client.collections.exists(PYTHON_DOCS_COLLECTION_NAME)
 
 
-def get_python_docs_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_python_docs_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for the PythonDocs collection.
 
@@ -379,7 +379,7 @@ def get_python_docs_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
     total_count = agg.total_count or 0
 
     # Get breakdown by version
-    version_counts: Dict[str, int] = {}
+    version_counts: dict[str, int] = {}
     try:
         version_group_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="version"),
@@ -398,7 +398,7 @@ def get_python_docs_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
         )
 
     # Get breakdown by section_type
-    section_counts: Dict[str, int] = {}
+    section_counts: dict[str, int] = {}
     try:
         section_group_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="section_type"),
@@ -454,4 +454,3 @@ def get_python_docs_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
 #   - delete_python_docs_collection(client) -> bool
 #   - python_docs_collection_exists(client) -> bool
 #   - get_python_docs_stats(client) -> Dict[str, Any]
-

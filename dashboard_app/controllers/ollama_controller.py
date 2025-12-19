@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
 
 from dashboard_app.controllers.vram_controller import VRAMMonitor
-
 
 OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 
@@ -17,7 +16,7 @@ class OllamaModel:
     size: int | None = None
     modified_at: str | None = None
     digest: str | None = None
-    details: Dict[str, Any] | None = None
+    details: dict[str, Any] | None = None
     loaded: bool = False
 
 
@@ -27,7 +26,7 @@ class OllamaController:
     def __init__(self, base_url: str = OLLAMA_BASE_URL) -> None:
         self.base_url = base_url.rstrip("/")
 
-    def list_models(self) -> List[OllamaModel]:
+    def list_models(self) -> list[OllamaModel]:
         try:
             resp = requests.get(f"{self.base_url}/api/tags", timeout=5.0)
             resp.raise_for_status()
@@ -35,7 +34,7 @@ class OllamaController:
             return []
 
         data = resp.json()
-        models: List[OllamaModel] = []
+        models: list[OllamaModel] = []
         for m in data.get("models", []):
             models.append(
                 OllamaModel(
@@ -48,7 +47,7 @@ class OllamaController:
             )
         return models
 
-    def list_models_with_status(self, vram_monitor: VRAMMonitor) -> List[OllamaModel]:
+    def list_models_with_status(self, vram_monitor: VRAMMonitor) -> list[OllamaModel]:
         """List all models, marking which are currently loaded in VRAM."""
         all_models = self.list_models()
         loaded = vram_monitor.get_loaded_models()
@@ -66,9 +65,7 @@ class OllamaController:
             "stream": False,
         }
         try:
-            resp = requests.post(
-                f"{self.base_url}/api/generate", json=payload, timeout=60.0
-            )
+            resp = requests.post(f"{self.base_url}/api/generate", json=payload, timeout=60.0)
             return resp.status_code == 200
         except Exception:
             return False
@@ -81,9 +78,7 @@ class OllamaController:
             "stream": False,
         }
         try:
-            resp = requests.post(
-                f"{self.base_url}/api/generate", json=payload, timeout=30.0
-            )
+            resp = requests.post(f"{self.base_url}/api/generate", json=payload, timeout=30.0)
             return resp.status_code == 200
         except Exception:
             return False

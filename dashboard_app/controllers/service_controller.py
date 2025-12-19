@@ -8,13 +8,12 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 import requests
 
 from dashboard_app.config import AppConfig
 from dashboard_app.controllers.vram_controller import VRAMMonitor
-
 
 logger = logging.getLogger(__name__)
 
@@ -53,17 +52,17 @@ class ServiceState:
     icon: str | None
     description: str | None
     status: ServiceStatus = ServiceStatus.STOPPED
-    process: Optional[subprocess.Popen] = None
-    pid: Optional[int] = None
-    start_time: Optional[float] = None
+    process: subprocess.Popen | None = None
+    pid: int | None = None
+    start_time: float | None = None
     last_activity: float = field(default_factory=lambda: time.time())
     idle_seconds: float = 0.0
-    error_message: Optional[str] = None
+    error_message: str | None = None
     external: bool = False
     manageable: bool = True
     health_endpoint: str = "/health"
     startup_timeout: int = 60
-    auto_start_with: List[str] = field(default_factory=list)
+    auto_start_with: list[str] = field(default_factory=list)
     gradio: bool = False
     is_healthy: bool = False
 
@@ -71,17 +70,17 @@ class ServiceState:
 class ServiceController:
     """Manage lifecycle and status of dashboard services for the desktop app."""
 
-    def __init__(self, config: AppConfig, vram_monitor: Optional["VRAMMonitor"] = None) -> None:
+    def __init__(self, config: AppConfig, vram_monitor: VRAMMonitor | None = None) -> None:
         self.config = config
         self._lock = threading.Lock()
-        self._states: Dict[str, ServiceState] = {}
-        self._configs: Dict[str, Dict[str, Any]] = {}
-        self._auto_start_triggered: Set[str] = set()
+        self._states: dict[str, ServiceState] = {}
+        self._configs: dict[str, dict[str, Any]] = {}
+        self._auto_start_triggered: set[str] = set()
         self._auto_stop_enabled: bool = config.autostop_enabled
         self._idle_timeout: int = config.autostop_timeout_minutes * 60
-        self._idle_check_thread: Optional[threading.Thread] = None
+        self._idle_check_thread: threading.Thread | None = None
         self._idle_check_stop: bool = False
-        self._vram_monitor: Optional["VRAMMonitor"] = vram_monitor
+        self._vram_monitor: VRAMMonitor | None = vram_monitor
         self._load_services_from_config()
 
     # ------------------------------------------------------------------ #
@@ -259,9 +258,7 @@ class ServiceController:
             return
 
         if service_id == "weaviate" and not self._is_docker_available():
-            logger.info(
-                "Skipping auto-start of %s (Docker not available)", service_id
-            )
+            logger.info("Skipping auto-start of %s (Docker not available)", service_id)
             return
 
         logger.info("Auto-starting %s (triggered by %s)", service_id, triggered_by)
@@ -308,9 +305,9 @@ class ServiceController:
                 continue
 
             now = time.time()
-            to_stop: List[str] = []
+            to_stop: list[str] = []
 
-             # Optional VRAM pressure check (falls back to idle-only when unavailable).
+            # Optional VRAM pressure check (falls back to idle-only when unavailable).
             usage_high = False
             if self._vram_monitor is not None:
                 try:
@@ -350,11 +347,11 @@ class ServiceController:
     # Public API
     # ------------------------------------------------------------------ #
 
-    def get_all_statuses(self) -> List[dict]:
+    def get_all_statuses(self) -> list[dict]:
         """Return a snapshot of all known service statuses as dicts."""
         with self._lock:
             self._update_idle_times()
-            result: List[dict] = []
+            result: list[dict] = []
             for service_id, state in self._states.items():
                 cfg = self._configs.get(service_id, {})
                 result.append(
@@ -409,17 +406,13 @@ class ServiceController:
                 state.pid = None
                 state.start_time = None
                 self._touch_activity(state)
-            logger.info(
-                "Service %s port %s already in use; marking as RUNNING", service_id, port
-            )
+            logger.info("Service %s port %s already in use; marking as RUNNING", service_id, port)
             self._check_auto_start_dependencies(service_id)
             return
 
         command = cfg.get("command")
         if not command:
-            logger.info(
-                "Service %s has no command configured; cannot start", service_id
-            )
+            logger.info("Service %s has no command configured; cannot start", service_id)
             return
 
         with self._lock:
@@ -508,9 +501,7 @@ class ServiceController:
             time.sleep(2)
 
         # Timeout
-        logger.error(
-            "Service %s startup timed out after %s seconds", service_id, timeout
-        )
+        logger.error("Service %s startup timed out after %s seconds", service_id, timeout)
         with self._lock:
             state = self._states.get(service_id)
             if state:
@@ -555,9 +546,7 @@ class ServiceController:
                 try:
                     proc.wait(timeout=10)
                 except subprocess.TimeoutExpired:
-                    logger.warning(
-                        "Service %s did not exit after terminate(); killing", service_id
-                    )
+                    logger.warning("Service %s did not exit after terminate(); killing", service_id)
                     proc.kill()
             except Exception as exc:
                 logger.warning("Error stopping service %s: %s", service_id, exc)
@@ -582,13 +571,11 @@ class ServiceController:
             service_ids = list(self._states.keys())
             ports = {sid: self._states[sid].port for sid in service_ids}
 
-        health_results: Dict[str, bool] = {}
-        port_results: Dict[str, bool] = {}
+        health_results: dict[str, bool] = {}
+        port_results: dict[str, bool] = {}
 
         with ThreadPoolExecutor(max_workers=10) as executor:
-            health_futures = {
-                executor.submit(self._health_check, sid): sid for sid in service_ids
-            }
+            health_futures = {executor.submit(self._health_check, sid): sid for sid in service_ids}
             port_futures = {
                 executor.submit(self._check_port_in_use, port): sid
                 for sid, port in ports.items()
@@ -617,15 +604,8 @@ class ServiceController:
                 state.is_healthy = healthy
 
                 # Detect startup timeout while still in STARTING.
-                if (
-                    state.status is ServiceStatus.STARTING
-                    and state.start_time is not None
-                ):
-                    if (
-                        now - state.start_time
-                        > float(state.startup_timeout or 60)
-                        and not healthy
-                    ):
+                if state.status is ServiceStatus.STARTING and state.start_time is not None:
+                    if now - state.start_time > float(state.startup_timeout or 60) and not healthy:
                         state.status = ServiceStatus.ERROR
                         state.error_message = (
                             f"Startup timed out after {state.startup_timeout} seconds"
@@ -644,18 +624,14 @@ class ServiceController:
                         state.process = None
                         state.pid = None
                         state.start_time = None
-                        logger.info(
-                            "Service %s appears stopped (health/port down)", sid
-                        )
+                        logger.info("Service %s appears stopped (health/port down)", sid)
                         self._clear_auto_start_trigger(sid)
 
                 elif state.status in {ServiceStatus.STOPPED, ServiceStatus.ERROR}:
                     if healthy or port_in_use:
                         state.status = ServiceStatus.RUNNING
                         state.error_message = None
-                        logger.info(
-                            "Service %s detected as RUNNING (external)", sid
-                        )
+                        logger.info("Service %s detected as RUNNING (external)", sid)
                         self._check_auto_start_dependencies(sid)
 
             self._update_idle_times()
@@ -677,6 +653,4 @@ class ServiceController:
                 except subprocess.TimeoutExpired:
                     proc.kill()
             except Exception as exc:
-                logger.warning(
-                    "Error cleaning up service %s: %s", state.service_id, exc
-                )
+                logger.warning("Error cleaning up service %s: %s", state.service_id, exc)

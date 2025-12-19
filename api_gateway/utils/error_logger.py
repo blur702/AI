@@ -6,11 +6,12 @@ to persist error details, stack traces, contextual metadata, and resolution
 information. It is intended to be used by both request handlers and background
 workers so all failures are captured consistently.
 """
+
 from __future__ import annotations
 
 import traceback
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import select
 
@@ -23,9 +24,9 @@ async def log_error(
     message: str,
     *,
     severity: ErrorSeverity = ErrorSeverity.error,
-    stack_trace: Optional[str] = None,
-    context: Optional[Dict[str, Any]] = None,
-    job_id: Optional[str] = None,
+    stack_trace: str | None = None,
+    context: dict[str, Any] | None = None,
+    job_id: str | None = None,
 ) -> Error:
     """
     Persist an error record to the database.
@@ -70,8 +71,8 @@ async def log_exception(
     exc: Exception,
     *,
     severity: ErrorSeverity = ErrorSeverity.error,
-    context: Optional[Dict[str, Any]] = None,
-    job_id: Optional[str] = None,
+    context: dict[str, Any] | None = None,
+    job_id: str | None = None,
 ) -> Error:
     """
     Convenience wrapper to log an exception with full traceback.
@@ -91,8 +92,8 @@ async def log_exception(
 async def mark_error_resolved(
     error_id: str,
     *,
-    resolution: Optional[str] = None,
-) -> Optional[Error]:
+    resolution: str | None = None,
+) -> Error | None:
     """
     Mark a single Error row as resolved and optionally store a resolution note.
     """
@@ -102,7 +103,7 @@ async def mark_error_resolved(
             return None
 
         error.resolved = True
-        error.resolved_at = datetime.now(timezone.utc)
+        error.resolved_at = datetime.now(UTC)
         if resolution:
             error.resolution = resolution
 
@@ -138,7 +139,7 @@ async def mark_job_errors_resolved(
         if not errors:
             return 0
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for error in errors:
             error.resolved = True
             error.resolved_at = now
@@ -151,4 +152,3 @@ async def mark_job_errors_resolved(
             extra={"job_id": job_id},
         )
         return len(errors)
-

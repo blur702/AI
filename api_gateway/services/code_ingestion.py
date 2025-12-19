@@ -20,8 +20,8 @@ from __future__ import annotations
 import argparse
 import logging
 import time
+from collections.abc import Callable, Iterable
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional
 
 import weaviate
 
@@ -34,7 +34,7 @@ from .code_entity_schema import (
     get_collection_stats,
 )
 from .code_parsers import CodeParser
-from .weaviate_connection import WeaviateConnection, CODE_ENTITY_COLLECTION_NAME
+from .weaviate_connection import CODE_ENTITY_COLLECTION_NAME, WeaviateConnection
 
 
 def get_entity_text_for_embedding(entity: CodeEntity) -> str:
@@ -106,7 +106,7 @@ EXCLUDED_DIRS = {
 INCLUDE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css", ".rs"}
 
 # AI service directory mappings: directory name -> service name
-AI_SERVICE_DIRS: Dict[str, str] = {
+AI_SERVICE_DIRS: dict[str, str] = {
     "alltalk_tts": "alltalk",
     "audiocraft": "audiocraft",
     "ComfyUI": "comfyui",
@@ -131,7 +131,7 @@ AI_SERVICE_VENVS = {
 }
 
 
-def _is_excluded(path: Path, extra_excludes: Optional[set[str]] = None) -> bool:
+def _is_excluded(path: Path, extra_excludes: set[str] | None = None) -> bool:
     """
     Check if any parent directory of the path is in excluded_dirs.
 
@@ -152,7 +152,7 @@ def _is_excluded(path: Path, extra_excludes: Optional[set[str]] = None) -> bool:
     return False
 
 
-def scan_source_files(service_name: Optional[str] = None) -> List[Path]:
+def scan_source_files(service_name: str | None = None) -> list[Path]:
     """
     Scan the workspace for source code files.
 
@@ -173,7 +173,7 @@ def scan_source_files(service_name: Optional[str] = None) -> List[Path]:
     - AI service virtual environments
     """
     workspace_root = Path(__file__).resolve().parents[2]
-    source_files: List[Path] = []
+    source_files: list[Path] = []
 
     if service_name is None or service_name == "core":
         # Scan core project directories
@@ -217,14 +217,18 @@ def scan_source_files(service_name: Optional[str] = None) -> List[Path]:
     # Remove duplicates and sort
     unique_files = sorted({p.resolve() for p in source_files})
 
-    logger.info("Found %d source files for ingestion (service=%s)", len(unique_files), service_name or "core")
+    logger.info(
+        "Found %d source files for ingestion (service=%s)",
+        len(unique_files),
+        service_name or "core",
+    )
     for p in unique_files:
         logger.debug("Source file: %s", p)
 
     return list(unique_files)
 
 
-def scan_all_services() -> Dict[str, List[Path]]:
+def scan_all_services() -> dict[str, list[Path]]:
     """
     Scan all AI service directories and return files grouped by service.
 
@@ -232,7 +236,7 @@ def scan_all_services() -> Dict[str, List[Path]]:
         Dictionary mapping service_name to list of file paths.
     """
     workspace_root = Path(__file__).resolve().parents[2]
-    result: Dict[str, List[Path]] = {}
+    result: dict[str, list[Path]] = {}
 
     for dir_name, service_name in AI_SERVICE_DIRS.items():
         service_dir = workspace_root / dir_name
@@ -240,7 +244,7 @@ def scan_all_services() -> Dict[str, List[Path]]:
             logger.debug("Skipping non-existent service directory: %s", service_dir)
             continue
 
-        files: List[Path] = []
+        files: list[Path] = []
         for ext in INCLUDE_EXTENSIONS:
             for path in service_dir.rglob(f"*{ext}"):
                 if not _is_excluded(path, AI_SERVICE_VENVS):
@@ -253,9 +257,7 @@ def scan_all_services() -> Dict[str, List[Path]]:
     return result
 
 
-def _batched(
-    iterable: Iterable[CodeEntity], batch_size: int
-) -> Iterable[List[CodeEntity]]:
+def _batched(iterable: Iterable[CodeEntity], batch_size: int) -> Iterable[list[CodeEntity]]:
     """
     Yield successive batches from an iterable.
 
@@ -266,7 +268,7 @@ def _batched(
     Yields:
         Lists of up to batch_size items
     """
-    batch: List[CodeEntity] = []
+    batch: list[CodeEntity] = []
     for item in iterable:
         batch.append(item)
         if len(batch) >= batch_size:
@@ -285,11 +287,11 @@ def ingest_code_entities(
     client: weaviate.WeaviateClient,
     force_reindex: bool = False,
     dry_run: bool = False,
-    service_name: Optional[str] = None,
-    progress_callback: Optional[ProgressCallback] = None,
-    check_cancelled: Optional[CancelCheck] = None,
-    check_paused: Optional[PauseCheck] = None,
-) -> Dict[str, int]:
+    service_name: str | None = None,
+    progress_callback: ProgressCallback | None = None,
+    check_cancelled: CancelCheck | None = None,
+    check_paused: PauseCheck | None = None,
+) -> dict[str, int]:
     """
     Ingest source files into Weaviate.
 
@@ -346,7 +348,7 @@ def ingest_code_entities(
         return False
 
     # Determine which files to scan and their service names
-    files_by_service: Dict[str, List[Path]] = {}
+    files_by_service: dict[str, list[Path]] = {}
 
     emit_progress("scanning", 0, 0, "Scanning for source files...")
 
@@ -364,7 +366,9 @@ def ingest_code_entities(
 
     # Count total files for progress
     total_file_count = sum(len(files) for files in files_by_service.values())
-    emit_progress("scanning", total_file_count, total_file_count, f"Found {total_file_count} source files")
+    emit_progress(
+        "scanning", total_file_count, total_file_count, f"Found {total_file_count} source files"
+    )
 
     total_files = 0
     total_entities = 0
@@ -401,7 +405,7 @@ def ingest_code_entities(
                         "processing",
                         processed_files,
                         total_file_count,
-                        f"Parsing {path.name} ({len(entities)} entities)"
+                        f"Parsing {path.name} ({len(entities)} entities)",
                     )
                     logger.debug(
                         "Parsed %d entities from %s (service=%s)",
@@ -467,14 +471,16 @@ def ingest_code_entities(
                         "indexing",
                         processed_files,
                         total_file_count,
-                        f"Indexed {inserted} entities"
+                        f"Indexed {inserted} entities",
                     )
                 break
             except Exception as exc:  # noqa: BLE001
                 retries -= 1
                 if retries == 0:
                     errors += 1
-                    logger.warning("Failed to insert entity %s after retries: %s", entity.full_name, exc)
+                    logger.warning(
+                        "Failed to insert entity %s after retries: %s", entity.full_name, exc
+                    )
                 else:
                     time.sleep(1)  # Brief pause before retry
 
@@ -496,7 +502,7 @@ def ingest_code_entities(
     return result
 
 
-def collection_status(client: weaviate.WeaviateClient) -> Dict[str, int]:
+def collection_status(client: weaviate.WeaviateClient) -> dict[str, int]:
     """
     Return basic statistics for the CodeEntity collection.
 
@@ -524,7 +530,7 @@ def _configure_logging(verbose: bool) -> None:
         logger.setLevel(level)
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI entry point for code ingestion.
 

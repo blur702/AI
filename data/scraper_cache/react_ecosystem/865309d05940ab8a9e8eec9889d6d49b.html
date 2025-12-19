@@ -1,437 +1,2616 @@
 <!doctype html>
-<html lang="en" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-introduction/learning-resources" data-has-hydrated="false">
-<head>
-<meta charset="UTF-8">
-<meta name="generator" content="Docusaurus v3.6.3">
-<title data-rh="true">Learning Resources | Redux</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" property="og:image" content="https://redux.js.org/img/redux-logo-landscape.png"><meta data-rh="true" name="twitter:image" content="https://redux.js.org/img/redux-logo-landscape.png"><meta data-rh="true" property="og:url" content="https://redux.js.org/introduction/learning-resources"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="twitter:card" content="summary"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Learning Resources | Redux"><meta data-rh="true" name="description" content="Introduction &gt; Learning Resources: Additional articles and resources for learning Redux"><meta data-rh="true" property="og:description" content="Introduction &gt; Learning Resources: Additional articles and resources for learning Redux"><link data-rh="true" rel="icon" href="/img/favicon/favicon.ico"><link data-rh="true" rel="canonical" href="https://redux.js.org/introduction/learning-resources"><link data-rh="true" rel="alternate" href="https://redux.js.org/introduction/learning-resources" hreflang="en"><link data-rh="true" rel="alternate" href="https://redux.js.org/introduction/learning-resources" hreflang="x-default"><link rel="preconnect" href="https://redux-docs-umami.up.railway.app">
-<script async defer="defer" src="https://redux-docs-umami.up.railway.app/script.js" data-website-id="4bb3bf09-7460-453f-857d-874d8a361cb6" data-auto-track="true" data-do-not-track="true" data-cache="true" data-exclude-search="false" data-exclude-hash="false"></script><link rel="stylesheet" href="/assets/css/styles.9a914e26.css">
-<script src="/assets/js/runtime~main.e50cc099.js" defer="defer"></script>
-<script src="/assets/js/main.3ed293ec.js" defer="defer"></script>
-</head>
-<body class="navigation-with-keyboard">
-<script>!function(){function t(t){document.documentElement.setAttribute("data-theme",t)}var e=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();t(null!==e?e:"light")}(),function(){try{const n=new URLSearchParams(window.location.search).entries();for(var[t,e]of n)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/img/redux.svg"><div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">Skip to main content</a></div><nav aria-label="Main" class="navbar navbar--fixed-top"><div class="navbar__inner"><div class="navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/"><div class="navbar__logo"><img src="/img/redux.svg" alt="Redux Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"><img src="/img/redux.svg" alt="Redux Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"></div><b class="navbar__title text--truncate">Redux</b></a></div><div class="navbar__items navbar__items--right"><a class="navbar__item navbar__link" href="/introduction/getting-started">Getting Started</a><a class="navbar__item navbar__link" href="/tutorials/essentials/part-1-overview-concepts">Tutorial</a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/usage/">Usage Guide</a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/api/api-reference">API</a><a class="navbar__item navbar__link" href="/faq">FAQ</a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/style-guide/">Best Practices</a><a href="https://www.github.com/reduxjs/redux" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a><a class="navbar__item navbar__link" href="/introduction/getting-started#help-and-discussion">Need help?</a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="Switch between dark and light mode (currently light mode)" aria-label="Switch between dark and light mode (currently light mode)" aria-live="polite" aria-pressed="false"><svg viewBox="0 0 24 24" width="24" height="24" class="lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" class="darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg></button></div><div class="navbarSearchContainer_Bca1"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="main-wrapper mainWrapper_z2l0"><div class="docsWrapper_hBAB"><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type="button"></button><div class="docRoot_UBD9"><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class="sidebarViewport_aRkj"><div class="sidebar_njMd"><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role="button" aria-expanded="true" href="/introduction/getting-started">Introduction</a></div><ul style="display:block;overflow:visible;height:auto" class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/introduction/getting-started">Getting Started with Redux</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/introduction/installation">Installation</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/introduction/why-rtk-is-redux-today">Why Redux Toolkit is How To Use Redux Today</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/introduction/core-concepts">Core Concepts</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/introduction/learning-resources">Learning Resources</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/introduction/ecosystem">Ecosystem</a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link" tabindex="0" href="/introduction/examples">Examples</a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/tutorials/index">Tutorials</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/usage/">Using Redux</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/understanding/thinking-in-redux/motivation">Understanding Redux</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/faq">FAQ</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/style-guide/">Style Guide</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/api/api-reference">API Reference</a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" href="/redux-toolkit/overview">Redux Toolkit</a></div></li></ul></nav></div></div></aside><main class="docMainContainer_TBSr"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_VOVn"><div class="docItemContainer_Djhp"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label="Breadcrumbs"><ul class="breadcrumbs" itemscope="" itemtype="https://schema.org/BreadcrumbList"><li class="breadcrumbs__item"><a aria-label="Home page" class="breadcrumbs__link" href="/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_YNFT"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><span class="breadcrumbs__link">Introduction</span><meta itemprop="position" content="1"></li><li itemscope="" itemprop="itemListElement" itemtype="https://schema.org/ListItem" class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link" itemprop="name">Learning Resources</span><meta itemprop="position" content="2"></li></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Learning Resources</h1></header>
-<p>The Redux docs are intended to teach the basic concepts of Redux, as well as explain key concepts for use in real-world applications. However, the docs can&#x27;t cover everything. Happily, there are many other great resources available for learning Redux. We encourage you to check them out. Many of them cover topics that are beyond the scope of the docs, or describe the same topics in other ways that may work better for your learning style.</p>
-<p>This page includes our recommendations for some of the best external resources available to learn Redux. For an additional extensive list of tutorials, articles, and other resources on React, Redux, Javascript, and related topics, see the <a href="https://github.com/markerikson/react-redux-links" target="_blank" rel="noopener noreferrer">React/Redux Links list</a>.</p>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="basic-introductions">Basic Introductions<a href="#basic-introductions" class="hash-link" aria-label="Direct link to Basic Introductions" title="Direct link to Basic Introductions">​</a></h2>
-<p><em>Tutorials that teach the basic concepts of Redux and how to use it</em></p>
-<ul>
-<li>
-<p><strong>Intro to React, Redux, and TypeScript</strong> <br>
-<a href="https://blog.isquaredsoftware.com/2020/12/presentations-react-redux-ts-intro/" target="_blank" rel="noopener noreferrer">https://blog.isquaredsoftware.com/2020/12/presentations-react-redux-ts-intro/</a> <br>
-Redux maintainer Mark Erikson&#x27;s slideset that covers the basics of React, Redux, and TypeScript. Redux topics include stores, reducers, middleware, React-Redux, and Redux Toolkit.</p>
-</li>
-<li>
-<p><strong>Learn Modern Redux - Redux Toolkit, React-Redux Hooks, and RTK Query</strong> <br>
-<a href="https://www.learnwithjason.dev/let-s-learn-modern-redux" target="_blank" rel="noopener noreferrer">https://www.learnwithjason.dev/let-s-learn-modern-redux</a> <br>
-An episode of the &quot;Learn with Jason&quot; show, with Redux maintainer Mark Erikson as guest. The episode features a live-coded app, and shows how to create a new React+TS project, add the Redux packages, and set up Redux Toolkit and React-Redux from scratch (including our recommended TS hooks configuration). It also shows how to use the upcoming RTK Query data fetching API and display that data in a UI.</p>
-</li>
-<li>
-<p><strong>Redux Tutorial: An Overview and Walkthrough</strong> <br>
-<a href="https://www.taniarascia.com/redux-react-guide/" target="_blank" rel="noopener noreferrer">https://www.taniarascia.com/redux-react-guide/</a> <br>
-A well-written tutorial from Tania Rascia that quickly explains key Redux concepts, and shows how to put together a basic Redux + React app using vanilla Redux and Redux Toolkit.</p>
-</li>
-<li>
-<p><strong>Redux for Beginners - The Brain-Friendly Guide to Learning Redux</strong> <br>
-<a href="https://www.freecodecamp.org/news/redux-for-beginners-the-brain-friendly-guide-to-redux/" target="_blank" rel="noopener noreferrer">https://www.freecodecamp.org/news/redux-for-beginners-the-brain-friendly-guide-to-redux/</a> <br>
-An easy-to-follow tutorial that builds a small todo app with Redux Toolkit and React-Redux, including data fetching.</p>
-</li>
-<li>
-<p><strong>Redux made easy with Redux Toolkit and TypeScript</strong> <br>
-<a href="https://www.mattbutton.com/redux-made-easy-with-redux-toolkit-and-typescript/" target="_blank" rel="noopener noreferrer">https://www.mattbutton.com/redux-made-easy-with-redux-toolkit-and-typescript/</a> <br>
-A helpful tutorial that shows how to use Redux Toolkit and TypeScript together to write Redux applications, and how RTK simplifies typical Redux usage.</p>
-</li>
-<li>
-<p><strong>Redux: From Twitter Hype to Production</strong> <br>
-<a href="https://slides.com/jenyaterpil/redux-from-twitter-hype-to-production#/" target="_blank" rel="noopener noreferrer">https://slides.com/jenyaterpil/redux-from-twitter-hype-to-production#/</a> <br>
-A well-produced slideshow that visually steps through core Redux concepts, usage with React, project organization, and side effects with thunks and sagas. Has some good animated diagrams demonstrating how data flows through a React+Redux architecture.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="using-redux-with-react">Using Redux With React<a href="#using-redux-with-react" class="hash-link" aria-label="Direct link to Using Redux With React" title="Direct link to Using Redux With React">​</a></h2>
-<p><em>Explanations of the React-Redux bindings library</em></p>
-<ul>
-<li>
-<p><strong>Modernizing a Legacy Redux Application with React-Redux Hooks</strong> <br>
-<a href="https://app.egghead.io/playlists/modernizing-a-legacy-redux-application-with-react-hooks-c528" target="_blank" rel="noopener noreferrer">https://app.egghead.io/playlists/modernizing-a-legacy-redux-application-with-react-hooks-c528</a> <br>
-A video series that shows the differences between the earlier <code>connect</code> API and the newer React-Redux hooks API, and how to use those hooks in your components.</p>
-</li>
-<li>
-<p><strong>Why Redux is Useful in React Apps</strong> <br>
-<a href="https://www.fullstackreact.com/articles/redux-with-mark-erikson/" target="_blank" rel="noopener noreferrer">https://www.fullstackreact.com/articles/redux-with-mark-erikson/</a> <br>
-An explanation of some of the benefits of using Redux with React, including sharing data between components and hot module reloading.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="project-based-tutorials">Project-Based Tutorials<a href="#project-based-tutorials" class="hash-link" aria-label="Direct link to Project-Based Tutorials" title="Direct link to Project-Based Tutorials">​</a></h2>
-<p><em>Tutorials that teach Redux concepts by building projects, including larger &quot;real-world&quot;-type applications</em></p>
-<ul>
-<li><strong>Practical Redux</strong> <br>
-<a href="https://blog.isquaredsoftware.com/2016/10/practical-redux-part-0-introduction/" target="_blank" rel="noopener noreferrer">https://blog.isquaredsoftware.com/2016/10/practical-redux-part-0-introduction/</a> <br>
-<a href="https://blog.isquaredsoftware.com/series/practical-redux/" target="_blank" rel="noopener noreferrer">https://blog.isquaredsoftware.com/series/practical-redux/</a> <br>
-An ongoing series of posts intended to demonstrate a number of specific Redux techniques by building a sample application, based on the MekHQ application for managing Battletech campaigns. Written by Redux co-maintainer Mark Erikson. Covers topics like managing relational data, connecting multiple components and lists, complex reducer logic for features, handling forms, showing modal dialogs, and much more. (Note: this is an older series, and today we recommend newer patterns for writing Redux code. However, many of the principles in this series are still valuable.)</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="redux-implementation">Redux Implementation<a href="#redux-implementation" class="hash-link" aria-label="Direct link to Redux Implementation" title="Direct link to Redux Implementation">​</a></h2>
-<p><em>Explanations of how Redux works internally, by writing miniature reimplementations</em></p>
-<ul>
-<li>
-<p><strong>Getting Started with Redux - Video Series</strong> <br>
-<a href="https://egghead.io/courses/fundamentals-of-redux-course-from-dan-abramov-bd5cc867" target="_blank" rel="noopener noreferrer">https://egghead.io/courses/fundamentals-of-redux-course-from-dan-abramov-bd5cc867</a> <br>
-<a href="https://github.com/tayiorbeii/egghead.io_redux_course_notes" target="_blank" rel="noopener noreferrer">https://github.com/tayiorbeii/egghead.io_redux_course_notes</a> <br>
-Dan Abramov, the creator of Redux, demonstrates various concepts in 30 short (2-5 minute) videos. The linked Github repo contains notes and transcriptions of the videos.</p>
-</li>
-<li>
-<p><strong>Building React Applications with Idiomatic Redux - Video Series</strong> <br>
-<a href="https://egghead.io/courses/building-react-applications-with-idiomatic-redux" target="_blank" rel="noopener noreferrer">https://egghead.io/courses/building-react-applications-with-idiomatic-redux</a> <br>
-<a href="https://github.com/tayiorbeii/egghead.io_idiomatic_redux_course_notes" target="_blank" rel="noopener noreferrer">https://github.com/tayiorbeii/egghead.io_idiomatic_redux_course_notes</a> <br>
-Dan Abramov&#x27;s second video tutorial series, continuing directly after the first. Includes lessons on store initial state, using Redux with React Router, using &quot;selector&quot; functions, normalizing state, use of Redux middleware, async action creators, and more. The linked Github repo contains notes and transcriptions of the videos.</p>
-</li>
-<li>
-<p><strong>Live React: Hot Reloading and Time Travel</strong> <br>
-<a href="https://youtube.com/watch?v=xsSnOQynTHs" target="_blank" rel="noopener noreferrer">https://youtube.com/watch?v=xsSnOQynTHs</a> <br>
-Dan Abramov&#x27;s original conference talk that introduced Redux. See how constraints enforced by Redux make hot reloading with time travel easy</p>
-</li>
-<li>
-<p><strong>Build Yourself a Redux</strong> <br>
-<a href="https://zapier.com/engineering/how-to-build-redux/" target="_blank" rel="noopener noreferrer">https://zapier.com/engineering/how-to-build-redux/</a> <br>
-An excellent in-depth &quot;build a mini-Redux&quot; article, which covers not only Redux&#x27;s core, but also <code>connect</code> and middleware as well.</p>
-</li>
-<li>
-<p><strong>Connect.js explained</strong> <br>
-<a href="https://gist.github.com/gaearon/1d19088790e70ac32ea636c025ba424e" target="_blank" rel="noopener noreferrer">https://gist.github.com/gaearon/1d19088790e70ac32ea636c025ba424e</a> <br>
-A very simplified version of React Redux&#x27;s <code>connect()</code> function that illustrates the basic implementation</p>
-</li>
-<li>
-<p><strong>Let&#x27;s Write Redux!</strong> <br>
-<a href="https://www.jamasoftware.com/blog/lets-write-redux/" target="_blank" rel="noopener noreferrer">https://www.jamasoftware.com/blog/lets-write-redux/</a> <br>
-Walks through writing a miniature version of Redux step-by-step, to help explain the concepts and implementation.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="reducers">Reducers<a href="#reducers" class="hash-link" aria-label="Direct link to Reducers" title="Direct link to Reducers">​</a></h2>
-<p><em>Articles discussing ways to write reducer functions</em></p>
-<ul>
-<li>
-<p><strong>Taking Advantage of <code>combineReducers</code></strong> <br>
-<a href="https://randycoulman.com/blog/2016/11/22/taking-advantage-of-combinereducers/" target="_blank" rel="noopener noreferrer">https://randycoulman.com/blog/2016/11/22/taking-advantage-of-combinereducers/</a> <br>
-Examples of using <code>combineReducers</code> multiple times to produce a state tree, and some thoughts on tradeoffs in various approaches to reducer logic.</p>
-</li>
-<li>
-<p><strong>The Power of Higher-Order Reducers</strong> <br>
-<a href="https://slides.com/omnidan/hor#/" target="_blank" rel="noopener noreferrer">https://slides.com/omnidan/hor#/</a> <br>
-A slideshow from the author of redux-undo and other libraries, explaining the concept of higher-order reducers and how they can be used</p>
-</li>
-<li>
-<p><strong>Reducer composition with Higher Order Reducers</strong> <br>
-<a href="https://medium.com/@mange_vibration/reducer-composition-with-higher-order-reducers-35c3977ed08f" target="_blank" rel="noopener noreferrer">https://medium.com/@mange_vibration/reducer-composition-with-higher-order-reducers-35c3977ed08f</a> <br>
-Some great examples of writing small functions that can be composed together to perform larger specific reducer tasks, such as providing initial state, filtering, updating specific keys, and more.</p>
-</li>
-<li>
-<p><strong>Higher Order Reducers - It just sounds scary</strong> <br>
-<a href="https://medium.com/@danielkagan/high-order-reducers-it-just-sounds-scary-2b9e5dbfc705" target="_blank" rel="noopener noreferrer">https://medium.com/@danielkagan/high-order-reducers-it-just-sounds-scary-2b9e5dbfc705</a> <br>
-Explains how reducers can be composed like Lego bricks to create reusable and testable reducer logic.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="selectors">Selectors<a href="#selectors" class="hash-link" aria-label="Direct link to Selectors" title="Direct link to Selectors">​</a></h2>
-<p><em>Explanations of how and why to use selector functions to read values from state</em></p>
-<ul>
-<li>
-<p><strong>Idiomatic Redux: Using Reselect Selectors for Encapsulation and Performance</strong> <br>
-<a href="https://blog.isquaredsoftware.com/2017/12/idiomatic-redux-using-reselect-selectors/" target="_blank" rel="noopener noreferrer">https://blog.isquaredsoftware.com/2017/12/idiomatic-redux-using-reselect-selectors/</a> <br>
-A complete guide to why you should use selector functions with Redux, how to use the Reselect library to write optimized selectors, and advanced tips for improving performance.</p>
-</li>
-<li>
-<p><strong>ReactCasts #8: Selectors in Redux</strong> <br>
-<a href="https://www.youtube.com/watch?v=frT3to2ACCw" target="_blank" rel="noopener noreferrer">https://www.youtube.com/watch?v=frT3to2ACCw</a> <br>
-A great overview of why and how to use selector functions to retrieve data from the store, and derive additional data from store values</p>
-</li>
-<li>
-<p><strong>Optimizing React Redux Application Development with Reselect</strong> <br>
-<a href="https://codebrahma.com/reselect-tutorial-optimizing-react-redux-application-development-with-reselect/" target="_blank" rel="noopener noreferrer">https://codebrahma.com/reselect-tutorial-optimizing-react-redux-application-development-with-reselect/</a> <br>
-A good tutorial on Reselect. Covers the concept of &quot;selector functions&quot;, how to use Reselect&#x27;s API, and how to use memoized selectors to improve performance.</p>
-</li>
-<li>
-<p><strong>Usage of Reselect in a React-Redux Application</strong> <br>
-<a href="https://dashbouquet.com/blog/frontend-development/usage-of-reselect-in-a-react-redux-application" target="_blank" rel="noopener noreferrer">https://dashbouquet.com/blog/frontend-development/usage-of-reselect-in-a-react-redux-application</a> <br>
-Discusses the importance of memoized selectors for performance, and good practices for using Reselect.</p>
-</li>
-<li>
-<p><strong>React, Reselect, and Redux</strong> <br>
-<a href="https://medium.com/@parkerdan/react-reselect-and-redux-b34017f8194c" target="_blank" rel="noopener noreferrer">https://medium.com/@parkerdan/react-reselect-and-redux-b34017f8194c</a> <br>
-An explanation of how Reselect&#x27;s memoized selector functions are useful in Redux apps, and how to create unique selector instances for each component instance.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="normalization">Normalization<a href="#normalization" class="hash-link" aria-label="Direct link to Normalization" title="Direct link to Normalization">​</a></h2>
-<p><em>How to structure the Redux store like a database for best performance</em></p>
-<ul>
-<li>
-<p><strong>Querying a Redux Store</strong> <br>
-<a href="https://medium.com/@adamrackis/querying-a-redux-store-37db8c7f3b0f" target="_blank" rel="noopener noreferrer">https://medium.com/@adamrackis/querying-a-redux-store-37db8c7f3b0f</a> <br>
-A look at best practices for organizing and storing data in Redux, including normalizing data and use of selector functions.</p>
-</li>
-<li>
-<p><strong>Normalizing Redux Stores for Maximum Code Reuse</strong> <br>
-<a href="https://medium.com/@adamrackis/normalizing-redux-stores-for-maximum-code-reuse-ae6e3844ae95" target="_blank" rel="noopener noreferrer">https://medium.com/@adamrackis/normalizing-redux-stores-for-maximum-code-reuse-ae6e3844ae95</a> <br>
-Thoughts on how normalized Redux stores enable some useful data handling approaches, with examples of using selector functions to denormalize hierarchical data.</p>
-</li>
-<li>
-<p><strong>Advanced Redux Entity Normalization</strong> <br>
-<a href="https://medium.com/@dcousineau/advanced-redux-entity-normalization-f5f1fe2aefc5" target="_blank" rel="noopener noreferrer">https://medium.com/@dcousineau/advanced-redux-entity-normalization-f5f1fe2aefc5</a> <br>
-Describes a &quot;keyWindow&quot; concept for tracking subsets of entities in state, similar to an SQL &quot;view&quot;. A useful extension to the idea of normalized data.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="middleware">Middleware<a href="#middleware" class="hash-link" aria-label="Direct link to Middleware" title="Direct link to Middleware">​</a></h2>
-<p><em>Explanations and examples of how middleware work and how to write them</em></p>
-<ul>
-<li>
-<p><strong>Exploring Redux Middlewares</strong> <br>
-<a href="https://blog.krawaller.se/posts/exploring-redux-middleware/" target="_blank" rel="noopener noreferrer">https://blog.krawaller.se/posts/exploring-redux-middleware/</a> <br>
-Understanding middlewares through a series of small experiments</p>
-</li>
-<li>
-<p><strong>Redux Middleware Tutorial</strong> <br>
-<a href="https://github.com/pshrmn/notes/blob/master/redux/redux-middleware.md" target="_blank" rel="noopener noreferrer">https://github.com/pshrmn/notes/blob/master/redux/redux-middleware.md</a> <br>
-An overview of what middleware is, how <code>applyMiddleware</code> works, and how to write middleware.</p>
-</li>
-<li>
-<p><strong>ReactCasts #6: Redux Middleware</strong> <br>
-<a href="https://www.youtube.com/watch?v=T-qtHI1qHIg" target="_blank" rel="noopener noreferrer">https://www.youtube.com/watch?v=T-qtHI1qHIg</a> <br>
-A screencast that describes how middleware fit into Redux, their uses, and how to implement a custom middleware</p>
-</li>
-<li>
-<p><strong>A Beginner&#x27;s Guide to Redux Middleware</strong> <br>
-<a href="https://www.codementor.io/reactjs/tutorial/beginner-s-guide-to-redux-middleware" target="_blank" rel="noopener noreferrer">https://www.codementor.io/reactjs/tutorial/beginner-s-guide-to-redux-middleware</a> <br>
-A useful explanation of middleware use cases, with numerous examples</p>
-</li>
-<li>
-<p><strong>Functional Composition in Javascript</strong> <br>
-<a href="https://joecortopassi.com/articles/functional-composition-in-javascript/" target="_blank" rel="noopener noreferrer">https://joecortopassi.com/articles/functional-composition-in-javascript/</a> <br>
-Breaking down how the <code>compose</code> function works</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="side-effects---basics">Side Effects - Basics<a href="#side-effects---basics" class="hash-link" aria-label="Direct link to Side Effects - Basics" title="Direct link to Side Effects - Basics">​</a></h2>
-<p><em>Introductions to handling async behavior in Redux</em></p>
-<ul>
-<li>
-<p><strong>Stack Overflow: Dispatching Redux Actions with a Timeout</strong> <br>
-<a href="https://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559" target="_blank" rel="noopener noreferrer">https://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559</a> <br>
-Dan Abramov explains the basics of managing async behavior in Redux, walking through a progressive series of approaches (inline async calls, async action creators, thunk middleware).</p>
-</li>
-<li>
-<p><strong>Stack Overflow: Why do we need middleware for async flow in Redux?</strong> <br>
-<a href="https://stackoverflow.com/questions/34570758/why-do-we-need-middleware-for-async-flow-in-redux/34599594#34599594" target="_blank" rel="noopener noreferrer">https://stackoverflow.com/questions/34570758/why-do-we-need-middleware-for-async-flow-in-redux/34599594#34599594</a> <br>
-Dan Abramov gives reasons for using thunks and async middleware, and some useful patterns for using thunks.</p>
-</li>
-<li>
-<p><strong>What the heck is a &quot;thunk&quot;?</strong> <br>
-<a href="https://daveceddia.com/what-is-a-thunk/" target="_blank" rel="noopener noreferrer">https://daveceddia.com/what-is-a-thunk/</a> <br>
-A quick explanation for what the word &quot;thunk&quot; means in general, and for Redux specifically.</p>
-</li>
-<li>
-<p><strong>Thunks in Redux: The Basics</strong> <br>
-<a href="https://medium.com/fullstack-academy/thunks-in-redux-the-basics-85e538a3fe60" target="_blank" rel="noopener noreferrer">https://medium.com/fullstack-academy/thunks-in-redux-the-basics-85e538a3fe60</a> <br>
-A detailed look at what thunks are, what they solve, and how to use them.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="side-effects---advanced">Side Effects - Advanced<a href="#side-effects---advanced" class="hash-link" aria-label="Direct link to Side Effects - Advanced" title="Direct link to Side Effects - Advanced">​</a></h2>
-<p><em>Advanced tools and techniques for managing async behavior</em></p>
-<ul>
-<li>
-<p><strong>What is the right way to do asynchronous operations in Redux?</strong> <br>
-<a href="https://decembersoft.com/posts/what-is-the-right-way-to-do-asynchronous-operations-in-redux/" target="_blank" rel="noopener noreferrer">https://decembersoft.com/posts/what-is-the-right-way-to-do-asynchronous-operations-in-redux/</a> <br>
-An excellent look at the most popular libraries for Redux side effects, with comparisons of how each one works.</p>
-</li>
-<li>
-<p><strong>Redux 4 Ways</strong> <br>
-<a href="https://medium.com/react-native-training/redux-4-ways-95a130da0cdc" target="_blank" rel="noopener noreferrer">https://medium.com/react-native-training/redux-4-ways-95a130da0cdc</a> <br>
-Side-by-side comparisons of implementing some basic data fetching using thunks, sagas, observables, and a promise middleware</p>
-</li>
-<li>
-<p><strong>Idiomatic Redux: Thoughts on Thunks, Sagas, Abstractions, and Reusability</strong> <br>
-<a href="https://blog.isquaredsoftware.com/2017/01/idiomatic-redux-thoughts-on-thunks-sagas-abstraction-and-reusability/" target="_blank" rel="noopener noreferrer">https://blog.isquaredsoftware.com/2017/01/idiomatic-redux-thoughts-on-thunks-sagas-abstraction-and-reusability/</a> <br>
-A response to several &quot;thunks are bad&quot; concerns, arguing that thunks (and sagas) are still a valid approach for managing complex sync logic and async side effects.</p>
-</li>
-<li>
-<p><strong>Javascript Power Tools: Redux-Saga</strong> <br>
-<a href="https://formidable.com/blog/2017/javascript-power-tools-redux-saga/" target="_blank" rel="noopener noreferrer">https://formidable.com/blog/2017/javascript-power-tools-redux-saga/</a> <br>
-<a href="https://formidable.com/blog/2017/composition-patterns-in-redux-saga/" target="_blank" rel="noopener noreferrer">https://formidable.com/blog/2017/composition-patterns-in-redux-saga/</a> <br>
-<a href="https://formidable.com/blog/2017/real-world-redux-saga-patterns/" target="_blank" rel="noopener noreferrer">https://formidable.com/blog/2017/real-world-redux-saga-patterns/</a> <br>
-A fantastic series that teaches the concepts, implementation, and benefits behind Redux-Saga, including how ES6 generators are used to control function flow, how sagas can be composed together to accomplish concurrency, and practical use cases for sagas.</p>
-</li>
-<li>
-<p><strong>Exploring Redux Sagas</strong> <br>
-<a href="https://medium.com/onfido-tech/exploring-redux-sagas-cc1fca2015ee" target="_blank" rel="noopener noreferrer">https://medium.com/onfido-tech/exploring-redux-sagas-cc1fca2015ee</a> <br>
-An excellent article that explores how to use sagas to provide a glue layer to implement decoupled business logic in a Redux application.</p>
-</li>
-<li>
-<p><strong>Taming Redux with Sagas</strong> <br>
-<a href="https://objectpartners.com/2017/11/20/taming-redux-with-sagas/" target="_blank" rel="noopener noreferrer">https://objectpartners.com/2017/11/20/taming-redux-with-sagas/</a> <br>
-A good overview of Redux-Saga, including info on generator functions, use cases for sagas, using sagas to deal with promises, and testing sagas.</p>
-</li>
-<li>
-<p><strong>Reactive Redux State with RxJS</strong> <br>
-<a href="https://ivanjov.com/reactive-redux-state-with-rxjs/" target="_blank" rel="noopener noreferrer">https://ivanjov.com/reactive-redux-state-with-rxjs/</a> <br>
-Describes the concept of &quot;Reactive Programming&quot; and the RxJS library, and shows how to use redux-observable to fetch data, along with examples of testing.</p>
-</li>
-<li>
-<p><strong>Using redux-observable to handle asynchronous logic in Redux</strong> <br>
-<a href="https://medium.com/dailyjs/using-redux-observable-to-handle-asynchronous-logic-in-redux-d49194742522" target="_blank" rel="noopener noreferrer">https://medium.com/dailyjs/using-redux-observable-to-handle-asynchronous-logic-in-redux-d49194742522</a> <br>
-An extended post that compares a thunk-based implementation of handling a line-drawing example vs an observable-based implementation.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="thinking-in-redux">Thinking in Redux<a href="#thinking-in-redux" class="hash-link" aria-label="Direct link to Thinking in Redux" title="Direct link to Thinking in Redux">​</a></h2>
-<p><em>Deeper looks at how Redux is meant to be used, and why it works the way it does</em></p>
-<ul>
-<li><strong>When (and when not) to reach for Redux</strong> <br>
-<a href="https://changelog.com/posts/when-and-when-not-to-reach-for-redux" target="_blank" rel="noopener noreferrer">https://changelog.com/posts/when-and-when-not-to-reach-for-redux</a> <br>
-Redux maintainer Mark Erikson describes the problems Redux was created to solve, and how it compares to other commonly used tools.</li>
-</ul>
-<ul>
-<li>
-<p><strong>You Might Not Need Redux</strong> <br>
-<a href="https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367" target="_blank" rel="noopener noreferrer">https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367</a> <br>
-Dan Abramov discusses the tradeoffs involved in using Redux.</p>
-</li>
-<li>
-<p><strong>Idiomatic Redux: The Tao of Redux, Part 1 - Implementation and Intent</strong> <br>
-<a href="https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-1/" target="_blank" rel="noopener noreferrer">https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-1/</a> <br>
-A deep dive into how Redux actually works, the constraints it asks you to follow, and the intent behind its design and usage.</p>
-</li>
-<li>
-<p><strong>Idiomatic Redux: The Tao of Redux, Part 2 - Practice and Philosophy</strong> <br>
-<a href="https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-2/" target="_blank" rel="noopener noreferrer">https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-2/</a> <br>
-A follow-up look at why common Redux usage patterns exist, other ways that Redux can be used, and thoughts on the pros and cons of those different patterns and approaches.</p>
-</li>
-<li>
-<p><strong>What&#x27;s So Great About Redux?</strong> <br>
-<a href="https://medium.freecodecamp.org/whats-so-great-about-redux-ac16f1cc0f8b" target="_blank" rel="noopener noreferrer">https://medium.freecodecamp.org/whats-so-great-about-redux-ac16f1cc0f8b</a> <br>
-Deep and fascinating analysis of how Redux compares to OOP and message-passing, how typical Redux usage can devolve towards Java-like &quot;setter&quot; functions with more boilerplate, and something of a plea for a higher-level &quot;blessed&quot; abstraction on top of Redux to make it easier to work with and learn for newbies. Very worth reading.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="redux-architecture">Redux Architecture<a href="#redux-architecture" class="hash-link" aria-label="Direct link to Redux Architecture" title="Direct link to Redux Architecture">​</a></h2>
-<p><em>Patterns and practices for structuring larger Redux applications</em></p>
-<ul>
-<li>
-<p><strong>Avoiding Accidental Complexity When Structuring Your App State</strong> <br>
-<a href="https://hackernoon.com/avoiding-accidental-complexity-when-structuring-your-app-state-6e6d22ad5e2a" target="_blank" rel="noopener noreferrer">https://hackernoon.com/avoiding-accidental-complexity-when-structuring-your-app-state-6e6d22ad5e2a</a> <br>
-An excellent set of guidelines for organizing your Redux store structure.</p>
-</li>
-<li>
-<p><strong>Redux Step by Step: A Simple and Robust Workflow for Real Life Apps</strong> <br>
-<a href="https://hackernoon.com/redux-step-by-step-a-simple-and-robust-workflow-for-real-life-apps-1fdf7df46092" target="_blank" rel="noopener noreferrer">https://hackernoon.com/redux-step-by-step-a-simple-and-robust-workflow-for-real-life-apps-1fdf7df46092</a> <br>
-A follow-up to the &quot;Accidental Complexity&quot; article, discussing principle</p>
-</li>
-<li>
-<p><strong>Things I Wish I Knew About Redux</strong> <br>
-<a href="https://medium.com/horrible-hacks/things-i-wish-i-knew-about-redux-9924abf2f9e0" target="_blank" rel="noopener noreferrer">https://medium.com/horrible-hacks/things-i-wish-i-knew-about-redux-9924abf2f9e0</a> <br>
-<a href="https://www.reddit.com/r/javascript/comments/4taau2/things_i_wish_i_knew_about_redux/" target="_blank" rel="noopener noreferrer">https://www.reddit.com/r/javascript/comments/4taau2/things_i_wish_i_knew_about_redux/</a> <br>
-A number of excellent tips and lessons learned after building an app with Redux. Includes info on connecting components, selecting data, and app/project structure. Additional discussion on Reddit.</p>
-</li>
-<li>
-<p><strong>React+Redux: Tips and Best Practices for Clean, Reliable, &amp; Maintainable Code</strong> <br>
-<a href="https://speakerdeck.com/goopscoop/react-plus-redux-tips-and-best-practices-for-clean-reliable-and-scalable-code" target="_blank" rel="noopener noreferrer">https://speakerdeck.com/goopscoop/react-plus-redux-tips-and-best-practices-for-clean-reliable-and-scalable-code</a> <br>
-An excellent slideshow with a wide variety of tips and suggestions, including keeping action creators simple and data manipulation in reducers, abstracting away API calls, avoiding spreading props, and more.</p>
-</li>
-<li>
-<p><strong>Redux for state management in large web apps</strong> <br>
-<a href="https://blog.mapbox.com/redux-for-state-management-in-large-web-apps-c7f3fab3ce9b" target="_blank" rel="noopener noreferrer">https://blog.mapbox.com/redux-for-state-management-in-large-web-apps-c7f3fab3ce9b</a> <br>
-Excellent discussion and examples of idiomatic Redux architecture, and how Mapbox applies those approaches to their Mapbox Studio application.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="apps-and-examples">Apps and Examples<a href="#apps-and-examples" class="hash-link" aria-label="Direct link to Apps and Examples" title="Direct link to Apps and Examples">​</a></h2>
-<ul>
-<li>
-<p><strong>React-Redux RealWorld Example: TodoMVC for the Real World</strong> <br>
-<a href="https://github.com/GoThinkster/redux-review" target="_blank" rel="noopener noreferrer">https://github.com/GoThinkster/redux-review</a> <br>
-An example full-stack &quot;real world&quot; application built with Redux. Demos a Medium-like social blogging site that includes JWT authentication, CRUD, favoriting articles, following users, routing, and more. The RealWorld project also includes many other implementations of the front and back ends of the site, specifically intended to show how different server and client implementations of the same project and API spec compare with each other.</p>
-</li>
-<li>
-<p><strong>Project Mini-Mek</strong> <br>
-<a href="https://github.com/markerikson/project-minimek" target="_blank" rel="noopener noreferrer">https://github.com/markerikson/project-minimek</a> <br>
-A sample app to demonstrate various useful Redux techniques, accompanying the &quot;Practical Redux&quot; blog series at <a href="https://blog.isquaredsoftware.com/series/practical-redux" target="_blank" rel="noopener noreferrer">https://blog.isquaredsoftware.com/series/practical-redux</a></p>
-</li>
-<li>
-<p><strong>react-redux-yelp-clone</strong> <br>
-<a href="https://github.com/mohamed-ismat/react-redux-yelp-clone" target="_blank" rel="noopener noreferrer">https://github.com/mohamed-ismat/react-redux-yelp-clone</a> <br>
-An adaptation of the &quot;Yelp Clone&quot; app by FullStackReact. It extends the original by using Redux and Redux Saga instead of local state, as well as React Router v4, styled-components, and other modern standards. Based on the React-Boilerplate starter kit.</p>
-</li>
-<li>
-<p><strong>WordPress-Calypso</strong> <br>
-<a href="https://github.com/Automattic/wp-calypso" target="_blank" rel="noopener noreferrer">https://github.com/Automattic/wp-calypso</a> <br>
-The new JavaScript- and API-powered WordPress.com</p>
-</li>
-<li>
-<p><strong>Sound-Redux</strong> <br>
-<a href="https://github.com/andrewngu/sound-redux" target="_blank" rel="noopener noreferrer">https://github.com/andrewngu/sound-redux</a> <br>
-A Soundcloud client built with React / Redux</p>
-</li>
-<li>
-<p><strong>Webamp</strong> <br>
-<a href="https://webamp.org" target="_blank" rel="noopener noreferrer">https://webamp.org</a> <br>
-<a href="https://github.com/captbaritone/webamp" target="_blank" rel="noopener noreferrer">https://github.com/captbaritone/webamp</a> <br>
-An in-browser recreation of Winamp2, built with React and Redux. Actually plays MP3s, and lets you load in local MP3 files.</p>
-</li>
-<li>
-<p><strong>Tello</strong> <br>
-<a href="https://github.com/joshwcomeau/Tello" target="_blank" rel="noopener noreferrer">https://github.com/joshwcomeau/Tello</a> <br>
-A simple and delightful way to track and manage TV shows</p>
-</li>
-<li>
-<p><strong>io-808</strong> <br>
-<a href="https://github.com/vincentriemer/io-808" target="_blank" rel="noopener noreferrer">https://github.com/vincentriemer/io-808</a> <br>
-An attempt at a fully recreated web-based TR-808 drum machine</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="redux-docs-translations">Redux Docs Translations<a href="#redux-docs-translations" class="hash-link" aria-label="Direct link to Redux Docs Translations" title="Direct link to Redux Docs Translations">​</a></h2>
-<ul>
-<li><a href="http://camsong.github.io/redux-in-chinese/" target="_blank" rel="noopener noreferrer">中文文档</a> — Chinese</li>
-<li><a href="https://github.com/chentsulin/redux" target="_blank" rel="noopener noreferrer">繁體中文文件</a> — Traditional Chinese</li>
-<li><a href="https://github.com/rajdee/redux-in-russian" target="_blank" rel="noopener noreferrer">Redux in Russian</a> — Russian</li>
-<li><a href="https://es.redux.js.org/" target="_blank" rel="noopener noreferrer">Redux en Español</a> - Spanish</li>
-<li><a href="https://ko.redux.js.org/" target="_blank" rel="noopener noreferrer">Redux in Korean</a> - Korean</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="books">Books<a href="#books" class="hash-link" aria-label="Direct link to Books" title="Direct link to Books">​</a></h2>
-<ul>
-<li>
-<p><strong>Redux in Action</strong> <br>
-<a href="https://www.manning.com/books/redux-in-action" target="_blank" rel="noopener noreferrer">https://www.manning.com/books/redux-in-action</a> <br>
-A comprehensive book that covers many key aspects of using Redux, including the basics of reducers and actions and use with React, complex middlewares and side effects, application structure, performance, testing, and much more. Does a great job of explaining the pros, cons, and tradeoffs of many approaches to using Redux. Personally recommended by Redux co-maintainer Mark Erikson.</p>
-</li>
-<li>
-<p><strong>The Complete Redux Book</strong> <br>
-<a href="https://leanpub.com/redux-book" target="_blank" rel="noopener noreferrer">https://leanpub.com/redux-book</a> <br>
-How do I manage a large state in production? Why do I need store enhancers? What is the best way to handle form validations? Get the answers to all these questions and many more using simple terms and sample code. Learn everything you need to use Redux to build complex and production-ready web applications. (Note: now permanently free!)</p>
-</li>
-<li>
-<p><strong>Taming the State in React</strong> <br>
-<a href="https://www.robinwieruch.de/learn-react-redux-mobx-state-management/" target="_blank" rel="noopener noreferrer">https://www.robinwieruch.de/learn-react-redux-mobx-state-management/</a> <br>
-If you have learned React with the previous book of the author called The Road to learn React, Taming the State in React will be the perfect blend to learn about basic and advanced state management in React. You will start out with learning only Redux without React. Afterward, the book shows you how to connect Redux to your React application. The advanced chapters will teach you about normalization, naming, selectors and asynchronous actions. In the end, you will set up and build a real world application with React and Redux.</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="courses">Courses<a href="#courses" class="hash-link" aria-label="Direct link to Courses" title="Direct link to Courses">​</a></h2>
-<ul>
-<li>
-<p><strong>Modern React with Redux, by Stephen Grider (paid)</strong> <br>
-<a href="https://www.udemy.com/react-redux/" target="_blank" rel="noopener noreferrer">https://www.udemy.com/react-redux/</a> <br>
-Master the fundamentals of React and Redux with this tutorial as you develop apps with React Router, Webpack, and ES2015. This course will get you up and running quickly, and teach you the core knowledge you need to deeply understand and build React components and structure applications with Redux.</p>
-</li>
-<li>
-<p><strong>Redux, by Tyler McGinnis (paid)</strong> <br>
-<a href="https://tylermcginnis.com/courses/redux/" target="_blank" rel="noopener noreferrer">https://tylermcginnis.com/courses/redux/</a> <br>
-When learning Redux, you need to learn it in the context of an app big enough to see the benefits. That&#x27;s why this course is huge. A better name might be <em>&quot;Real World Redux&quot;</em>. If you&#x27;re sick of &quot;todo list&quot; Redux tutorials, you&#x27;ve come to the right place. In this course we&#x27;ll talk all about what makes Redux special for managing state in your application. We&#x27;ll build an actual &quot;real world&quot; application so you can see how Redux handles edge cases like optimistic updates and error handling. We&#x27;ll also cover many other technologies that work well with Redux, Firebase, and CSS Modules.</p>
-</li>
-<li>
-<p><strong>Learn Redux, by Wes Bos (free)</strong> <br>
-<a href="https://learnredux.com/" target="_blank" rel="noopener noreferrer">https://learnredux.com/</a> <br>
-A video course that walks through building &#x27;Reduxstagram&#x27; — a simple photo app that will simplify the core ideas behind Redux, React Router and React.js</p>
-</li>
-</ul>
-<h2 class="anchor anchorWithStickyNavbar_LWe7" id="more-resources">More Resources<a href="#more-resources" class="hash-link" aria-label="Direct link to More Resources" title="Direct link to More Resources">​</a></h2>
-<ul>
-<li><a href="https://github.com/markerikson/react-redux-links" target="_blank" rel="noopener noreferrer">React-Redux Links</a> is a curated list of high-quality articles, tutorials, and related content for React, Redux, ES2015, and more.</li>
-<li><a href="https://github.com/markerikson/redux-ecosystem-links" target="_blank" rel="noopener noreferrer">Redux Ecosystem Links</a> is a categorized collection of Redux-related libraries, addons, and utilities.</li>
-<li><a href="https://github.com/xgrommx/awesome-redux" target="_blank" rel="noopener noreferrer">Awesome Redux</a> is an extensive list of Redux-related repositories.</li>
-<li><a href="https://dev.to/t/redux" target="_blank" rel="noopener noreferrer">DEV Community</a> is a place to share Redux projects, articles and tutorials as well as start discussions and ask for feedback on Redux-related topics. Developers of all skill-levels are welcome to take part.</li>
-</ul></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/reduxjs/redux/edit/master/website/../docs/introduction/LearningResources.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"><span class="theme-last-updated">Last updated<!-- --> on <b><time datetime="2024-01-03T20:09:22.000Z" itemprop="dateModified">Jan 3, 2024</time></b></span></div></div></footer></article><nav class="pagination-nav docusaurus-mt-lg" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/introduction/core-concepts"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Core Concepts</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/introduction/ecosystem"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Ecosystem</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#basic-introductions" class="table-of-contents__link toc-highlight">Basic Introductions</a></li><li><a href="#using-redux-with-react" class="table-of-contents__link toc-highlight">Using Redux With React</a></li><li><a href="#project-based-tutorials" class="table-of-contents__link toc-highlight">Project-Based Tutorials</a></li><li><a href="#redux-implementation" class="table-of-contents__link toc-highlight">Redux Implementation</a></li><li><a href="#reducers" class="table-of-contents__link toc-highlight">Reducers</a></li><li><a href="#selectors" class="table-of-contents__link toc-highlight">Selectors</a></li><li><a href="#normalization" class="table-of-contents__link toc-highlight">Normalization</a></li><li><a href="#middleware" class="table-of-contents__link toc-highlight">Middleware</a></li><li><a href="#side-effects---basics" class="table-of-contents__link toc-highlight">Side Effects - Basics</a></li><li><a href="#side-effects---advanced" class="table-of-contents__link toc-highlight">Side Effects - Advanced</a></li><li><a href="#thinking-in-redux" class="table-of-contents__link toc-highlight">Thinking in Redux</a></li><li><a href="#redux-architecture" class="table-of-contents__link toc-highlight">Redux Architecture</a></li><li><a href="#apps-and-examples" class="table-of-contents__link toc-highlight">Apps and Examples</a></li><li><a href="#redux-docs-translations" class="table-of-contents__link toc-highlight">Redux Docs Translations</a></li><li><a href="#books" class="table-of-contents__link toc-highlight">Books</a></li><li><a href="#courses" class="table-of-contents__link toc-highlight">Courses</a></li><li><a href="#more-resources" class="table-of-contents__link toc-highlight">More Resources</a></li></ul></div></div></div></div></main></div></div></div><footer class="footer"><div class="container container-fluid"><div class="row footer__links"><div class="col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/introduction/getting-started">Getting Started</a></li><li class="footer__item"><a class="footer__link-item" type="doc" href="/usage">Usage Guide</a></li><li class="footer__item"><a class="footer__link-item" href="/tutorials/essentials/part-1-overview-concepts">Tutorial</a></li><li class="footer__item"><a class="footer__link-item" href="/faq">FAQ</a></li><li class="footer__item"><a class="footer__link-item" type="doc" href="/api/api-reference">API Reference</a></li></ul></div><div class="col footer__col"><div class="footer__title">Community</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://discord.gg/0ZcbPKXt5bZ6au5t" target="_blank" rel="noopener noreferrer" class="footer__link-item">Reactiflux Discord<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a href="http://stackoverflow.com/questions/tagged/redux" target="_blank" rel="noopener noreferrer" class="footer__link-item">Stack Overflow<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item"><a class="footer__link-item" href="/introduction/getting-started#help-and-discussion">Feedback</a></li></ul></div><div class="col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/reduxjs/redux" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-hidden="true" viewBox="0 0 24 24" class="iconExternalLink_nPIU"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"></path></svg></a></li><li class="footer__item">
-                <a href="https://www.netlify.com">
-                  <img src="https://www.netlify.com/img/global/badges/netlify-color-accent.svg" alt="Deployed by Netlify">
-                </a>
-              </li></ul></div></div><div class="footer__bottom text--center"><div class="margin-bottom--sm"><a href="https://redux.js.org/" rel="noopener noreferrer" class="footerLogoLink_BH7S"><img src="/img/redux.svg" alt="Redux Logo" class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE"><img src="/img/redux.svg" alt="Redux Logo" class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"></a></div><div class="footer__copyright">Copyright © 2015–2025 Dan Abramov and the Redux documentation authors.</div></div></div></footer></div>
-</body>
+<html
+  lang="en"
+  dir="ltr"
+  class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-introduction/learning-resources"
+  data-has-hydrated="false"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="generator" content="Docusaurus v3.6.3" />
+    <title data-rh="true">Learning Resources | Redux</title>
+    <meta
+      data-rh="true"
+      name="viewport"
+      content="width=device-width,initial-scale=1"
+    />
+    <meta
+      data-rh="true"
+      property="og:image"
+      content="https://redux.js.org/img/redux-logo-landscape.png"
+    />
+    <meta
+      data-rh="true"
+      name="twitter:image"
+      content="https://redux.js.org/img/redux-logo-landscape.png"
+    />
+    <meta
+      data-rh="true"
+      property="og:url"
+      content="https://redux.js.org/introduction/learning-resources"
+    />
+    <meta data-rh="true" property="og:locale" content="en" />
+    <meta data-rh="true" name="docusaurus_locale" content="en" />
+    <meta data-rh="true" name="docsearch:language" content="en" />
+    <meta data-rh="true" name="twitter:card" content="summary" />
+    <meta data-rh="true" name="docusaurus_version" content="current" />
+    <meta data-rh="true" name="docusaurus_tag" content="docs-default-current" />
+    <meta data-rh="true" name="docsearch:version" content="current" />
+    <meta
+      data-rh="true"
+      name="docsearch:docusaurus_tag"
+      content="docs-default-current"
+    />
+    <meta
+      data-rh="true"
+      property="og:title"
+      content="Learning Resources | Redux"
+    />
+    <meta
+      data-rh="true"
+      name="description"
+      content="Introduction &gt; Learning Resources: Additional articles and resources for learning Redux"
+    />
+    <meta
+      data-rh="true"
+      property="og:description"
+      content="Introduction &gt; Learning Resources: Additional articles and resources for learning Redux"
+    />
+    <link data-rh="true" rel="icon" href="/img/favicon/favicon.ico" />
+    <link
+      data-rh="true"
+      rel="canonical"
+      href="https://redux.js.org/introduction/learning-resources"
+    />
+    <link
+      data-rh="true"
+      rel="alternate"
+      href="https://redux.js.org/introduction/learning-resources"
+      hreflang="en"
+    />
+    <link
+      data-rh="true"
+      rel="alternate"
+      href="https://redux.js.org/introduction/learning-resources"
+      hreflang="x-default"
+    />
+    <link rel="preconnect" href="https://redux-docs-umami.up.railway.app" />
+    <script
+      async
+      defer="defer"
+      src="https://redux-docs-umami.up.railway.app/script.js"
+      data-website-id="4bb3bf09-7460-453f-857d-874d8a361cb6"
+      data-auto-track="true"
+      data-do-not-track="true"
+      data-cache="true"
+      data-exclude-search="false"
+      data-exclude-hash="false"
+    ></script>
+    <link rel="stylesheet" href="/assets/css/styles.9a914e26.css" />
+    <script src="/assets/js/runtime~main.e50cc099.js" defer="defer"></script>
+    <script src="/assets/js/main.3ed293ec.js" defer="defer"></script>
+  </head>
+  <body class="navigation-with-keyboard">
+    <script>
+      (!(function () {
+        function t(t) {
+          document.documentElement.setAttribute("data-theme", t);
+        }
+        var e =
+          (function () {
+            try {
+              return new URLSearchParams(window.location.search).get(
+                "docusaurus-theme",
+              );
+            } catch (t) {}
+          })() ||
+          (function () {
+            try {
+              return window.localStorage.getItem("theme");
+            } catch (t) {}
+          })();
+        t(null !== e ? e : "light");
+      })(),
+        (function () {
+          try {
+            const n = new URLSearchParams(window.location.search).entries();
+            for (var [t, e] of n)
+              if (t.startsWith("docusaurus-data-")) {
+                var a = t.replace("docusaurus-data-", "data-");
+                document.documentElement.setAttribute(a, e);
+              }
+          } catch (t) {}
+        })());
+    </script>
+    <div id="__docusaurus">
+      <link rel="preload" as="image" href="/img/redux.svg" />
+      <div role="region" aria-label="Skip to main content">
+        <a
+          class="skipToContent_fXgn"
+          href="#__docusaurus_skipToContent_fallback"
+          >Skip to main content</a
+        >
+      </div>
+      <nav aria-label="Main" class="navbar navbar--fixed-top">
+        <div class="navbar__inner">
+          <div class="navbar__items">
+            <button
+              aria-label="Toggle navigation bar"
+              aria-expanded="false"
+              class="navbar__toggle clean-btn"
+              type="button"
+            >
+              <svg
+                width="30"
+                height="30"
+                viewBox="0 0 30 30"
+                aria-hidden="true"
+              >
+                <path
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-miterlimit="10"
+                  stroke-width="2"
+                  d="M4 7h22M4 15h22M4 23h22"
+                ></path>
+              </svg></button
+            ><a class="navbar__brand" href="/"
+              ><div class="navbar__logo">
+                <img
+                  src="/img/redux.svg"
+                  alt="Redux Logo"
+                  class="themedComponent_mlkZ themedComponent--light_NVdE"
+                /><img
+                  src="/img/redux.svg"
+                  alt="Redux Logo"
+                  class="themedComponent_mlkZ themedComponent--dark_xIcU"
+                />
+              </div>
+              <b class="navbar__title text--truncate">Redux</b></a
+            >
+          </div>
+          <div class="navbar__items navbar__items--right">
+            <a
+              class="navbar__item navbar__link"
+              href="/introduction/getting-started"
+              >Getting Started</a
+            ><a
+              class="navbar__item navbar__link"
+              href="/tutorials/essentials/part-1-overview-concepts"
+              >Tutorial</a
+            ><a
+              aria-current="page"
+              class="navbar__item navbar__link navbar__link--active"
+              href="/usage/"
+              >Usage Guide</a
+            ><a
+              aria-current="page"
+              class="navbar__item navbar__link navbar__link--active"
+              href="/api/api-reference"
+              >API</a
+            ><a class="navbar__item navbar__link" href="/faq">FAQ</a
+            ><a
+              aria-current="page"
+              class="navbar__item navbar__link navbar__link--active"
+              href="/style-guide/"
+              >Best Practices</a
+            ><a
+              href="https://www.github.com/reduxjs/redux"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="navbar__item navbar__link"
+              >GitHub<svg
+                width="13.5"
+                height="13.5"
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                class="iconExternalLink_nPIU"
+              >
+                <path
+                  fill="currentColor"
+                  d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"
+                ></path></svg></a
+            ><a
+              class="navbar__item navbar__link"
+              href="/introduction/getting-started#help-and-discussion"
+              >Need help?</a
+            >
+            <div class="toggle_vylO colorModeToggle_DEke">
+              <button
+                class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS"
+                type="button"
+                disabled=""
+                title="Switch between dark and light mode (currently light mode)"
+                aria-label="Switch between dark and light mode (currently light mode)"
+                aria-live="polite"
+                aria-pressed="false"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  class="lightToggleIcon_pyhR"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"
+                  ></path></svg
+                ><svg
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  class="darkToggleIcon_wfgR"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"
+                  ></path>
+                </svg>
+              </button>
+            </div>
+            <div class="navbarSearchContainer_Bca1"></div>
+          </div>
+        </div>
+        <div role="presentation" class="navbar-sidebar__backdrop"></div>
+      </nav>
+      <div
+        id="__docusaurus_skipToContent_fallback"
+        class="main-wrapper mainWrapper_z2l0"
+      >
+        <div class="docsWrapper_hBAB">
+          <button
+            aria-label="Scroll back to top"
+            class="clean-btn theme-back-to-top-button backToTopButton_sjWU"
+            type="button"
+          ></button>
+          <div class="docRoot_UBD9">
+            <aside class="theme-doc-sidebar-container docSidebarContainer_YfHR">
+              <div class="sidebarViewport_aRkj">
+                <div class="sidebar_njMd">
+                  <nav
+                    aria-label="Docs sidebar"
+                    class="menu thin-scrollbar menu_SIkG"
+                  >
+                    <ul class="theme-doc-sidebar-menu menu__list">
+                      <li
+                        class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"
+                      >
+                        <div class="menu__list-item-collapsible">
+                          <a
+                            class="menu__link menu__link--sublist menu__link--sublist-caret menu__link--active"
+                            role="button"
+                            aria-expanded="true"
+                            href="/introduction/getting-started"
+                            >Introduction</a
+                          >
+                        </div>
+                        <ul
+                          style="
+                            display: block;
+                            overflow: visible;
+                            height: auto;
+                          "
+                          class="menu__list"
+                        >
+                          <li
+                            class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"
+                          >
+                            <a
+                              class="menu__link"
+                              tabindex="0"
+                              href="/introduction/getting-started"
+                              >Getting Started with Redux</a
+                            >
+                          </li>
+                          <li
+                            class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"
+                          >
+                            <a
+                              class="menu__link"
+                              tabindex="0"
+                              href="/introduction/installation"
+                              >Installation</a
+                            >
+                          </li>
+                          <li
+                            class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"
+                          >
+                            <a
+                              class="menu__link"
+                              tabindex="0"
+                              href="/introduction/why-rtk-is-redux-today"
+                              >Why Redux Toolkit is How To Use Redux Today</a
+                            >
+                          </li>
+                          <li
+                            class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"
+                          >
+                            <a
+                              class="menu__link"
+                              tabindex="0"
+                              href="/introduction/core-concepts"
+                              >Core Concepts</a
+                            >
+                          </li>
+                          <li
+                            class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"
+                          >
+                            <a
+                              class="menu__link menu__link--active"
+                              aria-current="page"
+                              tabindex="0"
+                              href="/introduction/learning-resources"
+                              >Learning Resources</a
+                            >
+                          </li>
+                          <li
+                            class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"
+                          >
+                            <a
+                              class="menu__link"
+                              tabindex="0"
+                              href="/introduction/ecosystem"
+                              >Ecosystem</a
+                            >
+                          </li>
+                          <li
+                            class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"
+                          >
+                            <a
+                              class="menu__link"
+                              tabindex="0"
+                              href="/introduction/examples"
+                              >Examples</a
+                            >
+                          </li>
+                        </ul>
+                      </li>
+                      <li
+                        class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"
+                      >
+                        <div class="menu__list-item-collapsible">
+                          <a
+                            class="menu__link menu__link--sublist menu__link--sublist-caret"
+                            role="button"
+                            aria-expanded="false"
+                            href="/tutorials/index"
+                            >Tutorials</a
+                          >
+                        </div>
+                      </li>
+                      <li
+                        class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"
+                      >
+                        <div class="menu__list-item-collapsible">
+                          <a
+                            class="menu__link menu__link--sublist menu__link--sublist-caret"
+                            role="button"
+                            aria-expanded="false"
+                            href="/usage/"
+                            >Using Redux</a
+                          >
+                        </div>
+                      </li>
+                      <li
+                        class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"
+                      >
+                        <div class="menu__list-item-collapsible">
+                          <a
+                            class="menu__link menu__link--sublist menu__link--sublist-caret"
+                            role="button"
+                            aria-expanded="false"
+                            href="/understanding/thinking-in-redux/motivation"
+                            >Understanding Redux</a
+                          >
+                        </div>
+                      </li>
+                      <li
+                        class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"
+                      >
+                        <div class="menu__list-item-collapsible">
+                          <a
+                            class="menu__link menu__link--sublist menu__link--sublist-caret"
+                            role="button"
+                            aria-expanded="false"
+                            href="/faq"
+                            >FAQ</a
+                          >
+                        </div>
+                      </li>
+                      <li
+                        class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"
+                      >
+                        <div class="menu__list-item-collapsible">
+                          <a
+                            class="menu__link menu__link--sublist menu__link--sublist-caret"
+                            role="button"
+                            aria-expanded="false"
+                            href="/style-guide/"
+                            >Style Guide</a
+                          >
+                        </div>
+                      </li>
+                      <li
+                        class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"
+                      >
+                        <div class="menu__list-item-collapsible">
+                          <a
+                            class="menu__link menu__link--sublist menu__link--sublist-caret"
+                            role="button"
+                            aria-expanded="false"
+                            href="/api/api-reference"
+                            >API Reference</a
+                          >
+                        </div>
+                      </li>
+                      <li
+                        class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"
+                      >
+                        <div class="menu__list-item-collapsible">
+                          <a
+                            class="menu__link menu__link--sublist menu__link--sublist-caret"
+                            role="button"
+                            aria-expanded="false"
+                            href="/redux-toolkit/overview"
+                            >Redux Toolkit</a
+                          >
+                        </div>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </div>
+            </aside>
+            <main class="docMainContainer_TBSr">
+              <div class="container padding-top--md padding-bottom--lg">
+                <div class="row">
+                  <div class="col docItemCol_VOVn">
+                    <div class="docItemContainer_Djhp">
+                      <article>
+                        <nav
+                          class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl"
+                          aria-label="Breadcrumbs"
+                        >
+                          <ul
+                            class="breadcrumbs"
+                            itemscope=""
+                            itemtype="https://schema.org/BreadcrumbList"
+                          >
+                            <li class="breadcrumbs__item">
+                              <a
+                                aria-label="Home page"
+                                class="breadcrumbs__link"
+                                href="/"
+                                ><svg
+                                  viewBox="0 0 24 24"
+                                  class="breadcrumbHomeIcon_YNFT"
+                                >
+                                  <path
+                                    d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z"
+                                    fill="currentColor"
+                                  ></path></svg
+                              ></a>
+                            </li>
+                            <li class="breadcrumbs__item">
+                              <span class="breadcrumbs__link">Introduction</span
+                              ><meta itemprop="position" content="1" />
+                            </li>
+                            <li
+                              itemscope=""
+                              itemprop="itemListElement"
+                              itemtype="https://schema.org/ListItem"
+                              class="breadcrumbs__item breadcrumbs__item--active"
+                            >
+                              <span class="breadcrumbs__link" itemprop="name"
+                                >Learning Resources</span
+                              ><meta itemprop="position" content="2" />
+                            </li>
+                          </ul>
+                        </nav>
+                        <div
+                          class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"
+                        >
+                          <button
+                            type="button"
+                            class="clean-btn tocCollapsibleButton_TO0P"
+                          >
+                            On this page
+                          </button>
+                        </div>
+                        <div class="theme-doc-markdown markdown">
+                          <header><h1>Learning Resources</h1></header>
+                          <p>
+                            The Redux docs are intended to teach the basic
+                            concepts of Redux, as well as explain key concepts
+                            for use in real-world applications. However, the
+                            docs can&#x27;t cover everything. Happily, there are
+                            many other great resources available for learning
+                            Redux. We encourage you to check them out. Many of
+                            them cover topics that are beyond the scope of the
+                            docs, or describe the same topics in other ways that
+                            may work better for your learning style.
+                          </p>
+                          <p>
+                            This page includes our recommendations for some of
+                            the best external resources available to learn
+                            Redux. For an additional extensive list of
+                            tutorials, articles, and other resources on React,
+                            Redux, Javascript, and related topics, see the
+                            <a
+                              href="https://github.com/markerikson/react-redux-links"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              >React/Redux Links list</a
+                            >.
+                          </p>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="basic-introductions"
+                          >
+                            Basic Introductions<a
+                              href="#basic-introductions"
+                              class="hash-link"
+                              aria-label="Direct link to Basic Introductions"
+                              title="Direct link to Basic Introductions"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Tutorials that teach the basic concepts of Redux
+                              and how to use it</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >Intro to React, Redux, and TypeScript</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://blog.isquaredsoftware.com/2020/12/presentations-react-redux-ts-intro/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://blog.isquaredsoftware.com/2020/12/presentations-react-redux-ts-intro/</a
+                                >
+                                <br />
+                                Redux maintainer Mark Erikson&#x27;s slideset
+                                that covers the basics of React, Redux, and
+                                TypeScript. Redux topics include stores,
+                                reducers, middleware, React-Redux, and Redux
+                                Toolkit.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Learn Modern Redux - Redux Toolkit,
+                                  React-Redux Hooks, and RTK Query</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://www.learnwithjason.dev/let-s-learn-modern-redux"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.learnwithjason.dev/let-s-learn-modern-redux</a
+                                >
+                                <br />
+                                An episode of the &quot;Learn with Jason&quot;
+                                show, with Redux maintainer Mark Erikson as
+                                guest. The episode features a live-coded app,
+                                and shows how to create a new React+TS project,
+                                add the Redux packages, and set up Redux Toolkit
+                                and React-Redux from scratch (including our
+                                recommended TS hooks configuration). It also
+                                shows how to use the upcoming RTK Query data
+                                fetching API and display that data in a UI.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Redux Tutorial: An Overview and
+                                  Walkthrough</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://www.taniarascia.com/redux-react-guide/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.taniarascia.com/redux-react-guide/</a
+                                >
+                                <br />
+                                A well-written tutorial from Tania Rascia that
+                                quickly explains key Redux concepts, and shows
+                                how to put together a basic Redux + React app
+                                using vanilla Redux and Redux Toolkit.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Redux for Beginners - The Brain-Friendly
+                                  Guide to Learning Redux</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://www.freecodecamp.org/news/redux-for-beginners-the-brain-friendly-guide-to-redux/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.freecodecamp.org/news/redux-for-beginners-the-brain-friendly-guide-to-redux/</a
+                                >
+                                <br />
+                                An easy-to-follow tutorial that builds a small
+                                todo app with Redux Toolkit and React-Redux,
+                                including data fetching.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Redux made easy with Redux Toolkit and
+                                  TypeScript</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://www.mattbutton.com/redux-made-easy-with-redux-toolkit-and-typescript/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.mattbutton.com/redux-made-easy-with-redux-toolkit-and-typescript/</a
+                                >
+                                <br />
+                                A helpful tutorial that shows how to use Redux
+                                Toolkit and TypeScript together to write Redux
+                                applications, and how RTK simplifies typical
+                                Redux usage.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Redux: From Twitter Hype to
+                                  Production</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://slides.com/jenyaterpil/redux-from-twitter-hype-to-production#/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://slides.com/jenyaterpil/redux-from-twitter-hype-to-production#/</a
+                                >
+                                <br />
+                                A well-produced slideshow that visually steps
+                                through core Redux concepts, usage with React,
+                                project organization, and side effects with
+                                thunks and sagas. Has some good animated
+                                diagrams demonstrating how data flows through a
+                                React+Redux architecture.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="using-redux-with-react"
+                          >
+                            Using Redux With React<a
+                              href="#using-redux-with-react"
+                              class="hash-link"
+                              aria-label="Direct link to Using Redux With React"
+                              title="Direct link to Using Redux With React"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Explanations of the React-Redux bindings
+                              library</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >Modernizing a Legacy Redux Application with
+                                  React-Redux Hooks</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://app.egghead.io/playlists/modernizing-a-legacy-redux-application-with-react-hooks-c528"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://app.egghead.io/playlists/modernizing-a-legacy-redux-application-with-react-hooks-c528</a
+                                >
+                                <br />
+                                A video series that shows the differences
+                                between the earlier <code>connect</code> API and
+                                the newer React-Redux hooks API, and how to use
+                                those hooks in your components.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Why Redux is Useful in React Apps</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://www.fullstackreact.com/articles/redux-with-mark-erikson/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.fullstackreact.com/articles/redux-with-mark-erikson/</a
+                                >
+                                <br />
+                                An explanation of some of the benefits of using
+                                Redux with React, including sharing data between
+                                components and hot module reloading.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="project-based-tutorials"
+                          >
+                            Project-Based Tutorials<a
+                              href="#project-based-tutorials"
+                              class="hash-link"
+                              aria-label="Direct link to Project-Based Tutorials"
+                              title="Direct link to Project-Based Tutorials"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Tutorials that teach Redux concepts by building
+                              projects, including larger
+                              &quot;real-world&quot;-type applications</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <strong>Practical Redux</strong> <br />
+                              <a
+                                href="https://blog.isquaredsoftware.com/2016/10/practical-redux-part-0-introduction/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >https://blog.isquaredsoftware.com/2016/10/practical-redux-part-0-introduction/</a
+                              >
+                              <br />
+                              <a
+                                href="https://blog.isquaredsoftware.com/series/practical-redux/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >https://blog.isquaredsoftware.com/series/practical-redux/</a
+                              >
+                              <br />
+                              An ongoing series of posts intended to demonstrate
+                              a number of specific Redux techniques by building
+                              a sample application, based on the MekHQ
+                              application for managing Battletech campaigns.
+                              Written by Redux co-maintainer Mark Erikson.
+                              Covers topics like managing relational data,
+                              connecting multiple components and lists, complex
+                              reducer logic for features, handling forms,
+                              showing modal dialogs, and much more. (Note: this
+                              is an older series, and today we recommend newer
+                              patterns for writing Redux code. However, many of
+                              the principles in this series are still valuable.)
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="redux-implementation"
+                          >
+                            Redux Implementation<a
+                              href="#redux-implementation"
+                              class="hash-link"
+                              aria-label="Direct link to Redux Implementation"
+                              title="Direct link to Redux Implementation"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Explanations of how Redux works internally, by
+                              writing miniature reimplementations</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >Getting Started with Redux - Video
+                                  Series</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://egghead.io/courses/fundamentals-of-redux-course-from-dan-abramov-bd5cc867"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://egghead.io/courses/fundamentals-of-redux-course-from-dan-abramov-bd5cc867</a
+                                >
+                                <br />
+                                <a
+                                  href="https://github.com/tayiorbeii/egghead.io_redux_course_notes"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/tayiorbeii/egghead.io_redux_course_notes</a
+                                >
+                                <br />
+                                Dan Abramov, the creator of Redux, demonstrates
+                                various concepts in 30 short (2-5 minute)
+                                videos. The linked Github repo contains notes
+                                and transcriptions of the videos.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Building React Applications with Idiomatic
+                                  Redux - Video Series</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://egghead.io/courses/building-react-applications-with-idiomatic-redux"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://egghead.io/courses/building-react-applications-with-idiomatic-redux</a
+                                >
+                                <br />
+                                <a
+                                  href="https://github.com/tayiorbeii/egghead.io_idiomatic_redux_course_notes"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/tayiorbeii/egghead.io_idiomatic_redux_course_notes</a
+                                >
+                                <br />
+                                Dan Abramov&#x27;s second video tutorial series,
+                                continuing directly after the first. Includes
+                                lessons on store initial state, using Redux with
+                                React Router, using &quot;selector&quot;
+                                functions, normalizing state, use of Redux
+                                middleware, async action creators, and more. The
+                                linked Github repo contains notes and
+                                transcriptions of the videos.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Live React: Hot Reloading and Time
+                                  Travel</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://youtube.com/watch?v=xsSnOQynTHs"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://youtube.com/watch?v=xsSnOQynTHs</a
+                                >
+                                <br />
+                                Dan Abramov&#x27;s original conference talk that
+                                introduced Redux. See how constraints enforced
+                                by Redux make hot reloading with time travel
+                                easy
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Build Yourself a Redux</strong> <br />
+                                <a
+                                  href="https://zapier.com/engineering/how-to-build-redux/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://zapier.com/engineering/how-to-build-redux/</a
+                                >
+                                <br />
+                                An excellent in-depth &quot;build a
+                                mini-Redux&quot; article, which covers not only
+                                Redux&#x27;s core, but also
+                                <code>connect</code> and middleware as well.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Connect.js explained</strong> <br />
+                                <a
+                                  href="https://gist.github.com/gaearon/1d19088790e70ac32ea636c025ba424e"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://gist.github.com/gaearon/1d19088790e70ac32ea636c025ba424e</a
+                                >
+                                <br />
+                                A very simplified version of React Redux&#x27;s
+                                <code>connect()</code> function that illustrates
+                                the basic implementation
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Let&#x27;s Write Redux!</strong> <br />
+                                <a
+                                  href="https://www.jamasoftware.com/blog/lets-write-redux/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.jamasoftware.com/blog/lets-write-redux/</a
+                                >
+                                <br />
+                                Walks through writing a miniature version of
+                                Redux step-by-step, to help explain the concepts
+                                and implementation.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="reducers"
+                          >
+                            Reducers<a
+                              href="#reducers"
+                              class="hash-link"
+                              aria-label="Direct link to Reducers"
+                              title="Direct link to Reducers"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Articles discussing ways to write reducer
+                              functions</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >Taking Advantage of
+                                  <code>combineReducers</code></strong
+                                >
+                                <br />
+                                <a
+                                  href="https://randycoulman.com/blog/2016/11/22/taking-advantage-of-combinereducers/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://randycoulman.com/blog/2016/11/22/taking-advantage-of-combinereducers/</a
+                                >
+                                <br />
+                                Examples of using
+                                <code>combineReducers</code> multiple times to
+                                produce a state tree, and some thoughts on
+                                tradeoffs in various approaches to reducer
+                                logic.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >The Power of Higher-Order Reducers</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://slides.com/omnidan/hor#/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://slides.com/omnidan/hor#/</a
+                                >
+                                <br />
+                                A slideshow from the author of redux-undo and
+                                other libraries, explaining the concept of
+                                higher-order reducers and how they can be used
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Reducer composition with Higher Order
+                                  Reducers</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://medium.com/@mange_vibration/reducer-composition-with-higher-order-reducers-35c3977ed08f"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/@mange_vibration/reducer-composition-with-higher-order-reducers-35c3977ed08f</a
+                                >
+                                <br />
+                                Some great examples of writing small functions
+                                that can be composed together to perform larger
+                                specific reducer tasks, such as providing
+                                initial state, filtering, updating specific
+                                keys, and more.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Higher Order Reducers - It just sounds
+                                  scary</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://medium.com/@danielkagan/high-order-reducers-it-just-sounds-scary-2b9e5dbfc705"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/@danielkagan/high-order-reducers-it-just-sounds-scary-2b9e5dbfc705</a
+                                >
+                                <br />
+                                Explains how reducers can be composed like Lego
+                                bricks to create reusable and testable reducer
+                                logic.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="selectors"
+                          >
+                            Selectors<a
+                              href="#selectors"
+                              class="hash-link"
+                              aria-label="Direct link to Selectors"
+                              title="Direct link to Selectors"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Explanations of how and why to use selector
+                              functions to read values from state</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >Idiomatic Redux: Using Reselect Selectors for
+                                  Encapsulation and Performance</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://blog.isquaredsoftware.com/2017/12/idiomatic-redux-using-reselect-selectors/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://blog.isquaredsoftware.com/2017/12/idiomatic-redux-using-reselect-selectors/</a
+                                >
+                                <br />
+                                A complete guide to why you should use selector
+                                functions with Redux, how to use the Reselect
+                                library to write optimized selectors, and
+                                advanced tips for improving performance.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >ReactCasts #8: Selectors in Redux</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://www.youtube.com/watch?v=frT3to2ACCw"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.youtube.com/watch?v=frT3to2ACCw</a
+                                >
+                                <br />
+                                A great overview of why and how to use selector
+                                functions to retrieve data from the store, and
+                                derive additional data from store values
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Optimizing React Redux Application
+                                  Development with Reselect</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://codebrahma.com/reselect-tutorial-optimizing-react-redux-application-development-with-reselect/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://codebrahma.com/reselect-tutorial-optimizing-react-redux-application-development-with-reselect/</a
+                                >
+                                <br />
+                                A good tutorial on Reselect. Covers the concept
+                                of &quot;selector functions&quot;, how to use
+                                Reselect&#x27;s API, and how to use memoized
+                                selectors to improve performance.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Usage of Reselect in a React-Redux
+                                  Application</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://dashbouquet.com/blog/frontend-development/usage-of-reselect-in-a-react-redux-application"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://dashbouquet.com/blog/frontend-development/usage-of-reselect-in-a-react-redux-application</a
+                                >
+                                <br />
+                                Discusses the importance of memoized selectors
+                                for performance, and good practices for using
+                                Reselect.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>React, Reselect, and Redux</strong>
+                                <br />
+                                <a
+                                  href="https://medium.com/@parkerdan/react-reselect-and-redux-b34017f8194c"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/@parkerdan/react-reselect-and-redux-b34017f8194c</a
+                                >
+                                <br />
+                                An explanation of how Reselect&#x27;s memoized
+                                selector functions are useful in Redux apps, and
+                                how to create unique selector instances for each
+                                component instance.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="normalization"
+                          >
+                            Normalization<a
+                              href="#normalization"
+                              class="hash-link"
+                              aria-label="Direct link to Normalization"
+                              title="Direct link to Normalization"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >How to structure the Redux store like a database
+                              for best performance</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong>Querying a Redux Store</strong> <br />
+                                <a
+                                  href="https://medium.com/@adamrackis/querying-a-redux-store-37db8c7f3b0f"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/@adamrackis/querying-a-redux-store-37db8c7f3b0f</a
+                                >
+                                <br />
+                                A look at best practices for organizing and
+                                storing data in Redux, including normalizing
+                                data and use of selector functions.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Normalizing Redux Stores for Maximum Code
+                                  Reuse</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://medium.com/@adamrackis/normalizing-redux-stores-for-maximum-code-reuse-ae6e3844ae95"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/@adamrackis/normalizing-redux-stores-for-maximum-code-reuse-ae6e3844ae95</a
+                                >
+                                <br />
+                                Thoughts on how normalized Redux stores enable
+                                some useful data handling approaches, with
+                                examples of using selector functions to
+                                denormalize hierarchical data.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Advanced Redux Entity Normalization</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://medium.com/@dcousineau/advanced-redux-entity-normalization-f5f1fe2aefc5"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/@dcousineau/advanced-redux-entity-normalization-f5f1fe2aefc5</a
+                                >
+                                <br />
+                                Describes a &quot;keyWindow&quot; concept for
+                                tracking subsets of entities in state, similar
+                                to an SQL &quot;view&quot;. A useful extension
+                                to the idea of normalized data.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="middleware"
+                          >
+                            Middleware<a
+                              href="#middleware"
+                              class="hash-link"
+                              aria-label="Direct link to Middleware"
+                              title="Direct link to Middleware"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Explanations and examples of how middleware work
+                              and how to write them</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong>Exploring Redux Middlewares</strong>
+                                <br />
+                                <a
+                                  href="https://blog.krawaller.se/posts/exploring-redux-middleware/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://blog.krawaller.se/posts/exploring-redux-middleware/</a
+                                >
+                                <br />
+                                Understanding middlewares through a series of
+                                small experiments
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Redux Middleware Tutorial</strong>
+                                <br />
+                                <a
+                                  href="https://github.com/pshrmn/notes/blob/master/redux/redux-middleware.md"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/pshrmn/notes/blob/master/redux/redux-middleware.md</a
+                                >
+                                <br />
+                                An overview of what middleware is, how
+                                <code>applyMiddleware</code> works, and how to
+                                write middleware.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>ReactCasts #6: Redux Middleware</strong>
+                                <br />
+                                <a
+                                  href="https://www.youtube.com/watch?v=T-qtHI1qHIg"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.youtube.com/watch?v=T-qtHI1qHIg</a
+                                >
+                                <br />
+                                A screencast that describes how middleware fit
+                                into Redux, their uses, and how to implement a
+                                custom middleware
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >A Beginner&#x27;s Guide to Redux
+                                  Middleware</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://www.codementor.io/reactjs/tutorial/beginner-s-guide-to-redux-middleware"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.codementor.io/reactjs/tutorial/beginner-s-guide-to-redux-middleware</a
+                                >
+                                <br />
+                                A useful explanation of middleware use cases,
+                                with numerous examples
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Functional Composition in Javascript</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://joecortopassi.com/articles/functional-composition-in-javascript/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://joecortopassi.com/articles/functional-composition-in-javascript/</a
+                                >
+                                <br />
+                                Breaking down how the
+                                <code>compose</code> function works
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="side-effects---basics"
+                          >
+                            Side Effects - Basics<a
+                              href="#side-effects---basics"
+                              class="hash-link"
+                              aria-label="Direct link to Side Effects - Basics"
+                              title="Direct link to Side Effects - Basics"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Introductions to handling async behavior in
+                              Redux</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >Stack Overflow: Dispatching Redux Actions
+                                  with a Timeout</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://stackoverflow.com/questions/35411423/how-to-dispatch-a-redux-action-with-a-timeout/35415559#35415559</a
+                                >
+                                <br />
+                                Dan Abramov explains the basics of managing
+                                async behavior in Redux, walking through a
+                                progressive series of approaches (inline async
+                                calls, async action creators, thunk middleware).
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Stack Overflow: Why do we need middleware for
+                                  async flow in Redux?</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://stackoverflow.com/questions/34570758/why-do-we-need-middleware-for-async-flow-in-redux/34599594#34599594"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://stackoverflow.com/questions/34570758/why-do-we-need-middleware-for-async-flow-in-redux/34599594#34599594</a
+                                >
+                                <br />
+                                Dan Abramov gives reasons for using thunks and
+                                async middleware, and some useful patterns for
+                                using thunks.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >What the heck is a &quot;thunk&quot;?</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://daveceddia.com/what-is-a-thunk/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://daveceddia.com/what-is-a-thunk/</a
+                                >
+                                <br />
+                                A quick explanation for what the word
+                                &quot;thunk&quot; means in general, and for
+                                Redux specifically.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Thunks in Redux: The Basics</strong>
+                                <br />
+                                <a
+                                  href="https://medium.com/fullstack-academy/thunks-in-redux-the-basics-85e538a3fe60"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/fullstack-academy/thunks-in-redux-the-basics-85e538a3fe60</a
+                                >
+                                <br />
+                                A detailed look at what thunks are, what they
+                                solve, and how to use them.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="side-effects---advanced"
+                          >
+                            Side Effects - Advanced<a
+                              href="#side-effects---advanced"
+                              class="hash-link"
+                              aria-label="Direct link to Side Effects - Advanced"
+                              title="Direct link to Side Effects - Advanced"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Advanced tools and techniques for managing async
+                              behavior</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >What is the right way to do asynchronous
+                                  operations in Redux?</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://decembersoft.com/posts/what-is-the-right-way-to-do-asynchronous-operations-in-redux/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://decembersoft.com/posts/what-is-the-right-way-to-do-asynchronous-operations-in-redux/</a
+                                >
+                                <br />
+                                An excellent look at the most popular libraries
+                                for Redux side effects, with comparisons of how
+                                each one works.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Redux 4 Ways</strong> <br />
+                                <a
+                                  href="https://medium.com/react-native-training/redux-4-ways-95a130da0cdc"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/react-native-training/redux-4-ways-95a130da0cdc</a
+                                >
+                                <br />
+                                Side-by-side comparisons of implementing some
+                                basic data fetching using thunks, sagas,
+                                observables, and a promise middleware
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Idiomatic Redux: Thoughts on Thunks, Sagas,
+                                  Abstractions, and Reusability</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://blog.isquaredsoftware.com/2017/01/idiomatic-redux-thoughts-on-thunks-sagas-abstraction-and-reusability/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://blog.isquaredsoftware.com/2017/01/idiomatic-redux-thoughts-on-thunks-sagas-abstraction-and-reusability/</a
+                                >
+                                <br />
+                                A response to several &quot;thunks are bad&quot;
+                                concerns, arguing that thunks (and sagas) are
+                                still a valid approach for managing complex sync
+                                logic and async side effects.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Javascript Power Tools: Redux-Saga</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://formidable.com/blog/2017/javascript-power-tools-redux-saga/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://formidable.com/blog/2017/javascript-power-tools-redux-saga/</a
+                                >
+                                <br />
+                                <a
+                                  href="https://formidable.com/blog/2017/composition-patterns-in-redux-saga/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://formidable.com/blog/2017/composition-patterns-in-redux-saga/</a
+                                >
+                                <br />
+                                <a
+                                  href="https://formidable.com/blog/2017/real-world-redux-saga-patterns/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://formidable.com/blog/2017/real-world-redux-saga-patterns/</a
+                                >
+                                <br />
+                                A fantastic series that teaches the concepts,
+                                implementation, and benefits behind Redux-Saga,
+                                including how ES6 generators are used to control
+                                function flow, how sagas can be composed
+                                together to accomplish concurrency, and
+                                practical use cases for sagas.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Exploring Redux Sagas</strong> <br />
+                                <a
+                                  href="https://medium.com/onfido-tech/exploring-redux-sagas-cc1fca2015ee"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/onfido-tech/exploring-redux-sagas-cc1fca2015ee</a
+                                >
+                                <br />
+                                An excellent article that explores how to use
+                                sagas to provide a glue layer to implement
+                                decoupled business logic in a Redux application.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Taming Redux with Sagas</strong> <br />
+                                <a
+                                  href="https://objectpartners.com/2017/11/20/taming-redux-with-sagas/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://objectpartners.com/2017/11/20/taming-redux-with-sagas/</a
+                                >
+                                <br />
+                                A good overview of Redux-Saga, including info on
+                                generator functions, use cases for sagas, using
+                                sagas to deal with promises, and testing sagas.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Reactive Redux State with RxJS</strong>
+                                <br />
+                                <a
+                                  href="https://ivanjov.com/reactive-redux-state-with-rxjs/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://ivanjov.com/reactive-redux-state-with-rxjs/</a
+                                >
+                                <br />
+                                Describes the concept of &quot;Reactive
+                                Programming&quot; and the RxJS library, and
+                                shows how to use redux-observable to fetch data,
+                                along with examples of testing.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Using redux-observable to handle asynchronous
+                                  logic in Redux</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://medium.com/dailyjs/using-redux-observable-to-handle-asynchronous-logic-in-redux-d49194742522"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/dailyjs/using-redux-observable-to-handle-asynchronous-logic-in-redux-d49194742522</a
+                                >
+                                <br />
+                                An extended post that compares a thunk-based
+                                implementation of handling a line-drawing
+                                example vs an observable-based implementation.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="thinking-in-redux"
+                          >
+                            Thinking in Redux<a
+                              href="#thinking-in-redux"
+                              class="hash-link"
+                              aria-label="Direct link to Thinking in Redux"
+                              title="Direct link to Thinking in Redux"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Deeper looks at how Redux is meant to be used,
+                              and why it works the way it does</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <strong
+                                >When (and when not) to reach for Redux</strong
+                              >
+                              <br />
+                              <a
+                                href="https://changelog.com/posts/when-and-when-not-to-reach-for-redux"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >https://changelog.com/posts/when-and-when-not-to-reach-for-redux</a
+                              >
+                              <br />
+                              Redux maintainer Mark Erikson describes the
+                              problems Redux was created to solve, and how it
+                              compares to other commonly used tools.
+                            </li>
+                          </ul>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong>You Might Not Need Redux</strong> <br />
+                                <a
+                                  href="https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/@dan_abramov/you-might-not-need-redux-be46360cf367</a
+                                >
+                                <br />
+                                Dan Abramov discusses the tradeoffs involved in
+                                using Redux.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Idiomatic Redux: The Tao of Redux, Part 1 -
+                                  Implementation and Intent</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-1/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-1/</a
+                                >
+                                <br />
+                                A deep dive into how Redux actually works, the
+                                constraints it asks you to follow, and the
+                                intent behind its design and usage.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Idiomatic Redux: The Tao of Redux, Part 2 -
+                                  Practice and Philosophy</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-2/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://blog.isquaredsoftware.com/2017/05/idiomatic-redux-tao-of-redux-part-2/</a
+                                >
+                                <br />
+                                A follow-up look at why common Redux usage
+                                patterns exist, other ways that Redux can be
+                                used, and thoughts on the pros and cons of those
+                                different patterns and approaches.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >What&#x27;s So Great About Redux?</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://medium.freecodecamp.org/whats-so-great-about-redux-ac16f1cc0f8b"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.freecodecamp.org/whats-so-great-about-redux-ac16f1cc0f8b</a
+                                >
+                                <br />
+                                Deep and fascinating analysis of how Redux
+                                compares to OOP and message-passing, how typical
+                                Redux usage can devolve towards Java-like
+                                &quot;setter&quot; functions with more
+                                boilerplate, and something of a plea for a
+                                higher-level &quot;blessed&quot; abstraction on
+                                top of Redux to make it easier to work with and
+                                learn for newbies. Very worth reading.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="redux-architecture"
+                          >
+                            Redux Architecture<a
+                              href="#redux-architecture"
+                              class="hash-link"
+                              aria-label="Direct link to Redux Architecture"
+                              title="Direct link to Redux Architecture"
+                              >​</a
+                            >
+                          </h2>
+                          <p>
+                            <em
+                              >Patterns and practices for structuring larger
+                              Redux applications</em
+                            >
+                          </p>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >Avoiding Accidental Complexity When
+                                  Structuring Your App State</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://hackernoon.com/avoiding-accidental-complexity-when-structuring-your-app-state-6e6d22ad5e2a"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://hackernoon.com/avoiding-accidental-complexity-when-structuring-your-app-state-6e6d22ad5e2a</a
+                                >
+                                <br />
+                                An excellent set of guidelines for organizing
+                                your Redux store structure.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Redux Step by Step: A Simple and Robust
+                                  Workflow for Real Life Apps</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://hackernoon.com/redux-step-by-step-a-simple-and-robust-workflow-for-real-life-apps-1fdf7df46092"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://hackernoon.com/redux-step-by-step-a-simple-and-robust-workflow-for-real-life-apps-1fdf7df46092</a
+                                >
+                                <br />
+                                A follow-up to the &quot;Accidental
+                                Complexity&quot; article, discussing principle
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Things I Wish I Knew About Redux</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://medium.com/horrible-hacks/things-i-wish-i-knew-about-redux-9924abf2f9e0"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://medium.com/horrible-hacks/things-i-wish-i-knew-about-redux-9924abf2f9e0</a
+                                >
+                                <br />
+                                <a
+                                  href="https://www.reddit.com/r/javascript/comments/4taau2/things_i_wish_i_knew_about_redux/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.reddit.com/r/javascript/comments/4taau2/things_i_wish_i_knew_about_redux/</a
+                                >
+                                <br />
+                                A number of excellent tips and lessons learned
+                                after building an app with Redux. Includes info
+                                on connecting components, selecting data, and
+                                app/project structure. Additional discussion on
+                                Reddit.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >React+Redux: Tips and Best Practices for
+                                  Clean, Reliable, &amp; Maintainable
+                                  Code</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://speakerdeck.com/goopscoop/react-plus-redux-tips-and-best-practices-for-clean-reliable-and-scalable-code"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://speakerdeck.com/goopscoop/react-plus-redux-tips-and-best-practices-for-clean-reliable-and-scalable-code</a
+                                >
+                                <br />
+                                An excellent slideshow with a wide variety of
+                                tips and suggestions, including keeping action
+                                creators simple and data manipulation in
+                                reducers, abstracting away API calls, avoiding
+                                spreading props, and more.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong
+                                  >Redux for state management in large web
+                                  apps</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://blog.mapbox.com/redux-for-state-management-in-large-web-apps-c7f3fab3ce9b"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://blog.mapbox.com/redux-for-state-management-in-large-web-apps-c7f3fab3ce9b</a
+                                >
+                                <br />
+                                Excellent discussion and examples of idiomatic
+                                Redux architecture, and how Mapbox applies those
+                                approaches to their Mapbox Studio application.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="apps-and-examples"
+                          >
+                            Apps and Examples<a
+                              href="#apps-and-examples"
+                              class="hash-link"
+                              aria-label="Direct link to Apps and Examples"
+                              title="Direct link to Apps and Examples"
+                              >​</a
+                            >
+                          </h2>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >React-Redux RealWorld Example: TodoMVC for
+                                  the Real World</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://github.com/GoThinkster/redux-review"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/GoThinkster/redux-review</a
+                                >
+                                <br />
+                                An example full-stack &quot;real world&quot;
+                                application built with Redux. Demos a
+                                Medium-like social blogging site that includes
+                                JWT authentication, CRUD, favoriting articles,
+                                following users, routing, and more. The
+                                RealWorld project also includes many other
+                                implementations of the front and back ends of
+                                the site, specifically intended to show how
+                                different server and client implementations of
+                                the same project and API spec compare with each
+                                other.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Project Mini-Mek</strong> <br />
+                                <a
+                                  href="https://github.com/markerikson/project-minimek"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/markerikson/project-minimek</a
+                                >
+                                <br />
+                                A sample app to demonstrate various useful Redux
+                                techniques, accompanying the &quot;Practical
+                                Redux&quot; blog series at
+                                <a
+                                  href="https://blog.isquaredsoftware.com/series/practical-redux"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://blog.isquaredsoftware.com/series/practical-redux</a
+                                >
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>react-redux-yelp-clone</strong> <br />
+                                <a
+                                  href="https://github.com/mohamed-ismat/react-redux-yelp-clone"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/mohamed-ismat/react-redux-yelp-clone</a
+                                >
+                                <br />
+                                An adaptation of the &quot;Yelp Clone&quot; app
+                                by FullStackReact. It extends the original by
+                                using Redux and Redux Saga instead of local
+                                state, as well as React Router v4,
+                                styled-components, and other modern standards.
+                                Based on the React-Boilerplate starter kit.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>WordPress-Calypso</strong> <br />
+                                <a
+                                  href="https://github.com/Automattic/wp-calypso"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/Automattic/wp-calypso</a
+                                >
+                                <br />
+                                The new JavaScript- and API-powered
+                                WordPress.com
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Sound-Redux</strong> <br />
+                                <a
+                                  href="https://github.com/andrewngu/sound-redux"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/andrewngu/sound-redux</a
+                                >
+                                <br />
+                                A Soundcloud client built with React / Redux
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Webamp</strong> <br />
+                                <a
+                                  href="https://webamp.org"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://webamp.org</a
+                                >
+                                <br />
+                                <a
+                                  href="https://github.com/captbaritone/webamp"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/captbaritone/webamp</a
+                                >
+                                <br />
+                                An in-browser recreation of Winamp2, built with
+                                React and Redux. Actually plays MP3s, and lets
+                                you load in local MP3 files.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Tello</strong> <br />
+                                <a
+                                  href="https://github.com/joshwcomeau/Tello"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/joshwcomeau/Tello</a
+                                >
+                                <br />
+                                A simple and delightful way to track and manage
+                                TV shows
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>io-808</strong> <br />
+                                <a
+                                  href="https://github.com/vincentriemer/io-808"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://github.com/vincentriemer/io-808</a
+                                >
+                                <br />
+                                An attempt at a fully recreated web-based TR-808
+                                drum machine
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="redux-docs-translations"
+                          >
+                            Redux Docs Translations<a
+                              href="#redux-docs-translations"
+                              class="hash-link"
+                              aria-label="Direct link to Redux Docs Translations"
+                              title="Direct link to Redux Docs Translations"
+                              >​</a
+                            >
+                          </h2>
+                          <ul>
+                            <li>
+                              <a
+                                href="http://camsong.github.io/redux-in-chinese/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >中文文档</a
+                              >
+                              — Chinese
+                            </li>
+                            <li>
+                              <a
+                                href="https://github.com/chentsulin/redux"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >繁體中文文件</a
+                              >
+                              — Traditional Chinese
+                            </li>
+                            <li>
+                              <a
+                                href="https://github.com/rajdee/redux-in-russian"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >Redux in Russian</a
+                              >
+                              — Russian
+                            </li>
+                            <li>
+                              <a
+                                href="https://es.redux.js.org/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >Redux en Español</a
+                              >
+                              - Spanish
+                            </li>
+                            <li>
+                              <a
+                                href="https://ko.redux.js.org/"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >Redux in Korean</a
+                              >
+                              - Korean
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="books"
+                          >
+                            Books<a
+                              href="#books"
+                              class="hash-link"
+                              aria-label="Direct link to Books"
+                              title="Direct link to Books"
+                              >​</a
+                            >
+                          </h2>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong>Redux in Action</strong> <br />
+                                <a
+                                  href="https://www.manning.com/books/redux-in-action"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.manning.com/books/redux-in-action</a
+                                >
+                                <br />
+                                A comprehensive book that covers many key
+                                aspects of using Redux, including the basics of
+                                reducers and actions and use with React, complex
+                                middlewares and side effects, application
+                                structure, performance, testing, and much more.
+                                Does a great job of explaining the pros, cons,
+                                and tradeoffs of many approaches to using Redux.
+                                Personally recommended by Redux co-maintainer
+                                Mark Erikson.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>The Complete Redux Book</strong> <br />
+                                <a
+                                  href="https://leanpub.com/redux-book"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://leanpub.com/redux-book</a
+                                >
+                                <br />
+                                How do I manage a large state in production? Why
+                                do I need store enhancers? What is the best way
+                                to handle form validations? Get the answers to
+                                all these questions and many more using simple
+                                terms and sample code. Learn everything you need
+                                to use Redux to build complex and
+                                production-ready web applications. (Note: now
+                                permanently free!)
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Taming the State in React</strong>
+                                <br />
+                                <a
+                                  href="https://www.robinwieruch.de/learn-react-redux-mobx-state-management/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.robinwieruch.de/learn-react-redux-mobx-state-management/</a
+                                >
+                                <br />
+                                If you have learned React with the previous book
+                                of the author called The Road to learn React,
+                                Taming the State in React will be the perfect
+                                blend to learn about basic and advanced state
+                                management in React. You will start out with
+                                learning only Redux without React. Afterward,
+                                the book shows you how to connect Redux to your
+                                React application. The advanced chapters will
+                                teach you about normalization, naming, selectors
+                                and asynchronous actions. In the end, you will
+                                set up and build a real world application with
+                                React and Redux.
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="courses"
+                          >
+                            Courses<a
+                              href="#courses"
+                              class="hash-link"
+                              aria-label="Direct link to Courses"
+                              title="Direct link to Courses"
+                              >​</a
+                            >
+                          </h2>
+                          <ul>
+                            <li>
+                              <p>
+                                <strong
+                                  >Modern React with Redux, by Stephen Grider
+                                  (paid)</strong
+                                >
+                                <br />
+                                <a
+                                  href="https://www.udemy.com/react-redux/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://www.udemy.com/react-redux/</a
+                                >
+                                <br />
+                                Master the fundamentals of React and Redux with
+                                this tutorial as you develop apps with React
+                                Router, Webpack, and ES2015. This course will
+                                get you up and running quickly, and teach you
+                                the core knowledge you need to deeply understand
+                                and build React components and structure
+                                applications with Redux.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Redux, by Tyler McGinnis (paid)</strong>
+                                <br />
+                                <a
+                                  href="https://tylermcginnis.com/courses/redux/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://tylermcginnis.com/courses/redux/</a
+                                >
+                                <br />
+                                When learning Redux, you need to learn it in the
+                                context of an app big enough to see the
+                                benefits. That&#x27;s why this course is huge. A
+                                better name might be
+                                <em>&quot;Real World Redux&quot;</em>. If
+                                you&#x27;re sick of &quot;todo list&quot; Redux
+                                tutorials, you&#x27;ve come to the right place.
+                                In this course we&#x27;ll talk all about what
+                                makes Redux special for managing state in your
+                                application. We&#x27;ll build an actual
+                                &quot;real world&quot; application so you can
+                                see how Redux handles edge cases like optimistic
+                                updates and error handling. We&#x27;ll also
+                                cover many other technologies that work well
+                                with Redux, Firebase, and CSS Modules.
+                              </p>
+                            </li>
+                            <li>
+                              <p>
+                                <strong>Learn Redux, by Wes Bos (free)</strong>
+                                <br />
+                                <a
+                                  href="https://learnredux.com/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  >https://learnredux.com/</a
+                                >
+                                <br />
+                                A video course that walks through building
+                                &#x27;Reduxstagram&#x27; — a simple photo app
+                                that will simplify the core ideas behind Redux,
+                                React Router and React.js
+                              </p>
+                            </li>
+                          </ul>
+                          <h2
+                            class="anchor anchorWithStickyNavbar_LWe7"
+                            id="more-resources"
+                          >
+                            More Resources<a
+                              href="#more-resources"
+                              class="hash-link"
+                              aria-label="Direct link to More Resources"
+                              title="Direct link to More Resources"
+                              >​</a
+                            >
+                          </h2>
+                          <ul>
+                            <li>
+                              <a
+                                href="https://github.com/markerikson/react-redux-links"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >React-Redux Links</a
+                              >
+                              is a curated list of high-quality articles,
+                              tutorials, and related content for React, Redux,
+                              ES2015, and more.
+                            </li>
+                            <li>
+                              <a
+                                href="https://github.com/markerikson/redux-ecosystem-links"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >Redux Ecosystem Links</a
+                              >
+                              is a categorized collection of Redux-related
+                              libraries, addons, and utilities.
+                            </li>
+                            <li>
+                              <a
+                                href="https://github.com/xgrommx/awesome-redux"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >Awesome Redux</a
+                              >
+                              is an extensive list of Redux-related
+                              repositories.
+                            </li>
+                            <li>
+                              <a
+                                href="https://dev.to/t/redux"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >DEV Community</a
+                              >
+                              is a place to share Redux projects, articles and
+                              tutorials as well as start discussions and ask for
+                              feedback on Redux-related topics. Developers of
+                              all skill-levels are welcome to take part.
+                            </li>
+                          </ul>
+                        </div>
+                        <footer class="theme-doc-footer docusaurus-mt-lg">
+                          <div
+                            class="row margin-top--sm theme-doc-footer-edit-meta-row"
+                          >
+                            <div class="col">
+                              <a
+                                href="https://github.com/reduxjs/redux/edit/master/website/../docs/introduction/LearningResources.md"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="theme-edit-this-page"
+                                ><svg
+                                  fill="currentColor"
+                                  height="20"
+                                  width="20"
+                                  viewBox="0 0 40 40"
+                                  class="iconEdit_Z9Sw"
+                                  aria-hidden="true"
+                                >
+                                  <g>
+                                    <path
+                                      d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"
+                                    ></path>
+                                  </g></svg
+                                >Edit this page</a
+                              >
+                            </div>
+                            <div class="col lastUpdated_JAkA">
+                              <span class="theme-last-updated"
+                                >Last updated<!-- -->
+                                on
+                                <b
+                                  ><time
+                                    datetime="2024-01-03T20:09:22.000Z"
+                                    itemprop="dateModified"
+                                    >Jan 3, 2024</time
+                                  ></b
+                                ></span
+                              >
+                            </div>
+                          </div>
+                        </footer>
+                      </article>
+                      <nav
+                        class="pagination-nav docusaurus-mt-lg"
+                        aria-label="Docs pages"
+                      >
+                        <a
+                          class="pagination-nav__link pagination-nav__link--prev"
+                          href="/introduction/core-concepts"
+                          ><div class="pagination-nav__sublabel">Previous</div>
+                          <div class="pagination-nav__label">
+                            Core Concepts
+                          </div></a
+                        ><a
+                          class="pagination-nav__link pagination-nav__link--next"
+                          href="/introduction/ecosystem"
+                          ><div class="pagination-nav__sublabel">Next</div>
+                          <div class="pagination-nav__label">Ecosystem</div></a
+                        >
+                      </nav>
+                    </div>
+                  </div>
+                  <div class="col col--3">
+                    <div
+                      class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"
+                    >
+                      <ul
+                        class="table-of-contents table-of-contents__left-border"
+                      >
+                        <li>
+                          <a
+                            href="#basic-introductions"
+                            class="table-of-contents__link toc-highlight"
+                            >Basic Introductions</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#using-redux-with-react"
+                            class="table-of-contents__link toc-highlight"
+                            >Using Redux With React</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#project-based-tutorials"
+                            class="table-of-contents__link toc-highlight"
+                            >Project-Based Tutorials</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#redux-implementation"
+                            class="table-of-contents__link toc-highlight"
+                            >Redux Implementation</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#reducers"
+                            class="table-of-contents__link toc-highlight"
+                            >Reducers</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#selectors"
+                            class="table-of-contents__link toc-highlight"
+                            >Selectors</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#normalization"
+                            class="table-of-contents__link toc-highlight"
+                            >Normalization</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#middleware"
+                            class="table-of-contents__link toc-highlight"
+                            >Middleware</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#side-effects---basics"
+                            class="table-of-contents__link toc-highlight"
+                            >Side Effects - Basics</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#side-effects---advanced"
+                            class="table-of-contents__link toc-highlight"
+                            >Side Effects - Advanced</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#thinking-in-redux"
+                            class="table-of-contents__link toc-highlight"
+                            >Thinking in Redux</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#redux-architecture"
+                            class="table-of-contents__link toc-highlight"
+                            >Redux Architecture</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#apps-and-examples"
+                            class="table-of-contents__link toc-highlight"
+                            >Apps and Examples</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#redux-docs-translations"
+                            class="table-of-contents__link toc-highlight"
+                            >Redux Docs Translations</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#books"
+                            class="table-of-contents__link toc-highlight"
+                            >Books</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#courses"
+                            class="table-of-contents__link toc-highlight"
+                            >Courses</a
+                          >
+                        </li>
+                        <li>
+                          <a
+                            href="#more-resources"
+                            class="table-of-contents__link toc-highlight"
+                            >More Resources</a
+                          >
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </main>
+          </div>
+        </div>
+      </div>
+      <footer class="footer">
+        <div class="container container-fluid">
+          <div class="row footer__links">
+            <div class="col footer__col">
+              <div class="footer__title">Docs</div>
+              <ul class="footer__items clean-list">
+                <li class="footer__item">
+                  <a
+                    class="footer__link-item"
+                    href="/introduction/getting-started"
+                    >Getting Started</a
+                  >
+                </li>
+                <li class="footer__item">
+                  <a class="footer__link-item" type="doc" href="/usage"
+                    >Usage Guide</a
+                  >
+                </li>
+                <li class="footer__item">
+                  <a
+                    class="footer__link-item"
+                    href="/tutorials/essentials/part-1-overview-concepts"
+                    >Tutorial</a
+                  >
+                </li>
+                <li class="footer__item">
+                  <a class="footer__link-item" href="/faq">FAQ</a>
+                </li>
+                <li class="footer__item">
+                  <a
+                    class="footer__link-item"
+                    type="doc"
+                    href="/api/api-reference"
+                    >API Reference</a
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="col footer__col">
+              <div class="footer__title">Community</div>
+              <ul class="footer__items clean-list">
+                <li class="footer__item">
+                  <a
+                    href="https://discord.gg/0ZcbPKXt5bZ6au5t"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="footer__link-item"
+                    >Reactiflux Discord<svg
+                      width="13.5"
+                      height="13.5"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      class="iconExternalLink_nPIU"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"
+                      ></path></svg
+                  ></a>
+                </li>
+                <li class="footer__item">
+                  <a
+                    href="http://stackoverflow.com/questions/tagged/redux"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="footer__link-item"
+                    >Stack Overflow<svg
+                      width="13.5"
+                      height="13.5"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      class="iconExternalLink_nPIU"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"
+                      ></path></svg
+                  ></a>
+                </li>
+                <li class="footer__item">
+                  <a
+                    class="footer__link-item"
+                    href="/introduction/getting-started#help-and-discussion"
+                    >Feedback</a
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="col footer__col">
+              <div class="footer__title">More</div>
+              <ul class="footer__items clean-list">
+                <li class="footer__item">
+                  <a
+                    href="https://github.com/reduxjs/redux"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="footer__link-item"
+                    >GitHub<svg
+                      width="13.5"
+                      height="13.5"
+                      aria-hidden="true"
+                      viewBox="0 0 24 24"
+                      class="iconExternalLink_nPIU"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"
+                      ></path></svg
+                  ></a>
+                </li>
+                <li class="footer__item">
+                  <a href="https://www.netlify.com">
+                    <img
+                      src="https://www.netlify.com/img/global/badges/netlify-color-accent.svg"
+                      alt="Deployed by Netlify"
+                    />
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="footer__bottom text--center">
+            <div class="margin-bottom--sm">
+              <a
+                href="https://redux.js.org/"
+                rel="noopener noreferrer"
+                class="footerLogoLink_BH7S"
+                ><img
+                  src="/img/redux.svg"
+                  alt="Redux Logo"
+                  class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE" /><img
+                  src="/img/redux.svg"
+                  alt="Redux Logo"
+                  class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"
+              /></a>
+            </div>
+            <div class="footer__copyright">
+              Copyright © 2015–2025 Dan Abramov and the Redux documentation
+              authors.
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </body>
 </html>

@@ -14,13 +14,15 @@ Usage (from project root):
     python -m api_gateway.scripts.coderabbit_log_issues resolve \
         --id <error_id> --resolution "Fixed per PR #6 commit <sha>"
 """
+
 from __future__ import annotations
 
 import argparse
 import asyncio
 import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any
 
 from sqlalchemy import select
 
@@ -64,7 +66,7 @@ def _extract_summary(body: str) -> str:
     return "CodeRabbit issue"
 
 
-def _iter_coderabbit_comments(data: Any) -> Iterable[Dict[str, Any]]:
+def _iter_coderabbit_comments(data: Any) -> Iterable[dict[str, Any]]:
     """
     Yield GitHub review comment objects authored by CodeRabbit from JSON.
 
@@ -112,7 +114,7 @@ async def _import_file(path: Path) -> int:
         severity = _detect_severity(body)
         summary = _extract_summary(body)
 
-        context: Dict[str, Any] = {
+        context: dict[str, Any] = {
             "path": comment.get("path"),
             "commit_id": comment.get("commit_id"),
             "github_url": comment.get("html_url"),
@@ -149,7 +151,7 @@ async def _cmd_list(args: argparse.Namespace) -> None:
     async with AsyncSessionLocal() as session:
         stmt = select(Error).where(Error.service == "coderabbit").order_by(Error.created_at.desc())
         result = await session.execute(stmt)
-        errors: List[Error] = list(result.scalars())
+        errors: list[Error] = list(result.scalars())
 
     if not errors:
         print("No CodeRabbit errors found in database.")
@@ -165,7 +167,7 @@ async def _cmd_list(args: argparse.Namespace) -> None:
 
 async def _cmd_resolve(args: argparse.Namespace) -> None:
     error_id: str = args.id
-    resolution: Optional[str] = args.resolution
+    resolution: str | None = args.resolution
 
     updated = await mark_error_resolved(error_id, resolution=resolution)
     if updated is None:
@@ -210,7 +212,7 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-async def _run_async(argv: Optional[List[str]] = None) -> None:
+async def _run_async(argv: list[str] | None = None) -> None:
     """
     Entry point for async commands.
 
@@ -237,7 +239,7 @@ async def _run_async(argv: Optional[List[str]] = None) -> None:
         parser.print_help()
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     asyncio.run(_run_async(argv))
 
 

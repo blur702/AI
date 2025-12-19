@@ -37,6 +37,7 @@ from bs4 import BeautifulSoup
 if TYPE_CHECKING:
     import weaviate
 
+from ..utils.logger import get_logger
 from .base_doc_scraper import BaseDocScraper, DocPage, ScraperConfig
 from .typescript_docs_schema import (
     TYPESCRIPT_DOCS_COLLECTION_NAME,
@@ -44,8 +45,6 @@ from .typescript_docs_schema import (
     get_typescript_docs_stats,
 )
 from .weaviate_connection import WeaviateConnection
-from ..utils.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -229,7 +228,15 @@ class TypeScriptDocsScraper(BaseDocScraper):
             return "handbook"
         elif any(
             term in url_lower
-            for term in ["utility-types", "decorators", "enums", "jsx", "mixins", "namespaces", "symbols"]
+            for term in [
+                "utility-types",
+                "decorators",
+                "enums",
+                "jsx",
+                "mixins",
+                "namespaces",
+                "symbols",
+            ]
         ):
             return "reference"
         else:
@@ -240,7 +247,18 @@ class TypeScriptDocsScraper(BaseDocScraper):
         url_lower = url.lower()
 
         # Type manipulation
-        if any(term in url_lower for term in ["generics", "keyof", "typeof", "indexed-access", "conditional-types", "mapped-types", "template-literal"]):
+        if any(
+            term in url_lower
+            for term in [
+                "generics",
+                "keyof",
+                "typeof",
+                "indexed-access",
+                "conditional-types",
+                "mapped-types",
+                "template-literal",
+            ]
+        ):
             return "type-manipulation"
 
         # Classes and objects
@@ -274,11 +292,23 @@ class TypeScriptDocsScraper(BaseDocScraper):
 
         # Remove navigation, footer, etc.
         for selector in [
-            "nav", "footer", "header", "aside",
-            "[role='navigation']", "[role='banner']",
-            ".sidebar", ".toc", ".nav", ".footer", ".header",
-            ".site-nav", ".page-nav", ".doc-nav",
-            "script", "style", "noscript",
+            "nav",
+            "footer",
+            "header",
+            "aside",
+            "[role='navigation']",
+            "[role='banner']",
+            ".sidebar",
+            ".toc",
+            ".nav",
+            ".footer",
+            ".header",
+            ".site-nav",
+            ".page-nav",
+            ".doc-nav",
+            "script",
+            "style",
+            "noscript",
             ".playground-button",  # TypeScript playground buttons
         ]:
             for elem in soup.select(selector):
@@ -338,10 +368,9 @@ class TypeScriptDocsScraper(BaseDocScraper):
         breadcrumb = ""
         breadcrumb_elem = soup.select_one("[aria-label='breadcrumb'], .breadcrumb, .breadcrumbs")
         if breadcrumb_elem:
-            breadcrumb = " > ".join([
-                li.get_text(strip=True)
-                for li in breadcrumb_elem.select("li, a")
-            ])
+            breadcrumb = " > ".join(
+                [li.get_text(strip=True) for li in breadcrumb_elem.select("li, a")]
+            )
 
         return DocPage(
             url=url,
@@ -353,7 +382,7 @@ class TypeScriptDocsScraper(BaseDocScraper):
             code_examples=code_examples,
         )
 
-    def create_collection(self, client: "weaviate.WeaviateClient") -> None:
+    def create_collection(self, client: weaviate.WeaviateClient) -> None:
         """Create the TypeScriptDocs collection."""
         create_typescript_docs_collection(client)
 
@@ -389,9 +418,7 @@ def scrape_typescript_docs(
 
 def main() -> None:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Scrape TypeScript documentation"
-    )
+    parser = argparse.ArgumentParser(description="Scrape TypeScript documentation")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # scrape command
@@ -446,9 +473,9 @@ def main() -> None:
             print("=" * 50)
             print(f"Exists: {stats['exists']}")
             print(f"Total objects: {stats['object_count']}")
-            if stats['section_counts']:
+            if stats["section_counts"]:
                 print("\nBy section:")
-                for section, count in sorted(stats['section_counts'].items()):
+                for section, count in sorted(stats["section_counts"].items()):
                     print(f"  {section}: {count}")
             print("=" * 50)
 

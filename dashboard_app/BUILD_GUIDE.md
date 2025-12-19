@@ -96,7 +96,6 @@ Expected size: ~15-25 MB (compressed with UPX)
    ```
 
 3. Verify functionality:
-
    - Window opens with Dashboard, Models, and Settings tabs
    - Resource panel shows GPU stats (if `nvidia-smi` available)
    - Service cards display with start/stop buttons
@@ -310,4 +309,3 @@ Common paths:
 
 - `%APPDATA%` = `C:\Users\<username>\AppData\Roaming`
 - `%LOCALAPPDATA%` = `C:\Users\<username>\AppData\Local`
-

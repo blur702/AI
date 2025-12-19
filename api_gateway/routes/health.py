@@ -4,14 +4,14 @@ Health check endpoint for API Gateway.
 Provides system health status including database connectivity and GPU status.
 Used by monitoring systems and load balancers to verify service availability.
 """
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 
 from fastapi import APIRouter
 
 from ..middleware.response import unified_response
 from ..models.database import engine
 from ..services.vram_service import VRAMService
-
 
 router = APIRouter(tags=["health"])
 
@@ -58,5 +58,5 @@ async def health() -> dict:
             "gpu_ok": gpu_ok,
         },
         "gpu": gpu_status,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }

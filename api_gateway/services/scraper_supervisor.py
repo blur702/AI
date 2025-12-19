@@ -34,11 +34,12 @@ import subprocess
 import sys
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 from ..utils.logger import get_logger
 
@@ -52,6 +53,7 @@ CHECKPOINTS_DIR = SUPERVISOR_DATA_DIR / "checkpoints"
 
 class JobStatus(str, Enum):
     """Status of a scraper job."""
+
     PENDING = "pending"
     RUNNING = "running"
     PAUSED = "paused"
@@ -63,6 +65,7 @@ class JobStatus(str, Enum):
 @dataclass
 class JobCheckpoint:
     """Checkpoint for resumable scraping."""
+
     job_id: str
     scraper_type: str
     last_entity_type: str = ""
@@ -73,41 +76,42 @@ class JobCheckpoint:
     errors: int = 0
     updated_at: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "JobCheckpoint":
+    def from_dict(cls, data: dict[str, Any]) -> JobCheckpoint:
         return cls(**data)
 
 
 @dataclass
 class ScraperJob:
     """Configuration and state for a scraper job."""
+
     job_id: str
     scraper_type: str
     status: JobStatus = JobStatus.PENDING
-    config: Dict[str, Any] = field(default_factory=dict)
+    config: dict[str, Any] = field(default_factory=dict)
     created_at: str = ""
     started_at: str = ""
     completed_at: str = ""
     last_heartbeat: str = ""
-    pid: Optional[int] = None
+    pid: int | None = None
     error_message: str = ""
     retry_count: int = 0
     max_retries: int = 3
 
     def __post_init__(self):
         if not self.created_at:
-            self.created_at = datetime.now(timezone.utc).isoformat()
+            self.created_at = datetime.now(UTC).isoformat()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["status"] = self.status.value
         return d
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "ScraperJob":
+    def from_dict(cls, data: dict[str, Any]) -> ScraperJob:
         data["status"] = JobStatus(data.get("status", "pending"))
         return cls(**data)
 
@@ -120,12 +124,12 @@ class JobRegistry:
         self.jobs_file.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
 
-    def _load(self) -> Dict[str, ScraperJob]:
+    def _load(self) -> dict[str, ScraperJob]:
         """Load jobs from JSON file."""
         if not self.jobs_file.exists():
             return {}
         try:
-            with open(self.jobs_file, "r", encoding="utf-8") as f:
+            with open(self.jobs_file, encoding="utf-8") as f:
                 data = json.load(f)
                 return {k: ScraperJob.from_dict(v) for k, v in data.items()}
         except json.JSONDecodeError as e:
@@ -138,7 +142,7 @@ class JobRegistry:
             logger.warning("Unexpected error loading jobs file: %s", e)
             return {}
 
-    def _save(self, jobs: Dict[str, ScraperJob]) -> None:
+    def _save(self, jobs: dict[str, ScraperJob]) -> None:
         """Save jobs to JSON file."""
         try:
             with open(self.jobs_file, "w", encoding="utf-8") as f:
@@ -150,17 +154,17 @@ class JobRegistry:
             logger.error("Unexpected error saving jobs file: %s", e)
             raise
 
-    def get(self, job_id: str) -> Optional[ScraperJob]:
+    def get(self, job_id: str) -> ScraperJob | None:
         with self._lock:
             jobs = self._load()
             return jobs.get(job_id)
 
-    def get_all(self) -> List[ScraperJob]:
+    def get_all(self) -> list[ScraperJob]:
         with self._lock:
             jobs = self._load()
             return list(jobs.values())
 
-    def get_by_type(self, scraper_type: str) -> Optional[ScraperJob]:
+    def get_by_type(self, scraper_type: str) -> ScraperJob | None:
         """Get the most recent job for a scraper type."""
         with self._lock:
             jobs = self._load()
@@ -197,7 +201,7 @@ class CheckpointManager:
 
     def save(self, checkpoint: JobCheckpoint) -> None:
         """Save checkpoint to JSON file."""
-        checkpoint.updated_at = datetime.now(timezone.utc).isoformat()
+        checkpoint.updated_at = datetime.now(UTC).isoformat()
         path = self._get_path(checkpoint.job_id)
         try:
             with open(path, "w", encoding="utf-8") as f:
@@ -210,13 +214,13 @@ class CheckpointManager:
             logger.error("Unexpected error saving checkpoint for %s: %s", checkpoint.job_id, e)
             raise
 
-    def load(self, job_id: str) -> Optional[JobCheckpoint]:
+    def load(self, job_id: str) -> JobCheckpoint | None:
         """Load checkpoint from JSON file."""
         path = self._get_path(job_id)
         if not path.exists():
             return None
         try:
-            with open(path, "r", encoding="utf-8") as f:
+            with open(path, encoding="utf-8") as f:
                 data = json.load(f)
                 return JobCheckpoint.from_dict(data)
         except json.JSONDecodeError as e:
@@ -238,33 +242,35 @@ class CheckpointManager:
 
 
 # Scraper type registry - maps type names to runner functions
-ScraperRunner = Callable[[ScraperJob, Optional[JobCheckpoint], CheckpointManager], Dict[str, Any]]
-SCRAPER_REGISTRY: Dict[str, ScraperRunner] = {}
+ScraperRunner = Callable[[ScraperJob, JobCheckpoint | None, CheckpointManager], dict[str, Any]]
+SCRAPER_REGISTRY: dict[str, ScraperRunner] = {}
 
 
 def register_scraper(scraper_type: str) -> Callable[[ScraperRunner], ScraperRunner]:
     """Decorator to register a scraper runner function."""
+
     def decorator(func: ScraperRunner) -> ScraperRunner:
         SCRAPER_REGISTRY[scraper_type] = func
         return func
+
     return decorator
 
 
 @register_scraper("drupal")
 def run_drupal_scraper(
     job: ScraperJob,
-    checkpoint: Optional[JobCheckpoint],
+    checkpoint: JobCheckpoint | None,
     checkpoint_manager: CheckpointManager,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run the Drupal API scraper with checkpoint support."""
+    from ..utils.embeddings import get_embedding
     from .drupal_api_schema import create_drupal_api_collection
     from .drupal_scraper import (
+        ENTITY_LISTINGS,
         DrupalAPIScraper,
         ScrapeConfig,
-        ENTITY_LISTINGS,
         get_entity_text_for_embedding,
     )
-    from ..utils.embeddings import get_embedding
     from .weaviate_connection import DRUPAL_API_COLLECTION_NAME, WeaviateConnection
 
     config = job.config
@@ -285,7 +291,9 @@ def run_drupal_scraper(
         start_after_name = checkpoint.last_entity_name
         logger.info(
             "Resuming from checkpoint: type=%s, after=%s, processed=%d",
-            start_entity_type, start_after_name, entities_processed,
+            start_entity_type,
+            start_after_name,
+            entities_processed,
         )
     else:
         entities_processed = 0
@@ -325,7 +333,11 @@ def run_drupal_scraper(
                     # Skip entity types until we reach the resume point
                     if skip_until_type:
                         if entity_type != skip_until_type:
-                            logger.info("Skipping entity type %s (resuming from %s)", entity_type, skip_until_type)
+                            logger.info(
+                                "Skipping entity type %s (resuming from %s)",
+                                entity_type,
+                                skip_until_type,
+                            )
                             continue
                         skip_until_type = None  # Found our type, now look for name
 
@@ -336,15 +348,22 @@ def run_drupal_scraper(
                         if skip_until_name:
                             if entity.name == skip_until_name:
                                 skip_until_name = None  # Found it, start processing next
-                            logger.debug("Skipping %s (resuming after %s)", entity.name, start_after_name)
+                            logger.debug(
+                                "Skipping %s (resuming after %s)", entity.name, start_after_name
+                            )
                             continue
 
                         # Increment counter only for entities actually processed (after skip point)
                         entities_processed += 1
 
                         # Check max entities limit
-                        if scrape_config.max_entities and entities_processed > scrape_config.max_entities:
-                            logger.info("Reached max entities limit: %d", scrape_config.max_entities)
+                        if (
+                            scrape_config.max_entities
+                            and entities_processed > scrape_config.max_entities
+                        ):
+                            logger.info(
+                                "Reached max entities limit: %d", scrape_config.max_entities
+                            )
                             break
 
                         # Skip if already in collection
@@ -379,11 +398,16 @@ def run_drupal_scraper(
                             checkpoint_manager.save(checkpoint)
                             logger.info(
                                 "Checkpoint: processed=%d, inserted=%d, errors=%d",
-                                entities_processed, entities_inserted, errors,
+                                entities_processed,
+                                entities_inserted,
+                                errors,
                             )
 
                     # Check limit after each entity type
-                    if scrape_config.max_entities and entities_processed > scrape_config.max_entities:
+                    if (
+                        scrape_config.max_entities
+                        and entities_processed > scrape_config.max_entities
+                    ):
                         break
 
         return {
@@ -413,17 +437,17 @@ def run_drupal_scraper(
 @register_scraper("mdn_javascript")
 def run_mdn_javascript_scraper(
     job: ScraperJob,
-    checkpoint: Optional[JobCheckpoint],
+    checkpoint: JobCheckpoint | None,
     checkpoint_manager: CheckpointManager,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run the MDN JavaScript documentation scraper with checkpoint support."""
-    from .mdn_schema import create_mdn_javascript_collection
+    from ..utils.embeddings import get_embedding
     from .mdn_javascript_scraper import (
         MDNJavaScriptScraper,
         ScrapeConfig,
         get_doc_text_for_embedding,
     )
-    from ..utils.embeddings import get_embedding
+    from .mdn_schema import create_mdn_javascript_collection
     from .weaviate_connection import MDN_JAVASCRIPT_COLLECTION_NAME, WeaviateConnection
 
     config = job.config
@@ -443,7 +467,9 @@ def run_mdn_javascript_scraper(
         skip_until_name = checkpoint.last_entity_name if checkpoint.last_entity_name else None
         logger.info(
             "Resuming from checkpoint: processed=%d, inserted=%d, skip_until=%s",
-            entities_processed, entities_inserted, skip_until_name,
+            entities_processed,
+            entities_inserted,
+            skip_until_name,
         )
     else:
         entities_processed = 0
@@ -479,13 +505,20 @@ def run_mdn_javascript_scraper(
                     if skip_until_name:
                         if doc.title == skip_until_name:
                             skip_until_name = None  # Found it, start processing next
-                        logger.debug("Skipping %s (resuming after %s)", doc.title, checkpoint.last_entity_name)
+                        logger.debug(
+                            "Skipping %s (resuming after %s)",
+                            doc.title,
+                            checkpoint.last_entity_name,
+                        )
                         continue
 
                     entities_processed += 1
 
                     # Check max entities limit
-                    if scrape_config.max_entities and entities_processed > scrape_config.max_entities:
+                    if (
+                        scrape_config.max_entities
+                        and entities_processed > scrape_config.max_entities
+                    ):
                         logger.info("Reached max entities limit: %d", scrape_config.max_entities)
                         break
 
@@ -520,7 +553,9 @@ def run_mdn_javascript_scraper(
                         checkpoint_manager.save(checkpoint)
                         logger.info(
                             "Checkpoint: processed=%d, inserted=%d, errors=%d",
-                            entities_processed, entities_inserted, errors,
+                            entities_processed,
+                            entities_inserted,
+                            errors,
                         )
 
         return {
@@ -549,17 +584,17 @@ def run_mdn_javascript_scraper(
 @register_scraper("mdn_webapis")
 def run_mdn_webapis_scraper(
     job: ScraperJob,
-    checkpoint: Optional[JobCheckpoint],
+    checkpoint: JobCheckpoint | None,
     checkpoint_manager: CheckpointManager,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run the MDN Web APIs documentation scraper with checkpoint support."""
+    from ..utils.embeddings import get_embedding
     from .mdn_schema import create_mdn_webapis_collection
     from .mdn_webapis_scraper import (
         MDNWebAPIsScraper,
         ScrapeConfig,
         get_doc_text_for_embedding,
     )
-    from ..utils.embeddings import get_embedding
     from .weaviate_connection import MDN_WEBAPIS_COLLECTION_NAME, WeaviateConnection
 
     config = job.config
@@ -581,7 +616,10 @@ def run_mdn_webapis_scraper(
         skip_until_type = checkpoint.last_entity_type if checkpoint.last_entity_type else None
         logger.info(
             "Resuming from checkpoint: processed=%d, inserted=%d, skip_until=%s [%s]",
-            entities_processed, entities_inserted, skip_until_name, skip_until_type,
+            entities_processed,
+            entities_inserted,
+            skip_until_name,
+            skip_until_type,
         )
     else:
         entities_processed = 0
@@ -621,15 +659,22 @@ def run_mdn_webapis_scraper(
                             if skip_until_type is None or doc.section_type == skip_until_type:
                                 skip_until_name = None  # Found it, start processing next
                                 skip_until_type = None
-                        logger.debug("Skipping %s [%s] (resuming after %s [%s])",
-                                   doc.title, doc.section_type,
-                                   checkpoint.last_entity_name, checkpoint.last_entity_type)
+                        logger.debug(
+                            "Skipping %s [%s] (resuming after %s [%s])",
+                            doc.title,
+                            doc.section_type,
+                            checkpoint.last_entity_name,
+                            checkpoint.last_entity_type,
+                        )
                         continue
 
                     entities_processed += 1
 
                     # Check max entities limit
-                    if scrape_config.max_entities and entities_processed > scrape_config.max_entities:
+                    if (
+                        scrape_config.max_entities
+                        and entities_processed > scrape_config.max_entities
+                    ):
                         logger.info("Reached max entities limit: %d", scrape_config.max_entities)
                         break
 
@@ -665,7 +710,10 @@ def run_mdn_webapis_scraper(
                         checkpoint_manager.save(checkpoint)
                         logger.info(
                             "Checkpoint [%s]: processed=%d, inserted=%d, errors=%d",
-                            doc.section_type, entities_processed, entities_inserted, errors,
+                            doc.section_type,
+                            entities_processed,
+                            entities_inserted,
+                            errors,
                         )
 
         return {
@@ -694,19 +742,19 @@ def run_mdn_webapis_scraper(
 @register_scraper("python_docs")
 def run_python_docs_scraper(
     job: ScraperJob,
-    checkpoint: Optional[JobCheckpoint],
+    checkpoint: JobCheckpoint | None,
     checkpoint_manager: CheckpointManager,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run the Python documentation scraper with checkpoint support."""
+    from ..utils.embeddings import get_embedding
     from .python_docs_schema import create_python_docs_collection
     from .python_docs_scraper import (
-        PythonDocsScraper,
-        ScrapeConfig,
         PYTHON_SECTIONS,
         PYTHON_VERSIONS,
+        PythonDocsScraper,
+        ScrapeConfig,
         get_doc_text_for_embedding,
     )
-    from ..utils.embeddings import get_embedding
     from .weaviate_connection import PYTHON_DOCS_COLLECTION_NAME, WeaviateConnection
 
     config = job.config
@@ -723,11 +771,11 @@ def run_python_docs_scraper(
         entities_processed = checkpoint.entities_processed
         entities_inserted = checkpoint.entities_inserted
         errors = checkpoint.errors
-        skip_until_name: Optional[str] = (
+        skip_until_name: str | None = (
             checkpoint.last_entity_name if checkpoint.last_entity_name else None
         )
-        skip_until_version: Optional[str] = None
-        skip_until_section: Optional[str] = None
+        skip_until_version: str | None = None
+        skip_until_section: str | None = None
 
         if checkpoint.last_entity_type:
             # last_entity_type may store "version:section_type" for precise resumption
@@ -769,12 +817,12 @@ def run_python_docs_scraper(
             logger.info(
                 "Loading existing PythonDocs UUIDs and content hashes for deduplication...",
             )
-            existing_docs: Dict[str, Optional[str]] = {}
+            existing_docs: dict[str, str | None] = {}
             try:
                 for obj in collection.iterator(include_vector=False):
                     props = getattr(obj, "properties", None)
-                    uuid_val: Optional[str] = None
-                    content_hash: Optional[str] = None
+                    uuid_val: str | None = None
+                    content_hash: str | None = None
                     if props and isinstance(props, dict):
                         uuid_val = props.get("uuid")
                         content_hash = props.get("content_hash")
@@ -802,8 +850,7 @@ def run_python_docs_scraper(
                         if skip_until_version and version == skip_until_version:
                             if skip_until_section and section_type != skip_until_section:
                                 logger.info(
-                                    "Skipping section %s for version %s "
-                                    "(resuming from %s:%s)",
+                                    "Skipping section %s for version %s " "(resuming from %s:%s)",
                                     section_type,
                                     version,
                                     skip_until_version,
@@ -818,9 +865,7 @@ def run_python_docs_scraper(
                             section_path,
                         )
 
-                        for doc in scraper.scrape_section(
-                            version, section_path, section_type
-                        ):
+                        for doc in scraper.scrape_section(version, section_path, section_type):
                             # Skip documents until we have passed the resume point
                             if skip_until_name:
                                 if doc.title == skip_until_name:
@@ -995,8 +1040,8 @@ class ScraperSupervisor:
 
     def __init__(
         self,
-        registry: Optional[JobRegistry] = None,
-        checkpoint_manager: Optional[CheckpointManager] = None,
+        registry: JobRegistry | None = None,
+        checkpoint_manager: CheckpointManager | None = None,
         check_interval: int = 30,
         heartbeat_timeout: int = 300,
     ):
@@ -1005,13 +1050,13 @@ class ScraperSupervisor:
         self.check_interval = check_interval  # seconds
         self.heartbeat_timeout = heartbeat_timeout  # seconds
         self._running = False
-        self._current_thread: Optional[threading.Thread] = None
+        self._current_thread: threading.Thread | None = None
 
     def start_job(
         self,
         scraper_type: str,
-        config: Optional[Dict[str, Any]] = None,
-        job_id: Optional[str] = None,
+        config: dict[str, Any] | None = None,
+        job_id: str | None = None,
     ) -> ScraperJob:
         """Start a new scraper job."""
         if scraper_type not in SCRAPER_REGISTRY:
@@ -1028,7 +1073,7 @@ class ScraperSupervisor:
         logger.info("Created job: %s", job_id)
         return job
 
-    def run_job(self, job: ScraperJob, resume: bool = False) -> Dict[str, Any]:
+    def run_job(self, job: ScraperJob, resume: bool = False) -> dict[str, Any]:
         """Run a job synchronously."""
         if job.scraper_type not in SCRAPER_REGISTRY:
             raise ValueError(f"Unknown scraper type: {job.scraper_type}")
@@ -1038,7 +1083,7 @@ class ScraperSupervisor:
 
         # Update job status
         job.status = JobStatus.RUNNING
-        job.started_at = datetime.now(timezone.utc).isoformat()
+        job.started_at = datetime.now(UTC).isoformat()
         job.pid = os.getpid()
         self.registry.save(job)
 
@@ -1047,7 +1092,7 @@ class ScraperSupervisor:
 
             if result.get("success"):
                 job.status = JobStatus.COMPLETED
-                job.completed_at = datetime.now(timezone.utc).isoformat()
+                job.completed_at = datetime.now(UTC).isoformat()
                 # Clean up checkpoint on success
                 self.checkpoint_manager.delete(job.job_id)
             else:
@@ -1065,7 +1110,7 @@ class ScraperSupervisor:
             self.registry.save(job)
             raise
 
-    def resume_job(self, job_id: str) -> Dict[str, Any]:
+    def resume_job(self, job_id: str) -> dict[str, Any]:
         """Resume a failed or paused job."""
         job = self.registry.get(job_id)
         if not job:
@@ -1092,11 +1137,12 @@ class ScraperSupervisor:
         # Check heartbeat
         if job.last_heartbeat:
             last_beat = datetime.fromisoformat(job.last_heartbeat.replace("Z", "+00:00"))
-            age = (datetime.now(timezone.utc) - last_beat).total_seconds()
+            age = (datetime.now(UTC) - last_beat).total_seconds()
             if age > self.heartbeat_timeout:
                 logger.warning(
                     "Job %s heartbeat timeout (last: %.0fs ago)",
-                    job.job_id, age,
+                    job.job_id,
+                    age,
                 )
                 return False
 
@@ -1107,13 +1153,16 @@ class ScraperSupervisor:
         if job.retry_count >= job.max_retries:
             logger.error(
                 "Job %s exceeded max retries (%d), not restarting",
-                job.job_id, job.max_retries,
+                job.job_id,
+                job.max_retries,
             )
             return
 
         logger.info(
             "Restarting job %s (retry %d/%d)",
-            job.job_id, job.retry_count + 1, job.max_retries,
+            job.job_id,
+            job.retry_count + 1,
+            job.max_retries,
         )
 
         # Start in a separate thread to not block supervisor
@@ -1166,7 +1215,7 @@ class ScraperSupervisor:
 
         logger.info("Supervisor daemon stopped")
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get status of all jobs."""
         jobs = self.registry.get_all()
         return {
@@ -1197,15 +1246,22 @@ def install_windows_task(interval_minutes: int = 5) -> None:
     working_dir = script_path.parent.parent.parent  # D:\AI
 
     # Build the command to run (cd to working directory first so module can find resources)
-    cmd = f'cd /d "{working_dir}" && "{python_exe}" -m api_gateway.services.scraper_supervisor check'
+    cmd = (
+        f'cd /d "{working_dir}" && "{python_exe}" -m api_gateway.services.scraper_supervisor check'
+    )
 
     # Create the scheduled task using schtasks
     schtasks_cmd = [
-        "schtasks", "/create",
-        "/tn", task_name,
-        "/tr", cmd,
-        "/sc", "MINUTE",
-        "/mo", str(interval_minutes),
+        "schtasks",
+        "/create",
+        "/tn",
+        task_name,
+        "/tr",
+        cmd,
+        "/sc",
+        "MINUTE",
+        "/mo",
+        str(interval_minutes),
         "/f",  # Force overwrite if exists
     ]
 
@@ -1236,7 +1292,10 @@ def uninstall_windows_task() -> None:
     try:
         subprocess.run(
             ["schtasks", "/delete", "/tn", task_name, "/f"],
-            capture_output=True, text=True, check=True, timeout=30,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=30,
         )
         logger.info("Scheduled task removed: %s", task_name)
         print(f"Removed scheduled task '{task_name}'")
@@ -1250,7 +1309,7 @@ def uninstall_windows_task() -> None:
         raise
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI entry point for scraper supervisor.
 
@@ -1265,7 +1324,9 @@ def main(argv: Optional[List[str]] = None) -> None:
     # run - start supervisor daemon
     run_parser = subparsers.add_parser("run", help="Run supervisor daemon")
     run_parser.add_argument(
-        "--check-interval", type=int, default=30,
+        "--check-interval",
+        type=int,
+        default=30,
         help="Seconds between health checks (default: 30)",
     )
 
@@ -1279,7 +1340,12 @@ def main(argv: Optional[List[str]] = None) -> None:
     start_parser = subparsers.add_parser("start", help="Start a new scraper job")
     start_parser.add_argument("scraper_type", choices=list(SCRAPER_REGISTRY.keys()))
     start_parser.add_argument("--limit", type=int, help="Max entities to scrape")
-    start_parser.add_argument("--section", type=str, choices=["css", "html", "webapi"], help="Section filter for mdn_webapis")
+    start_parser.add_argument(
+        "--section",
+        type=str,
+        choices=["css", "html", "webapi"],
+        help="Section filter for mdn_webapis",
+    )
     start_parser.add_argument("--dry-run", action="store_true", help="Don't insert into DB")
     start_parser.add_argument("--foreground", "-f", action="store_true", help="Run in foreground")
 
@@ -1291,7 +1357,9 @@ def main(argv: Optional[List[str]] = None) -> None:
     # install-task - install Windows scheduled task
     install_parser = subparsers.add_parser("install-task", help="Install Windows scheduled task")
     install_parser.add_argument(
-        "--interval", type=int, default=5,
+        "--interval",
+        type=int,
+        default=5,
         help="Minutes between checks (default: 5)",
     )
 
@@ -1334,7 +1402,7 @@ def main(argv: Optional[List[str]] = None) -> None:
             "dry_run": args.dry_run,
         }
         # Add section filter for mdn_webapis
-        if hasattr(args, 'section') and args.section:
+        if hasattr(args, "section") and args.section:
             config["section_filter"] = args.section
         job = supervisor.start_job(args.scraper_type, config)
         print(f"Created job: {job.job_id}")

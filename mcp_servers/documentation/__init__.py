@@ -10,7 +10,6 @@ import os
 
 from dotenv import load_dotenv
 
-
 load_dotenv()
 
 
@@ -28,6 +27,7 @@ class Settings:
             return int(port_str)
         except ValueError:
             import sys
+
             print(
                 f"Warning: Invalid WEAVIATE_GRPC_PORT '{port_str}', using default 50051",
                 file=sys.stderr,

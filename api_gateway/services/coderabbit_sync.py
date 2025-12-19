@@ -29,7 +29,6 @@ import logging
 import re
 import subprocess
 from dataclasses import dataclass
-from typing import Optional
 
 from sqlalchemy import delete
 
@@ -73,12 +72,13 @@ SEVERITY_PATTERNS = {
 @dataclass
 class CodeRabbitComment:
     """Parsed CodeRabbit review comment."""
+
     file_path: str
-    line_number: Optional[int]
+    line_number: int | None
     severity: str
     title: str
     body: str
-    suggestion: Optional[str]
+    suggestion: str | None
     pr_number: int
     comment_id: str
 
@@ -106,7 +106,7 @@ def parse_title(body: str) -> str:
     return first_line[:200] if first_line else "CodeRabbit Issue"
 
 
-def parse_suggestion(body: str) -> Optional[str]:
+def parse_suggestion(body: str) -> str | None:
     """Extract code suggestion if present."""
     # Look for diff blocks
     diff_match = re.search(r"```diff\n(.*?)```", body, re.DOTALL)
@@ -114,7 +114,9 @@ def parse_suggestion(body: str) -> Optional[str]:
         return diff_match.group(1).strip()
 
     # Look for suggested fix section
-    fix_match = re.search(r"<summary>.*Suggested Fix.*</summary>\s*(.*?)</details>", body, re.DOTALL | re.IGNORECASE)
+    fix_match = re.search(
+        r"<summary>.*Suggested Fix.*</summary>\s*(.*?)</details>", body, re.DOTALL | re.IGNORECASE
+    )
     if fix_match:
         return fix_match.group(1).strip()
 
@@ -184,16 +186,18 @@ def parse_comments(comments: list[dict], pr_number: int) -> list[CodeRabbitComme
         line_number = comment.get("line") or comment.get("original_line")
         comment_id = str(comment.get("id", ""))
 
-        parsed.append(CodeRabbitComment(
-            file_path=file_path or "unknown",
-            line_number=line_number,
-            severity=parse_severity(body),
-            title=parse_title(body),
-            body=body,
-            suggestion=parse_suggestion(body),
-            pr_number=pr_number,
-            comment_id=comment_id,
-        ))
+        parsed.append(
+            CodeRabbitComment(
+                file_path=file_path or "unknown",
+                line_number=line_number,
+                severity=parse_severity(body),
+                title=parse_title(body),
+                body=body,
+                suggestion=parse_suggestion(body),
+                pr_number=pr_number,
+                comment_id=comment_id,
+            )
+        )
 
     return parsed
 
@@ -216,14 +220,12 @@ def determine_service(file_path: str) -> str:
 async def clear_coderabbit_errors():
     """Delete all existing CodeRabbit errors from database."""
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            delete(Error).where(Error.service.like("%coderabbit%"))
-        )
+        result = await session.execute(delete(Error).where(Error.service.like("%coderabbit%")))
         await session.commit()
         return result.rowcount
 
 
-async def store_comment(comment: CodeRabbitComment, dry_run: bool = False) -> Optional[str]:
+async def store_comment(comment: CodeRabbitComment, dry_run: bool = False) -> str | None:
     """Store a CodeRabbit comment as an error in the database."""
     severity_map = {
         "critical": ErrorSeverity.critical,
@@ -255,7 +257,9 @@ async def store_comment(comment: CodeRabbitComment, dry_run: bool = False) -> Op
         message = f"[{loc}] {message}"
 
     if dry_run:
-        logger.info(f"[DRY RUN] Would store: {severity_map[comment.severity].value.upper()} - {message[:100]}...")
+        logger.info(
+            f"[DRY RUN] Would store: {severity_map[comment.severity].value.upper()} - {message[:100]}..."
+        )
         return None
 
     async with AsyncSessionLocal() as session:
@@ -334,9 +338,7 @@ async def main_async(args):
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Sync CodeRabbit PR comments to error database"
-    )
+    parser = argparse.ArgumentParser(description="Sync CodeRabbit PR comments to error database")
     parser.add_argument(
         "--pr",
         type=int,

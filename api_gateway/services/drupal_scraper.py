@@ -25,9 +25,10 @@ import json
 import logging
 import re
 import time
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, Generator, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 from urllib.parse import urljoin
 
 import httpx
@@ -75,7 +76,7 @@ class ScrapeConfig:
     request_delay: float = DEFAULT_REQUEST_DELAY
     batch_size: int = DEFAULT_BATCH_SIZE
     batch_delay: float = DEFAULT_BATCH_DELAY
-    max_entities: Optional[int] = None
+    max_entities: int | None = None
     dry_run: bool = False
 
 
@@ -115,10 +116,10 @@ class DrupalAPIScraper:
 
     def __init__(
         self,
-        config: Optional[ScrapeConfig] = None,
-        progress_callback: Optional[ProgressCallback] = None,
-        check_cancelled: Optional[CancelCheck] = None,
-        check_paused: Optional[PauseCheck] = None,
+        config: ScrapeConfig | None = None,
+        progress_callback: ProgressCallback | None = None,
+        check_cancelled: CancelCheck | None = None,
+        check_paused: PauseCheck | None = None,
     ):
         """
         Initialize the Drupal API scraper.
@@ -144,7 +145,7 @@ class DrupalAPIScraper:
         self._request_count = 0
         self._last_request_time = 0.0
 
-    def __enter__(self) -> "DrupalAPIScraper":
+    def __enter__(self) -> DrupalAPIScraper:
         """Context manager entry."""
         return self
 
@@ -212,7 +213,7 @@ class DrupalAPIScraper:
 
         self._last_request_time = time.time()
 
-    def _fetch(self, url: str) -> Optional[BeautifulSoup]:
+    def _fetch(self, url: str) -> BeautifulSoup | None:
         """
         Fetch URL with rate limiting and error handling.
 
@@ -240,7 +241,7 @@ class DrupalAPIScraper:
             return None
 
     def _extract_namespace(self, full_name: str) -> str:
-        """
+        r"""
         Extract PHP namespace from fully qualified name.
 
         Args:
@@ -313,7 +314,10 @@ class DrupalAPIScraper:
         for pre in soup.select("pre"):
             text = pre.get_text(strip=True)
             # Check if it looks like a PHP declaration
-            if any(kw in text for kw in ["class ", "function ", "interface ", "trait ", "abstract ", "final "]):
+            if any(
+                kw in text
+                for kw in ["class ", "function ", "interface ", "trait ", "abstract ", "final "]
+            ):
                 # Clean up and limit length
                 return text[:500]
 
@@ -466,9 +470,7 @@ class DrupalAPIScraper:
                         break
         return json.dumps(topics)
 
-    def _parse_entity_page(
-        self, url: str, entity_type: str, name: str
-    ) -> Optional[DrupalAPIEntity]:
+    def _parse_entity_page(self, url: str, entity_type: str, name: str) -> DrupalAPIEntity | None:
         """
         Parse a single entity page and extract metadata.
 
@@ -504,11 +506,9 @@ class DrupalAPIScraper:
         related_topics = self._extract_related_topics(soup)
 
         # Compute content hash and UUID
-        content_hash = compute_content_hash(
-            signature, parameters, return_type, description
-        )
+        content_hash = compute_content_hash(signature, parameters, return_type, description)
         entity_uuid = generate_stable_uuid(url, full_name)
-        scraped_at = datetime.now(timezone.utc).isoformat()
+        scraped_at = datetime.now(UTC).isoformat()
 
         return DrupalAPIEntity(
             entity_type=entity_type,
@@ -597,7 +597,7 @@ class DrupalAPIScraper:
             if "/api/drupal/" in entity_url and DRUPAL_VERSION in entity_url:
                 yield (entity_url, name, namespace)
 
-    def _get_next_page_url(self, soup: BeautifulSoup, current_url: str) -> Optional[str]:
+    def _get_next_page_url(self, soup: BeautifulSoup, current_url: str) -> str | None:
         """
         Extract next page URL from pagination if present.
 
@@ -722,11 +722,11 @@ class DrupalAPIScraper:
 
 
 def scrape_drupal_api(
-    config: Optional[ScrapeConfig] = None,
-    progress_callback: Optional[ProgressCallback] = None,
-    check_cancelled: Optional[CancelCheck] = None,
-    check_paused: Optional[PauseCheck] = None,
-) -> Dict[str, Any]:
+    config: ScrapeConfig | None = None,
+    progress_callback: ProgressCallback | None = None,
+    check_cancelled: CancelCheck | None = None,
+    check_paused: PauseCheck | None = None,
+) -> dict[str, Any]:
     """
     Scrape Drupal API and ingest into Weaviate.
 
@@ -903,7 +903,7 @@ def _configure_logging(verbose: bool) -> None:
         logger.setLevel(level)
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI entry point for Drupal API scraper.
 

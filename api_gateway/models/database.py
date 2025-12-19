@@ -9,16 +9,16 @@ Defines SQLAlchemy ORM models for:
 
 Uses PostgreSQL with asyncpg driver for async operations.
 """
+
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, JSON, String, Text, text
+from sqlalchemy import JSON, Boolean, Column, DateTime, Enum, Integer, String, Text, text
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
 from ..config import settings
-
 
 Base = declarative_base()
 
@@ -100,9 +100,12 @@ class Job(Base):
     request_data = Column(JSON, nullable=True)
     result = Column(JSON, nullable=True)
     error = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(
-        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
+        DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
     )
     timeout_seconds = Column(Integer, default=300, nullable=False)
 
@@ -126,7 +129,7 @@ class APIKey(Base):
 
     key = Column(String, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     last_used_at = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
 
@@ -160,9 +163,12 @@ class Todo(Base):
     priority = Column(Integer, default=0, nullable=False)
     due_date = Column(DateTime, nullable=True)
     tags = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     updated_at = Column(
-        DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False
+        DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
     )
     completed_at = Column(DateTime, nullable=True)
 
@@ -200,7 +206,7 @@ class Error(Base):
     stack_trace = Column(Text, nullable=True)
     context = Column(JSON, nullable=True)
     job_id = Column(String, nullable=True, index=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True)
     resolved = Column(Boolean, default=False, nullable=False)
     ready_for_review = Column(Boolean, default=False, nullable=False)
     resolved_at = Column(DateTime, nullable=True)
@@ -254,4 +260,3 @@ async def init_db() -> None:
         # safe to run repeatedly across SQLite and PostgreSQL.
         await _add_column_if_not_exists(conn, "resolution TEXT")
         await _add_column_if_not_exists(conn, "ready_for_review BOOLEAN NOT NULL DEFAULT FALSE")
-

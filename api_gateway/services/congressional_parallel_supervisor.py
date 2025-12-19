@@ -21,12 +21,11 @@ import os
 import subprocess
 import sys
 import time
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
-from pathlib import Path
-import tempfile
 import uuid
-from typing import Any, Dict, List, Optional, Set
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
+from pathlib import Path
+from typing import Any
 
 from ..utils.logger import get_logger
 from .congressional_scraper import CongressionalDocScraper, MemberInfo, ScrapeConfig
@@ -64,16 +63,16 @@ class WorkerState:
     """State of a single worker."""
 
     worker_id: int
-    pid: Optional[int] = None
-    process: Optional[subprocess.Popen] = None
+    pid: int | None = None
+    process: subprocess.Popen | None = None
     status: str = "pending"  # pending, running, crashed, completed, killed
     start_index: int = 0
     end_index: int = 0
-    last_heartbeat: Optional[datetime] = None
+    last_heartbeat: datetime | None = None
     restart_count: int = 0
-    last_restart: Optional[datetime] = None
+    last_restart: datetime | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "worker_id": self.worker_id,
             "pid": self.pid,
@@ -93,7 +92,7 @@ class WorkAssignment:
     created_at: str
     total_members: int
     worker_count: int
-    assignments: List[Dict[str, Any]] = field(default_factory=list)
+    assignments: list[dict[str, Any]] = field(default_factory=list)
 
 
 class ParallelSupervisor:
@@ -103,7 +102,7 @@ class ParallelSupervisor:
         self.config_path = config_path
         self.config = self._load_config()
         self.paths = self._load_paths()
-        self.workers: Dict[int, WorkerState] = {}
+        self.workers: dict[int, WorkerState] = {}
         self._ensure_directories()
 
     def _load_config(self) -> SupervisorConfig:
@@ -114,10 +113,14 @@ class ParallelSupervisor:
             return SupervisorConfig(
                 worker_count=supervisor_data.get("worker_count", 20),
                 heartbeat_timeout_seconds=supervisor_data.get("heartbeat_timeout_seconds", 300),
-                health_check_interval_seconds=supervisor_data.get("health_check_interval_seconds", 30),
+                health_check_interval_seconds=supervisor_data.get(
+                    "health_check_interval_seconds", 30
+                ),
                 max_restarts_per_worker=supervisor_data.get("max_restarts_per_worker", 3),
                 restart_cooldown_seconds=supervisor_data.get("restart_cooldown_seconds", 60),
-                stale_heartbeat_kill_timeout_seconds=supervisor_data.get("stale_heartbeat_kill_timeout_seconds", 600),
+                stale_heartbeat_kill_timeout_seconds=supervisor_data.get(
+                    "stale_heartbeat_kill_timeout_seconds", 600
+                ),
             )
         return SupervisorConfig()
 
@@ -128,10 +131,16 @@ class ParallelSupervisor:
             paths_data = data.get("paths", {})
             return WorkerPaths(
                 data_dir=Path(paths_data.get("data_dir", "D:/AI/data/scraper/congressional")),
-                heartbeat_dir=Path(paths_data.get("heartbeat_dir", "D:/AI/data/scraper/congressional/heartbeats")),
-                checkpoint_dir=Path(paths_data.get("checkpoint_dir", "D:/AI/data/scraper/congressional/checkpoints")),
+                heartbeat_dir=Path(
+                    paths_data.get("heartbeat_dir", "D:/AI/data/scraper/congressional/heartbeats")
+                ),
+                checkpoint_dir=Path(
+                    paths_data.get("checkpoint_dir", "D:/AI/data/scraper/congressional/checkpoints")
+                ),
                 log_dir=Path(paths_data.get("log_dir", "D:/AI/logs/congressional_scraper")),
-                pid_file=Path(paths_data.get("pid_file", "D:/AI/data/scraper/congressional/supervisor.pid")),
+                pid_file=Path(
+                    paths_data.get("pid_file", "D:/AI/data/scraper/congressional/supervisor.pid")
+                ),
             )
         return WorkerPaths(
             data_dir=Path("D:/AI/data/scraper/congressional"),
@@ -147,7 +156,7 @@ class ParallelSupervisor:
         self.paths.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.paths.log_dir.mkdir(parents=True, exist_ok=True)
 
-    def _fetch_members(self) -> List[MemberInfo]:
+    def _fetch_members(self) -> list[MemberInfo]:
         """Fetch member list from House feed."""
         logger.info("Fetching member list for work assignment...")
         scrape_config = ScrapeConfig(request_delay=1.0)
@@ -157,7 +166,7 @@ class ParallelSupervisor:
         logger.info("Fetched %d members", len(members))
         return members
 
-    def _create_work_assignments(self, members: List[MemberInfo]) -> WorkAssignment:
+    def _create_work_assignments(self, members: list[MemberInfo]) -> WorkAssignment:
         """Divide members among workers."""
         total = len(members)
         worker_count = self.config.worker_count
@@ -169,15 +178,17 @@ class ParallelSupervisor:
             end = min(start + chunk_size, total)
             if start >= total:
                 break
-            assignments.append({
-                "worker_id": i,
-                "start_index": start,
-                "end_index": end,
-                "member_count": end - start,
-            })
+            assignments.append(
+                {
+                    "worker_id": i,
+                    "start_index": start,
+                    "end_index": end,
+                    "member_count": end - start,
+                }
+            )
 
         return WorkAssignment(
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             total_members=total,
             worker_count=len(assignments),
             assignments=assignments,
@@ -189,7 +200,7 @@ class ParallelSupervisor:
         path.write_text(json.dumps(asdict(assignment), indent=2))
         logger.info("Saved work assignments to %s", path)
 
-    def _load_work_assignments(self) -> Optional[WorkAssignment]:
+    def _load_work_assignments(self) -> WorkAssignment | None:
         """Load work assignments from file."""
         path = self.paths.data_dir / "work_assignments.json"
         if path.exists():
@@ -201,7 +212,7 @@ class ParallelSupervisor:
         """Write supervisor PID file."""
         self.paths.pid_file.write_text(str(os.getpid()))
 
-    def _read_pid_file(self) -> Optional[int]:
+    def _read_pid_file(self) -> int | None:
         """Read supervisor PID from file."""
         if self.paths.pid_file.exists():
             try:
@@ -232,11 +243,16 @@ class ParallelSupervisor:
         """
         cmd = [
             sys.executable,
-            "-m", "api_gateway.services.congressional_worker",
-            "--worker-id", str(worker_id),
-            "--start-index", str(start_index),
-            "--end-index", str(end_index),
-            "--config", str(self.config_path),
+            "-m",
+            "api_gateway.services.congressional_worker",
+            "--worker-id",
+            str(worker_id),
+            "--start-index",
+            str(start_index),
+            "--end-index",
+            str(end_index),
+            "--config",
+            str(self.config_path),
         ]
 
         if remaining:
@@ -244,12 +260,18 @@ class ParallelSupervisor:
 
         log_file = self.paths.log_dir / f"worker_{worker_id}.log"
         mode_str = "REBALANCED " if remaining else ""
-        logger.info("Starting %sworker %d (members %d-%d), log: %s",
-                   mode_str, worker_id, start_index, end_index, log_file)
+        logger.info(
+            "Starting %sworker %d (members %d-%d), log: %s",
+            mode_str,
+            worker_id,
+            start_index,
+            end_index,
+            log_file,
+        )
 
         with open(log_file, "a") as log:
             log.write(f"\n{'='*60}\n")
-            log.write(f"Worker {worker_id} {mode_str}start at {datetime.now(timezone.utc).isoformat()}\n")
+            log.write(f"Worker {worker_id} {mode_str}start at {datetime.now(UTC).isoformat()}\n")
             log.write(f"{'='*60}\n\n")
 
             # Windows: CREATE_NO_WINDOW to hide console
@@ -298,7 +320,7 @@ class ParallelSupervisor:
             logger.error("Failed to kill worker %d: %s", worker_id, e)
             return False
 
-    def _read_heartbeat(self, worker_id: int) -> Optional[Dict[str, Any]]:
+    def _read_heartbeat(self, worker_id: int) -> dict[str, Any] | None:
         """Read heartbeat file for a worker."""
         path = self.paths.heartbeat_dir / f"worker_{worker_id}.json"
         if path.exists():
@@ -344,7 +366,7 @@ class ParallelSupervisor:
         last_beat_str = heartbeat.get("last_heartbeat")
         if last_beat_str:
             last_beat = datetime.fromisoformat(last_beat_str.replace("Z", "+00:00"))
-            age = (datetime.now(timezone.utc) - last_beat).total_seconds()
+            age = (datetime.now(UTC) - last_beat).total_seconds()
 
             if age > self.config.stale_heartbeat_kill_timeout_seconds:
                 logger.warning("Worker %d heartbeat very stale (%.0fs), needs kill", worker_id, age)
@@ -363,15 +385,22 @@ class ParallelSupervisor:
 
         # Check restart count
         if worker.restart_count >= self.config.max_restarts_per_worker:
-            logger.error("Worker %d exceeded max restarts (%d)", worker_id, self.config.max_restarts_per_worker)
+            logger.error(
+                "Worker %d exceeded max restarts (%d)",
+                worker_id,
+                self.config.max_restarts_per_worker,
+            )
             return False
 
         # Check cooldown
         if worker.last_restart:
-            elapsed = (datetime.now(timezone.utc) - worker.last_restart).total_seconds()
+            elapsed = (datetime.now(UTC) - worker.last_restart).total_seconds()
             if elapsed < self.config.restart_cooldown_seconds:
-                logger.info("Worker %d in restart cooldown (%.0fs remaining)",
-                           worker_id, self.config.restart_cooldown_seconds - elapsed)
+                logger.info(
+                    "Worker %d in restart cooldown (%.0fs remaining)",
+                    worker_id,
+                    self.config.restart_cooldown_seconds - elapsed,
+                )
                 return False
 
         return True
@@ -407,7 +436,7 @@ class ParallelSupervisor:
 
         logger.info("Started %d workers", len(self.workers))
 
-    def run_health_check(self) -> Dict[str, Any]:
+    def run_health_check(self) -> dict[str, Any]:
         """Run a single health check on all workers."""
         # Load existing work assignments
         assignment = self._load_work_assignments()
@@ -425,7 +454,7 @@ class ParallelSupervisor:
                 )
 
         results = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "workers": {},
             "actions": [],
         }
@@ -456,14 +485,14 @@ class ParallelSupervisor:
                     worker.process = process
                     worker.status = "running"
                     worker.restart_count += 1
-                    worker.last_restart = datetime.now(timezone.utc)
+                    worker.last_restart = datetime.now(UTC)
                     results["actions"].append(f"Restarted worker {worker_id}")
                 else:
                     results["actions"].append(f"Worker {worker_id} failed, max restarts exceeded")
 
         return results
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get status of all workers."""
         assignment = self._load_work_assignments()
 
@@ -523,19 +552,32 @@ class ParallelSupervisor:
 
         cmd = f'cd /d "{working_dir}" && "{python_exe}" -m api_gateway.services.congressional_parallel_supervisor check'
 
-        logger.info("Installing scheduled task '%s' (every %d minutes)", task_name, interval_minutes)
+        logger.info(
+            "Installing scheduled task '%s' (every %d minutes)", task_name, interval_minutes
+        )
 
         try:
-            result = subprocess.run([
-                "schtasks", "/create",
-                "/tn", task_name,
-                "/tr", f'cmd /c "{cmd}"',
-                "/sc", "MINUTE",
-                "/mo", str(interval_minutes),
-                "/ru", "SYSTEM",
-                "/rl", "HIGHEST",
-                "/f",
-            ], capture_output=True, text=True)
+            result = subprocess.run(
+                [
+                    "schtasks",
+                    "/create",
+                    "/tn",
+                    task_name,
+                    "/tr",
+                    f'cmd /c "{cmd}"',
+                    "/sc",
+                    "MINUTE",
+                    "/mo",
+                    str(interval_minutes),
+                    "/ru",
+                    "SYSTEM",
+                    "/rl",
+                    "HIGHEST",
+                    "/f",
+                ],
+                capture_output=True,
+                text=True,
+            )
 
             if result.returncode == 0:
                 logger.info("Task installed successfully")
@@ -556,11 +598,17 @@ class ParallelSupervisor:
         task_name = "CongressionalScraperSupervisor"
 
         try:
-            result = subprocess.run([
-                "schtasks", "/delete",
-                "/tn", task_name,
-                "/f",
-            ], capture_output=True, text=True)
+            result = subprocess.run(
+                [
+                    "schtasks",
+                    "/delete",
+                    "/tn",
+                    task_name,
+                    "/f",
+                ],
+                capture_output=True,
+                text=True,
+            )
 
             if result.returncode == 0:
                 logger.info("Task uninstalled successfully")
@@ -572,16 +620,20 @@ class ParallelSupervisor:
             logger.error("Failed to uninstall task: %s", e)
             return False
 
-    def _collect_completed_members(self) -> Set[str]:
+    def _collect_completed_members(self) -> set[str]:
         """Collect all completed member names from checkpoint files."""
-        completed: Set[str] = set()
+        completed: set[str] = set()
 
         for checkpoint_file in self.paths.checkpoint_dir.glob("worker_*_checkpoint.json"):
             try:
                 data = json.loads(checkpoint_file.read_text())
                 members_completed = data.get("members_completed", [])
                 completed.update(members_completed)
-                logger.info("Loaded %d completed members from %s", len(members_completed), checkpoint_file.name)
+                logger.info(
+                    "Loaded %d completed members from %s",
+                    len(members_completed),
+                    checkpoint_file.name,
+                )
             except Exception as e:
                 logger.warning("Failed to read checkpoint %s: %s", checkpoint_file, e)
 
@@ -612,17 +664,16 @@ class ParallelSupervisor:
             except OSError as e:
                 logger.warning("Failed to delete heartbeat %s: %s", f.name, e)
 
-    def _create_rebalanced_assignments(
-        self,
-        remaining_members: List[MemberInfo]
-    ) -> WorkAssignment:
+    def _create_rebalanced_assignments(self, remaining_members: list[MemberInfo]) -> WorkAssignment:
         """Create work assignments for remaining members only."""
         total = len(remaining_members)
-        worker_count = min(self.config.worker_count, total)  # Don't create more workers than members
+        worker_count = min(
+            self.config.worker_count, total
+        )  # Don't create more workers than members
 
         if worker_count == 0:
             return WorkAssignment(
-                created_at=datetime.now(timezone.utc).isoformat(),
+                created_at=datetime.now(UTC).isoformat(),
                 total_members=0,
                 worker_count=0,
                 assignments=[],
@@ -636,15 +687,17 @@ class ParallelSupervisor:
             end = min(start + chunk_size, total)
             if start >= total:
                 break
-            assignments.append({
-                "worker_id": i,
-                "start_index": start,
-                "end_index": end,
-                "member_count": end - start,
-            })
+            assignments.append(
+                {
+                    "worker_id": i,
+                    "start_index": start,
+                    "end_index": end,
+                    "member_count": end - start,
+                }
+            )
 
         return WorkAssignment(
-            created_at=datetime.now(timezone.utc).isoformat(),
+            created_at=datetime.now(UTC).isoformat(),
             total_members=total,
             worker_count=len(assignments),
             assignments=assignments,
@@ -664,7 +717,7 @@ class ParallelSupervisor:
         if not assignment:
             return
 
-        processes_to_wait: List[tuple] = []  # (worker_id, pid)
+        processes_to_wait: list[tuple] = []  # (worker_id, pid)
 
         for a in assignment.assignments:
             worker_id = a["worker_id"]
@@ -684,7 +737,9 @@ class ParallelSupervisor:
                     )
                     if result.returncode != 0:
                         # Process may not exist or needs force kill
-                        logger.info("Worker %d graceful termination failed, trying force kill", worker_id)
+                        logger.info(
+                            "Worker %d graceful termination failed, trying force kill", worker_id
+                        )
                         subprocess.run(
                             ["taskkill", "/F", "/PID", str(pid)],
                             capture_output=True,
@@ -704,7 +759,9 @@ class ParallelSupervisor:
                     logger.info("Worker %d (PID %d) terminated", worker_id, pid)
 
             except subprocess.TimeoutExpired:
-                logger.warning("Timeout waiting for worker %d (PID %d), force killing", worker_id, pid)
+                logger.warning(
+                    "Timeout waiting for worker %d (PID %d), force killing", worker_id, pid
+                )
                 try:
                     if sys.platform == "win32":
                         subprocess.run(["taskkill", "/F", "/PID", str(pid)], capture_output=True)
@@ -750,7 +807,7 @@ class ParallelSupervisor:
                 pass
             raise e
 
-    def rebalance(self) -> Dict[str, Any]:
+    def rebalance(self) -> dict[str, Any]:
         """
         Rebalance work by redistributing remaining members across all workers.
 
@@ -809,11 +866,19 @@ class ParallelSupervisor:
         # Save remaining members list for workers to use (atomic write)
         remaining_members_path = self.paths.data_dir / "remaining_members.json"
         remaining_members_data = [
-            {"name": m.name, "url": m.website_url, "state": m.state, "district": m.district, "party": m.party}
+            {
+                "name": m.name,
+                "url": m.website_url,
+                "state": m.state,
+                "district": m.district,
+                "party": m.party,
+            }
             for m in remaining_members
         ]
         self._atomic_write_json(remaining_members_path, remaining_members_data)
-        logger.info("Saved %d remaining members to %s", len(remaining_members), remaining_members_path)
+        logger.info(
+            "Saved %d remaining members to %s", len(remaining_members), remaining_members_path
+        )
 
         # Save work assignments
         self._save_work_assignments(assignment)
@@ -838,8 +903,11 @@ class ParallelSupervisor:
                 end_index=end_index,
             )
 
-        logger.info("Rebalance complete: started %d workers for %d remaining members",
-                   len(self.workers), len(remaining_members))
+        logger.info(
+            "Rebalance complete: started %d workers for %d remaining members",
+            len(self.workers),
+            len(remaining_members),
+        )
 
         return {
             "status": "rebalanced",
@@ -847,16 +915,23 @@ class ParallelSupervisor:
             "completed": len(completed_members),
             "remaining": len(remaining_members),
             "workers_started": len(self.workers),
-            "members_per_worker": len(remaining_members) // len(self.workers) if self.workers else 0,
+            "members_per_worker": (
+                len(remaining_members) // len(self.workers) if self.workers else 0
+            ),
         }
 
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Congressional scraper parallel supervisor")
-    parser.add_argument("command", choices=["start", "check", "status", "stop", "rebalance", "install-task", "uninstall-task"])
+    parser.add_argument(
+        "command",
+        choices=["start", "check", "status", "stop", "rebalance", "install-task", "uninstall-task"],
+    )
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="Config file path")
-    parser.add_argument("--interval", type=int, default=5, help="Task scheduler interval in minutes")
+    parser.add_argument(
+        "--interval", type=int, default=5, help="Task scheduler interval in minutes"
+    )
     parser.add_argument("--json", action="store_true", help="Output as JSON")
 
     args = parser.parse_args()
@@ -875,9 +950,15 @@ def main():
                 if args.json:
                     print(json.dumps(results, indent=2))
                 else:
-                    healthy = sum(1 for w in results["workers"].values() if w["health"] == "healthy")
-                    completed = sum(1 for w in results["workers"].values() if w["health"] == "completed")
-                    print(f"[{results['timestamp']}] Healthy: {healthy}, Completed: {completed}, Actions: {len(results['actions'])}")
+                    healthy = sum(
+                        1 for w in results["workers"].values() if w["health"] == "healthy"
+                    )
+                    completed = sum(
+                        1 for w in results["workers"].values() if w["health"] == "completed"
+                    )
+                    print(
+                        f"[{results['timestamp']}] Healthy: {healthy}, Completed: {completed}, Actions: {len(results['actions'])}"
+                    )
 
                 # Check if all completed
                 all_completed = all(w["health"] == "completed" for w in results["workers"].values())
@@ -913,7 +994,9 @@ def main():
             for worker_id, info in status["workers"].items():
                 hb = info.get("heartbeat", {})
                 status_str = hb.get("status", "unknown") if hb else "no heartbeat"
-                members = f"{hb.get('members_processed', 0)}/{hb.get('members_total', 0)}" if hb else "?"
+                members = (
+                    f"{hb.get('members_processed', 0)}/{hb.get('members_total', 0)}" if hb else "?"
+                )
                 print(f"  Worker {worker_id}: {status_str} ({members} members)")
 
     elif args.command == "stop":
@@ -925,23 +1008,33 @@ def main():
         if args.json:
             print(json.dumps(result, indent=2))
         else:
-            print(f"Rebalance complete!")
+            print("Rebalance complete!")
             print(f"  Total members: {result['total_members']}")
             print(f"  Already completed: {result['completed']}")
             print(f"  Remaining: {result['remaining']}")
             print(f"  Workers started: {result['workers_started']}")
-            if result['workers_started'] > 0:
+            if result["workers_started"] > 0:
                 print(f"  Members per worker: ~{result['members_per_worker']}")
-                print("\nMonitoring workers. Press Ctrl+C to detach (workers continue in background).")
+                print(
+                    "\nMonitoring workers. Press Ctrl+C to detach (workers continue in background)."
+                )
                 try:
                     while True:
                         time.sleep(supervisor.config.health_check_interval_seconds)
                         results = supervisor.run_health_check()
-                        healthy = sum(1 for w in results["workers"].values() if w["health"] == "healthy")
-                        completed = sum(1 for w in results["workers"].values() if w["health"] == "completed")
-                        print(f"[{results['timestamp']}] Healthy: {healthy}, Completed: {completed}")
+                        healthy = sum(
+                            1 for w in results["workers"].values() if w["health"] == "healthy"
+                        )
+                        completed = sum(
+                            1 for w in results["workers"].values() if w["health"] == "completed"
+                        )
+                        print(
+                            f"[{results['timestamp']}] Healthy: {healthy}, Completed: {completed}"
+                        )
 
-                        all_completed = all(w["health"] == "completed" for w in results["workers"].values())
+                        all_completed = all(
+                            w["health"] == "completed" for w in results["workers"].values()
+                        )
                         if all_completed:
                             print("All workers completed!")
                             break

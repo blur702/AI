@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 import sys
 from pathlib import Path
-from typing import Any, List, Dict, Optional, Union
+from typing import Any, Union
 
 import httpx
 from mcp.server.fastmcp import FastMCP
@@ -29,14 +29,13 @@ project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from api_gateway.services.weaviate_connection import (  # noqa: E402
-    WeaviateConnection,
-    DOCUMENTATION_COLLECTION_NAME,
-    CODE_ENTITY_COLLECTION_NAME,
-)
 from api_gateway.config import settings as api_settings  # noqa: E402
+from api_gateway.services.weaviate_connection import (  # noqa: E402
+    CODE_ENTITY_COLLECTION_NAME,
+    DOCUMENTATION_COLLECTION_NAME,
+    WeaviateConnection,
+)
 from mcp_servers.documentation import settings  # noqa: E402
-
 
 # Limit validation constants
 MIN_LIMIT = 1
@@ -58,15 +57,30 @@ mcp = FastMCP("Codebase Search")
 
 
 # Type aliases for search results
-SearchResult = Dict[str, Any]
-SearchResponse = Union[List[SearchResult], Dict[str, str]]
+SearchResult = dict[str, Any]
+SearchResponse = Union[list[SearchResult], dict[str, str]]
 
 # Valid entity types for code search filtering
-VALID_ENTITY_TYPES = {"function", "method", "class", "variable", "interface", "type", "style", "animation", "struct", "trait", "enum", "impl", "constant", "static"}
+VALID_ENTITY_TYPES = {
+    "function",
+    "method",
+    "class",
+    "variable",
+    "interface",
+    "type",
+    "style",
+    "animation",
+    "struct",
+    "trait",
+    "enum",
+    "impl",
+    "constant",
+    "static",
+}
 VALID_LANGUAGES = {"python", "typescript", "javascript", "css", "rust"}
 
 
-def _get_embedding(text: str) -> List[float]:
+def _get_embedding(text: str) -> list[float]:
     """Get embedding vector from Ollama for semantic search."""
     url = f"{api_settings.OLLAMA_API_ENDPOINT}/api/embeddings"
     response = httpx.post(
@@ -137,14 +151,16 @@ def search_documentation(query: str, limit: int = 10) -> SearchResponse:
                 return {"error": "query_failed", "message": str(exc)}
 
             # Build results
-            results: List[SearchResult] = []
+            results: list[SearchResult] = []
             for obj in response.objects:
-                results.append({
-                    "title": obj.properties.get("title", ""),
-                    "content": obj.properties.get("content", ""),
-                    "file_path": obj.properties.get("file_path", ""),
-                    "section": obj.properties.get("section", ""),
-                })
+                results.append(
+                    {
+                        "title": obj.properties.get("title", ""),
+                        "content": obj.properties.get("content", ""),
+                        "file_path": obj.properties.get("file_path", ""),
+                        "section": obj.properties.get("section", ""),
+                    }
+                )
 
             logger.info("Found %d results for query=%r", len(results), query)
             return results
@@ -159,9 +175,9 @@ def search_documentation(query: str, limit: int = 10) -> SearchResponse:
 def search_code(
     query: str,
     limit: int = 10,
-    entity_type: Optional[str] = None,
-    service_name: Optional[str] = None,
-    language: Optional[str] = None,
+    entity_type: str | None = None,
+    service_name: str | None = None,
+    language: str | None = None,
 ) -> SearchResponse:
     """
     Search code entities using semantic similarity.
@@ -196,13 +212,23 @@ def search_code(
 
     # Validate filters
     if entity_type and entity_type not in VALID_ENTITY_TYPES:
-        return {"error": "invalid_entity_type", "message": f"Valid types: {', '.join(sorted(VALID_ENTITY_TYPES))}"}
+        return {
+            "error": "invalid_entity_type",
+            "message": f"Valid types: {', '.join(sorted(VALID_ENTITY_TYPES))}",
+        }
     if language and language not in VALID_LANGUAGES:
-        return {"error": "invalid_language", "message": f"Valid languages: {', '.join(sorted(VALID_LANGUAGES))}"}
+        return {
+            "error": "invalid_language",
+            "message": f"Valid languages: {', '.join(sorted(VALID_LANGUAGES))}",
+        }
 
     logger.info(
         "Searching code: query=%r, limit=%d, entity_type=%s, service=%s, language=%s",
-        query, limit, entity_type, service_name, language
+        query,
+        limit,
+        entity_type,
+        service_name,
+        language,
     )
 
     try:
@@ -250,7 +276,7 @@ def search_code(
                 return {"error": "query_failed", "message": str(exc)}
 
             # Build results
-            results: List[SearchResult] = []
+            results: list[SearchResult] = []
             for obj in response.objects:
                 props = obj.properties
                 line_start = props.get("line_start", 0)
@@ -262,16 +288,18 @@ def search_code(
                 if len(source_code) > 500:
                     source_code = source_code[:500] + "..."
 
-                results.append({
-                    "entity_type": props.get("entity_type", ""),
-                    "name": props.get("name", ""),
-                    "full_name": props.get("full_name", ""),
-                    "signature": props.get("signature", ""),
-                    "file_path": file_ref,
-                    "docstring": props.get("docstring", ""),
-                    "source_code": source_code,
-                    "service_name": props.get("service_name", "core"),
-                })
+                results.append(
+                    {
+                        "entity_type": props.get("entity_type", ""),
+                        "name": props.get("name", ""),
+                        "full_name": props.get("full_name", ""),
+                        "signature": props.get("signature", ""),
+                        "file_path": file_ref,
+                        "docstring": props.get("docstring", ""),
+                        "source_code": source_code,
+                        "service_name": props.get("service_name", "core"),
+                    }
+                )
 
             logger.info("Found %d code results for query=%r", len(results), query)
             return results
@@ -311,8 +339,8 @@ def search_codebase(query: str, limit: int = 10) -> SearchResponse:
     doc_limit = limit // 2
     code_limit = limit - doc_limit
 
-    results: List[SearchResult] = []
-    errors: List[str] = []
+    results: list[SearchResult] = []
+    errors: list[str] = []
 
     # Search documentation
     doc_results = search_documentation(query, limit=doc_limit)

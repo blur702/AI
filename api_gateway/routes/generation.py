@@ -5,6 +5,7 @@ Provides unified interface for submitting generation jobs to various backend
 services (ComfyUI, Wan2GP, Stable Audio, AudioCraft, YuE, DiffRhythm, MusicGPT).
 All requests return immediately with a job_id for async tracking via /jobs endpoints.
 """
+
 from fastapi import APIRouter
 
 from ..middleware.response import unified_response
@@ -15,7 +16,6 @@ from ..models.schemas import (
     VideoGenerationRequest,
 )
 from ..services.job_queue import JobQueueManager
-
 
 router = APIRouter(prefix="/generate", tags=["generation"])
 queue_manager = JobQueueManager()
@@ -111,4 +111,3 @@ async def generate_music(payload: MusicGenerationRequest) -> dict:
         service = "musicgpt"
     job_id = await queue_manager.create_job(service, payload.dict())
     return {"job_id": job_id, "status": "pending"}
-

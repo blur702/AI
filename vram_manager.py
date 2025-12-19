@@ -4,14 +4,14 @@ import argparse
 import json
 import logging
 import subprocess
-import sys
 import xml.etree.ElementTree as ET
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 # Configure logging for library use
 logger = logging.getLogger(__name__)
 
-def get_gpu_info() -> Optional[Dict[str, Any]]:
+
+def get_gpu_info() -> dict[str, Any] | None:
     """Get GPU memory information using nvidia-smi (multi-GPU via XML).
 
     Uses ``nvidia-smi -q -x`` and parses the XML output to support multiple GPUs.
@@ -40,7 +40,7 @@ def get_gpu_info() -> Optional[Dict[str, Any]]:
             return None
 
         root = ET.fromstring(result.stdout)
-        gpus: List[Dict[str, Any]] = []
+        gpus: list[dict[str, Any]] = []
 
         for idx, gpu in enumerate(root.findall(".//gpu")):
             name = gpu.findtext("product_name", default="GPU")
@@ -107,56 +107,63 @@ def get_gpu_info() -> Optional[Dict[str, Any]]:
         logger.warning("Error getting GPU info: %s", e)
     return None
 
-def get_ollama_models() -> List[Dict[str, str]]:
+
+def get_ollama_models() -> list[dict[str, str]]:
     """Get list of models loaded in Ollama.
 
     Returns:
         List of dictionaries with model info (name, id, size, processor).
     """
     try:
-        result = subprocess.run(['ollama', 'ps'], capture_output=True, text=True, check=False)
+        result = subprocess.run(["ollama", "ps"], capture_output=True, text=True, check=False)
         if result.returncode == 0:
-            lines = result.stdout.strip().split('\n')
-            models: List[Dict[str, str]] = []
+            lines = result.stdout.strip().split("\n")
+            models: list[dict[str, str]] = []
             for line in lines[1:]:  # Skip header
                 parts = line.split()
                 if parts:
-                    models.append({
-                        'name': parts[0],
-                        'id': parts[1] if len(parts) > 1 else '',
-                        'size': parts[2] if len(parts) > 2 else '',
-                        'processor': parts[3] if len(parts) > 3 else ''
-                    })
+                    models.append(
+                        {
+                            "name": parts[0],
+                            "id": parts[1] if len(parts) > 1 else "",
+                            "size": parts[2] if len(parts) > 2 else "",
+                            "processor": parts[3] if len(parts) > 3 else "",
+                        }
+                    )
             return models
     except (subprocess.SubprocessError, OSError) as e:
         logger.warning("Error getting Ollama models: %s", e)
     return []
 
-def get_available_ollama_models() -> List[Dict[str, str]]:
+
+def get_available_ollama_models() -> list[dict[str, str]]:
     """Get list of all available Ollama models.
 
     Returns:
         List of dictionaries with model info (name, id, size).
     """
     try:
-        result = subprocess.run(['ollama', 'list'], capture_output=True, text=True, check=False)
+        result = subprocess.run(["ollama", "list"], capture_output=True, text=True, check=False)
         if result.returncode == 0:
-            lines = result.stdout.strip().split('\n')
-            models: List[Dict[str, str]] = []
+            lines = result.stdout.strip().split("\n")
+            models: list[dict[str, str]] = []
             for line in lines[1:]:  # Skip header
                 parts = line.split()
                 if parts:
-                    models.append({
-                        'name': parts[0],
-                        'id': parts[1] if len(parts) > 1 else '',
-                        'size': parts[2] if len(parts) > 2 else ''
-                    })
+                    models.append(
+                        {
+                            "name": parts[0],
+                            "id": parts[1] if len(parts) > 1 else "",
+                            "size": parts[2] if len(parts) > 2 else "",
+                        }
+                    )
             return models
     except (subprocess.SubprocessError, OSError) as e:
         logger.warning("Error listing Ollama models: %s", e)
     return []
 
-def stop_ollama_model(model_name: str) -> Tuple[bool, str]:
+
+def stop_ollama_model(model_name: str) -> tuple[bool, str]:
     """Stop/unload an Ollama model from memory.
 
     Args:
@@ -166,12 +173,15 @@ def stop_ollama_model(model_name: str) -> Tuple[bool, str]:
         Tuple of (success, error_message).
     """
     try:
-        result = subprocess.run(['ollama', 'stop', model_name], capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            ["ollama", "stop", model_name], capture_output=True, text=True, check=False
+        )
         return result.returncode == 0, result.stderr
     except (subprocess.SubprocessError, OSError) as e:
         return False, str(e)
 
-def get_gpu_processes() -> List[Dict[str, str]]:
+
+def get_gpu_processes() -> list[dict[str, str]]:
     """Get processes using the GPU.
 
     Returns:
@@ -179,25 +189,33 @@ def get_gpu_processes() -> List[Dict[str, str]]:
     """
     try:
         result = subprocess.run(
-            ['nvidia-smi', '--query-compute-apps=pid,process_name,used_memory',
-             '--format=csv,noheader'],
-            capture_output=True, text=True, check=False
+            [
+                "nvidia-smi",
+                "--query-compute-apps=pid,process_name,used_memory",
+                "--format=csv,noheader",
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
         )
         if result.returncode == 0:
-            processes: List[Dict[str, str]] = []
-            for line in result.stdout.strip().split('\n'):
-                if line and 'Insufficient Permissions' not in line and '[N/A]' not in line:
-                    parts = line.split(', ')
+            processes: list[dict[str, str]] = []
+            for line in result.stdout.strip().split("\n"):
+                if line and "Insufficient Permissions" not in line and "[N/A]" not in line:
+                    parts = line.split(", ")
                     if len(parts) >= 3:
-                        processes.append({
-                            'pid': parts[0].strip(),
-                            'name': parts[1].strip(),
-                            'memory': parts[2].strip()
-                        })
+                        processes.append(
+                            {
+                                "pid": parts[0].strip(),
+                                "name": parts[1].strip(),
+                                "memory": parts[2].strip(),
+                            }
+                        )
             return processes
     except (subprocess.SubprocessError, OSError) as e:
         logger.warning("Error getting GPU processes: %s", e)
     return []
+
 
 def display_status() -> None:
     """Display current VRAM and model status."""
@@ -208,9 +226,11 @@ def display_status() -> None:
     # GPU Info
     gpu_info = get_gpu_info()
     if gpu_info:
-        used_pct = (gpu_info['used_mb'] / gpu_info['total_mb']) * 100
+        used_pct = (gpu_info["used_mb"] / gpu_info["total_mb"]) * 100
         print(f"\nGPU: {gpu_info['name']}")
-        print(f"VRAM: {gpu_info['used_mb']:,} MB / {gpu_info['total_mb']:,} MB ({used_pct:.1f}% used)")
+        print(
+            f"VRAM: {gpu_info['used_mb']:,} MB / {gpu_info['total_mb']:,} MB ({used_pct:.1f}% used)"
+        )
         print(f"Free: {gpu_info['free_mb']:,} MB")
         print(f"Utilization: {gpu_info['utilization']}%")
 
@@ -222,7 +242,7 @@ def display_status() -> None:
     if models:
         for m in models:
             print(f"  - {m['name']} ({m['size']}) [{m['processor']}]")
-        print(f"\nTo unload: python vram_manager.py --stop <model_name>")
+        print("\nTo unload: python vram_manager.py --stop <model_name>")
     else:
         print("  No Ollama models currently loaded in VRAM")
 
@@ -233,29 +253,30 @@ def display_status() -> None:
     processes = get_gpu_processes()
     if processes:
         for p in processes:
-            name = p['name'].split('\\')[-1] if '\\' in p['name'] else p['name']
+            name = p["name"].split("\\")[-1] if "\\" in p["name"] else p["name"]
             print(f"  PID {p['pid']}: {name} - {p['memory']}")
     else:
         print("  No user GPU processes found (or permissions required)")
 
     print("\n" + "=" * 60)
 
+
 def main() -> None:
     """CLI entry point for VRAM Model Manager."""
-    parser = argparse.ArgumentParser(description='VRAM Model Manager')
-    parser.add_argument('--status', '-s', action='store_true', help='Show status (default)')
-    parser.add_argument('--stop', metavar='MODEL', help='Stop/unload an Ollama model')
-    parser.add_argument('--stop-all', action='store_true', help='Stop all loaded Ollama models')
-    parser.add_argument('--list', '-l', action='store_true', help='List available Ollama models')
-    parser.add_argument('--json', '-j', action='store_true', help='Output as JSON')
+    parser = argparse.ArgumentParser(description="VRAM Model Manager")
+    parser.add_argument("--status", "-s", action="store_true", help="Show status (default)")
+    parser.add_argument("--stop", metavar="MODEL", help="Stop/unload an Ollama model")
+    parser.add_argument("--stop-all", action="store_true", help="Stop all loaded Ollama models")
+    parser.add_argument("--list", "-l", action="store_true", help="List available Ollama models")
+    parser.add_argument("--json", "-j", action="store_true", help="Output as JSON")
 
     args = parser.parse_args()
 
     if args.json:
         data = {
-            'gpu': get_gpu_info(),
-            'loaded_models': get_ollama_models(),
-            'gpu_processes': get_gpu_processes()
+            "gpu": get_gpu_info(),
+            "loaded_models": get_ollama_models(),
+            "gpu_processes": get_gpu_processes(),
         }
         print(json.dumps(data, indent=2))
         return
@@ -277,7 +298,7 @@ def main() -> None:
         else:
             for m in models:
                 print(f"Stopping {m['name']}...")
-                success, error = stop_ollama_model(m['name'])
+                success, error = stop_ollama_model(m["name"])
                 if success:
                     print(f"  Unloaded {m['name']}")
                 else:
@@ -295,6 +316,7 @@ def main() -> None:
 
     # Default: show status
     display_status()
+
 
 if __name__ == "__main__":
     main()

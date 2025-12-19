@@ -32,18 +32,18 @@ import hashlib
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from weaviate.classes.query import Filter
 
 from ..utils.logger import get_logger
 from .doc_ingestion import (
+    DOCUMENTATION_COLLECTION_NAME,
+    _relative_to_workspace,
     chunk_by_headers,
     collection_status,
     ingest_documentation,
     scan_markdown_files,
-    _relative_to_workspace,
-    DOCUMENTATION_COLLECTION_NAME,
 )
 from .weaviate_connection import WeaviateConnection
 
@@ -54,20 +54,20 @@ logger = get_logger("api_gateway.doc_ingestion_audit")
 class AuditResult:
     """Result of documentation audit."""
 
-    missing: List[str] = field(default_factory=list)
+    missing: list[str] = field(default_factory=list)
     """Files not found in vector DB."""
 
-    mismatched: List[str] = field(default_factory=list)
+    mismatched: list[str] = field(default_factory=list)
     """Files with outdated content (hash mismatch)."""
 
-    synced: List[str] = field(default_factory=list)
+    synced: list[str] = field(default_factory=list)
     """Files correctly indexed."""
 
-    errors: List[str] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
     """Files that couldn't be audited."""
 
     @property
-    def files_to_ingest(self) -> List[str]:
+    def files_to_ingest(self) -> list[str]:
         """Combine missing and mismatched files for ingestion."""
         return self.missing + self.mismatched
 
@@ -76,7 +76,7 @@ class AuditResult:
         """Total files discovered."""
         return len(self.missing) + len(self.mismatched) + len(self.synced) + len(self.errors)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "missing": self.missing,
@@ -97,7 +97,7 @@ class VerificationResult:
     actual_chunks: int
     status: str  # "ok", "missing", "partial"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "file_path": self.file_path,
@@ -117,9 +117,9 @@ class IngestionReport:
     chunks_updated: int
     errors: int
     verification_passed: bool
-    verification_details: List[VerificationResult] = field(default_factory=list)
+    verification_details: list[VerificationResult] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "strategy": self.strategy,
@@ -181,8 +181,7 @@ def audit_documentation(client) -> AuditResult:
         try:
             # Query for chunks from this file
             response = collection.query.fetch_objects(
-                filters=Filter.by_property("file_path").equal(rel_path),
-                limit=1000
+                filters=Filter.by_property("file_path").equal(rel_path), limit=1000
             )
 
             chunk_count = len(response.objects)
@@ -200,7 +199,9 @@ def audit_documentation(client) -> AuditResult:
                     result.mismatched.append(str(file_path))
                     logger.debug(
                         "Mismatched: %s (expected %d chunks, found %d)",
-                        rel_path, len(expected_chunks), chunk_count
+                        rel_path,
+                        len(expected_chunks),
+                        chunk_count,
                     )
                 else:
                     # File appears synced
@@ -213,8 +214,10 @@ def audit_documentation(client) -> AuditResult:
 
     logger.info(
         "Audit complete: %d missing, %d mismatched, %d synced, %d errors",
-        len(result.missing), len(result.mismatched),
-        len(result.synced), len(result.errors)
+        len(result.missing),
+        len(result.mismatched),
+        len(result.synced),
+        len(result.errors),
     )
 
     return result
@@ -238,35 +241,25 @@ def verify_file_ingestion(client, file_path: Path) -> VerificationResult:
         expected_chunks = len(chunk_by_headers(file_path))
     except Exception:
         return VerificationResult(
-            file_path=rel_path,
-            expected_chunks=0,
-            actual_chunks=0,
-            status="error"
+            file_path=rel_path, expected_chunks=0, actual_chunks=0, status="error"
         )
 
     # Query actual chunks in collection
     if not client.collections.exists(DOCUMENTATION_COLLECTION_NAME):
         return VerificationResult(
-            file_path=rel_path,
-            expected_chunks=expected_chunks,
-            actual_chunks=0,
-            status="missing"
+            file_path=rel_path, expected_chunks=expected_chunks, actual_chunks=0, status="missing"
         )
 
     collection = client.collections.get(DOCUMENTATION_COLLECTION_NAME)
 
     try:
         response = collection.query.fetch_objects(
-            filters=Filter.by_property("file_path").equal(rel_path),
-            limit=1000
+            filters=Filter.by_property("file_path").equal(rel_path), limit=1000
         )
         actual_chunks = len(response.objects)
     except Exception:
         return VerificationResult(
-            file_path=rel_path,
-            expected_chunks=expected_chunks,
-            actual_chunks=0,
-            status="error"
+            file_path=rel_path, expected_chunks=expected_chunks, actual_chunks=0, status="error"
         )
 
     if actual_chunks == 0:
@@ -280,11 +273,11 @@ def verify_file_ingestion(client, file_path: Path) -> VerificationResult:
         file_path=rel_path,
         expected_chunks=expected_chunks,
         actual_chunks=actual_chunks,
-        status=status
+        status=status,
     )
 
 
-def verify_collection_integrity(client) -> Dict[str, Any]:
+def verify_collection_integrity(client) -> dict[str, Any]:
     """
     Verify overall collection integrity.
 
@@ -297,7 +290,7 @@ def verify_collection_integrity(client) -> Dict[str, Any]:
     # Get expected total chunks
     markdown_files = scan_markdown_files()
     expected_total = 0
-    file_details: List[VerificationResult] = []
+    file_details: list[VerificationResult] = []
 
     for file_path in markdown_files:
         try:
@@ -388,7 +381,7 @@ def run_ingestion_fix(
         strategy,
         len(files_to_ingest),
         total_files,
-        (len(files_to_ingest) / total_files * 100) if total_files > 0 else 0
+        (len(files_to_ingest) / total_files * 100) if total_files > 0 else 0,
     )
 
     if dry_run:
@@ -426,8 +419,8 @@ def run_ingestion_fix(
         )
     else:
         # Incremental path - use incremental_indexer's index_doc_file
-        from .incremental_indexer import index_doc_file
         from .doc_ingestion import create_documentation_collection
+        from .incremental_indexer import index_doc_file
 
         create_documentation_collection(client)
         collection = client.collections.get(DOCUMENTATION_COLLECTION_NAME)
@@ -455,36 +448,25 @@ def run_ingestion_fix(
         )
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Documentation ingestion audit and verification"
-    )
+    parser = argparse.ArgumentParser(description="Documentation ingestion audit and verification")
     parser.add_argument(
         "command",
         choices=["audit", "fix", "verify"],
-        help="Command to execute: audit (check status), fix (ingest missing), verify (check integrity)"
+        help="Command to execute: audit (check status), fix (ingest missing), verify (check integrity)",
     )
     parser.add_argument(
-        "--force-reindex",
-        action="store_true",
-        help="Force full reindex regardless of file count"
+        "--force-reindex", action="store_true", help="Force full reindex regardless of file count"
     )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Preview changes without executing"
-    )
-    parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Enable verbose logging"
-    )
+    parser.add_argument("--dry-run", action="store_true", help="Preview changes without executing")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
 
     args = parser.parse_args(argv)
 
     if args.verbose:
         import logging
+
         logging.basicConfig(level=logging.DEBUG)
 
     try:
@@ -556,29 +538,35 @@ def main(argv: Optional[List[str]] = None) -> None:
                 print("=" * 60)
                 print(f"Expected total chunks: {result['expected_total_chunks']}")
                 print(f"Actual total chunks:   {result['actual_total_chunks']}")
-                print(f"Counts match:          {result['counts_match']} (tolerance: ±{result['tolerance']})")
+                print(
+                    f"Counts match:          {result['counts_match']} (tolerance: ±{result['tolerance']})"
+                )
                 print()
                 print(f"Files OK:              {result['files_ok']}")
                 print(f"Files missing:         {result['files_missing']}")
                 print(f"Files partial:         {result['files_partial']}")
                 print(f"Files with errors:     {result['files_error']}")
                 print()
-                print(f"VERIFICATION:          {'PASSED' if result['verification_passed'] else 'FAILED'}")
+                print(
+                    f"VERIFICATION:          {'PASSED' if result['verification_passed'] else 'FAILED'}"
+                )
                 print("=" * 60)
 
-                if result['files_missing'] > 0:
+                if result["files_missing"] > 0:
                     print("\nMissing files:")
-                    for detail in result['file_details']:
+                    for detail in result["file_details"]:
                         if detail.status == "missing":
                             print(f"  - {detail.file_path}")
 
-                if result['files_partial'] > 0:
+                if result["files_partial"] > 0:
                     print("\nPartial files:")
-                    for detail in result['file_details']:
+                    for detail in result["file_details"]:
                         if detail.status == "partial":
-                            print(f"  - {detail.file_path} ({detail.actual_chunks}/{detail.expected_chunks} chunks)")
+                            print(
+                                f"  - {detail.file_path} ({detail.actual_chunks}/{detail.expected_chunks} chunks)"
+                            )
 
-                if not result['verification_passed']:
+                if not result["verification_passed"]:
                     sys.exit(1)
 
     except Exception as exc:

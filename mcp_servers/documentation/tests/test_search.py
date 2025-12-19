@@ -95,9 +95,7 @@ class TestSearchDocumentation(unittest.TestCase):
         self.assertEqual(len(results), 0)
 
     @patch("mcp_servers.documentation.main.WeaviateConnection")
-    def test_search_documentation_collection_not_exists(
-        self, mock_conn_class: MagicMock
-    ) -> None:
+    def test_search_documentation_collection_not_exists(self, mock_conn_class: MagicMock) -> None:
         """Test search when collection doesn't exist returns error dict."""
         from mcp_servers.documentation.main import search_documentation
 
@@ -115,15 +113,11 @@ class TestSearchDocumentation(unittest.TestCase):
         mock_client.collections.get.assert_not_called()
 
     @patch("mcp_servers.documentation.main.WeaviateConnection")
-    def test_search_documentation_connection_error(
-        self, mock_conn_class: MagicMock
-    ) -> None:
+    def test_search_documentation_connection_error(self, mock_conn_class: MagicMock) -> None:
         """Test search with connection error returns error dict."""
         from mcp_servers.documentation.main import search_documentation
 
-        mock_conn_class.return_value.__enter__.side_effect = ConnectionError(
-            "Failed to connect"
-        )
+        mock_conn_class.return_value.__enter__.side_effect = ConnectionError("Failed to connect")
 
         results = search_documentation("test query")
 
@@ -133,9 +127,7 @@ class TestSearchDocumentation(unittest.TestCase):
         self.assertIn("message", results)
 
     @patch("mcp_servers.documentation.main.WeaviateConnection")
-    def test_search_documentation_query_error(
-        self, mock_conn_class: MagicMock
-    ) -> None:
+    def test_search_documentation_query_error(self, mock_conn_class: MagicMock) -> None:
         """Test search with query execution error returns error dict."""
         from mcp_servers.documentation.main import search_documentation
 
@@ -157,9 +149,7 @@ class TestSearchDocumentation(unittest.TestCase):
         self.assertIn("message", results)
 
     @patch("mcp_servers.documentation.main.WeaviateConnection")
-    def test_search_documentation_limit_parameter(
-        self, mock_conn_class: MagicMock
-    ) -> None:
+    def test_search_documentation_limit_parameter(self, mock_conn_class: MagicMock) -> None:
         """Test that limit parameter is correctly passed."""
         from mcp_servers.documentation.main import search_documentation
 
@@ -217,9 +207,7 @@ class TestSearchDocumentation(unittest.TestCase):
         self.assertIn("150", results["message"])
 
     @patch("mcp_servers.documentation.main.WeaviateConnection")
-    def test_search_documentation_limit_boundary_min(
-        self, mock_conn_class: MagicMock
-    ) -> None:
+    def test_search_documentation_limit_boundary_min(self, mock_conn_class: MagicMock) -> None:
         """Test that limit=1 (minimum) is accepted."""
         from mcp_servers.documentation.main import search_documentation
 
@@ -243,9 +231,7 @@ class TestSearchDocumentation(unittest.TestCase):
         mock_collection.query.near_text.assert_called_with(query="test", limit=1)
 
     @patch("mcp_servers.documentation.main.WeaviateConnection")
-    def test_search_documentation_limit_boundary_max(
-        self, mock_conn_class: MagicMock
-    ) -> None:
+    def test_search_documentation_limit_boundary_max(self, mock_conn_class: MagicMock) -> None:
         """Test that limit=100 (maximum) is accepted."""
         from mcp_servers.documentation.main import search_documentation
 
@@ -269,9 +255,7 @@ class TestSearchDocumentation(unittest.TestCase):
         mock_collection.query.near_text.assert_called_with(query="test", limit=100)
 
     @patch("mcp_servers.documentation.main.WeaviateConnection")
-    def test_search_documentation_missing_properties(
-        self, mock_conn_class: MagicMock
-    ) -> None:
+    def test_search_documentation_missing_properties(self, mock_conn_class: MagicMock) -> None:
         """Test handling of results with missing properties."""
         from mcp_servers.documentation.main import search_documentation
 
@@ -309,26 +293,28 @@ class TestLoggingConfiguration(unittest.TestCase):
         """Verify logging goes to stderr, not stdout."""
         # Import the actual logger from the module
         from mcp_servers.documentation.main import logger
-        
+
         # Verify logger has at least one handler
         self.assertGreater(len(logger.handlers), 0, "Logger should have at least one handler")
-        
+
         # Find StreamHandler that writes to stderr
         stderr_handler = None
-        for handler in logging.getLogger().handlers:  # Check root logger handlers set by basicConfig
+        for (
+            handler
+        ) in logging.getLogger().handlers:  # Check root logger handlers set by basicConfig
             if isinstance(handler, logging.StreamHandler) and handler.stream == sys.stderr:
                 stderr_handler = handler
                 break
-        
-        self.assertIsNotNone(stderr_handler, "Logger should have a StreamHandler writing to sys.stderr")
-        
+
+        self.assertIsNotNone(
+            stderr_handler, "Logger should have a StreamHandler writing to sys.stderr"
+        )
+
         # Verify handler level is INFO or lower (allows INFO messages)
         self.assertLessEqual(
-            stderr_handler.level,
-            logging.INFO,
-            "Handler level should be INFO or lower"
+            stderr_handler.level, logging.INFO, "Handler level should be INFO or lower"
         )
-        
+
         # Verify formatter exists and has expected pattern
         self.assertIsNotNone(stderr_handler.formatter, "Handler should have a formatter")
         format_string = stderr_handler.formatter._fmt
@@ -361,7 +347,7 @@ class TestLimitConstants(unittest.TestCase):
 
     def test_limit_constants_defined(self) -> None:
         """Test that MIN_LIMIT and MAX_LIMIT are defined."""
-        from mcp_servers.documentation.main import MIN_LIMIT, MAX_LIMIT
+        from mcp_servers.documentation.main import MAX_LIMIT, MIN_LIMIT
 
         self.assertEqual(MIN_LIMIT, 1)
         self.assertEqual(MAX_LIMIT, 100)

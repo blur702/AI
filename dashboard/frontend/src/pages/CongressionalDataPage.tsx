@@ -1,49 +1,51 @@
-import { useMemo, useState } from 'react';
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import Card from '@mui/material/Card';
-import CardHeader from '@mui/material/CardHeader';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import LinearProgress from '@mui/material/LinearProgress';
-import TextField from '@mui/material/TextField';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import SearchIcon from '@mui/icons-material/Search';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import CircularProgress from '@mui/material/CircularProgress';
-import Pagination from '@mui/material/Pagination';
-import { useCongressional } from '../hooks/useCongressional';
+import { useMemo, useState } from "react";
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
+import CardHeader from "@mui/material/CardHeader";
+import CardContent from "@mui/material/CardContent";
+import CardActions from "@mui/material/CardActions";
+import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
+import LinearProgress from "@mui/material/LinearProgress";
+import TextField from "@mui/material/TextField";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import SearchIcon from "@mui/icons-material/Search";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import CircularProgress from "@mui/material/CircularProgress";
+import Pagination from "@mui/material/Pagination";
+import { useCongressional } from "../hooks/useCongressional";
+import { CongressionalQueryResult, CongressionalStatus } from "../types";
 import {
-  CongressionalQueryResult,
-  CongressionalStatus,
-} from '../types';
-import { CongressionalFilters, CongressionalFilterState } from '../components/CongressionalFilters';
-import { CongressionalResultCard } from '../components/CongressionalResultCard';
-import { CongressionalAnalytics } from '../components/CongressionalAnalytics';
-import { CongressionalScrapeDialog } from '../components/CongressionalScrapeDialog';
-import { CongressionalChat } from '../components/CongressionalChat';
+  CongressionalFilters,
+  CongressionalFilterState,
+} from "../components/CongressionalFilters";
+import { CongressionalResultCard } from "../components/CongressionalResultCard";
+import { CongressionalAnalytics } from "../components/CongressionalAnalytics";
+import { CongressionalScrapeDialog } from "../components/CongressionalScrapeDialog";
+import { CongressionalChat } from "../components/CongressionalChat";
 
-function getStatusColor(status: string): 'default' | 'success' | 'warning' | 'error' {
+function getStatusColor(
+  status: string,
+): "default" | "success" | "warning" | "error" {
   switch (status) {
-    case 'running':
-      return 'warning';
-    case 'completed':
-      return 'success';
-    case 'failed':
-      return 'error';
+    case "running":
+      return "warning";
+    case "completed":
+      return "success";
+    case "failed":
+      return "error";
     default:
-      return 'default';
+      return "default";
   }
 }
 
-type ChatRole = 'user' | 'assistant' | 'system';
+type ChatRole = "user" | "assistant" | "system";
 
 interface ChatMessage {
   id: string;
@@ -66,28 +68,34 @@ export default function CongressionalDataPage() {
     askQuestion,
   } = useCongressional();
 
-  const [queryText, setQueryText] = useState<string>('');
+  const [queryText, setQueryText] = useState<string>("");
   const [filters, setFilters] = useState<CongressionalFilterState>({});
-  const [queryResults, setQueryResults] = useState<CongressionalQueryResult[]>([]);
+  const [queryResults, setQueryResults] = useState<CongressionalQueryResult[]>(
+    [],
+  );
   const [queryLoading, setQueryLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [page, setPage] = useState<number>(1);
   const [pageSize] = useState<number>(10);
   const [totalResults, setTotalResults] = useState<number>(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "info";
+  }>({
     open: false,
-    message: '',
-    severity: 'info',
+    message: "",
+    severity: "info",
   });
   const [scrapeDialogOpen, setScrapeDialogOpen] = useState<boolean>(false);
   const [starting, setStarting] = useState<boolean>(false);
   const [pausing, setPausing] = useState<boolean>(false);
   const [cancelling, setCancelling] = useState<boolean>(false);
 
-  const collectionStats: CongressionalStatus['collections']['congressional_data'] | null = status
-    ? status.collections.congressional_data
-    : null;
+  const collectionStats:
+    | CongressionalStatus["collections"]["congressional_data"]
+    | null = status ? status.collections.congressional_data : null;
 
   const memberOptions = useMemo(
     () => Object.keys(collectionStats?.member_counts || {}).sort(),
@@ -100,14 +108,16 @@ export default function CongressionalDataPage() {
     return queryResults.slice(start, end);
   }, [queryResults, page, pageSize]);
 
-  const handleStartScrape = async (config: Parameters<typeof startScrape>[0]): Promise<boolean> => {
+  const handleStartScrape = async (
+    config: Parameters<typeof startScrape>[0],
+  ): Promise<boolean> => {
     setStarting(true);
     try {
       const ok = await startScrape(config);
       setSnackbar({
         open: true,
-        message: ok ? 'Scraping started' : 'Failed to start scraping',
-        severity: ok ? 'success' : 'error',
+        message: ok ? "Scraping started" : "Failed to start scraping",
+        severity: ok ? "success" : "error",
       });
       return ok;
     } finally {
@@ -123,15 +133,15 @@ export default function CongressionalDataPage() {
         const ok = await resumeScrape();
         setSnackbar({
           open: true,
-          message: ok ? 'Scraping resumed' : 'Failed to resume scraping',
-          severity: ok ? 'success' : 'error',
+          message: ok ? "Scraping resumed" : "Failed to resume scraping",
+          severity: ok ? "success" : "error",
         });
       } else {
         const ok = await pauseScrape();
         setSnackbar({
           open: true,
-          message: ok ? 'Scraping paused' : 'Failed to pause scraping',
-          severity: ok ? 'success' : 'error',
+          message: ok ? "Scraping paused" : "Failed to pause scraping",
+          severity: ok ? "success" : "error",
         });
       }
     } finally {
@@ -145,8 +155,8 @@ export default function CongressionalDataPage() {
       const ok = await cancelScrape();
       setSnackbar({
         open: true,
-        message: ok ? 'Cancellation requested' : 'Failed to cancel scraping',
-        severity: ok ? 'success' : 'error',
+        message: ok ? "Cancellation requested" : "Failed to cancel scraping",
+        severity: ok ? "success" : "error",
       });
     } finally {
       setCancelling(false);
@@ -157,8 +167,8 @@ export default function CongressionalDataPage() {
     if (!queryText.trim()) {
       setSnackbar({
         open: true,
-        message: 'Please enter a query',
-        severity: 'info',
+        message: "Please enter a query",
+        severity: "info",
       });
       return;
     }
@@ -166,7 +176,7 @@ export default function CongressionalDataPage() {
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
-      role: 'user',
+      role: "user",
       content: queryText.trim(),
       meta: filters,
     };
@@ -181,10 +191,12 @@ export default function CongressionalDataPage() {
       date_from: filters.date_from,
       date_to: filters.date_to,
       limit: 50,
-      messages: messages.map((m) => ({ role: m.role, content: m.content })).concat({
-        role: 'user' as const,
-        content: queryText.trim(),
-      }),
+      messages: messages
+        .map((m) => ({ role: m.role, content: m.content }))
+        .concat({
+          role: "user" as const,
+          content: queryText.trim(),
+        }),
     };
 
     const resp = await queryData(req);
@@ -194,29 +206,31 @@ export default function CongressionalDataPage() {
       setPage(1);
       setActiveTab(0);
 
-      const topTitles = resp.results.slice(0, 3).map((r: CongressionalQueryResult) => `• ${r.title || r.url}`);
+      const topTitles = resp.results
+        .slice(0, 3)
+        .map((r: CongressionalQueryResult) => `• ${r.title || r.url}`);
       const summaryLines = [
         `Found ${resp.total_results} document(s) matching your query.`,
-        ...(topTitles.length ? ['Top results:', ...topTitles] : []),
+        ...(topTitles.length ? ["Top results:", ...topTitles] : []),
       ];
       const assistant: ChatMessage = {
         id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: summaryLines.join('\n'),
+        role: "assistant",
+        content: summaryLines.join("\n"),
       };
       setMessages((prev) => [...prev, assistant]);
     } else if (!resp) {
-      const msg = error || 'Query failed';
+      const msg = error || "Query failed";
       const assistant: ChatMessage = {
         id: `assistant-error-${Date.now()}`,
-        role: 'assistant',
+        role: "assistant",
         content: msg,
       };
       setMessages((prev) => [...prev, assistant]);
       setSnackbar({
         open: true,
         message: msg,
-        severity: 'error',
+        severity: "error",
       });
     }
 
@@ -228,7 +242,9 @@ export default function CongressionalDataPage() {
   };
 
   const currentProgressValue =
-    progress && progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
+    progress && progress.total > 0
+      ? (progress.current / progress.total) * 100
+      : 0;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -236,12 +252,13 @@ export default function CongressionalDataPage() {
         <Typography
           variant="h4"
           gutterBottom
-          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+          sx={{ display: "flex", alignItems: "center", gap: 1 }}
         >
           <AccountBalanceIcon /> Congressional Data
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Scrape, search, and analyze content from congressional member websites.
+          Scrape, search, and analyze content from congressional member
+          websites.
         </Typography>
       </Box>
 
@@ -252,7 +269,7 @@ export default function CongressionalDataPage() {
             <CardHeader title="Scraping Controls" />
             <CardContent>
               {loading && !status ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
                   <CircularProgress size={24} />
                 </Box>
               ) : (
@@ -262,16 +279,12 @@ export default function CongressionalDataPage() {
                       Status
                     </Typography>
                     <Chip
-                      label={status?.status ?? 'unknown'}
+                      label={status?.status ?? "unknown"}
                       size="small"
-                      color={getStatusColor(status?.status ?? '')}
+                      color={getStatusColor(status?.status ?? "")}
                     />
                     {status?.paused && (
-                      <Chip
-                        label="paused"
-                        size="small"
-                        sx={{ ml: 1 }}
-                      />
+                      <Chip label="paused" size="small" sx={{ ml: 1 }} />
                     )}
                   </Box>
 
@@ -304,7 +317,7 @@ export default function CongressionalDataPage() {
                     <Typography variant="body2">
                       {collectionStats?.member_counts
                         ? Object.keys(collectionStats.member_counts).length
-                        : 0}{' '}
+                        : 0}{" "}
                       members
                     </Typography>
                   </Box>
@@ -316,30 +329,30 @@ export default function CongressionalDataPage() {
                 variant="contained"
                 size="small"
                 onClick={() => setScrapeDialogOpen(true)}
-                disabled={status?.status === 'running' || starting}
+                disabled={status?.status === "running" || starting}
               >
-                {starting ? <CircularProgress size={16} /> : 'Start'}
+                {starting ? <CircularProgress size={16} /> : "Start"}
               </Button>
               <Button
                 size="small"
                 onClick={handlePauseResume}
-                disabled={!status || status.status !== 'running' || pausing}
+                disabled={!status || status.status !== "running" || pausing}
               >
                 {pausing ? (
                   <CircularProgress size={16} />
                 ) : status?.paused ? (
-                  'Resume'
+                  "Resume"
                 ) : (
-                  'Pause'
+                  "Pause"
                 )}
               </Button>
               <Button
                 size="small"
                 color="error"
                 onClick={handleCancel}
-                disabled={!status || status.status !== 'running' || cancelling}
+                disabled={!status || status.status !== "running" || cancelling}
               >
-                {cancelling ? <CircularProgress size={16} /> : 'Cancel'}
+                {cancelling ? <CircularProgress size={16} /> : "Cancel"}
               </Button>
             </CardActions>
           </Card>
@@ -350,7 +363,7 @@ export default function CongressionalDataPage() {
           <Card>
             <CardHeader title="Query" />
             <CardContent>
-              <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -358,7 +371,9 @@ export default function CongressionalDataPage() {
                   value={queryText}
                   onChange={(e) => setQueryText(e.target.value)}
                   InputProps={{
-                    startAdornment: <SearchIcon fontSize="small" sx={{ mr: 1 }} />,
+                    startAdornment: (
+                      <SearchIcon fontSize="small" sx={{ mr: 1 }} />
+                    ),
                   }}
                   disabled={queryLoading}
                 />
@@ -366,7 +381,13 @@ export default function CongressionalDataPage() {
                   variant="contained"
                   onClick={handleSearch}
                   disabled={queryLoading}
-                  startIcon={queryLoading ? <CircularProgress size={16} /> : <SearchIcon />}
+                  startIcon={
+                    queryLoading ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <SearchIcon />
+                    )
+                  }
                 >
                   Search
                 </Button>
@@ -384,7 +405,7 @@ export default function CongressionalDataPage() {
             <Tabs
               value={activeTab}
               onChange={(_, v) => setActiveTab(v)}
-              sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}
+              sx={{ borderBottom: 1, borderColor: "divider", mb: 2 }}
             >
               <Tab label="Chat" />
               <Tab label="Results" />
@@ -400,7 +421,7 @@ export default function CongressionalDataPage() {
             )}
 
             {activeTab === 1 && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 {/* Chat transcript */}
                 {messages.length > 0 && (
                   <Box sx={{ mb: 2 }}>
@@ -409,24 +430,28 @@ export default function CongressionalDataPage() {
                         key={m.id}
                         sx={{
                           mb: 1,
-                          display: 'flex',
-                          justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start',
+                          display: "flex",
+                          justifyContent:
+                            m.role === "user" ? "flex-end" : "flex-start",
                         }}
                       >
                         <Box
                           sx={{
-                            maxWidth: '80%',
+                            maxWidth: "80%",
                             px: 1.5,
                             py: 1,
                             borderRadius: 2,
                             bgcolor:
-                              m.role === 'user'
-                                ? 'primary.main'
-                                : m.role === 'assistant'
-                                ? 'grey.100'
-                                : 'grey.200',
-                            color: m.role === 'user' ? 'primary.contrastText' : 'text.primary',
-                            whiteSpace: 'pre-line',
+                              m.role === "user"
+                                ? "primary.main"
+                                : m.role === "assistant"
+                                  ? "grey.100"
+                                  : "grey.200",
+                            color:
+                              m.role === "user"
+                                ? "primary.contrastText"
+                                : "text.primary",
+                            whiteSpace: "pre-line",
                           }}
                         >
                           {m.content}
@@ -452,25 +477,30 @@ export default function CongressionalDataPage() {
                     ))}
                     <Box
                       sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
                         mt: 2,
                       }}
                     >
                       <Typography variant="caption" color="text.secondary">
-                        Showing{' '}
+                        Showing{" "}
                         {queryResults.length === 0
                           ? 0
-                          : (page - 1) * pageSize + 1}{' '}
+                          : (page - 1) * pageSize + 1}{" "}
                         –
-                        {Math.min(page * pageSize, totalResults || queryResults.length)} of{' '}
-                        {totalResults || queryResults.length}
+                        {Math.min(
+                          page * pageSize,
+                          totalResults || queryResults.length,
+                        )}{" "}
+                        of {totalResults || queryResults.length}
                       </Typography>
                       <Pagination
                         count={Math.max(
                           1,
-                          Math.ceil((totalResults || queryResults.length) / pageSize),
+                          Math.ceil(
+                            (totalResults || queryResults.length) / pageSize,
+                          ),
                         )}
                         page={page}
                         onChange={(_, value) => setPage(value)}
@@ -483,7 +513,10 @@ export default function CongressionalDataPage() {
             )}
 
             {activeTab === 2 && collectionStats && (
-              <CongressionalAnalytics stats={collectionStats} queryResults={queryResults} />
+              <CongressionalAnalytics
+                stats={collectionStats}
+                queryResults={queryResults}
+              />
             )}
           </Box>
         </Grid>
@@ -509,7 +542,7 @@ export default function CongressionalDataPage() {
         <Alert
           onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
           severity={snackbar.severity}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {snackbar.message}
         </Alert>

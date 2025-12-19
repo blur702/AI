@@ -37,6 +37,7 @@ from bs4 import BeautifulSoup
 if TYPE_CHECKING:
     import weaviate
 
+from ..utils.logger import get_logger
 from .base_doc_scraper import BaseDocScraper, DocPage, ScraperConfig
 from .php_docs_schema import (
     PHP_DOCS_COLLECTION_NAME,
@@ -44,8 +45,6 @@ from .php_docs_schema import (
     get_php_docs_stats,
 )
 from .weaviate_connection import WeaviateConnection
-from ..utils.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -290,7 +289,10 @@ class PHPDocsScraper(BaseDocScraper):
             return "security"
         elif "/faq." in url_lower:
             return "faq"
-        elif any(p in url_lower for p in ["/appendices.", "/history.", "/migration", "/configuration.", "/ini."]):
+        elif any(
+            p in url_lower
+            for p in ["/appendices.", "/history.", "/migration", "/configuration.", "/ini."]
+        ):
             return "appendices"
         else:
             return "general"
@@ -338,12 +340,22 @@ class PHPDocsScraper(BaseDocScraper):
 
         # Remove navigation, footer, etc.
         for selector in [
-            "nav", "footer", "header",
-            ".layout-footer", ".layout-menu",
-            ".navbar", ".docs-nav", ".sidebar",
-            "#layout-menu", "#breadcrumbs-inner",
-            ".edit-bug", ".usernotes", ".refentry-edit",
-            "script", "style", "noscript",
+            "nav",
+            "footer",
+            "header",
+            ".layout-footer",
+            ".layout-menu",
+            ".navbar",
+            ".docs-nav",
+            ".sidebar",
+            "#layout-menu",
+            "#breadcrumbs-inner",
+            ".edit-bug",
+            ".usernotes",
+            ".refentry-edit",
+            "script",
+            "style",
+            "noscript",
         ]:
             for elem in soup.select(selector):
                 elem.decompose()
@@ -404,10 +416,9 @@ class PHPDocsScraper(BaseDocScraper):
         breadcrumb = ""
         breadcrumb_elem = soup.select_one("#breadcrumbs, .breadcrumb, [aria-label='breadcrumb']")
         if breadcrumb_elem:
-            breadcrumb = " > ".join([
-                li.get_text(strip=True)
-                for li in breadcrumb_elem.select("li, a")
-            ])
+            breadcrumb = " > ".join(
+                [li.get_text(strip=True) for li in breadcrumb_elem.select("li, a")]
+            )
 
         return DocPage(
             url=url,
@@ -419,7 +430,7 @@ class PHPDocsScraper(BaseDocScraper):
             code_examples=code_examples,
         )
 
-    def create_collection(self, client: "weaviate.WeaviateClient") -> None:
+    def create_collection(self, client: weaviate.WeaviateClient) -> None:
         """Create the PHPDocs collection."""
         create_php_docs_collection(client)
 
@@ -455,9 +466,7 @@ def scrape_php_docs(
 
 def main() -> None:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Scrape PHP documentation"
-    )
+    parser = argparse.ArgumentParser(description="Scrape PHP documentation")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # scrape command
@@ -512,9 +521,9 @@ def main() -> None:
             print("=" * 50)
             print(f"Exists: {stats['exists']}")
             print(f"Total objects: {stats['object_count']}")
-            if stats['section_counts']:
+            if stats["section_counts"]:
                 print("\nBy section:")
-                for section, count in sorted(stats['section_counts'].items()):
+                for section, count in sorted(stats["section_counts"].items()):
                     print(f"  {section}: {count}")
             print("=" * 50)
 

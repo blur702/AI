@@ -1,25 +1,27 @@
-import { memo, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardActions from '@mui/material/CardActions';
-import Button from '@mui/material/Button';
-import AppsIcon from '@mui/icons-material/Apps';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import { getApiBase } from '../config/services';
+import { memo, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardActions from "@mui/material/CardActions";
+import Button from "@mui/material/Button";
+import AppsIcon from "@mui/icons-material/Apps";
+import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import { getApiBase } from "../config/services";
 
 const AppsPage = memo(function AppsPage() {
   const navigate = useNavigate();
-  const [congressionalCount, setCongressionalCount] = useState<number | null>(null);
+  const [congressionalCount, setCongressionalCount] = useState<number | null>(
+    null,
+  );
 
   useEffect(() => {
     const controller = new AbortController();
     fetch(`${getApiBase()}/api/congressional/status`, {
-      credentials: 'include',
+      credentials: "include",
       signal: controller.signal,
     })
       .then((res) => {
@@ -30,7 +32,7 @@ const AppsPage = memo(function AppsPage() {
         if (!data) return;
         const objCount =
           data.collections?.congressional_data?.object_count ?? null;
-        if (typeof objCount === 'number') {
+        if (typeof objCount === "number") {
           setCongressionalCount(objCount);
         }
       })
@@ -46,7 +48,7 @@ const AppsPage = memo(function AppsPage() {
         <Typography
           variant="h4"
           gutterBottom
-          sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+          sx={{ display: "flex", alignItems: "center", gap: 1 }}
         >
           <AppsIcon /> Apps
         </Typography>
@@ -59,13 +61,15 @@ const AppsPage = memo(function AppsPage() {
         <Grid item xs={12} md={4}>
           <Card variant="outlined">
             <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Box
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+              >
                 <AccountBalanceIcon color="primary" />
                 <Typography variant="h6">Congressional Data</Typography>
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                Search and analyze congressional member website content with rich filters and
-                analytics.
+                Search and analyze congressional member website content with
+                rich filters and analytics.
               </Typography>
               {congressionalCount !== null && (
                 <Typography variant="caption" color="text.secondary">
@@ -77,7 +81,7 @@ const AppsPage = memo(function AppsPage() {
               <Button
                 size="small"
                 variant="contained"
-                onClick={() => navigate('/apps/congressional')}
+                onClick={() => navigate("/apps/congressional")}
               >
                 Open
               </Button>

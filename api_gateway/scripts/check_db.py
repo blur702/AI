@@ -88,9 +88,7 @@ def main() -> int:
                 col_type = col[2]
                 not_null = "NOT NULL" if col[3] else ""
                 pk = "PRIMARY KEY" if col[5] else ""
-                logger.debug(
-                    "  Column: %s %s %s %s", col_name, col_type, not_null, pk
-                )
+                logger.debug("  Column: %s %s %s %s", col_name, col_type, not_null, pk)
 
             # Get row count
             count = get_row_count(cursor, table_name)

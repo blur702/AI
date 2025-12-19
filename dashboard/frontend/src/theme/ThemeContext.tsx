@@ -1,10 +1,18 @@
-import { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
-import { ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import useMediaQuery from '@mui/material/useMediaQuery';
-import { createAppTheme } from './index';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  ReactNode,
+} from "react";
+import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { createAppTheme } from "./index";
 
-type ThemeMode = 'light' | 'dark';
+type ThemeMode = "light" | "dark";
 
 interface ThemeContextType {
   mode: ThemeMode;
@@ -13,11 +21,11 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = 'theme-mode';
+const THEME_STORAGE_KEY = "theme-mode";
 
 // Safe localStorage helper for non-browser environments
 function getStorageItem(key: string): string | null {
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (typeof window !== "undefined" && window.localStorage) {
     try {
       return localStorage.getItem(key);
     } catch {
@@ -28,7 +36,7 @@ function getStorageItem(key: string): string | null {
 }
 
 function setStorageItem(key: string, value: string): void {
-  if (typeof window !== 'undefined' && window.localStorage) {
+  if (typeof window !== "undefined" && window.localStorage) {
     try {
       localStorage.setItem(key, value);
     } catch {
@@ -42,29 +50,29 @@ interface ThemeProviderProps {
 }
 
 export function ThemeProvider({ children }: ThemeProviderProps) {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
   const [mode, setMode] = useState<ThemeMode>(() => {
     // Check localStorage first using safe helper
     const savedMode = getStorageItem(THEME_STORAGE_KEY);
-    if (savedMode === 'light' || savedMode === 'dark') {
+    if (savedMode === "light" || savedMode === "dark") {
       return savedMode;
     }
     // Fall back to system preference
-    return prefersDarkMode ? 'dark' : 'light';
+    return prefersDarkMode ? "dark" : "light";
   });
 
   // Update theme when system preference changes (only if no saved preference)
   useEffect(() => {
     const savedMode = getStorageItem(THEME_STORAGE_KEY);
     if (!savedMode) {
-      setMode(prefersDarkMode ? 'dark' : 'light');
+      setMode(prefersDarkMode ? "dark" : "light");
     }
   }, [prefersDarkMode]);
 
   const toggleTheme = useCallback(() => {
     setMode((prevMode) => {
-      const newMode = prevMode === 'light' ? 'dark' : 'light';
+      const newMode = prevMode === "light" ? "dark" : "light";
       setStorageItem(THEME_STORAGE_KEY, newMode);
       return newMode;
     });
@@ -74,7 +82,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const contextValue = useMemo(
     () => ({ mode, toggleTheme }),
-    [mode, toggleTheme]
+    [mode, toggleTheme],
   );
 
   return (
@@ -90,7 +98,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 export function useThemeMode(): ThemeContextType {
   const context = useContext(ThemeContext);
   if (context === undefined) {
-    throw new Error('useThemeMode must be used within a ThemeProvider');
+    throw new Error("useThemeMode must be used within a ThemeProvider");
   }
   return context;
 }

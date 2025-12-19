@@ -11,7 +11,6 @@ from dashboard_app.controllers.vram_controller import VRAMMonitor
 from dashboard_app.views.widgets.resource_panel import ResourcePanel
 from dashboard_app.views.widgets.service_card import ServiceCard
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -33,9 +32,7 @@ class DashboardTab(ttk.Frame):
         self.ollama_controller = ollama_controller
         self.app_config = app_config
 
-        self.resource_panel = ResourcePanel(
-            self, on_toggle=self._on_resource_panel_toggle
-        )
+        self.resource_panel = ResourcePanel(self, on_toggle=self._on_resource_panel_toggle)
         self.resource_panel.add_model_unload_callback(self._on_unload_model)
         self.resource_panel.add_auto_stop_callback(self._on_auto_stop_toggle)
         self.resource_panel.add_timeout_callback(self._on_timeout_change)
@@ -141,9 +138,7 @@ class DashboardTab(ttk.Frame):
         # Prefer HTTP API unload; fall back to CLI via VRAMMonitor.
         ok = self.ollama_controller.unload_model(model_name)
         if not ok:
-            logger.info(
-                "HTTP unload failed for model %s; falling back to CLI", model_name
-            )
+            logger.info("HTTP unload failed for model %s; falling back to CLI", model_name)
             self.vram_monitor.unload_model(model_name)
         self.refresh_resources()
 

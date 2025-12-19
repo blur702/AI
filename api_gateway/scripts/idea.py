@@ -53,13 +53,13 @@ from __future__ import annotations
 import argparse
 import asyncio
 import sys
-from datetime import datetime, timezone
-from typing import List, Optional
-
-from sqlalchemy import select, or_
+from datetime import UTC, datetime
 
 # Add project root to path
 from pathlib import Path
+
+from sqlalchemy import or_, select
+
 project_root = Path(__file__).resolve().parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -74,12 +74,12 @@ from api_gateway.models.database import (  # noqa: E402
 
 async def capture_idea(
     prompt: str,
-    category: Optional[str] = None,
-    context: Optional[str] = None,
-    tags: Optional[List[str]] = None,
+    category: str | None = None,
+    context: str | None = None,
+    tags: list[str] | None = None,
     priority: int = 0,
     source: str = "dev-session",
-    session_id: Optional[str] = None,
+    session_id: str | None = None,
 ) -> Idea:
     """Capture a new idea to the database.
 
@@ -108,10 +108,10 @@ async def capture_idea(
 
 async def list_ideas(
     limit: int = 10,
-    category: Optional[str] = None,
-    status: Optional[str] = None,
-    search: Optional[str] = None,
-) -> List[Idea]:
+    category: str | None = None,
+    status: str | None = None,
+    search: str | None = None,
+) -> list[Idea]:
     """List ideas with optional filters.
 
     Raises:
@@ -150,7 +150,7 @@ async def list_ideas(
         raise RuntimeError(f"Failed to list ideas: {exc}") from exc
 
 
-async def get_idea(idea_id: str) -> Optional[Idea]:
+async def get_idea(idea_id: str) -> Idea | None:
     """Get a single idea by ID (supports short ID prefix matching).
 
     Raises:
@@ -159,9 +159,7 @@ async def get_idea(idea_id: str) -> Optional[Idea]:
     try:
         async with AsyncSessionLocal() as session:
             # Support short ID prefix matching (first 8 chars)
-            result = await session.execute(
-                select(Idea).where(Idea.id.startswith(idea_id))
-            )
+            result = await session.execute(select(Idea).where(Idea.id.startswith(idea_id)))
             return result.scalar_one_or_none()
     except Exception as exc:
         raise RuntimeError(f"Failed to get idea: {exc}") from exc
@@ -170,8 +168,8 @@ async def get_idea(idea_id: str) -> Optional[Idea]:
 async def update_idea_status(
     idea_id: str,
     status: IdeaStatus,
-    notes: Optional[str] = None,
-) -> Optional[Idea]:
+    notes: str | None = None,
+) -> Idea | None:
     """Update an idea's status (supports short ID prefix matching).
 
     Raises:
@@ -180,9 +178,7 @@ async def update_idea_status(
     try:
         async with AsyncSessionLocal() as session:
             # Support short ID prefix matching (first 8 chars)
-            result = await session.execute(
-                select(Idea).where(Idea.id.startswith(idea_id))
-            )
+            result = await session.execute(select(Idea).where(Idea.id.startswith(idea_id)))
             idea = result.scalar_one_or_none()
 
             if not idea:
@@ -193,7 +189,7 @@ async def update_idea_status(
             if notes:
                 idea.notes = notes
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             if status == IdeaStatus.reviewed:
                 idea.reviewed_at = now
             elif status == IdeaStatus.implemented:
@@ -259,98 +255,47 @@ def format_idea(idea: Idea, verbose: bool = False) -> str:
 
 
 async def main():
-    parser = argparse.ArgumentParser(
-        description="Quick idea/prompt capture for dev sessions"
-    )
+    parser = argparse.ArgumentParser(description="Quick idea/prompt capture for dev sessions")
 
     # Capture mode (positional argument)
-    parser.add_argument(
-        "prompt",
-        nargs="?",
-        help="The idea/prompt to capture"
-    )
+    parser.add_argument("prompt", nargs="?", help="The idea/prompt to capture")
 
     # Capture options
     parser.add_argument(
-        "--category", "-c",
-        help="Category for the idea (e.g., talking-head, ui, refactor)"
+        "--category", "-c", help="Category for the idea (e.g., talking-head, ui, refactor)"
+    )
+    parser.add_argument("--context", "-x", help="What you were working on when this idea came up")
+    parser.add_argument("--tags", "-t", help="Comma-separated tags (e.g., gpu,performance,urgent)")
+    parser.add_argument(
+        "--priority", "-p", type=int, default=0, help="Priority level (0=low, higher=more urgent)"
     )
     parser.add_argument(
-        "--context", "-x",
-        help="What you were working on when this idea came up"
-    )
-    parser.add_argument(
-        "--tags", "-t",
-        help="Comma-separated tags (e.g., gpu,performance,urgent)"
-    )
-    parser.add_argument(
-        "--priority", "-p",
-        type=int,
-        default=0,
-        help="Priority level (0=low, higher=more urgent)"
-    )
-    parser.add_argument(
-        "--source", "-s",
+        "--source",
+        "-s",
         default="dev-session",
-        help="Where the idea came from (default: dev-session)"
+        help="Where the idea came from (default: dev-session)",
     )
-    parser.add_argument(
-        "--session",
-        help="Session ID to group related ideas"
-    )
+    parser.add_argument("--session", help="Session ID to group related ideas")
 
     # List mode
+    parser.add_argument("--list", "-l", action="store_true", help="List recent ideas")
     parser.add_argument(
-        "--list", "-l",
-        action="store_true",
-        help="List recent ideas"
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=10,
-        help="Number of ideas to list (default: 10)"
+        "--limit", type=int, default=10, help="Number of ideas to list (default: 10)"
     )
     parser.add_argument(
         "--status",
         choices=["captured", "reviewed", "in_progress", "implemented", "discarded"],
-        help="Filter by status"
+        help="Filter by status",
     )
-    parser.add_argument(
-        "--search",
-        help="Search ideas by keyword"
-    )
-    parser.add_argument(
-        "--verbose", "-v",
-        action="store_true",
-        help="Show more details"
-    )
+    parser.add_argument("--search", help="Search ideas by keyword")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Show more details")
 
     # Update modes
-    parser.add_argument(
-        "--review",
-        metavar="ID",
-        help="Mark an idea as reviewed"
-    )
-    parser.add_argument(
-        "--implement",
-        metavar="ID",
-        help="Mark an idea as implemented"
-    )
-    parser.add_argument(
-        "--discard",
-        metavar="ID",
-        help="Discard an idea"
-    )
-    parser.add_argument(
-        "--start",
-        metavar="ID",
-        help="Mark an idea as in progress"
-    )
-    parser.add_argument(
-        "--notes", "-n",
-        help="Notes to add when updating status"
-    )
+    parser.add_argument("--review", metavar="ID", help="Mark an idea as reviewed")
+    parser.add_argument("--implement", metavar="ID", help="Mark an idea as implemented")
+    parser.add_argument("--discard", metavar="ID", help="Discard an idea")
+    parser.add_argument("--start", metavar="ID", help="Mark an idea as in progress")
+    parser.add_argument("--notes", "-n", help="Notes to add when updating status")
 
     args = parser.parse_args()
 

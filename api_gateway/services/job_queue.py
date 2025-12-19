@@ -4,9 +4,10 @@ Async job queue management for long-running generation tasks.
 Provides job creation, status tracking, and background processing
 for AI generation requests that may take extended time to complete.
 """
+
 import asyncio
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 import httpx
 from sqlalchemy import select
@@ -26,10 +27,11 @@ class JobQueueManager:
     Provides CRUD operations for async jobs with status tracking
     and error handling.
     """
+
     async def create_job(
         self,
         service: str,
-        request_data: Dict[str, Any],
+        request_data: dict[str, Any],
         timeout_seconds: int = 300,
     ) -> str:
         """
@@ -82,8 +84,8 @@ class JobQueueManager:
         self,
         job_id: str,
         status: JobStatus,
-        result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
+        result: dict[str, Any] | None = None,
+        error: str | None = None,
     ) -> None:
         """
         Update job status and optionally set result or error.
@@ -104,11 +106,11 @@ class JobQueueManager:
             job.status = status
             job.result = result
             job.error = error
-            job.updated_at = datetime.now(timezone.utc)
+            job.updated_at = datetime.now(UTC)
             await session.commit()
             logger.info(f"Job {job_id} updated to {status}")
 
-    async def get_pending_jobs(self) -> List[Job]:
+    async def get_pending_jobs(self) -> list[Job]:
         """
         Retrieve all jobs with pending status, ordered by creation time.
 
@@ -145,9 +147,9 @@ class JobWorker:
     def __init__(self) -> None:
         """Initialize worker with queue manager and event tracking."""
         self._running = False
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
         self.queue_manager = JobQueueManager()
-        self._job_events: Dict[str, asyncio.Event] = {}
+        self._job_events: dict[str, asyncio.Event] = {}
 
     async def start(self) -> None:
         """
@@ -250,7 +252,7 @@ class JobWorker:
             await VRAMService.ensure_service_ready(job.service)
             timeout = job.timeout_seconds
 
-            async def execute() -> Dict[str, Any]:
+            async def execute() -> dict[str, Any]:
                 response = await client.post(
                     service_url,
                     json=job.request_data,
@@ -262,13 +264,11 @@ class JobWorker:
                     )
                 return response.json()
 
-            start = datetime.now(timezone.utc)
+            start = datetime.now(UTC)
             result = await asyncio.wait_for(execute(), timeout=timeout)
-            elapsed = (datetime.now(timezone.utc) - start).total_seconds()
+            elapsed = (datetime.now(UTC) - start).total_seconds()
             logger.info(f"Job {job.id} completed in {elapsed:.2f}s")
-            await self.queue_manager.update_job_status(
-                job.id, JobStatus.completed, result=result
-            )
+            await self.queue_manager.update_job_status(job.id, JobStatus.completed, result=result)
             # Any prior errors for this job are now considered resolved.
             try:
                 await mark_job_errors_resolved(
@@ -277,7 +277,7 @@ class JobWorker:
                 )
             except Exception as exc:  # noqa: BLE001
                 logger.warning(f"Failed to mark job errors resolved: {exc}")
-        except asyncio.TimeoutError as exc:
+        except TimeoutError as exc:
             await self.queue_manager.update_job_status(
                 job.id, JobStatus.failed, error="Job timeout"
             )
@@ -294,9 +294,7 @@ class JobWorker:
             raise JobTimeoutError(f"Job {job.id} exceeded timeout") from exc
         except Exception as exc:  # noqa: BLE001
             logger.exception(f"Job {job.id} failed")
-            await self.queue_manager.update_job_status(
-                job.id, JobStatus.failed, error=str(exc)
-            )
+            await self.queue_manager.update_job_status(job.id, JobStatus.failed, error=str(exc))
             try:
                 await log_exception(
                     service=job.service,
@@ -309,4 +307,3 @@ class JobWorker:
                 logger.warning(f"Failed to record job failure error: {log_exc}")
         finally:
             event.set()
-

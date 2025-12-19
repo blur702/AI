@@ -4,8 +4,9 @@ VRAM monitoring and management service.
 Provides GPU status, loaded model tracking, and VRAM conflict detection
 for AI services that require GPU resources.
 """
+
 import importlib.util
-from typing import Any, Dict, List
+from typing import Any
 
 import httpx
 
@@ -16,9 +17,7 @@ from ..utils.logger import logger
 
 def _load_vram_manager():
     """Load the vram_manager module dynamically from configured path."""
-    spec = importlib.util.spec_from_file_location(
-        "vram_manager", settings.VRAM_MANAGER_PATH
-    )
+    spec = importlib.util.spec_from_file_location("vram_manager", settings.VRAM_MANAGER_PATH)
     if spec is None or spec.loader is None:
         raise ImportError("Unable to load vram_manager module")
     module = importlib.util.module_from_spec(spec)
@@ -38,7 +37,7 @@ class VRAMService:
     """
 
     @staticmethod
-    def get_gpu_status() -> Dict[str, Any]:
+    def get_gpu_status() -> dict[str, Any]:
         """
         Get current GPU status including VRAM usage and processes.
 
@@ -57,7 +56,7 @@ class VRAMService:
         return info
 
     @staticmethod
-    def get_loaded_models() -> List[Dict[str, Any]]:
+    def get_loaded_models() -> list[dict[str, Any]]:
         """
         Get list of currently loaded Ollama models in VRAM.
 
@@ -98,9 +97,7 @@ class VRAMService:
         if service_name in gpu_intensive:
             processes = _vram_manager.get_gpu_processes()
             if processes:
-                logger.warning(
-                    f"GPU conflict detected for service {service_name}: {processes}"
-                )
+                logger.warning(f"GPU conflict detected for service {service_name}: {processes}")
                 raise VRAMConflictError("GPU is currently busy with another service")
 
             models = _vram_manager.get_ollama_models()
@@ -137,4 +134,3 @@ class VRAMService:
         except Exception:  # noqa: BLE001
             logger.warning(f"Health check failed for {service_url}")
             return False
-

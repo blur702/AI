@@ -26,7 +26,7 @@ Usage:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
@@ -34,7 +34,6 @@ from weaviate.classes.config import Configure, DataType, Property, VectorDistanc
 
 from ..utils.logger import get_logger
 from .weaviate_connection import CODE_ENTITY_COLLECTION_NAME
-
 
 logger = get_logger("api_gateway.code_entity_schema")
 
@@ -84,7 +83,7 @@ class CodeEntity:
     relationships: str
     service_name: str = "core"
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """Convert to a dictionary suitable for Weaviate insertion."""
         return {
             "entity_type": self.entity_type,
@@ -176,7 +175,7 @@ def delete_code_entity_collection(client: weaviate.WeaviateClient) -> bool:
 
     Returns:
         True if collection was deleted, False if it didn't exist.
-    
+
     Raises:
         Exception: Re-raises exceptions from Weaviate operations after logging.
     """
@@ -187,15 +186,21 @@ def delete_code_entity_collection(client: weaviate.WeaviateClient) -> bool:
             logger.info("Collection '%s' deleted successfully", CODE_ENTITY_COLLECTION_NAME)
             return True
 
-        logger.info("Collection '%s' does not exist, nothing to delete", CODE_ENTITY_COLLECTION_NAME)
+        logger.info(
+            "Collection '%s' does not exist, nothing to delete", CODE_ENTITY_COLLECTION_NAME
+        )
         return False
-    
+
     except weaviate.exceptions.WeaviateBaseError as exc:
-        error_msg = f"Weaviate error while deleting collection '{CODE_ENTITY_COLLECTION_NAME}': {exc}"
+        error_msg = (
+            f"Weaviate error while deleting collection '{CODE_ENTITY_COLLECTION_NAME}': {exc}"
+        )
         logger.error(error_msg, exc_info=True)
         raise
     except Exception as exc:
-        error_msg = f"Unexpected error while deleting collection '{CODE_ENTITY_COLLECTION_NAME}': {exc}"
+        error_msg = (
+            f"Unexpected error while deleting collection '{CODE_ENTITY_COLLECTION_NAME}': {exc}"
+        )
         logger.error(error_msg, exc_info=True)
         raise
 
@@ -215,7 +220,7 @@ def collection_exists(client: weaviate.WeaviateClient) -> bool:
     return exists
 
 
-def get_collection_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_collection_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Return basic statistics for the CodeEntity collection.
 
@@ -241,7 +246,7 @@ def get_collection_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
         total = agg.total_count or 0
 
         # Aggregate counts by entity_type
-        entity_counts: Dict[str, int] = {}
+        entity_counts: dict[str, int] = {}
         grouped_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="entity_type"),
             total_count=True,
@@ -265,5 +270,7 @@ def get_collection_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
             "entity_counts": entity_counts,
         }
     except Exception as e:
-        logger.exception("Failed to get stats for collection '%s': %s", CODE_ENTITY_COLLECTION_NAME, e)
+        logger.exception(
+            "Failed to get stats for collection '%s': %s", CODE_ENTITY_COLLECTION_NAME, e
+        )
         raise

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import queue
 import threading
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 
 
 class PollingThread(threading.Thread):
@@ -17,7 +18,7 @@ class PollingThread(threading.Thread):
         name: str,
         interval: float,
         func: Callable[[], Any],
-        out_queue: Optional[queue.Queue] = None,
+        out_queue: queue.Queue | None = None,
     ) -> None:
         super().__init__(name=name, daemon=True)
         self.interval = interval
@@ -45,10 +46,9 @@ def start_poller(
     name: str,
     interval: float,
     func: Callable[[], Any],
-    out_queue: Optional[queue.Queue] = None,
+    out_queue: queue.Queue | None = None,
 ) -> PollingThread:
     """Helper to create and start a PollingThread."""
     worker = PollingThread(name=name, interval=interval, func=func, out_queue=out_queue)
     worker.start()
     return worker
-

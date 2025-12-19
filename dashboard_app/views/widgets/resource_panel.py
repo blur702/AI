@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import tkinter as tk
+from collections.abc import Callable
 from tkinter import ttk
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 
 class ResourcePanel(ttk.LabelFrame):
@@ -11,26 +12,22 @@ class ResourcePanel(ttk.LabelFrame):
     def __init__(
         self,
         master,
-        on_toggle: Optional[Callable[[bool], None]] = None,
+        on_toggle: Callable[[bool], None] | None = None,
         **kwargs,
     ):
         super().__init__(master, text="Resources", **kwargs)
         self._expanded = True
         self._on_toggle = on_toggle
-        self._unload_callback: Optional[Callable[[str], None]] = None
-        self._auto_stop_callback: Optional[Callable[[bool], None]] = None
-        self._timeout_callback: Optional[Callable[[int], None]] = None
+        self._unload_callback: Callable[[str], None] | None = None
+        self._auto_stop_callback: Callable[[bool], None] | None = None
+        self._timeout_callback: Callable[[int], None] | None = None
 
         # Header row with toggle button.
         header_frame = ttk.Frame(self)
         header_frame.grid(row=0, column=0, sticky="we")
-        header_label = ttk.Label(
-            header_frame, text="GPU & Services", style="Header.TLabel"
-        )
+        header_label = ttk.Label(header_frame, text="GPU & Services", style="Header.TLabel")
         header_label.pack(side="left")
-        self.toggle_btn = ttk.Button(
-            header_frame, text="Hide", width=6, command=self.toggle
-        )
+        self.toggle_btn = ttk.Button(header_frame, text="Hide", width=6, command=self.toggle)
         self.toggle_btn.pack(side="right")
 
         # VRAM summary
@@ -90,9 +87,7 @@ class ResourcePanel(ttk.LabelFrame):
         )
         self.auto_stop_check.pack(side="left")
 
-        ttk.Label(controls_frame, text="Idle timeout (min):").pack(
-            side="left", padx=(8, 2)
-        )
+        ttk.Label(controls_frame, text="Idle timeout (min):").pack(side="left", padx=(8, 2))
         self.timeout_var = tk.IntVar(value=30)
         self.timeout_combo = ttk.Combobox(
             controls_frame,
@@ -193,11 +188,11 @@ class ResourcePanel(ttk.LabelFrame):
 
     def update_from_data(
         self,
-        gpu_stats: Dict[str, Any] | None = None,
-        models: List[Dict[str, Any]] | None = None,
-        processes: List[Dict[str, Any]] | None = None,
-        auto_stop_enabled: Optional[bool] = None,
-        idle_timeout_minutes: Optional[int] = None,
+        gpu_stats: dict[str, Any] | None = None,
+        models: list[dict[str, Any]] | None = None,
+        processes: list[dict[str, Any]] | None = None,
+        auto_stop_enabled: bool | None = None,
+        idle_timeout_minutes: int | None = None,
     ) -> None:
         if gpu_stats:
             agg = gpu_stats.get("aggregate", gpu_stats)

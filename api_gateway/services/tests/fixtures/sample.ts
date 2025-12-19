@@ -77,7 +77,7 @@ export function add(a: number, b: number): number {
  */
 export async function fetchData<T>(
   url: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<ApiResponse<T>> {
   const response = await fetch(url, options);
   const data = await response.json();

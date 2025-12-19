@@ -17,7 +17,6 @@ from dashboard_app.views.models_tab import ModelsTab
 from dashboard_app.views.settings_tab import SettingsTab
 from dashboard_app.views.widgets.status_bar import StatusBar
 
-
 # Ensure project root (parent of dashboard_app) is on sys.path so imports like
 # `dashboard.backend.services_config` and `vram_manager` resolve correctly.
 _THIS_DIR = Path(__file__).resolve().parent
@@ -37,9 +36,7 @@ def _configure_logging() -> None:
     handler = RotatingFileHandler(
         log_path, maxBytes=10 * 1024 * 1024, backupCount=3, encoding="utf-8"
     )
-    formatter = logging.Formatter(
-        "[%(asctime)s] %(levelname)s %(name)s - %(message)s"
-    )
+    formatter = logging.Formatter("[%(asctime)s] %(levelname)s %(name)s - %(message)s")
     handler.setFormatter(formatter)
 
     root = logging.getLogger()
@@ -57,27 +54,16 @@ class DashboardApp:
         self.root.title("AI Dashboard")
 
         # Window sizing
-        self.root.geometry(
-            f"{self.config_obj.window_width}x{self.config_obj.window_height}"
-        )
-        if (
-            self.config_obj.window_x is not None
-            and self.config_obj.window_y is not None
-        ):
-            self.root.geometry(
-                f"+{self.config_obj.window_x}+{self.config_obj.window_y}"
-            )
+        self.root.geometry(f"{self.config_obj.window_width}x{self.config_obj.window_height}")
+        if self.config_obj.window_x is not None and self.config_obj.window_y is not None:
+            self.root.geometry(f"+{self.config_obj.window_x}+{self.config_obj.window_y}")
 
         apply_style(self.root, theme=self.config_obj.theme)
 
         # Controllers
-        self.vram_monitor = VRAMMonitor(
-            poll_interval=self.config_obj.poll_vram_interval
-        )
+        self.vram_monitor = VRAMMonitor(poll_interval=self.config_obj.poll_vram_interval)
         self.vram_monitor.start()
-        self.service_controller = ServiceController(
-            self.config_obj, vram_monitor=self.vram_monitor
-        )
+        self.service_controller = ServiceController(self.config_obj, vram_monitor=self.vram_monitor)
         self.ollama_controller = OllamaController()
         if self.config_obj.autostop_enabled:
             self.service_controller.enable_auto_stop(True)

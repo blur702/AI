@@ -22,25 +22,24 @@ Usage:
 """
 
 import argparse
+import hashlib
 import logging
 import subprocess
 import sys
+import uuid as uuid_module
 from pathlib import Path
 
-import hashlib
-import uuid as uuid_module
-
-from api_gateway.services.weaviate_connection import WeaviateConnection
-from api_gateway.services.code_parsers import CodeParser
 from api_gateway.services.code_entity_schema import (
     CodeEntity,
     create_code_entity_collection,
 )
+from api_gateway.services.code_parsers import CodeParser
 from api_gateway.services.doc_ingestion import (
-    create_documentation_collection,
     chunk_by_headers,
+    create_documentation_collection,
     get_doc_text_for_embedding,
 )
+from api_gateway.services.weaviate_connection import WeaviateConnection
 from api_gateway.utils.embeddings import get_embedding
 
 
@@ -48,6 +47,7 @@ def generate_entity_uuid(entity: CodeEntity) -> str:
     """Generate a stable UUID for a code entity based on its identifying properties."""
     key = f"{entity.file_path}:{entity.full_name}:{entity.line_start}"
     return str(uuid_module.UUID(hashlib.md5(key.encode()).hexdigest()))
+
 
 # Configure logging
 logging.basicConfig(
@@ -72,8 +72,14 @@ def get_service_name(file_path: Path) -> str:
 
         # Check if it's in an AI service directory
         ai_services = [
-            "alltalk_tts", "audiocraft", "ComfyUI", "DiffRhythm",
-            "MusicGPT", "stable-audio-tools", "Wan2GP", "YuE"
+            "alltalk_tts",
+            "audiocraft",
+            "ComfyUI",
+            "DiffRhythm",
+            "MusicGPT",
+            "stable-audio-tools",
+            "Wan2GP",
+            "YuE",
         ]
         for service in ai_services:
             if service in parts:
@@ -201,11 +207,11 @@ def index_doc_file(
 
         # Delete existing chunks for this file so we can reinsert cleanly
         if not dry_run:
-            from weaviate.classes.query import Filter  # Imported here to avoid hard dependency at module import time
-
-            collection.data.delete_many(
-                where=Filter.by_property("file_path").equal(rel_path)
+            from weaviate.classes.query import (
+                Filter,  # Imported here to avoid hard dependency at module import time
             )
+
+            collection.data.delete_many(where=Filter.by_property("file_path").equal(rel_path))
 
         for chunk in chunks:
             try:
@@ -261,11 +267,7 @@ def get_git_changed_files(base_branch: str = "master") -> list[Path]:
             check=True,
             cwd=PROJECT_ROOT,
         )
-        files = [
-            PROJECT_ROOT / f.strip()
-            for f in result.stdout.strip().split("\n")
-            if f.strip()
-        ]
+        files = [PROJECT_ROOT / f.strip() for f in result.stdout.strip().split("\n") if f.strip()]
         return files
     except subprocess.CalledProcessError as e:
         logger.error("Git diff failed: %s", e)
@@ -282,11 +284,7 @@ def get_files_changed_since(ref: str) -> list[Path]:
             check=True,
             cwd=PROJECT_ROOT,
         )
-        files = [
-            PROJECT_ROOT / f.strip()
-            for f in result.stdout.strip().split("\n")
-            if f.strip()
-        ]
+        files = [PROJECT_ROOT / f.strip() for f in result.stdout.strip().split("\n") if f.strip()]
         return files
     except subprocess.CalledProcessError as e:
         logger.error("Git diff failed: %s", e)
@@ -336,9 +334,7 @@ def index_files(
 
             for file_path in code_files:
                 logger.info("Indexing code: %s", file_path)
-                file_stats = index_code_file(
-                    client, file_path, collection, code_parser, dry_run
-                )
+                file_stats = index_code_file(client, file_path, collection, code_parser, dry_run)
                 stats["code_files"] += 1
                 stats["entities_added"] += file_stats["entities_added"]
                 stats["entities_updated"] += file_stats["entities_updated"]
@@ -362,9 +358,7 @@ def index_files(
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Incrementally index changed files to Weaviate"
-    )
+    parser = argparse.ArgumentParser(description="Incrementally index changed files to Weaviate")
     parser.add_argument(
         "--files",
         nargs="+",

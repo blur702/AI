@@ -23,9 +23,7 @@ class Settings:
     BREVO_MCP_TOKEN: str = os.getenv("BREVO_MCP_TOKEN", "")
 
     # Brevo MCP Base URL
-    BREVO_MCP_BASE_URL: str = os.getenv(
-        "BREVO_MCP_BASE_URL", "https://mcp.brevo.com"
-    )
+    BREVO_MCP_BASE_URL: str = os.getenv("BREVO_MCP_BASE_URL", "https://mcp.brevo.com")
 
     # Logging level
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")

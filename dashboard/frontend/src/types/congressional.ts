@@ -36,7 +36,7 @@ export interface CongressionalProgress {
 }
 
 export interface CongressionalChatMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
@@ -113,7 +113,7 @@ export interface CongressionalChatResponse {
 
 export interface ChatHistoryItem {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   sources?: CongressionalChatSource[];
   timestamp: Date;

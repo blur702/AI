@@ -16,10 +16,8 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional
 
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property, VectorDistances
@@ -40,6 +38,7 @@ DRUPAL_WEB_ROOT = settings.DRUPAL_WEB_ROOT
 @dataclass
 class DrupalDocChunk:
     """Represents a chunk of Drupal module documentation."""
+
     title: str
     content: str
     file_path: str
@@ -47,7 +46,7 @@ class DrupalDocChunk:
     module_name: str
     module_type: str  # 'contrib', 'core', or 'custom'
 
-    def to_properties(self) -> Dict[str, str]:
+    def to_properties(self) -> dict[str, str]:
         return {
             "title": self.title,
             "content": self.content,
@@ -74,7 +73,7 @@ def run_ssh_command(command: str) -> str:
     return result.stdout
 
 
-def fetch_doc_files() -> List[Dict[str, str]]:
+def fetch_doc_files() -> list[dict[str, str]]:
     """Fetch list of documentation files from Drupal server."""
     # Find all README and markdown files in modules
     command = f"""find {DRUPAL_WEB_ROOT}/modules/contrib {DRUPAL_WEB_ROOT}/core/modules -type f \\( -name 'README*' -o -name '*.md' -o -name 'INSTALL*' -o -name 'CHANGELOG*' \\) 2>/dev/null"""
@@ -82,30 +81,32 @@ def fetch_doc_files() -> List[Dict[str, str]]:
     output = run_ssh_command(command)
     files = []
 
-    for line in output.strip().split('\n'):
+    for line in output.strip().split("\n"):
         if not line:
             continue
         path = line.strip()
 
         # Determine module type and name
-        if '/modules/contrib/' in path:
-            module_type = 'contrib'
+        if "/modules/contrib/" in path:
+            module_type = "contrib"
             # Extract module name from path
-            parts = path.split('/modules/contrib/')[1].split('/')
+            parts = path.split("/modules/contrib/")[1].split("/")
             module_name = parts[0]
-        elif '/core/modules/' in path:
-            module_type = 'core'
-            parts = path.split('/core/modules/')[1].split('/')
+        elif "/core/modules/" in path:
+            module_type = "core"
+            parts = path.split("/core/modules/")[1].split("/")
             module_name = parts[0]
         else:
-            module_type = 'custom'
-            module_name = 'unknown'
+            module_type = "custom"
+            module_name = "unknown"
 
-        files.append({
-            'path': path,
-            'module_name': module_name,
-            'module_type': module_type,
-        })
+        files.append(
+            {
+                "path": path,
+                "module_name": module_name,
+                "module_type": module_type,
+            }
+        )
 
     logger.info("Found %d documentation files on Drupal server", len(files))
     return files
@@ -117,38 +118,40 @@ def fetch_file_content(remote_path: str) -> str:
     return run_ssh_command(command)
 
 
-def chunk_by_headers(content: str, file_info: Dict[str, str]) -> List[DrupalDocChunk]:
+def chunk_by_headers(content: str, file_info: dict[str, str]) -> list[DrupalDocChunk]:
     """Chunk markdown content by header hierarchy."""
     lines = content.splitlines()
-    chunks: List[DrupalDocChunk] = []
+    chunks: list[DrupalDocChunk] = []
 
-    current_title: Optional[str] = None
-    current_level: Optional[str] = None
-    current_content: List[str] = []
+    current_title: str | None = None
+    current_level: str | None = None
+    current_content: list[str] = []
     in_code_block = False
 
     def flush_chunk() -> None:
         nonlocal current_title, current_level, current_content
         if current_title is None and not current_content:
             return
-        title = current_title or Path(file_info['path']).stem
+        title = current_title or Path(file_info["path"]).stem
         section = current_level or "h0"
         chunk_content = "\n".join(current_content).strip()
         if not chunk_content:
             return
-        chunks.append(DrupalDocChunk(
-            title=title,
-            content=chunk_content,
-            file_path=file_info['path'],
-            section=section,
-            module_name=file_info['module_name'],
-            module_type=file_info['module_type'],
-        ))
+        chunks.append(
+            DrupalDocChunk(
+                title=title,
+                content=chunk_content,
+                file_path=file_info["path"],
+                section=section,
+                module_name=file_info["module_name"],
+                module_type=file_info["module_type"],
+            )
+        )
         current_content = []
 
     for line in lines:
         # Track code blocks
-        if line.strip().startswith('```'):
+        if line.strip().startswith("```"):
             in_code_block = not in_code_block
             current_content.append(line)
             continue
@@ -158,11 +161,11 @@ def chunk_by_headers(content: str, file_info: Dict[str, str]) -> List[DrupalDocC
             continue
 
         # Check for headers
-        if line.startswith('#'):
+        if line.startswith("#"):
             flush_chunk()
-            level = len(line) - len(line.lstrip('#'))
+            level = len(line) - len(line.lstrip("#"))
             current_level = f"h{level}"
-            current_title = line.lstrip('#').strip()
+            current_title = line.lstrip("#").strip()
             continue
 
         current_content.append(line)
@@ -171,14 +174,16 @@ def chunk_by_headers(content: str, file_info: Dict[str, str]) -> List[DrupalDocC
 
     # If no chunks created, create one for entire content
     if not chunks and content.strip():
-        chunks.append(DrupalDocChunk(
-            title=Path(file_info['path']).stem,
-            content=content.strip()[:5000],
-            file_path=file_info['path'],
-            section="h0",
-            module_name=file_info['module_name'],
-            module_type=file_info['module_type'],
-        ))
+        chunks.append(
+            DrupalDocChunk(
+                title=Path(file_info["path"]).stem,
+                content=content.strip()[:5000],
+                file_path=file_info["path"],
+                section="h0",
+                module_name=file_info["module_name"],
+                module_type=file_info["module_type"],
+            )
+        )
 
     return chunks
 
@@ -220,12 +225,12 @@ def ingest_docs(dry_run: bool = False, verbose: bool = False) -> int:
         logger.warning("No documentation files found")
         return 0
 
-    all_chunks: List[DrupalDocChunk] = []
+    all_chunks: list[DrupalDocChunk] = []
 
     # Fetch and chunk each file
     for file_info in doc_files:
-        logger.debug("Processing: %s", file_info['path'])
-        content = fetch_file_content(file_info['path'])
+        logger.debug("Processing: %s", file_info["path"])
+        content = fetch_file_content(file_info["path"])
         if content:
             chunks = chunk_by_headers(content, file_info)
             all_chunks.extend(chunks)

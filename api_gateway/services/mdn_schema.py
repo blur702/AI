@@ -37,7 +37,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
@@ -46,7 +46,6 @@ from weaviate.exceptions import WeaviateBaseError
 
 from ..utils.logger import get_logger
 from .weaviate_connection import MDN_JAVASCRIPT_COLLECTION_NAME, MDN_WEBAPIS_COLLECTION_NAME
-
 
 logger = get_logger("api_gateway.mdn_schema")
 
@@ -64,6 +63,7 @@ MDN_WEBAPIS_UUID_NAMESPACE = uuid.uuid5(uuid.NAMESPACE_URL, "mdn-webapis-ns")
 # -----------------------------------------------------------------------------
 # Helper Functions
 # -----------------------------------------------------------------------------
+
 
 def compute_mdn_content_hash(title: str, content: str, section_type: str) -> str:
     """
@@ -178,6 +178,7 @@ def generate_mdn_webapis_uuid(url: str, title: str) -> str:
 # Dataclasses
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class MDNJavaScriptDoc:
     """
@@ -219,7 +220,7 @@ class MDNJavaScriptDoc:
     content_hash: str
     uuid: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to Weaviate properties dict for insertion.
 
@@ -279,7 +280,7 @@ class MDNWebAPIDoc:
     content_hash: str
     uuid: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to Weaviate properties dict for insertion.
 
@@ -301,6 +302,7 @@ class MDNWebAPIDoc:
 # -----------------------------------------------------------------------------
 # MDNJavaScript Collection Lifecycle Functions
 # -----------------------------------------------------------------------------
+
 
 def create_mdn_javascript_collection(
     client: weaviate.WeaviateClient,
@@ -414,7 +416,7 @@ def mdn_javascript_collection_exists(client: weaviate.WeaviateClient) -> bool:
     return client.collections.exists(MDN_JAVASCRIPT_COLLECTION_NAME)
 
 
-def get_mdn_javascript_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_mdn_javascript_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for the MDNJavaScript collection.
 
@@ -460,7 +462,7 @@ def get_mdn_javascript_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
     total_count = agg.total_count or 0
 
     # Get breakdown by section_type
-    section_counts: Dict[str, int] = {}
+    section_counts: dict[str, int] = {}
     try:
         group_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="section_type"),
@@ -495,6 +497,7 @@ def get_mdn_javascript_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
 # -----------------------------------------------------------------------------
 # MDNWebAPIs Collection Lifecycle Functions
 # -----------------------------------------------------------------------------
+
 
 def create_mdn_webapis_collection(
     client: weaviate.WeaviateClient,
@@ -608,7 +611,7 @@ def mdn_webapis_collection_exists(client: weaviate.WeaviateClient) -> bool:
     return client.collections.exists(MDN_WEBAPIS_COLLECTION_NAME)
 
 
-def get_mdn_webapis_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_mdn_webapis_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for the MDNWebAPIs collection.
 
@@ -654,7 +657,7 @@ def get_mdn_webapis_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
     total_count = agg.total_count or 0
 
     # Get breakdown by section_type
-    section_counts: Dict[str, int] = {}
+    section_counts: dict[str, int] = {}
     try:
         group_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="section_type"),

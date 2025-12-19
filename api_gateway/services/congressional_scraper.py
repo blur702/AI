@@ -13,13 +13,14 @@ if TYPE_CHECKING:
     import weaviate
     from .base_doc_scraper import DocPage
 
-import httpx
 import feedparser
+import httpx
 from bs4 import BeautifulSoup
 
 from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
-from .base_doc_scraper import BaseDocScraper, ScraperConfig as DocScraperConfig
+from .base_doc_scraper import BaseDocScraper
+from .base_doc_scraper import ScraperConfig as DocScraperConfig
 from .congressional_schema import (
     CongressionalData,
     compute_congressional_content_hash,
@@ -31,7 +32,6 @@ from .weaviate_connection import (
     CONGRESSIONAL_DATA_COLLECTION_NAME,
     WeaviateConnection,
 )
-
 
 logger = get_logger("api_gateway.congressional_scraper")
 
@@ -484,9 +484,10 @@ class CongressionalDocScraper(BaseDocScraper):
                     member.name,
                 )
                 break
-
-            while self._is_paused():
-                logger.info("Scrape paused; waiting before continuing")
+if self._is_paused():
+logger.info("Scrape paused; waiting before continuing")
+while self._is_paused():
+time.sleep(1.0)
                 time.sleep(1.0)
 
             url = queue.popleft()
@@ -529,8 +530,170 @@ class CongressionalDocScraper(BaseDocScraper):
                     topic=topic,
                     content_text=content,
                     url=url,
-                    rss_feed_url=member.rss_feed_url,
-                    content_hash=content_hash,
+url = queue.pop(0)
+if url in visited:
+continue
+visited.add(url)
+try:
+html = self.fetch_page(url)
+if not html:
+continue
+
+soup = BeautifulSoup(html, "html.parser")
+title = self._extract_title_from_page(soup, url)
+content = self._extract_content_from_page(soup)
+if not content:
+continue
+
+topic = self._infer_topic_from_url(url)
+
+scraped_at = datetime.now(timezone.utc).isoformat()
+content_hash = compute_congressional_content_hash(
+member_name=member.name,
+content_text=content,
+title=title,
+url=url,
+)
+uuid_str = generate_congressional_uuid(
+member_name=member.name,
+url=url,
+)
+
+data = CongressionalData(
+member_name=member.name,
+state=member.state,
+district=member.district,
+party=member.party,
+chamber=member.chamber,
+title=title,
+topic=topic,
+content_text=content,
+url=url,
+rss_feed_url=member.rss_feed_url,
+content_hash=content_hash,
+scraped_at=scraped_at,
+uuid=uuid_str,
+)
+
+pages_scraped_for_member += 1
+yield data
+except Exception as exc:
+logger.warning(
+"Failed to process page %s for member %s: %s",
+url,
+member.name,
+exc,
+)
+continue
+if url in visited:
+continue
+visited.add(url)
+try:
+html = self.fetch_page(url)
+if not html:
+continue
+
+soup = BeautifulSoup(html, "html.parser")
+title = self._extract_title_from_page(soup, url)
+content = self._extract_content_from_page(soup)
+if not content:
+continue
+
+topic = self._infer_topic_from_url(url)
+
+scraped_at = datetime.now(timezone.utc).isoformat()
+content_hash = compute_congressional_content_hash(
+member_name=member.name,
+content_text=content,
+title=title,
+url=url,
+)
+uuid_str = generate_congressional_uuid(
+member_name=member.name,
+url=url,
+)
+
+data = CongressionalData(
+member_name=member.name,
+state=member.state,
+district=member.district,
+party=member.party,
+chamber=member.chamber,
+title=title,
+topic=topic,
+content_text=content,
+url=url,
+rss_feed_url=member.rss_feed_url,
+content_hash=content_hash,
+scraped_at=scraped_at,
+uuid=uuid_str,
+)
+
+pages_scraped_for_member += 1
+yield data
+except Exception as exc:
+logger.warning(
+"Failed to process page %s for member %s: %s",
+url,
+member.name,
+exc,
+)
+continue
+url = queue.pop(0)
+if url in visited:
+continue
+visited.add(url)
+try:
+html = self.fetch_page(url)
+if not html:
+continue
+
+soup = BeautifulSoup(html, "html.parser")
+title = self._extract_title_from_page(soup, url)
+content = self._extract_content_from_page(soup)
+if not content:
+continue
+
+topic = self._infer_topic_from_url(url)
+
+scraped_at = datetime.now(timezone.utc).isoformat()
+content_hash = compute_congressional_content_hash(
+member_name=member.name,
+content_text=content,
+title=title,
+url=url,
+)
+uuid_str = generate_congressional_uuid(
+member_name=member.name,
+url=url,
+)
+
+data = CongressionalData(
+member_name=member.name,
+state=member.state,
+district=member.district,
+party=member.party,
+chamber=member.chamber,
+title=title,
+topic=topic,
+content_text=content,
+url=url,
+rss_feed_url=member.rss_feed_url,
+content_hash=content_hash,
+scraped_at=scraped_at,
+uuid=uuid_str,
+)
+
+pages_scraped_for_member += 1
+yield data
+except Exception as exc:
+logger.warning(
+"Failed to process page %s for member %s: %s",
+url,
+member.name,
+exc,
+)
+continue
                     scraped_at=scraped_at,
                     uuid=uuid_str,
                 )

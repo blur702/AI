@@ -24,18 +24,22 @@ search_mdn           - Search MDN JavaScript and Web API documentation
 ```
 
 **Filters for search_code:**
+
 - `entity_type`: function, method, class, struct, trait, enum, impl, style, animation
 - `service_name`: core, alltalk, audiocraft, comfyui, diffrhythm, musicgpt, stable_audio, wan2gp, yue
 - `language`: python, typescript, javascript, css, rust
 
 **Filters for search_drupal_api:**
+
 - `entity_type`: class, interface, trait, function, method, hook, constant
 
 **Filters for search_congressional:**
+
 - `state`: Two-letter state code (e.g., "CA", "TX")
 - `party`: "Republican" or "Democrat"
 
 **Filters for search_mdn:**
+
 - `collection`: "javascript" or "webapi" (or omit for both)
 
 **Embedding model check (do this BEFORE any Weaviate query):** Silently run `ollama ps` to check if `snowflake-arctic-embed:l` is loaded. If not, load it with `ollama run snowflake-arctic-embed:l ""` and inform user of loading progress.
@@ -74,17 +78,17 @@ npm test                           # All Playwright tests
 
 ### Port Allocation
 
-| Port | Service |
-|------|---------|
-| 443 | Nginx HTTPS (external) |
-| 80 | Dashboard (Flask + React) |
-| 1301 | API Gateway (FastAPI) |
-| 5678 | N8N |
-| 8080 | Weaviate |
-| 8188 | ComfyUI |
-| 7851 | AllTalk TTS |
-| 7860-7873 | Music/Video services |
-| 11434 | Ollama |
+| Port      | Service                   |
+| --------- | ------------------------- |
+| 443       | Nginx HTTPS (external)    |
+| 80        | Dashboard (Flask + React) |
+| 1301      | API Gateway (FastAPI)     |
+| 5678      | N8N                       |
+| 8080      | Weaviate                  |
+| 8188      | ComfyUI                   |
+| 7851      | AllTalk TTS               |
+| 7860-7873 | Music/Video services      |
+| 11434     | Ollama                    |
 
 ### Dashboard API (port 80)
 
@@ -109,15 +113,15 @@ GET  /jobs/{job_id}
 
 ## Weaviate Collections
 
-| Collection | Contents |
-|------------|----------|
-| `CodeEntity` | Functions, classes, methods (Python/TS/JS/CSS/Rust) |
-| `Documentation` | Markdown docs |
-| `ClaudeConversation` | Past Claude sessions |
-| `DrupalAPI` | Drupal 11.x API reference |
-| `DrupalModuleDocs` | Drupal module READMEs and documentation (from remote server) |
-| `DrupalTwigTemplates` | Drupal Twig templates from core, contrib, and custom themes |
-| `CongressionalData` | House member websites, press releases, voting records |
+| Collection            | Contents                                                     |
+| --------------------- | ------------------------------------------------------------ |
+| `CodeEntity`          | Functions, classes, methods (Python/TS/JS/CSS/Rust)          |
+| `Documentation`       | Markdown docs                                                |
+| `ClaudeConversation`  | Past Claude sessions                                         |
+| `DrupalAPI`           | Drupal 11.x API reference                                    |
+| `DrupalModuleDocs`    | Drupal module READMEs and documentation (from remote server) |
+| `DrupalTwigTemplates` | Drupal Twig templates from core, contrib, and custom themes  |
+| `CongressionalData`   | House member websites, press releases, voting records        |
 
 ### Indexing
 
@@ -188,11 +192,11 @@ Automated protection against committing secrets to the repository.
 
 ### Protection Layers
 
-| Layer | File | Trigger |
-|-------|------|---------|
-| GitHub Actions | `.github/workflows/secret-scan.yml` | Every PR to master |
-| Pre-commit hook | `.git/hooks/pre-commit` | Every local commit |
-| Manual scanner | `scripts/check-env-secrets.py` | On-demand |
+| Layer           | File                                | Trigger            |
+| --------------- | ----------------------------------- | ------------------ |
+| GitHub Actions  | `.github/workflows/secret-scan.yml` | Every PR to master |
+| Pre-commit hook | `.git/hooks/pre-commit`             | Every local commit |
+| Manual scanner  | `scripts/check-env-secrets.py`      | On-demand          |
 
 ### What Gets Blocked
 
@@ -293,12 +297,12 @@ python -m api_gateway.services.congressional_scraper status
 
 ### File Locations
 
-| Path | Purpose |
-|------|---------|
-| `data/scraper/congressional/` | Config, PID, work assignments |
-| `data/scraper/congressional/heartbeats/` | Worker heartbeat files (health monitoring) |
-| `data/scraper/congressional/checkpoints/` | Resume state for crashed workers |
-| `logs/congressional_scraper/` | Per-worker log files |
+| Path                                      | Purpose                                    |
+| ----------------------------------------- | ------------------------------------------ |
+| `data/scraper/congressional/`             | Config, PID, work assignments              |
+| `data/scraper/congressional/heartbeats/`  | Worker heartbeat files (health monitoring) |
+| `data/scraper/congressional/checkpoints/` | Resume state for crashed workers           |
+| `logs/congressional_scraper/`             | Per-worker log files                       |
 
 ### Configuration
 
@@ -322,6 +326,7 @@ python -m api_gateway.services.congressional_scraper status
 ### Data Schema
 
 CongressionalData collection fields:
+
 - `member_name`, `state`, `district`, `party`, `chamber`
 - `title`, `topic`, `content_text`, `url`
 - `policy_topics` (auto-classified via Ollama)

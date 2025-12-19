@@ -4,11 +4,9 @@ import logging
 import queue
 import threading
 from tkinter import StringVar, ttk
-from typing import Dict, List
 
 from dashboard_app.controllers.ollama_controller import OllamaController, OllamaModel
 from dashboard_app.controllers.vram_controller import VRAMMonitor
-
 
 logger = logging.getLogger(__name__)
 
@@ -26,9 +24,9 @@ class ModelsTab(ttk.Frame):
         super().__init__(master, **kwargs)
         self.controller = controller
         self.vram_monitor = vram_monitor
-        self._queue: queue.Queue[List[OllamaModel]] = queue.Queue()
+        self._queue: queue.Queue[list[OllamaModel]] = queue.Queue()
         self._loading = False
-        self._row_loaded: Dict[str, bool] = {}
+        self._row_loaded: dict[str, bool] = {}
 
         controls = ttk.Frame(self)
         controls.pack(fill="x", padx=8, pady=8)
@@ -120,8 +118,6 @@ class ModelsTab(ttk.Frame):
             # Prefer HTTP API unload; fall back to CLI via VRAMMonitor.
             ok = self.controller.unload_model(name)
             if not ok:
-                logger.info(
-                    "HTTP unload failed for model %s; falling back to CLI", name
-                )
+                logger.info("HTTP unload failed for model %s; falling back to CLI", name)
                 self.vram_monitor.unload_model(name)
             self.refresh()

@@ -4,8 +4,9 @@ API Key authentication middleware for FastAPI.
 Validates X-API-Key header against stored API keys in the database.
 Certain paths (health, metrics, docs) are public and bypass authentication.
 """
-from datetime import datetime, timezone
-from typing import Callable
+
+from collections.abc import Callable
+from datetime import UTC, datetime
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -26,6 +27,7 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
         PUBLIC_PATHS: Endpoints that don't require authentication.
         PUBLIC_PREFIXES: Path prefixes that allow unauthenticated GET requests.
     """
+
     # Endpoints that don't require authentication
     PUBLIC_PATHS = {"/health", "/metrics", "/docs", "/openapi.json", "/redoc"}
     # Path prefixes that are public (read-only endpoints)
@@ -54,7 +56,9 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         # Skip auth for GET requests on public prefixes (read-only)
-        if request.method == "GET" and any(request.url.path.startswith(p) for p in self.PUBLIC_PREFIXES):
+        if request.method == "GET" and any(
+            request.url.path.startswith(p) for p in self.PUBLIC_PREFIXES
+        ):
             return await call_next(request)
 
         api_key_value = request.headers.get("X-API-Key")
@@ -66,7 +70,7 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
             if not api_key or not api_key.is_active:
                 raise InvalidAPIKeyError("Invalid or inactive API key")
 
-            api_key.last_used_at = datetime.now(timezone.utc)
+            api_key.last_used_at = datetime.now(UTC)
             await session.commit()
 
         request.state.api_key = api_key_value
@@ -75,4 +79,3 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
         logger.debug(f"Authenticated request with API key: {masked_key}")
         response = await call_next(request)
         return response
-

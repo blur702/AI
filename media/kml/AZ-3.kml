@@ -84,15 +84,9 @@
 
 </table>
 
-</body><script type="text/javascript">
+</table>
 
-				function changeImage(attElement, nameElement) {
-
-				document.getElementById('imageAttachment').src = attElement;
-
-				document.getElementById('imageName').innerHTML = nameElement;}
-
-			</script></html>]]></description>
+</body></html>]]></description>
 		<styleUrl>#PolyStyle00</styleUrl>
 		<MultiGeometry>
 			<Polygon>

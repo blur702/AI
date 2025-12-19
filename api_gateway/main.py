@@ -28,6 +28,7 @@ Usage:
     python -m api_gateway.main
     # or via start_gateway.bat
 """
+
 from datetime import datetime
 
 import uvicorn
@@ -38,7 +39,6 @@ from fastapi.responses import JSONResponse, PlainTextResponse
 from .config import settings
 from .routes import health as health_routes
 from .utils.logger import logger
-
 
 app = FastAPI(title="AI API Gateway", version="1.0.0")
 
@@ -79,9 +79,7 @@ async def logging_middleware(request: Request, call_next):
     """
     start = datetime.utcnow()
     body = await request.body()
-    redacted_headers = {
-        k: v for k, v in request.headers.items() if k.lower() != "x-api-key"
-    }
+    redacted_headers = {k: v for k, v in request.headers.items() if k.lower() != "x-api-key"}
     logger.info(
         f"Request {request.method} {request.url.path} "
         f"headers={redacted_headers} body_size={len(body)}"
@@ -232,8 +230,8 @@ async def global_exception_handler(request: Request, exc: Exception):
     Returns:
         JSONResponse with unified error format and 500 status
     """
-    from .models.schemas import UnifiedError, UnifiedResponse
     from .models.database import ErrorSeverity
+    from .models.schemas import UnifiedError, UnifiedResponse
     from .utils.error_logger import log_exception
 
     logger.exception("Global exception handler caught an error")

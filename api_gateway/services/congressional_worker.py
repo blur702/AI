@@ -20,10 +20,9 @@ import signal
 import sys
 import threading
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-
+from typing import Any
 
 from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
@@ -57,7 +56,7 @@ class WorkerConfig:
     heartbeat_dir: Path
     checkpoint_dir: Path
     log_dir: Path
-    data_dir: Optional[Path] = None  # For remaining_members.json
+    data_dir: Path | None = None  # For remaining_members.json
     request_delay: float = 2.0
     batch_size: int = 10
     batch_delay: float = 5.0
@@ -74,7 +73,7 @@ class WorkerCheckpoint:
     """Checkpoint for resuming worker from crash."""
 
     worker_id: int
-    members_completed: List[str] = field(default_factory=list)
+    members_completed: list[str] = field(default_factory=list)
     current_member_index: int = 0
     pages_scraped: int = 0
     pages_inserted: int = 0
@@ -83,11 +82,11 @@ class WorkerCheckpoint:
     last_member_name: str = ""
     updated_at: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "WorkerCheckpoint":
+    def from_dict(cls, data: dict[str, Any]) -> WorkerCheckpoint:
         return cls(**data)
 
 
@@ -104,9 +103,9 @@ class Heartbeat:
     members_total: int = 0
     pages_scraped: int = 0
     status: str = "starting"  # starting, running, completed, failed
-    error: Optional[str] = None
+    error: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -115,15 +114,17 @@ class CongressionalWorker:
 
     def __init__(self, config: WorkerConfig):
         self.config = config
-        self.checkpoint: Optional[WorkerCheckpoint] = None
-        self.heartbeat: Optional[Heartbeat] = None
+        self.checkpoint: WorkerCheckpoint | None = None
+        self.heartbeat: Heartbeat | None = None
         self._stop_flag = threading.Event()
-        self._heartbeat_thread: Optional[threading.Thread] = None
-        self._members: List[Dict[str, Any]] = []
+        self._heartbeat_thread: threading.Thread | None = None
+        self._members: list[dict[str, Any]] = []
 
-    def _load_checkpoint(self) -> Optional[WorkerCheckpoint]:
+    def _load_checkpoint(self) -> WorkerCheckpoint | None:
         """Load checkpoint from disk if exists."""
-        checkpoint_path = self.config.checkpoint_dir / f"worker_{self.config.worker_id}_checkpoint.json"
+        checkpoint_path = (
+            self.config.checkpoint_dir / f"worker_{self.config.worker_id}_checkpoint.json"
+        )
         if checkpoint_path.exists():
             try:
                 data = json.loads(checkpoint_path.read_text())
@@ -142,13 +143,17 @@ class CongressionalWorker:
         """Save current checkpoint to disk."""
         if not self.checkpoint:
             return
-        self.checkpoint.updated_at = datetime.now(timezone.utc).isoformat()
-        checkpoint_path = self.config.checkpoint_dir / f"worker_{self.config.worker_id}_checkpoint.json"
+        self.checkpoint.updated_at = datetime.now(UTC).isoformat()
+        checkpoint_path = (
+            self.config.checkpoint_dir / f"worker_{self.config.worker_id}_checkpoint.json"
+        )
         checkpoint_path.write_text(json.dumps(self.checkpoint.to_dict(), indent=2))
 
     def _delete_checkpoint(self) -> None:
         """Delete checkpoint on successful completion."""
-        checkpoint_path = self.config.checkpoint_dir / f"worker_{self.config.worker_id}_checkpoint.json"
+        checkpoint_path = (
+            self.config.checkpoint_dir / f"worker_{self.config.worker_id}_checkpoint.json"
+        )
         if checkpoint_path.exists():
             checkpoint_path.unlink()
             logger.info("Deleted checkpoint for worker %d", self.config.worker_id)
@@ -157,7 +162,7 @@ class CongressionalWorker:
         """Write heartbeat to disk using atomic write to prevent corruption."""
         if not self.heartbeat:
             return
-        self.heartbeat.last_heartbeat = datetime.now(timezone.utc).isoformat()
+        self.heartbeat.last_heartbeat = datetime.now(UTC).isoformat()
         heartbeat_path = self.config.heartbeat_dir / f"worker_{self.config.worker_id}.json"
         temp_path = self.config.heartbeat_dir / f"worker_{self.config.worker_id}.json.tmp"
 
@@ -195,7 +200,7 @@ class CongressionalWorker:
         if self._heartbeat_thread and self._heartbeat_thread.is_alive():
             self._heartbeat_thread.join(timeout=5)
 
-    def _fetch_members(self) -> List[MemberInfo]:
+    def _fetch_members(self) -> list[MemberInfo]:
         """Fetch member list using the scraper's method or remaining_members.json."""
         if self.config.use_remaining_members and self.config.data_dir:
             # Load from remaining_members.json (for rebalanced workers)
@@ -222,7 +227,7 @@ class CongressionalWorker:
                         "falling back to House feed",
                         e,
                     )
-                except (OSError, IOError) as e:
+                except OSError as e:
                     logger.warning(
                         "Failed to read remaining_members.json (%s: %s), "
                         "falling back to House feed",
@@ -252,12 +257,12 @@ class CongressionalWorker:
         logger.info("Fetched %d total members", len(members))
         return members
 
-    def _get_assigned_members(self) -> List[MemberInfo]:
+    def _get_assigned_members(self) -> list[MemberInfo]:
         """Get this worker's assigned subset of members."""
         if not self._members:
             self._members = self._fetch_members()
 
-        assigned = self._members[self.config.start_index:self.config.end_index]
+        assigned = self._members[self.config.start_index : self.config.end_index]
         logger.info(
             "Worker %d assigned members %d-%d (%d members)",
             self.config.worker_id,
@@ -278,8 +283,8 @@ class CongressionalWorker:
         self.heartbeat = Heartbeat(
             worker_id=self.config.worker_id,
             pid=os.getpid(),
-            started_at=datetime.now(timezone.utc).isoformat(),
-            last_heartbeat=datetime.now(timezone.utc).isoformat(),
+            started_at=datetime.now(UTC).isoformat(),
+            last_heartbeat=datetime.now(UTC).isoformat(),
             status="starting",
         )
         self._write_heartbeat()
@@ -458,7 +463,7 @@ class CongressionalWorker:
             logger.warning("Failed to upsert: %s", e)
             return False, "error"
 
-    def _discover_rss_feeds(self, member: MemberInfo) -> List[str]:
+    def _discover_rss_feeds(self, member: MemberInfo) -> list[str]:
         """Discover RSS feed URLs for a member."""
         feeds = []
         if member.rss_feed_url:
@@ -467,9 +472,15 @@ class CongressionalWorker:
         # Try common RSS patterns
         base = member.website_url.rstrip("/")
         rss_patterns = [
-            "/feed", "/rss", "/feed.xml", "/rss.xml",
-            "/news/feed", "/news/rss", "/media/feed",
-            "/press/feed", "/press/rss",
+            "/feed",
+            "/rss",
+            "/feed.xml",
+            "/rss.xml",
+            "/news/feed",
+            "/news/rss",
+            "/media/feed",
+            "/press/feed",
+            "/press/rss",
         ]
         for pattern in rss_patterns:
             feeds.append(f"{base}{pattern}")
@@ -550,13 +561,15 @@ class CongressionalWorker:
 
 def _signal_handler(worker: CongressionalWorker):
     """Create a signal handler for graceful shutdown."""
+
     def handler(signum, frame):
         logger.info("Received signal %d, stopping worker", signum)
         worker.stop()
+
     return handler
 
 
-def load_config_from_file(config_path: Path) -> Dict[str, Any]:
+def load_config_from_file(config_path: Path) -> dict[str, Any]:
     """Load configuration from JSON file."""
     if config_path.exists():
         return json.loads(config_path.read_text())
@@ -574,8 +587,12 @@ def main():
     parser.add_argument("--max-pages", type=int, help="Max pages per member override")
     parser.add_argument("--max-press-pages", type=int, help="Max press pages override")
     parser.add_argument("--no-rss", action="store_true", help="Disable RSS feed scraping")
-    parser.add_argument("--no-newsroom-discovery", action="store_true", help="Disable newsroom URL discovery")
-    parser.add_argument("--remaining", action="store_true", help="Use remaining_members.json instead of House feed")
+    parser.add_argument(
+        "--no-newsroom-discovery", action="store_true", help="Disable newsroom URL discovery"
+    )
+    parser.add_argument(
+        "--remaining", action="store_true", help="Use remaining_members.json instead of House feed"
+    )
 
     args = parser.parse_args()
 
@@ -589,8 +606,12 @@ def main():
         worker_id=args.worker_id,
         start_index=args.start_index,
         end_index=args.end_index,
-        heartbeat_dir=Path(paths_config.get("heartbeat_dir", "D:/AI/data/scraper/congressional/heartbeats")),
-        checkpoint_dir=Path(paths_config.get("checkpoint_dir", "D:/AI/data/scraper/congressional/checkpoints")),
+        heartbeat_dir=Path(
+            paths_config.get("heartbeat_dir", "D:/AI/data/scraper/congressional/heartbeats")
+        ),
+        checkpoint_dir=Path(
+            paths_config.get("checkpoint_dir", "D:/AI/data/scraper/congressional/checkpoints")
+        ),
         log_dir=Path(paths_config.get("log_dir", "D:/AI/logs/congressional_scraper")),
         data_dir=Path(paths_config.get("data_dir", "D:/AI/data/scraper/congressional")),
         request_delay=args.request_delay or worker_config.get("request_delay", 2.0),
@@ -599,7 +620,8 @@ def main():
         max_pages_per_member=args.max_pages or worker_config.get("max_pages_per_member", 5),
         max_press_pages=args.max_press_pages or worker_config.get("max_press_pages", 500),
         scrape_rss=not args.no_rss and worker_config.get("scrape_rss", True),
-        discover_newsroom=not args.no_newsroom_discovery and worker_config.get("discover_newsroom", True),
+        discover_newsroom=not args.no_newsroom_discovery
+        and worker_config.get("discover_newsroom", True),
         checkpoint_interval=worker_config.get("checkpoint_interval", 5),
         use_remaining_members=args.remaining,
     )
@@ -612,7 +634,9 @@ def main():
     signal.signal(signal.SIGTERM, _signal_handler(worker))
 
     # Run
-    logger.info("Starting worker %d (members %d-%d)", config.worker_id, config.start_index, config.end_index)
+    logger.info(
+        "Starting worker %d (members %d-%d)", config.worker_id, config.start_index, config.end_index
+    )
     exit_code = worker.run()
     sys.exit(exit_code)
 

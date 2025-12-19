@@ -43,7 +43,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
@@ -51,7 +51,6 @@ from weaviate.classes.config import Configure, DataType, Property, VectorDistanc
 
 from ..utils.logger import get_logger
 from .weaviate_connection import DRUPAL_API_COLLECTION_NAME
-
 
 logger = get_logger("api_gateway.drupal_api_schema")
 
@@ -198,7 +197,7 @@ class DrupalAPIEntity:
     scraped_at: str
     uuid: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to a dictionary suitable for Weaviate insertion.
 
@@ -316,11 +315,15 @@ def delete_drupal_api_collection(client: weaviate.WeaviateClient) -> bool:
         return False
 
     except weaviate.exceptions.WeaviateBaseError as exc:
-        error_msg = f"Weaviate error while deleting collection '{DRUPAL_API_COLLECTION_NAME}': {exc}"
+        error_msg = (
+            f"Weaviate error while deleting collection '{DRUPAL_API_COLLECTION_NAME}': {exc}"
+        )
         logger.error(error_msg, exc_info=True)
         raise
     except Exception as exc:
-        error_msg = f"Unexpected error while deleting collection '{DRUPAL_API_COLLECTION_NAME}': {exc}"
+        error_msg = (
+            f"Unexpected error while deleting collection '{DRUPAL_API_COLLECTION_NAME}': {exc}"
+        )
         logger.error(error_msg, exc_info=True)
         raise
 
@@ -340,7 +343,7 @@ def collection_exists(client: weaviate.WeaviateClient) -> bool:
     return exists
 
 
-def get_collection_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_collection_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Return basic statistics for the DrupalAPI collection.
 
@@ -375,7 +378,7 @@ def get_collection_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
         total = agg.total_count or 0
 
         # Aggregate counts by entity_type
-        entity_counts: Dict[str, int] = {}
+        entity_counts: dict[str, int] = {}
         grouped_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="entity_type"),
             total_count=True,
@@ -399,5 +402,7 @@ def get_collection_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
             "entity_counts": entity_counts,
         }
     except Exception as e:
-        logger.exception("Failed to get stats for collection '%s': %s", DRUPAL_API_COLLECTION_NAME, e)
+        logger.exception(
+            "Failed to get stats for collection '%s': %s", DRUPAL_API_COLLECTION_NAME, e
+        )
         raise

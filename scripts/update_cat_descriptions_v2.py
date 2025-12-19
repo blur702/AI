@@ -3,9 +3,10 @@ Update cat breed articles with AI-generated descriptions using Ollama text model
 Generates 4-paragraph descriptions based on breed name.
 """
 
+import os
 import subprocess
 import tempfile
-import os
+
 import requests
 
 # SSH connection details
@@ -23,9 +24,14 @@ MODEL = "huihui_ai/dolphin3-abliterated:8b"
 def run_ssh_command(command: str, timeout: int = 120) -> str:
     """Execute command on remote Drupal server via SSH."""
     ssh_cmd = [
-        PLINK_PATH, "-ssh", "-pw", SSH_PASSWORD,
-        "-hostkey", SSH_HOSTKEY,
-        f"{SSH_USER}@{SSH_HOST}", command
+        PLINK_PATH,
+        "-ssh",
+        "-pw",
+        SSH_PASSWORD,
+        "-hostkey",
+        SSH_HOSTKEY,
+        f"{SSH_USER}@{SSH_HOST}",
+        command,
     ]
     result = subprocess.run(ssh_cmd, capture_output=True, text=True, timeout=timeout)
     return result.stdout
@@ -53,9 +59,9 @@ Write in a warm, informative tone. Each paragraph should be 3-4 sentences. Do no
                 "model": MODEL,
                 "prompt": prompt,
                 "stream": False,
-                "options": {"temperature": 0.7, "num_predict": 800}
+                "options": {"temperature": 0.7, "num_predict": 800},
             },
-            timeout=120
+            timeout=120,
         )
         if response.status_code == 200:
             return response.json().get("response", "").strip()
@@ -66,40 +72,45 @@ Write in a warm, informative tone. Each paragraph should be 3-4 sentences. Do no
 
 def get_cat_articles() -> list:
     """Get all cat article node IDs and titles."""
-    query = '''cd /var/www/drupal && vendor/bin/drush sqlq "SELECT nid, title FROM node_field_data WHERE type='cats' ORDER BY title" --extra=-N'''
+    query = """cd /var/www/drupal && vendor/bin/drush sqlq "SELECT nid, title FROM node_field_data WHERE type='cats' ORDER BY title" --extra=-N"""
     output = run_ssh_command(query)
     articles = []
-    for line in output.strip().split('\n'):
+    for line in output.strip().split("\n"):
         if line.strip():
-            parts = line.split('\t')
+            parts = line.split("\t")
             if len(parts) >= 2:
-                articles.append({'nid': parts[0], 'title': parts[1]})
+                articles.append({"nid": parts[0], "title": parts[1]})
     return articles
 
 
 def update_article_body(nid: str, html_body: str) -> bool:
     """Update the body of a cat article."""
     # Write body to temp file
-    body_file = tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False, encoding='utf-8')
+    body_file = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8")
     body_file.write(html_body)
     body_file.close()
 
     # Upload body file
     upload_cmd = [
-        PSCP_PATH, "-pw", SSH_PASSWORD, "-hostkey", SSH_HOSTKEY,
-        body_file.name, f"{SSH_USER}@{SSH_HOST}:/tmp/body_{nid}.txt"
+        PSCP_PATH,
+        "-pw",
+        SSH_PASSWORD,
+        "-hostkey",
+        SSH_HOSTKEY,
+        body_file.name,
+        f"{SSH_USER}@{SSH_HOST}:/tmp/body_{nid}.txt",
     ]
     subprocess.run(upload_cmd, capture_output=True)
 
     # Update the node
-    command = f'''cd /var/www/drupal && vendor/bin/drush php:eval '
+    command = f"""cd /var/www/drupal && vendor/bin/drush php:eval '
 $node = \\Drupal\\node\\Entity\\Node::load({nid});
 if ($node) {{
     $body = file_get_contents("/tmp/body_{nid}.txt");
     $node->set("body", ["value" => $body, "format" => "full_html"]);
     $node->save();
     echo "OK";
-}}' '''
+}}' """
     result = run_ssh_command(command, timeout=60)
 
     # Cleanup
@@ -122,8 +133,8 @@ def main():
     errors = 0
 
     for article in articles:
-        nid = article['nid']
-        title = article['title']
+        nid = article["nid"]
+        title = article["title"]
 
         print(f"[{nid}] {title}... ", end="", flush=True)
 
@@ -134,11 +145,11 @@ def main():
             continue
 
         # Split into paragraphs and format as HTML
-        paragraphs = [p.strip() for p in description.split('\n\n') if p.strip()]
+        paragraphs = [p.strip() for p in description.split("\n\n") if p.strip()]
         if len(paragraphs) < 2:
-            paragraphs = [p.strip() for p in description.split('\n') if p.strip()]
+            paragraphs = [p.strip() for p in description.split("\n") if p.strip()]
 
-        html_body = '\n'.join([f'<p>{p}</p>' for p in paragraphs if p])
+        html_body = "\n".join([f"<p>{p}</p>" for p in paragraphs if p])
 
         if update_article_body(nid, html_body):
             print("OK")

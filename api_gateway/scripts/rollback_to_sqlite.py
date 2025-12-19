@@ -88,7 +88,8 @@ def generate_rollback_instructions():
     print("ROLLBACK INSTRUCTIONS")
     print("=" * 60)
 
-    print("""
+    print(
+        """
 To rollback to SQLite, follow these steps:
 
 1. UPDATE .env FILE:
@@ -115,7 +116,8 @@ To rollback to SQLite, follow these steps:
 
 6. VERIFY:
    Check that the API gateway starts without errors.
-""")
+"""
+    )
 
     print("=" * 60)
 
@@ -124,7 +126,8 @@ def create_env_rollback_snippet():
     """Create a snippet for reverting .env configuration."""
     print("\n.env SQLITE CONFIGURATION:")
     print("-" * 40)
-    print("""
+    print(
+        """
 # Revert to SQLite (comment out PostgreSQL settings)
 DATABASE_URL=sqlite+aiosqlite:///./api_gateway.db
 
@@ -134,7 +137,8 @@ DATABASE_URL=sqlite+aiosqlite:///./api_gateway.db
 # POSTGRES_USER=ai_gateway
 # POSTGRES_PASSWORD=your_password
 # POSTGRES_DB=ai_gateway
-""")
+"""
+    )
     print("-" * 40)
 
 

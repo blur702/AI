@@ -132,7 +132,9 @@ class ScikitLearnDocScraper(BaseDocScraper):
         """Extract code examples from the page."""
         examples = []
 
-        for code_block in soup.select("div.highlight-python pre, div.highlight-default pre, pre.literal-block"):
+        for code_block in soup.select(
+            "div.highlight-python pre, div.highlight-default pre, pre.literal-block"
+        ):
             code = code_block.get_text(strip=True)
             if code and len(code) > 20:
                 examples.append(code[:2000])
@@ -142,9 +144,7 @@ class ScikitLearnDocScraper(BaseDocScraper):
     def _extract_content(self, soup: BeautifulSoup) -> str:
         """Extract main content from scikit-learn docs page."""
         content_elem = (
-            soup.select_one("div.document")
-            or soup.select_one("article")
-            or soup.select_one("main")
+            soup.select_one("div.document") or soup.select_one("article") or soup.select_one("main")
         )
 
         if not content_elem:
@@ -202,7 +202,8 @@ class ScikitLearnDocScraper(BaseDocScraper):
             section=section,
             package="scikit-learn",
             version="stable",
-            breadcrumb=breadcrumb or (f"scikit-learn > {module_name}" if module_name else "scikit-learn"),
+            breadcrumb=breadcrumb
+            or (f"scikit-learn > {module_name}" if module_name else "scikit-learn"),
             code_examples=code_examples,
         )
 

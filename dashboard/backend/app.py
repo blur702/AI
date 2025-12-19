@@ -33,6 +33,7 @@ Configuration:
 Usage:
     python app.py
 """
+
 import hmac
 import logging
 import os
@@ -40,33 +41,36 @@ import secrets
 import subprocess
 import threading
 import time
-from datetime import datetime, timedelta, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 from functools import wraps
-from typing import Any, Callable
+from typing import Any
 
-from flask import Flask, jsonify, request, send_from_directory, Response
+import psutil
+import requests as http_requests
+from flask import Flask, Response, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from werkzeug.security import safe_join
-import psutil
-import requests as http_requests
 
 # Load environment variables from .env file if present
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     # dotenv not required if using system environment variables
     pass
 
-from service_manager import get_service_manager
-from services_config import SERVICES
-from ingestion_manager import get_ingestion_manager
-from claude_manager import get_claude_manager
-
 # Add project root to path for api_gateway imports (done at module load time)
 import sys
 from pathlib import Path
+
+from claude_manager import get_claude_manager
+from ingestion_manager import get_ingestion_manager
+from service_manager import get_service_manager
+from services_config import SERVICES
+
 _project_root = Path(__file__).resolve().parents[2]
 if str(_project_root) not in sys.path:
     sys.path.insert(0, str(_project_root))
@@ -74,14 +78,15 @@ if str(_project_root) not in sys.path:
 # Import Weaviate connection for collection management
 try:
     from api_gateway.services.weaviate_connection import (
-        WeaviateConnection,
-        DOCUMENTATION_COLLECTION_NAME,
         CODE_ENTITY_COLLECTION_NAME,
+        CONGRESSIONAL_DATA_COLLECTION_NAME,
+        DOCUMENTATION_COLLECTION_NAME,
         DRUPAL_API_COLLECTION_NAME,
         MDN_JAVASCRIPT_COLLECTION_NAME,
         MDN_WEBAPIS_COLLECTION_NAME,
-        CONGRESSIONAL_DATA_COLLECTION_NAME,
+        WeaviateConnection,
     )
+
     WEAVIATE_AVAILABLE = True
 except ImportError:
     WEAVIATE_AVAILABLE = False
@@ -96,11 +101,12 @@ except ImportError:
 # Import Congressional scraper and schema for congressional data management
 try:
     from api_gateway.services.congressional_schema import get_congressional_stats
+    from api_gateway.services.congressional_scraper import ScrapeConfig as CongressionalScrapeConfig
     from api_gateway.services.congressional_scraper import (
         scrape_congressional_data,
-        ScrapeConfig as CongressionalScrapeConfig,
     )
     from api_gateway.utils.embeddings import get_embedding
+
     CONGRESSIONAL_AVAILABLE = True
 except ImportError:
     CONGRESSIONAL_AVAILABLE = False
@@ -156,6 +162,7 @@ def check_auth(username: str, password: str) -> bool:
     Uses constant-time comparison to prevent timing attacks.
     """
     import hmac
+
     # Use constant-time comparison to prevent timing attacks
     username_match = hmac.compare_digest(username, BASIC_AUTH_USERNAME)
     password_match = hmac.compare_digest(password, BASIC_AUTH_PASSWORD)
@@ -173,7 +180,7 @@ SESSION_EXPIRY_HOURS = int(os.environ.get("SESSION_EXPIRY_HOURS", "24"))
 
 
 # Track last cleanup time for periodic cleanup instead of every validation
-_last_session_cleanup = datetime.now(timezone.utc)
+_last_session_cleanup = datetime.now(UTC)
 _SESSION_CLEANUP_INTERVAL_SECONDS = 60  # Only cleanup at most once per minute
 
 
@@ -184,17 +191,14 @@ def _cleanup_expired_sessions():
     to avoid lock contention from scanning all sessions on every validation.
     """
     global _last_session_cleanup
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # Skip cleanup if we ran recently
     if (now - _last_session_cleanup).total_seconds() < _SESSION_CLEANUP_INTERVAL_SECONDS:
         return
 
     _last_session_cleanup = now
-    expired_tokens = [
-        token for token, data in _session_store.items()
-        if data["expires_at"] <= now
-    ]
+    expired_tokens = [token for token, data in _session_store.items() if data["expires_at"] <= now]
     for token in expired_tokens:
         del _session_store[token]
     if expired_tokens:
@@ -210,14 +214,14 @@ def generate_session_token(username: str, password: str) -> str | None:
     # Verify credentials first
     if not check_auth(username, password):
         return None
-    
+
     # Generate secure random token
     token = secrets.token_urlsafe(32)  # 256 bits of entropy
-    
+
     # Set expiration
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires_at = now + timedelta(hours=SESSION_EXPIRY_HOURS)
-    
+
     # Store session
     with _session_lock:
         _session_store[token] = {
@@ -225,8 +229,10 @@ def generate_session_token(username: str, password: str) -> str | None:
             "created_at": now,
             "expires_at": expires_at,
         }
-    
-    logger.info("Session created for user: %s (expires in %d hours)", username, SESSION_EXPIRY_HOURS)
+
+    logger.info(
+        "Session created for user: %s (expires in %d hours)", username, SESSION_EXPIRY_HOURS
+    )
     return token
 
 
@@ -238,21 +244,21 @@ def validate_session_token(token: str | None) -> bool:
     """
     if not token:
         return False
-    
+
     with _session_lock:
         # Cleanup expired sessions
         _cleanup_expired_sessions()
-        
+
         # Check if token exists
         session = _session_store.get(token)
         if not session:
             return False
-        
+
         # Check expiration (redundant after cleanup, but explicit)
-        if session["expires_at"] <= datetime.now(timezone.utc):
+        if session["expires_at"] <= datetime.now(UTC):
             del _session_store[token]
             return False
-        
+
         return True
 
 
@@ -263,7 +269,7 @@ def revoke_session_token(token: str | None) -> bool:
     """
     if not token:
         return False
-    
+
     with _session_lock:
         if token in _session_store:
             del _session_store[token]
@@ -282,17 +288,21 @@ def authenticate() -> Response:
 
 def require_auth(f: Callable[..., Any]) -> Callable[..., Any]:
     """Decorator that requires HTTP Basic Authentication for a route."""
+
     @wraps(f)
     def decorated(*args: Any, **kwargs: Any) -> Any:
         auth = request.authorization
         if not auth or not check_auth(auth.username, auth.password):
             return authenticate()
         return f(*args, **kwargs)
+
     return decorated
 
 
 # Proxy configuration
-MAX_PROXY_REQUEST_SIZE = int(os.environ.get("MAX_PROXY_REQUEST_SIZE", str(100 * 1024 * 1024)))  # 100MB default
+MAX_PROXY_REQUEST_SIZE = int(
+    os.environ.get("MAX_PROXY_REQUEST_SIZE", str(100 * 1024 * 1024))
+)  # 100MB default
 PROXY_TIMEOUT_SECONDS = int(os.environ.get("PROXY_TIMEOUT_SECONDS", "30"))
 PROXY_AUTH_ENABLED = os.environ.get("PROXY_AUTH_ENABLED", "false").lower() == "true"
 PROXY_AUTH_TOKEN = os.environ.get("PROXY_AUTH_TOKEN", "").strip()
@@ -670,24 +680,48 @@ def get_model_family(model_name: str) -> str:
 
     # Common family patterns
     families = [
-        "qwen2.5", "qwen2", "qwen",
-        "llama3.2", "llama3.1", "llama3", "llama2", "llama",
-        "mistral", "mixtral",
-        "codellama", "deepseek-coder", "deepseek",
-        "phi3", "phi",
-        "gemma2", "gemma",
-        "starcoder2", "starcoder",
-        "wizardcoder", "codestral",
+        "qwen2.5",
+        "qwen2",
+        "qwen",
+        "llama3.2",
+        "llama3.1",
+        "llama3",
+        "llama2",
+        "llama",
+        "mistral",
+        "mixtral",
+        "codellama",
+        "deepseek-coder",
+        "deepseek",
+        "phi3",
+        "phi",
+        "gemma2",
+        "gemma",
+        "starcoder2",
+        "starcoder",
+        "wizardcoder",
+        "codestral",
         "command-r",
-        "yi", "solar",
-        "dolphin", "nous-hermes", "openhermes",
-        "neural-chat", "orca-mini",
-        "vicuna", "zephyr", "openchat",
-        "tinyllama", "stable-lm",
-        "falcon", "mpt",
-        "nomic-embed-text", "snowflake-arctic-embed",
-        "all-minilm", "bge",
-        "llava", "bakllava",
+        "yi",
+        "solar",
+        "dolphin",
+        "nous-hermes",
+        "openhermes",
+        "neural-chat",
+        "orca-mini",
+        "vicuna",
+        "zephyr",
+        "openchat",
+        "tinyllama",
+        "stable-lm",
+        "falcon",
+        "mpt",
+        "nomic-embed-text",
+        "snowflake-arctic-embed",
+        "all-minilm",
+        "bge",
+        "llava",
+        "bakllava",
     ]
 
     for family in families:
@@ -732,7 +766,14 @@ def _parse_ollama_verbose_output(stdout: str) -> dict:
         # Detect section headers (lines without leading whitespace that end with known section names)
         if not line.startswith(" ") and not line.startswith("\t"):
             section_lower = stripped.lower()
-            if section_lower in ("model", "capabilities", "parameters", "metadata", "tensors", "license"):
+            if section_lower in (
+                "model",
+                "capabilities",
+                "parameters",
+                "metadata",
+                "tensors",
+                "license",
+            ):
                 current_section = section_lower
                 continue
 
@@ -838,8 +879,7 @@ def get_ollama_model_info(
         # Estimate VRAM
         if info["size_gb"] > 0:
             info["estimated_vram_mb"] = estimate_model_vram(
-                info["size_gb"],
-                info["quantization"] or "q4"
+                info["size_gb"], info["quantization"] or "q4"
             )
 
         # Get capability description
@@ -899,11 +939,7 @@ def classify_ollama_error(stderr_text: str | None) -> str:
     text = (stderr_text or "").lower()
     if "no such model" in text or "model not found" in text:
         return "MODEL_NOT_FOUND"
-    if (
-        "connection refused" in text
-        or "failed to connect" in text
-        or "connection error" in text
-    ):
+    if "connection refused" in text or "failed to connect" in text or "connection error" in text:
         return "OLLAMA_UNAVAILABLE"
     if (
         "command not found" in text
@@ -982,7 +1018,9 @@ def load_ollama_model(model_name: str) -> tuple[bool, str, str | None]:
         return False, message, "UNKNOWN_ERROR"
 
 
-def load_ollama_model_with_progress(model_name: str, expected_vram_mb: int) -> tuple[bool, str, str | None]:
+def load_ollama_model_with_progress(
+    model_name: str, expected_vram_mb: int
+) -> tuple[bool, str, str | None]:
     """Load an Ollama model with VRAM progress monitoring.
 
     Emits `model_load_progress` WebSocket events with payload:
@@ -1000,12 +1038,15 @@ def load_ollama_model_with_progress(model_name: str, expected_vram_mb: int) -> t
     initial_vram = gpu_info["used_mb"] if gpu_info else 0
 
     # Emit starting event
-    socketio.emit("model_load_progress", {
-        "model_name": model_name,
-        "progress": 0,
-        "status": "loading",
-        "action": "load",
-    })
+    socketio.emit(
+        "model_load_progress",
+        {
+            "model_name": model_name,
+            "progress": 0,
+            "status": "loading",
+            "action": "load",
+        },
+    )
 
     # Track progress in a separate monitoring thread
     stop_monitoring = threading.Event()
@@ -1022,12 +1063,15 @@ def load_ollama_model_with_progress(model_name: str, expected_vram_mb: int) -> t
 
                 if progress != last_progress:
                     last_progress = progress
-                    socketio.emit("model_load_progress", {
-                        "model_name": model_name,
-                        "progress": progress,
-                        "status": "loading",
-                        "action": "load",
-                    })
+                    socketio.emit(
+                        "model_load_progress",
+                        {
+                            "model_name": model_name,
+                            "progress": progress,
+                            "status": "loading",
+                            "action": "load",
+                        },
+                    )
 
             stop_monitoring.wait(0.3)  # Check every 300ms
 
@@ -1048,39 +1092,50 @@ def load_ollama_model_with_progress(model_name: str, expected_vram_mb: int) -> t
             code = classify_ollama_error(stderr_text)
             message = stderr_text or "Failed to load model."
             logger.error("Error loading Ollama model '%s': %s", model_name, message)
-            socketio.emit("model_load_progress", {
-                "model_name": model_name,
-                "progress": 0,
-                "status": "error",
-                "action": "load",
-                "message": message,
-            })
+            socketio.emit(
+                "model_load_progress",
+                {
+                    "model_name": model_name,
+                    "progress": 0,
+                    "status": "error",
+                    "action": "load",
+                    "message": message,
+                },
+            )
             return False, message, code
 
         # Success - emit 100% completion
-        socketio.emit("model_load_progress", {
-            "model_name": model_name,
-            "progress": 100,
-            "status": "complete",
-            "action": "load",
-        })
+        socketio.emit(
+            "model_load_progress",
+            {
+                "model_name": model_name,
+                "progress": 100,
+                "status": "complete",
+                "action": "load",
+            },
+        )
         return True, "", None
 
     except Exception as exc:
         stop_monitoring.set()
         message = f"Error loading Ollama model '{model_name}': {exc}"
         logger.error(message)
-        socketio.emit("model_load_progress", {
-            "model_name": model_name,
-            "progress": 0,
-            "status": "error",
-            "action": "load",
-            "message": message,
-        })
+        socketio.emit(
+            "model_load_progress",
+            {
+                "model_name": model_name,
+                "progress": 0,
+                "status": "error",
+                "action": "load",
+                "message": message,
+            },
+        )
         return False, message, "UNKNOWN_ERROR"
 
 
-def unload_ollama_model_with_progress(model_name: str, expected_vram_mb: int) -> tuple[bool, str, str | None]:
+def unload_ollama_model_with_progress(
+    model_name: str, expected_vram_mb: int
+) -> tuple[bool, str, str | None]:
     """Unload an Ollama model with VRAM progress monitoring.
 
     Emits `model_load_progress` WebSocket events with payload:
@@ -1098,12 +1153,15 @@ def unload_ollama_model_with_progress(model_name: str, expected_vram_mb: int) ->
     initial_vram = gpu_info["used_mb"] if gpu_info else 0
 
     # Emit starting event
-    socketio.emit("model_load_progress", {
-        "model_name": model_name,
-        "progress": 0,
-        "status": "unloading",
-        "action": "unload",
-    })
+    socketio.emit(
+        "model_load_progress",
+        {
+            "model_name": model_name,
+            "progress": 0,
+            "status": "unloading",
+            "action": "unload",
+        },
+    )
 
     # Track progress in a separate monitoring thread
     stop_monitoring = threading.Event()
@@ -1120,12 +1178,15 @@ def unload_ollama_model_with_progress(model_name: str, expected_vram_mb: int) ->
 
                 if progress != last_progress:
                     last_progress = progress
-                    socketio.emit("model_load_progress", {
-                        "model_name": model_name,
-                        "progress": progress,
-                        "status": "unloading",
-                        "action": "unload",
-                    })
+                    socketio.emit(
+                        "model_load_progress",
+                        {
+                            "model_name": model_name,
+                            "progress": progress,
+                            "status": "unloading",
+                            "action": "unload",
+                        },
+                    )
 
             stop_monitoring.wait(0.3)  # Check every 300ms
 
@@ -1145,35 +1206,44 @@ def unload_ollama_model_with_progress(model_name: str, expected_vram_mb: int) ->
             code = classify_ollama_error(stderr_text)
             message = stderr_text or "Failed to stop model."
             logger.error("Error stopping Ollama model '%s': %s", model_name, message)
-            socketio.emit("model_load_progress", {
-                "model_name": model_name,
-                "progress": 0,
-                "status": "error",
-                "action": "unload",
-                "message": message,
-            })
+            socketio.emit(
+                "model_load_progress",
+                {
+                    "model_name": model_name,
+                    "progress": 0,
+                    "status": "error",
+                    "action": "unload",
+                    "message": message,
+                },
+            )
             return False, message, code
 
         # Success - emit 100% completion
-        socketio.emit("model_load_progress", {
-            "model_name": model_name,
-            "progress": 100,
-            "status": "complete",
-            "action": "unload",
-        })
+        socketio.emit(
+            "model_load_progress",
+            {
+                "model_name": model_name,
+                "progress": 100,
+                "status": "complete",
+                "action": "unload",
+            },
+        )
         return True, "", None
 
     except Exception as exc:
         stop_monitoring.set()
         message = f"Error stopping Ollama model '{model_name}': {exc}"
         logger.error(message)
-        socketio.emit("model_load_progress", {
-            "model_name": model_name,
-            "progress": 0,
-            "status": "error",
-            "action": "unload",
-            "message": message,
-        })
+        socketio.emit(
+            "model_load_progress",
+            {
+                "model_name": model_name,
+                "progress": 0,
+                "status": "error",
+                "action": "unload",
+                "message": message,
+            },
+        )
         return False, message, "UNKNOWN_ERROR"
 
 
@@ -1212,11 +1282,14 @@ def pull_ollama_model(model_name: str) -> None:
             except Exception:
                 pass
             process.wait()
-            socketio.emit("model_download_progress", {
-                "model_name": model_name,
-                "progress": "Failed to capture output",
-                "status": "error",
-            })
+            socketio.emit(
+                "model_download_progress",
+                {
+                    "model_name": model_name,
+                    "progress": "Failed to capture output",
+                    "status": "error",
+                },
+            )
             return
         for line in process.stdout:
             line = line.strip()
@@ -1229,7 +1302,7 @@ def pull_ollama_model(model_name: str) -> None:
                     "progress": line,
                     "status": "downloading",
                 },
-                    )
+            )
 
         process.wait()
         if process.returncode == 0:
@@ -1240,7 +1313,7 @@ def pull_ollama_model(model_name: str) -> None:
                     "progress": "complete",
                     "status": "complete",
                 },
-                    )
+            )
         else:
             socketio.emit(
                 "model_download_progress",
@@ -1249,7 +1322,7 @@ def pull_ollama_model(model_name: str) -> None:
                     "progress": "error",
                     "status": "error",
                 },
-                    )
+            )
             logger.error(
                 "Error pulling Ollama model '%s', return code %s",
                 model_name,
@@ -1265,7 +1338,7 @@ def pull_ollama_model(model_name: str) -> None:
                 "progress": msg,
                 "status": "error",
             },
-            )
+        )
     except Exception as exc:
         msg = f"Error pulling Ollama model '{model_name}': {exc}"
         logger.error(msg)
@@ -1276,7 +1349,7 @@ def pull_ollama_model(model_name: str) -> None:
                 "progress": msg,
                 "status": "error",
             },
-            )
+        )
 
 
 # =============================================================================
@@ -1307,11 +1380,11 @@ def api_auth_token():
     auth = request.authorization
     if not auth:
         return authenticate()
-    
+
     token = generate_session_token(auth.username, auth.password)
     if not token:
         return authenticate()
-    
+
     return jsonify({"token": token, "username": auth.username})
 
 
@@ -1347,33 +1420,29 @@ def api_health():
 
     # Get services count
     statuses = service_manager.get_all_status()
-    running_count = len([s for s in statuses.values() if s.get('status') == 'running'])
+    running_count = len([s for s in statuses.values() if s.get("status") == "running"])
 
     # Determine status based on thresholds
     if cpu_percent < 80 and memory.percent < 85:
-        status = 'healthy'
+        status = "healthy"
     elif cpu_percent < 90 or memory.percent < 90:
-        status = 'warning'
+        status = "warning"
     else:
-        status = 'error'
+        status = "error"
 
-    return jsonify({
-        "status": status,
-        "uptime_seconds": uptime_seconds,
-        "cpu": {
-            "percent": cpu_percent,
-            "count": psutil.cpu_count()
-        },
-        "memory": {
-            "percent": memory.percent,
-            "used_mb": memory.used // (1024 * 1024),
-            "total_mb": memory.total // (1024 * 1024)
-        },
-        "services": {
-            "total": len(statuses),
-            "running": running_count
+    return jsonify(
+        {
+            "status": status,
+            "uptime_seconds": uptime_seconds,
+            "cpu": {"percent": cpu_percent, "count": psutil.cpu_count()},
+            "memory": {
+                "percent": memory.percent,
+                "used_mb": memory.used // (1024 * 1024),
+                "total_mb": memory.total // (1024 * 1024),
+            },
+            "services": {"total": len(statuses), "running": running_count},
         }
-    })
+    )
 
 
 @app.route("/api/vram/status", methods=["GET"])
@@ -1439,27 +1508,33 @@ def api_list_ollama_models():
         for i, model in enumerate(models):
             if limit and i >= limit:
                 # For remaining models, just return basic info
-                detailed_models.append({
-                    **model,
-                    "family": get_model_family(model["name"]),
-                    "is_loaded": model["name"] in loaded_names,
-                    "detailed": False,
-                })
+                detailed_models.append(
+                    {
+                        **model,
+                        "family": get_model_family(model["name"]),
+                        "is_loaded": model["name"] in loaded_names,
+                        "detailed": False,
+                    }
+                )
                 continue
 
             info = get_ollama_model_info(model["name"], available_models=models)
-            detailed_models.append({
-                **model,
-                **info,
-                "is_loaded": model["name"] in loaded_names,
-                "detailed": True,
-            })
+            detailed_models.append(
+                {
+                    **model,
+                    **info,
+                    "is_loaded": model["name"] in loaded_names,
+                    "detailed": True,
+                }
+            )
 
-        return jsonify({
-            "models": detailed_models,
-            "count": len(detailed_models),
-            "loaded_count": len(loaded_names),
-        })
+        return jsonify(
+            {
+                "models": detailed_models,
+                "count": len(detailed_models),
+                "loaded_count": len(loaded_names),
+            }
+        )
 
     # Default: return basic model list
     models = get_available_ollama_models()
@@ -1537,11 +1612,16 @@ def api_load_ollama_model():
     thread.start()
 
     # Return immediately - progress will be sent via WebSocket
-    return jsonify({
-        "success": True,
-        "message": "Model loading started. Progress will be sent via WebSocket.",
-        "model_name": model_name,
-    }), 202  # 202 Accepted
+    return (
+        jsonify(
+            {
+                "success": True,
+                "message": "Model loading started. Progress will be sent via WebSocket.",
+                "model_name": model_name,
+            }
+        ),
+        202,
+    )  # 202 Accepted
 
 
 @app.route("/api/models/ollama/unload", methods=["POST"])
@@ -1593,11 +1673,16 @@ def api_unload_ollama_model():
     thread.start()
 
     # Return immediately - progress will be sent via WebSocket
-    return jsonify({
-        "success": True,
-        "message": "Model unloading started. Progress will be sent via WebSocket.",
-        "model_name": model_name,
-    }), 202  # 202 Accepted
+    return (
+        jsonify(
+            {
+                "success": True,
+                "message": "Model unloading started. Progress will be sent via WebSocket.",
+                "model_name": model_name,
+            }
+        ),
+        202,
+    )  # 202 Accepted
 
 
 @app.route("/api/models/ollama/download", methods=["POST"])
@@ -1664,27 +1749,33 @@ def api_ollama_models_detailed():
     for i, model in enumerate(models):
         if limit and i >= limit:
             # For remaining models, just return basic info
-            detailed_models.append({
-                **model,
-                "family": get_model_family(model["name"]),
-                "is_loaded": model["name"] in loaded_names,
-                "detailed": False,
-            })
+            detailed_models.append(
+                {
+                    **model,
+                    "family": get_model_family(model["name"]),
+                    "is_loaded": model["name"] in loaded_names,
+                    "detailed": False,
+                }
+            )
             continue
 
         info = get_ollama_model_info(model["name"], available_models=models)
-        detailed_models.append({
-            **model,
-            **info,
-            "is_loaded": model["name"] in loaded_names,
-            "detailed": True,
-        })
+        detailed_models.append(
+            {
+                **model,
+                **info,
+                "is_loaded": model["name"] in loaded_names,
+                "detailed": True,
+            }
+        )
 
-    return jsonify({
-        "models": detailed_models,
-        "count": len(detailed_models),
-        "loaded_count": len(loaded_names),
-    })
+    return jsonify(
+        {
+            "models": detailed_models,
+            "count": len(detailed_models),
+            "loaded_count": len(loaded_names),
+        }
+    )
 
 
 @app.route("/api/models/ollama/remove", methods=["POST"])
@@ -1702,16 +1793,26 @@ def api_remove_ollama_model():
     confirm = data.get("confirm", False)
 
     if not model_name or not isinstance(model_name, str):
-        return jsonify({
-            "success": False,
-            "message": "Field 'model_name' is required.",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "message": "Field 'model_name' is required.",
+                }
+            ),
+            400,
+        )
 
     if not confirm:
-        return jsonify({
-            "success": False,
-            "message": "Field 'confirm' must be true to remove model.",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "message": "Field 'confirm' must be true to remove model.",
+                }
+            ),
+            400,
+        )
 
     success, message, error_code = remove_ollama_model(model_name)
     status_code = 200 if success else error_code_to_http_status(error_code)
@@ -1770,19 +1871,23 @@ def api_model_services(model_name):
 
     for service_id, status in statuses.items():
         if service_id in llm_services and status.get("status") == "running":
-            running_services.append({
-                "id": service_id,
-                "name": status.get("name", service_id),
-                "status": status.get("status"),
-                "usage": "potential",  # Indicates coarse association, not active binding
-            })
+            running_services.append(
+                {
+                    "id": service_id,
+                    "name": status.get("name", service_id),
+                    "status": status.get("status"),
+                    "usage": "potential",  # Indicates coarse association, not active binding
+                }
+            )
 
-    return jsonify({
-        "model_name": model_name,
-        "services": running_services,
-        "count": len(running_services),
-        "note": "Services shown are LLM-capable and running, not necessarily using this specific model.",
-    })
+    return jsonify(
+        {
+            "model_name": model_name,
+            "services": running_services,
+            "count": len(running_services),
+            "note": "Services shown are LLM-capable and running, not necessarily using this specific model.",
+        }
+    )
 
 
 # =============================================================================
@@ -1875,11 +1980,14 @@ def api_pause_service(service_id):
     result = service_manager.pause_service(service_id)
     status_code = 200 if result.get("success") else 400
     if result.get("success"):
-        socketio.emit("service_paused", {
-            "service_id": service_id,
-            "status": "paused",
-            "message": result.get("message", "Service paused"),
-        })
+        socketio.emit(
+            "service_paused",
+            {
+                "service_id": service_id,
+                "status": "paused",
+                "message": result.get("message", "Service paused"),
+            },
+        )
     return jsonify(result), status_code
 
 
@@ -1897,11 +2005,14 @@ def api_resume_service(service_id):
     result = service_manager.resume_service(service_id)
     status_code = 200 if result.get("success") else 400
     if result.get("success"):
-        socketio.emit("service_resumed", {
-            "service_id": service_id,
-            "status": "running",
-            "message": result.get("message", "Service resumed"),
-        })
+        socketio.emit(
+            "service_resumed",
+            {
+                "service_id": service_id,
+                "status": "running",
+                "message": result.get("message", "Service resumed"),
+            },
+        )
     return jsonify(result), status_code
 
 
@@ -1966,12 +2077,14 @@ def api_resource_summary():
     ollama_models = get_loaded_ollama_models()
     service_summary = service_manager.get_resource_summary()
 
-    return jsonify({
-        "gpu": gpu,
-        "gpu_processes": processes,
-        "ollama_models": ollama_models,
-        "services": service_summary,
-    })
+    return jsonify(
+        {
+            "gpu": gpu,
+            "gpu_processes": processes,
+            "ollama_models": ollama_models,
+            "services": service_summary,
+        }
+    )
 
 
 @app.route("/api/resources/settings", methods=["GET"])
@@ -1982,11 +2095,13 @@ def api_resource_settings():
     Returns:
         JSON with auto_stop_enabled, idle_timeout_seconds, idle_timeout_minutes
     """
-    return jsonify({
-        "auto_stop_enabled": service_manager.is_auto_stop_enabled(),
-        "idle_timeout_seconds": service_manager.get_idle_timeout(),
-        "idle_timeout_minutes": service_manager.get_idle_timeout() // 60,
-    })
+    return jsonify(
+        {
+            "auto_stop_enabled": service_manager.is_auto_stop_enabled(),
+            "idle_timeout_seconds": service_manager.get_idle_timeout(),
+            "idle_timeout_minutes": service_manager.get_idle_timeout() // 60,
+        }
+    )
 
 
 @app.route("/api/resources/settings", methods=["POST"])
@@ -2014,17 +2129,19 @@ def api_update_resource_settings():
             minutes = int(data["idle_timeout_minutes"])
             service_manager.set_idle_timeout(minutes * 60)
         except (ValueError, TypeError):
-            return jsonify({
-                "success": False,
-                "message": "idle_timeout_minutes must be an integer"
-            }), 400
+            return (
+                jsonify({"success": False, "message": "idle_timeout_minutes must be an integer"}),
+                400,
+            )
 
-    return jsonify({
-        "success": True,
-        "auto_stop_enabled": service_manager.is_auto_stop_enabled(),
-        "idle_timeout_seconds": service_manager.get_idle_timeout(),
-        "idle_timeout_minutes": service_manager.get_idle_timeout() // 60,
-    })
+    return jsonify(
+        {
+            "success": True,
+            "auto_stop_enabled": service_manager.is_auto_stop_enabled(),
+            "idle_timeout_seconds": service_manager.get_idle_timeout(),
+            "idle_timeout_minutes": service_manager.get_idle_timeout() // 60,
+        }
+    )
 
 
 # =============================================================================
@@ -2052,18 +2169,28 @@ def api_ingestion_start():
     # Validate types
     types = data.get("types", [])
     if not types or not isinstance(types, list):
-        return jsonify({
-            "success": False,
-            "message": "Field 'types' is required and must be a list.",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "message": "Field 'types' is required and must be a list.",
+                }
+            ),
+            400,
+        )
 
     valid_types = {"documentation", "code", "drupal", "mdn_javascript", "mdn_webapis"}
     for t in types:
         if t not in valid_types:
-            return jsonify({
-                "success": False,
-                "message": f"Invalid type '{t}'. Valid types: {valid_types}",
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": f"Invalid type '{t}'. Valid types: {valid_types}",
+                    }
+                ),
+                400,
+            )
 
     reindex = bool(data.get("reindex", False))
     code_service = data.get("code_service", "core")
@@ -2124,10 +2251,10 @@ def api_ingestion_resume():
 def api_ingestion_clean():
     """Delete specified Weaviate collections."""
     if not WEAVIATE_AVAILABLE:
-        return jsonify({
-            "success": False,
-            "message": "Weaviate connection module not available."
-        }), 500
+        return (
+            jsonify({"success": False, "message": "Weaviate connection module not available."}),
+            500,
+        )
 
     if not request.is_json:
         return jsonify({"success": False, "message": "Expected JSON body."}), 400
@@ -2136,10 +2263,15 @@ def api_ingestion_clean():
     collections = data.get("collections", [])
 
     if not collections or not isinstance(collections, list):
-        return jsonify({
-            "success": False,
-            "message": "Field 'collections' is required and must be a list.",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "message": "Field 'collections' is required and must be a list.",
+                }
+            ),
+            400,
+        )
 
     # Map collection names to Weaviate collection names
     collection_map = {
@@ -2173,16 +2305,23 @@ def api_ingestion_clean():
                     logger.error("Error deleting collection %s: %s", weaviate_name, e)
 
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "message": f"Failed to connect to Weaviate: {str(e)}",
-        }), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "message": f"Failed to connect to Weaviate: {str(e)}",
+                }
+            ),
+            500,
+        )
 
-    return jsonify({
-        "success": len(errors) == 0,
-        "deleted": deleted,
-        "errors": errors if errors else None,
-    })
+    return jsonify(
+        {
+            "success": len(errors) == 0,
+            "deleted": deleted,
+            "errors": errors if errors else None,
+        }
+    )
 
 
 @app.route("/api/ingestion/reindex", methods=["POST"])
@@ -2197,18 +2336,28 @@ def api_ingestion_reindex():
     # Validate types
     types = data.get("types", [])
     if not types or not isinstance(types, list):
-        return jsonify({
-            "success": False,
-            "message": "Field 'types' is required and must be a list.",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "message": "Field 'types' is required and must be a list.",
+                }
+            ),
+            400,
+        )
 
     valid_types = {"documentation", "code", "drupal", "mdn_javascript", "mdn_webapis"}
     for t in types:
         if t not in valid_types:
-            return jsonify({
-                "success": False,
-                "message": f"Invalid type '{t}'. Valid types: {valid_types}",
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": f"Invalid type '{t}'. Valid types: {valid_types}",
+                    }
+                ),
+                400,
+            )
 
     # Force reindex=True
     code_service = data.get("code_service", "core")
@@ -2217,8 +2366,12 @@ def api_ingestion_reindex():
     mdn_section = data.get("mdn_section")
 
     result = ingestion_manager.start_ingestion(
-        types, reindex=True, code_service=code_service,
-        drupal_limit=drupal_limit, mdn_limit=mdn_limit, mdn_section=mdn_section
+        types,
+        reindex=True,
+        code_service=code_service,
+        drupal_limit=drupal_limit,
+        mdn_limit=mdn_limit,
+        mdn_section=mdn_section,
     )
 
     if not result.get("success"):
@@ -2254,10 +2407,15 @@ def api_claude_execute():
     prompt = data.get("prompt")
 
     if not prompt or not isinstance(prompt, str):
-        return jsonify({
-            "success": False,
-            "error": "Field 'prompt' is required and must be a string",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Field 'prompt' is required and must be a string",
+                }
+            ),
+            400,
+        )
 
     result = claude_manager.execute_claude(prompt, "normal")
 
@@ -2278,16 +2436,18 @@ def api_claude_execute_yolo():
     prompt = data.get("prompt")
 
     if not prompt or not isinstance(prompt, str):
-        return jsonify({
-            "success": False,
-            "error": "Field 'prompt' is required and must be a string",
-        }), 400
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "error": "Field 'prompt' is required and must be a string",
+                }
+            ),
+            400,
+        )
 
     # Audit log YOLO mode usage for security tracking
-    logger.warning(
-        "YOLO mode execution requested - prompt length: %d chars",
-        len(prompt)
-    )
+    logger.warning("YOLO mode execution requested - prompt length: %d chars", len(prompt))
 
     result = claude_manager.execute_claude(prompt, "yolo")
 
@@ -2302,10 +2462,12 @@ def api_claude_execute_yolo():
 def api_claude_sessions():
     """Get list of all Claude execution sessions."""
     sessions = claude_manager.get_sessions()
-    return jsonify({
-        "sessions": sessions,
-        "count": len(sessions),
-    })
+    return jsonify(
+        {
+            "sessions": sessions,
+            "count": len(sessions),
+        }
+    )
 
 
 @app.route("/api/claude/sessions/<session_id>", methods=["GET"])
@@ -2384,7 +2546,7 @@ def handle_connect(auth: dict[str, Any] | None) -> bool:
     # Clients must send a session token in the auth payload: { auth: { token: "..." } }
     token = None
     if auth and isinstance(auth, dict):
-        token = auth.get('token')
+        token = auth.get("token")
 
     if not validate_session_token(token):
         logger.warning("WebSocket connection rejected: Invalid or missing auth token")
@@ -2437,15 +2599,18 @@ def _congressional_progress_callback(phase: str, current: int, total: int, messa
         _congressional_state["stats"]["last_message"] = message
         _congressional_state["stats"]["current"] = current
         _congressional_state["stats"]["total"] = total
-    socketio.emit("congressional_progress", {
-        "status": _congressional_state["status"],
-        "stats": _congressional_state["stats"],
-        "phase": phase,
-        "message": message,
-        "current": current,
-        "total": total,
-        "paused": _congressional_state["paused"],
-    })
+    socketio.emit(
+        "congressional_progress",
+        {
+            "status": _congressional_state["status"],
+            "stats": _congressional_state["stats"],
+            "phase": phase,
+            "message": message,
+            "current": current,
+            "total": total,
+            "paused": _congressional_state["paused"],
+        },
+    )
 
 
 def _congressional_check_cancelled():
@@ -2466,7 +2631,7 @@ def _run_congressional_scrape(config):
 
     with _congressional_lock:
         _congressional_state["status"] = "running"
-        _congressional_state["started_at"] = datetime.now(timezone.utc).isoformat()
+        _congressional_state["started_at"] = datetime.now(UTC).isoformat()
         _congressional_state["completed_at"] = None
         _congressional_state["error"] = None
         _congressional_state["stats"] = {}
@@ -2488,13 +2653,13 @@ def _run_congressional_scrape(config):
             else:
                 _congressional_state["status"] = "completed"
                 socketio.emit("congressional_complete", {"stats": stats})
-            _congressional_state["completed_at"] = datetime.now(timezone.utc).isoformat()
+            _congressional_state["completed_at"] = datetime.now(UTC).isoformat()
     except Exception as exc:
         logger.exception("Congressional scraping failed: %s", exc)
         with _congressional_lock:
             _congressional_state["status"] = "failed"
             _congressional_state["error"] = str(exc)
-            _congressional_state["completed_at"] = datetime.now(timezone.utc).isoformat()
+            _congressional_state["completed_at"] = datetime.now(UTC).isoformat()
         socketio.emit("congressional_error", {"error": str(exc)})
 
 
@@ -2503,10 +2668,7 @@ def _run_congressional_scrape(config):
 def api_congressional_status():
     """Get congressional data status and collection statistics."""
     if not CONGRESSIONAL_AVAILABLE or not WEAVIATE_AVAILABLE:
-        return jsonify({
-            "success": False,
-            "message": "Congressional module not available"
-        }), 500
+        return jsonify({"success": False, "message": "Congressional module not available"}), 500
 
     with _congressional_lock:
         status = dict(_congressional_state)
@@ -2528,17 +2690,16 @@ def api_congressional_status():
 def api_congressional_scrape_start():
     """Start congressional scraping in the background."""
     if not CONGRESSIONAL_AVAILABLE:
-        return jsonify({
-            "success": False,
-            "message": "Congressional module not available"
-        }), 500
+        return jsonify({"success": False, "message": "Congressional module not available"}), 500
 
     with _congressional_lock:
         if _congressional_state["status"] in {"running", "pending"}:
-            return jsonify({
-                "success": False,
-                "message": "Congressional scraping already in progress"
-            }), 409
+            return (
+                jsonify(
+                    {"success": False, "message": "Congressional scraping already in progress"}
+                ),
+                409,
+            )
         _congressional_state["status"] = "pending"
         _congressional_state["cancel_flag"] = False
         _congressional_state["paused"] = False
@@ -2589,19 +2750,13 @@ def api_congressional_scrape_resume():
 def api_congressional_query():
     """Query congressional data with semantic search."""
     if not CONGRESSIONAL_AVAILABLE or not WEAVIATE_AVAILABLE:
-        return jsonify({
-            "success": False,
-            "message": "Congressional module not available"
-        }), 500
+        return jsonify({"success": False, "message": "Congressional module not available"}), 500
 
     data = request.get_json(silent=True) or {}
     query = data.get("query", "").strip()
 
     if not query:
-        return jsonify({
-            "success": False,
-            "message": "Query text is required"
-        }), 400
+        return jsonify({"success": False, "message": "Query text is required"}), 400
 
     try:
         # Get query embedding
@@ -2609,16 +2764,13 @@ def api_congressional_query():
 
         with WeaviateConnection() as client:
             if not client.collections.exists(CONGRESSIONAL_DATA_COLLECTION_NAME):
-                return jsonify({
-                    "success": True,
-                    "results": [],
-                    "total_results": 0
-                })
+                return jsonify({"success": True, "results": [], "total_results": 0})
 
             collection = client.collections.get(CONGRESSIONAL_DATA_COLLECTION_NAME)
 
             # Build filters
             from weaviate.classes.query import Filter
+
             filters = []
 
             if data.get("member_name"):
@@ -2645,29 +2797,28 @@ def api_congressional_query():
             results = []
             for obj in response.objects:
                 props = obj.properties or {}
-                results.append({
-                    "member_name": props.get("member_name", ""),
-                    "state": props.get("state", ""),
-                    "district": props.get("district", ""),
-                    "party": props.get("party", ""),
-                    "chamber": props.get("chamber", ""),
-                    "title": props.get("title", ""),
-                    "content_text": props.get("content_text", "")[:500] + "..." if len(props.get("content_text", "")) > 500 else props.get("content_text", ""),
-                    "url": props.get("url", ""),
-                    "scraped_at": props.get("scraped_at", ""),
-                })
+                results.append(
+                    {
+                        "member_name": props.get("member_name", ""),
+                        "state": props.get("state", ""),
+                        "district": props.get("district", ""),
+                        "party": props.get("party", ""),
+                        "chamber": props.get("chamber", ""),
+                        "title": props.get("title", ""),
+                        "content_text": (
+                            props.get("content_text", "")[:500] + "..."
+                            if len(props.get("content_text", "")) > 500
+                            else props.get("content_text", "")
+                        ),
+                        "url": props.get("url", ""),
+                        "scraped_at": props.get("scraped_at", ""),
+                    }
+                )
 
-            return jsonify({
-                "success": True,
-                "results": results,
-                "total_results": len(results)
-            })
+            return jsonify({"success": True, "results": results, "total_results": len(results)})
     except Exception as exc:
         logger.exception("Congressional query failed: %s", exc)
-        return jsonify({
-            "success": False,
-            "message": f"Query failed: {exc}"
-        }), 500
+        return jsonify({"success": False, "message": f"Query failed: {exc}"}), 500
 
 
 @app.route("/api/congressional/chat", methods=["POST"])
@@ -2675,23 +2826,18 @@ def api_congressional_query():
 def api_congressional_chat():
     """Chat with congressional data using RAG (Retrieval-Augmented Generation)."""
     if not CONGRESSIONAL_AVAILABLE or not WEAVIATE_AVAILABLE:
-        return jsonify({
-            "success": False,
-            "error": "Congressional module not available"
-        }), 500
+        return jsonify({"success": False, "error": "Congressional module not available"}), 500
 
     data = request.get_json(silent=True) or {}
     message = data.get("message", "").strip()
 
     if not message:
-        return jsonify({
-            "success": False,
-            "error": "Message is required"
-        }), 400
+        return jsonify({"success": False, "error": "Message is required"}), 400
 
     try:
-        from api_gateway.services.congressional_rag import answer_question
         import uuid
+
+        from api_gateway.services.congressional_rag import answer_question
 
         # Generate conversation ID if not provided
         conversation_id = data.get("conversation_id") or str(uuid.uuid4())
@@ -2716,20 +2862,19 @@ def api_congressional_chat():
             for src in response.sources
         ]
 
-        return jsonify({
-            "success": True,
-            "answer": response.answer,
-            "sources": sources,
-            "conversation_id": conversation_id,
-            "model": response.model,
-        })
+        return jsonify(
+            {
+                "success": True,
+                "answer": response.answer,
+                "sources": sources,
+                "conversation_id": conversation_id,
+                "model": response.model,
+            }
+        )
 
     except Exception as exc:
         logger.exception("Congressional chat failed: %s", exc)
-        return jsonify({
-            "success": False,
-            "error": f"Chat failed: {exc}"
-        }), 500
+        return jsonify({"success": False, "error": f"Chat failed: {exc}"}), 500
 
 
 # =============================================================================
@@ -2756,8 +2901,14 @@ SERVICE_PROXY_MAP = {
 }
 
 EXCLUDED_HEADERS = [
-    'content-encoding', 'content-length', 'transfer-encoding', 'connection',
-    'host', 'x-forwarded-for', 'x-forwarded-proto', 'x-forwarded-host'
+    "content-encoding",
+    "content-length",
+    "transfer-encoding",
+    "connection",
+    "host",
+    "x-forwarded-for",
+    "x-forwarded-proto",
+    "x-forwarded-host",
 ]
 
 
@@ -2814,11 +2965,16 @@ def proxy_request(target_url: str) -> Response | tuple[Response, int]:
                 logger.warning(
                     "Proxy request rejected: Body size %d exceeds limit %d",
                     size,
-                    MAX_PROXY_REQUEST_SIZE
+                    MAX_PROXY_REQUEST_SIZE,
                 )
-                return jsonify({
-                    "error": f"Request body too large (max {MAX_PROXY_REQUEST_SIZE // (1024 * 1024)}MB)"
-                }), 413
+                return (
+                    jsonify(
+                        {
+                            "error": f"Request body too large (max {MAX_PROXY_REQUEST_SIZE // (1024 * 1024)}MB)"
+                        }
+                    ),
+                    413,
+                )
         except ValueError:
             logger.warning("Proxy request with invalid Content-Length header")
             return jsonify({"error": "Invalid Content-Length header"}), 400
@@ -2843,14 +2999,13 @@ def proxy_request(target_url: str) -> Response | tuple[Response, int]:
         )
 
         # Build response headers, excluding hop-by-hop headers
-        headers = [(k, v) for k, v in resp.raw.headers.items()
-                   if k.lower() not in EXCLUDED_HEADERS]
+        headers = [(k, v) for k, v in resp.raw.headers.items() if k.lower() not in EXCLUDED_HEADERS]
 
         return Response(
             resp.iter_content(chunk_size=8192),
             status=resp.status_code,
             headers=headers,
-            content_type=resp.headers.get('content-type'),
+            content_type=resp.headers.get("content-type"),
         )
     except http_requests.exceptions.ConnectionError:
         logger.error("Proxy connection error to %s", target_url)
@@ -2919,12 +3074,12 @@ def serve_static(path):
     # Don't catch API routes
     if path.startswith("api/") or path.startswith("socket.io/"):
         return jsonify({"error": "Not found"}), 404
-    
+
     # Safely check if file exists (prevents path traversal)
     safe_path = safe_join(FRONTEND_DIST, path)
     if safe_path and os.path.isfile(safe_path):
         return send_from_directory(FRONTEND_DIST, path)
-    
+
     # Otherwise, serve index.html for SPA routing
     return send_from_directory(FRONTEND_DIST, "index.html")
 

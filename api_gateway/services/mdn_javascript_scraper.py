@@ -31,9 +31,10 @@ import logging
 import re
 import time
 from collections import deque
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Callable, Deque, Dict, Generator, List, Optional, Set
+from datetime import UTC, datetime
+from typing import Any
 from urllib.parse import urljoin, urlparse
 
 import httpx
@@ -83,7 +84,7 @@ class ScrapeConfig:
     request_delay: float = DEFAULT_REQUEST_DELAY
     batch_size: int = DEFAULT_BATCH_SIZE
     batch_delay: float = DEFAULT_BATCH_DELAY
-    max_entities: Optional[int] = None
+    max_entities: int | None = None
     dry_run: bool = False
 
 
@@ -121,10 +122,10 @@ class MDNJavaScriptScraper:
 
     def __init__(
         self,
-        config: Optional[ScrapeConfig] = None,
-        progress_callback: Optional[ProgressCallback] = None,
-        check_cancelled: Optional[CancelCheck] = None,
-        check_paused: Optional[PauseCheck] = None,
+        config: ScrapeConfig | None = None,
+        progress_callback: ProgressCallback | None = None,
+        check_cancelled: CancelCheck | None = None,
+        check_paused: PauseCheck | None = None,
     ):
         """
         Initialize the MDN JavaScript documentation scraper.
@@ -150,9 +151,9 @@ class MDNJavaScriptScraper:
         )
         self._request_count = 0
         self._last_request_time = 0.0
-        self._seen_urls: Set[str] = set()
+        self._seen_urls: set[str] = set()
 
-    def __enter__(self) -> "MDNJavaScriptScraper":
+    def __enter__(self) -> MDNJavaScriptScraper:
         """Context manager entry."""
         return self
 
@@ -225,7 +226,7 @@ class MDNJavaScriptScraper:
 
         self._last_request_time = time.time()
 
-    def _fetch(self, url: str) -> Optional[BeautifulSoup]:
+    def _fetch(self, url: str) -> BeautifulSoup | None:
         """
         Fetch URL with rate limiting and error handling.
 
@@ -371,9 +372,9 @@ class MDNJavaScriptScraper:
             return time_elem.get("datetime", "")
 
         # Default to now
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
-    def _extract_links(self, soup: BeautifulSoup, base_url: str) -> List[str]:
+    def _extract_links(self, soup: BeautifulSoup, base_url: str) -> list[str]:
         """
         Extract links to other JavaScript documentation pages.
 
@@ -407,7 +408,7 @@ class MDNJavaScriptScraper:
 
     def _parse_page(
         self, soup: BeautifulSoup, url: str, section_type: str
-    ) -> Optional[MDNJavaScriptDoc]:
+    ) -> MDNJavaScriptDoc | None:
         """
         Parse a single MDN page and extract documentation from pre-fetched soup.
 
@@ -430,7 +431,7 @@ class MDNJavaScriptScraper:
             return None
 
         last_modified = self._extract_last_modified(soup)
-        scraped_at = datetime.now(timezone.utc).isoformat()
+        scraped_at = datetime.now(UTC).isoformat()
         content_hash = compute_mdn_content_hash(title, content, section_type)
         doc_uuid = generate_mdn_javascript_uuid(url, title)
 
@@ -462,7 +463,7 @@ class MDNJavaScriptScraper:
         logger.info("Scraping section: %s (%s)", section_path, section_type)
 
         # BFS queue
-        queue: Deque[str] = deque([start_url])
+        queue: deque[str] = deque([start_url])
         entity_count = 0
 
         while queue:
@@ -538,11 +539,11 @@ class MDNJavaScriptScraper:
 
 
 def scrape_mdn_javascript(
-    config: Optional[ScrapeConfig] = None,
-    progress_callback: Optional[ProgressCallback] = None,
-    check_cancelled: Optional[CancelCheck] = None,
-    check_paused: Optional[PauseCheck] = None,
-) -> Dict[str, Any]:
+    config: ScrapeConfig | None = None,
+    progress_callback: ProgressCallback | None = None,
+    check_cancelled: CancelCheck | None = None,
+    check_paused: PauseCheck | None = None,
+) -> dict[str, Any]:
     """
     Scrape MDN JavaScript documentation and ingest into Weaviate.
 
@@ -598,7 +599,7 @@ def scrape_mdn_javascript(
 
             # Load existing UUIDs for deduplication
             emit_progress("setup", 0, 0, "Loading existing UUIDs for deduplication")
-            existing_uuids: Set[str] = set()
+            existing_uuids: set[str] = set()
             try:
                 logger.info("Loading existing entity UUIDs for deduplication...")
                 for obj in collection.iterator(include_vector=False):
@@ -713,7 +714,7 @@ def _configure_logging(verbose: bool) -> None:
         logger.setLevel(level)
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI entry point for MDN JavaScript scraper.
 

@@ -25,36 +25,36 @@ CodeParser (Unified Interface)
 
 ## Supported Languages
 
-| Language | Extensions | Parser | Entity Types |
-|----------|------------|--------|--------------|
-| Python | `.py` | PythonParser | function, method, class, variable |
+| Language   | Extensions    | Parser           | Entity Types                                                                    |
+| ---------- | ------------- | ---------------- | ------------------------------------------------------------------------------- |
+| Python     | `.py`         | PythonParser     | function, method, class, variable                                               |
 | TypeScript | `.ts`, `.tsx` | TypeScriptParser | function, method, class, interface, type, enum, variable, property, constructor |
-| JavaScript | `.js`, `.jsx` | TypeScriptParser | function, method, class, variable, property, constructor |
-| CSS | `.css` | CSSParser | style, animation |
+| JavaScript | `.js`, `.jsx` | TypeScriptParser | function, method, class, variable, property, constructor                        |
+| CSS        | `.css`        | CSSParser        | style, animation                                                                |
 
 ## Entity Metadata
 
 Each `CodeEntity` contains:
 
-| Field | Description |
-|-------|-------------|
-| `entity_type` | Type of code entity (function, class, interface, etc.) |
-| `name` | Simple name of the entity |
-| `full_name` | Fully qualified name with module path |
-| `file_path` | Relative path from workspace root |
-| `line_start` | Starting line number (1-indexed) |
-| `line_end` | Ending line number (1-indexed) |
-| `signature` | Function/method signature or declaration |
-| `parameters` | Parameter list (JSON string) |
-| `return_type` | Return type annotation |
-| `docstring` | Documentation string/JSDoc |
-| `decorators` | Decorator/annotation list (JSON array) |
-| `modifiers` | Access modifiers, async, static, export, etc. |
-| `parent_entity` | Parent class/module name |
-| `language` | Source language identifier |
-| `source_code` | Full source code of the entity |
-| `dependencies` | Import dependencies (JSON array) |
-| `relationships` | Cross-references (JSON object) |
+| Field           | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| `entity_type`   | Type of code entity (function, class, interface, etc.) |
+| `name`          | Simple name of the entity                              |
+| `full_name`     | Fully qualified name with module path                  |
+| `file_path`     | Relative path from workspace root                      |
+| `line_start`    | Starting line number (1-indexed)                       |
+| `line_end`      | Ending line number (1-indexed)                         |
+| `signature`     | Function/method signature or declaration               |
+| `parameters`    | Parameter list (JSON string)                           |
+| `return_type`   | Return type annotation                                 |
+| `docstring`     | Documentation string/JSDoc                             |
+| `decorators`    | Decorator/annotation list (JSON array)                 |
+| `modifiers`     | Access modifiers, async, static, export, etc.          |
+| `parent_entity` | Parent class/module name                               |
+| `language`      | Source language identifier                             |
+| `source_code`   | Full source code of the entity                         |
+| `dependencies`  | Import dependencies (JSON array)                       |
+| `relationships` | Cross-references (JSON object)                         |
 
 ## Usage
 
@@ -154,13 +154,16 @@ python -m unittest api_gateway.services.tests.test_code_parsers.TestPythonParser
 ## Requirements
 
 ### Python Parser
+
 - Python 3.8+ (uses built-in `ast` module)
 
 ### TypeScript/JavaScript Parser
+
 - Node.js installed and available in PATH
 - TypeScript package (already in project's `package.json`)
 
 ### CSS Parser
+
 - No additional dependencies (uses built-in `re` module)
 
 ## Troubleshooting
@@ -176,6 +179,7 @@ If TypeScript/JavaScript parsing returns empty results:
 ### Syntax Errors in Source Files
 
 The parsers handle syntax errors gracefully:
+
 - Python: Returns empty list and logs the syntax error
 - TypeScript/JavaScript: Returns empty list and logs stderr from Node.js
 - CSS: May return partial results for malformed CSS
@@ -183,6 +187,7 @@ The parsers handle syntax errors gracefully:
 ### Performance Considerations
 
 For large codebases:
+
 - Python parsing is fast (in-process)
 - TypeScript/JavaScript parsing has subprocess overhead (30s timeout)
 - CSS parsing is fast (regex-based)

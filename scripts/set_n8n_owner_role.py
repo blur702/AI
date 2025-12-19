@@ -16,8 +16,9 @@ Note:
     This script modifies the database directly. Stop N8N before running
     to avoid potential conflicts.
 """
-import sqlite3
+
 import os
+import sqlite3
 
 
 def set_owner_role() -> None:
@@ -37,15 +38,11 @@ def set_owner_role() -> None:
     cursor = conn.cursor()
 
     # Update role to global:owner
-    cursor.execute(
-        "UPDATE user SET roleSlug = 'global:owner' WHERE email = 'admin@local.host'"
-    )
+    cursor.execute("UPDATE user SET roleSlug = 'global:owner' WHERE email = 'admin@local.host'")
     conn.commit()
 
     # Verify
-    cursor.execute(
-        "SELECT id, email, roleSlug FROM user WHERE email = 'admin@local.host'"
-    )
+    cursor.execute("SELECT id, email, roleSlug FROM user WHERE email = 'admin@local.host'")
     user = cursor.fetchone()
     print(f"User: {user}")
 

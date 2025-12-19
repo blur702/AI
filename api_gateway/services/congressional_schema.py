@@ -35,7 +35,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
@@ -43,7 +43,6 @@ from weaviate.classes.config import Configure, DataType, Property, VectorDistanc
 
 from ..utils.logger import get_logger
 from .weaviate_connection import CONGRESSIONAL_DATA_COLLECTION_NAME
-
 
 logger = get_logger("api_gateway.congressional_schema")
 
@@ -129,9 +128,9 @@ class CongressionalData:
     content_hash: str = ""
     scraped_at: str = ""
     uuid: str = field(default_factory=lambda: str(uuid.uuid4()))
-    policy_topics: List[str] = field(default_factory=list)
+    policy_topics: list[str] = field(default_factory=list)
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to Weaviate properties dict for insertion/update.
 
@@ -288,7 +287,7 @@ def delete_congressional_data_collection(client: weaviate.WeaviateClient) -> boo
     return True
 
 
-def _aggregate_by_property(collection, prop_name: str) -> Dict[str, int]:
+def _aggregate_by_property(collection, prop_name: str) -> dict[str, int]:
     """
     Aggregate counts grouped by a property.
 
@@ -299,7 +298,7 @@ def _aggregate_by_property(collection, prop_name: str) -> Dict[str, int]:
     Returns:
         Dictionary mapping property values to their counts.
     """
-    counts: Dict[str, int] = {}
+    counts: dict[str, int] = {}
     try:
         group_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop=prop_name),
@@ -315,7 +314,7 @@ def _aggregate_by_property(collection, prop_name: str) -> Dict[str, int]:
     return counts
 
 
-def get_congressional_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_congressional_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for the CongressionalData collection.
 
@@ -333,7 +332,7 @@ def get_congressional_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
         - state_counts: Dict of state -> count
         - chamber_counts: Dict of chamber -> count
     """
-    stats: Dict[str, Any] = {
+    stats: dict[str, Any] = {
         "exists": False,
         "object_count": 0,
         "member_counts": {},

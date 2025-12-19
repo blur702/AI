@@ -3,8 +3,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import Any, Dict, List, Optional
-
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -25,12 +24,12 @@ class VRAMMonitor:
 
     def __init__(self, poll_interval: int = 3) -> None:
         self._lock = threading.Lock()
-        self._gpu_stats: Dict[str, Any] = {}
-        self._loaded_models: List[Dict[str, Any]] = []
-        self._gpu_processes: List[Dict[str, Any]] = []
+        self._gpu_stats: dict[str, Any] = {}
+        self._loaded_models: list[dict[str, Any]] = []
+        self._gpu_processes: list[dict[str, Any]] = []
         self._poll_interval = poll_interval
         self._stop_flag = False
-        self._thread: Optional[threading.Thread] = None
+        self._thread: threading.Thread | None = None
 
     # ------------------------------------------------------------------ #
     # Thread management
@@ -56,8 +55,8 @@ class VRAMMonitor:
         while not self._stop_flag:
             try:
                 gpu = {}
-                models: List[Dict[str, Any]] = []
-                procs: List[Dict[str, Any]] = []
+                models: list[dict[str, Any]] = []
+                procs: list[dict[str, Any]] = []
 
                 # Map backend function names to desktop expectations.
                 try:
@@ -90,17 +89,17 @@ class VRAMMonitor:
     # Public accessors
     # ------------------------------------------------------------------ #
 
-    def get_gpu_stats(self) -> Dict[str, Any]:
+    def get_gpu_stats(self) -> dict[str, Any]:
         """Return cached GPU info (full structure including aggregate/gpus)."""
         with self._lock:
             return dict(self._gpu_stats)
 
-    def get_loaded_models(self) -> List[Dict[str, Any]]:
+    def get_loaded_models(self) -> list[dict[str, Any]]:
         """Return cached loaded Ollama models (from ollama ps)."""
         with self._lock:
             return list(self._loaded_models)
 
-    def get_gpu_processes(self) -> List[Dict[str, Any]]:
+    def get_gpu_processes(self) -> list[dict[str, Any]]:
         """Return cached processes using the GPU."""
         with self._lock:
             return list(self._gpu_processes)
