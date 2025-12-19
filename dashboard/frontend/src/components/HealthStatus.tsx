@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, memo } from 'react';
-import { HealthStatus as HealthStatusType } from '../types';
-import { getApiBase } from '../config/services';
-import './HealthStatus.css';
+import { useState, useEffect, useCallback, memo } from "react";
+import { HealthStatus as HealthStatusType } from "../types";
+import { getApiBase } from "../config/services";
+import "./HealthStatus.css";
 
 function formatUptime(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
@@ -14,13 +14,13 @@ function formatUptime(seconds: number): string {
   return `${minutes}m ${secs}s`;
 }
 
-function getStatusClass(status: HealthStatusType['status']): string {
-  const statusMap: Record<HealthStatusType['status'], string> = {
-    healthy: 'healthy',
-    warning: 'warning',
-    error: 'error',
+function getStatusClass(status: HealthStatusType["status"]): string {
+  const statusMap: Record<HealthStatusType["status"], string> = {
+    healthy: "healthy",
+    warning: "warning",
+    error: "error",
   };
-  return statusMap[status] || 'error';
+  return statusMap[status] || "error";
 }
 
 export const HealthStatus = memo(function HealthStatus() {
@@ -31,18 +31,18 @@ export const HealthStatus = memo(function HealthStatus() {
   const fetchHealth = useCallback(async () => {
     try {
       const response = await fetch(`${getApiBase()}/api/health`, {
-        credentials: 'include',
+        credentials: "include",
       });
 
       if (!response.ok) {
-        throw new Error('Health check failed');
+        throw new Error("Health check failed");
       }
 
       const data: HealthStatusType = await response.json();
       setHealth(data);
       setError(false);
     } catch (err) {
-      console.error('Health check error:', err);
+      console.error("Health check error:", err);
       setError(true);
     } finally {
       setLoading(false);
@@ -76,17 +76,19 @@ export const HealthStatus = memo(function HealthStatus() {
   }
 
   const statusClass = getStatusClass(health.status);
-  const statusLabel = health.status.charAt(0).toUpperCase() + health.status.slice(1);
+  const statusLabel =
+    health.status.charAt(0).toUpperCase() + health.status.slice(1);
   const isStale = error && health;
 
   return (
     <div
-      className={`health-status ${statusClass}${isStale ? ' stale' : ''}`}
-      title={`CPU: ${health.cpu.percent.toFixed(1)}% | Memory: ${health.memory.percent.toFixed(1)}% | Services: ${health.services.running}/${health.services.total}${isStale ? ' | Data may be stale' : ''}`}
+      className={`health-status ${statusClass}${isStale ? " stale" : ""}`}
+      title={`CPU: ${health.cpu.percent.toFixed(1)}% | Memory: ${health.memory.percent.toFixed(1)}% | Services: ${health.services.running}/${health.services.total}${isStale ? " | Data may be stale" : ""}`}
     >
       <span className="health-indicator"></span>
       <span className="health-text">
-        {statusLabel} • {formatUptime(health.uptime_seconds)}{isStale ? ' (stale)' : ''}
+        {statusLabel} • {formatUptime(health.uptime_seconds)}
+        {isStale ? " (stale)" : ""}
       </span>
     </div>
   );

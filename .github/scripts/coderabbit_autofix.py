@@ -16,7 +16,6 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import requests
 
@@ -74,13 +73,13 @@ class GitHubAPI:
                     timeout=30,
                 )
                 if response.status_code in (500, 502, 503, 504):
-                    response.raise_for_status() # Raise to trigger retry
+                    response.raise_for_status()  # Raise to trigger retry
                 return response
             except (requests.exceptions.RequestException, requests.exceptions.HTTPError):
                 if attempt == retries - 1:
                     raise
-                time.sleep(2 ** attempt) # Exponential backoff
-        return None # Should not be reached
+                time.sleep(2**attempt)  # Exponential backoff
+        return None  # Should not be reached
 
     def get_pr_reviews(self, pr_number: int) -> list[dict]:
         """Fetch all reviews for a PR."""
@@ -161,8 +160,8 @@ class CodeRabbitParser:
     #   ```
     DIFF_PATTERN = re.compile(
         r"```(?:diff|suggestion)?\s*\n"  # Opening fence with optional language
-        r"([\s\S]*?)"                     # Capture all content (including newlines)
-        r"\n```",                          # Closing fence
+        r"([\s\S]*?)"  # Capture all content (including newlines)
+        r"\n```",  # Closing fence
         re.MULTILINE,
     )
 
@@ -178,15 +177,15 @@ class CodeRabbitParser:
     #   new_code()
     #   ```
     BEFORE_AFTER_PATTERN = re.compile(
-        r"(?:Before|Current|Old).*?"      # "Before" label (case-insensitive)
-        r"```[\w]*\s*\n"                  # Opening fence with optional language
-        r"([\s\S]*?)"                     # Capture old code
-        r"\n```"                          # Closing fence
-        r"[\s\S]*?"                       # Any text between blocks
+        r"(?:Before|Current|Old).*?"  # "Before" label (case-insensitive)
+        r"```[\w]*\s*\n"  # Opening fence with optional language
+        r"([\s\S]*?)"  # Capture old code
+        r"\n```"  # Closing fence
+        r"[\s\S]*?"  # Any text between blocks
         r"(?:After|Suggested|New|Fixed).*?"  # "After" label (case-insensitive)
-        r"```[\w]*\s*\n"                  # Opening fence with optional language
-        r"([\s\S]*?)"                     # Capture new code
-        r"\n```",                          # Closing fence
+        r"```[\w]*\s*\n"  # Opening fence with optional language
+        r"([\s\S]*?)"  # Capture new code
+        r"\n```",  # Closing fence
         re.IGNORECASE | re.MULTILINE,
     )
 
@@ -196,13 +195,10 @@ class CodeRabbitParser:
     #   -old_line
     #   +new_line
     INLINE_DIFF_PATTERN = re.compile(
-        r"^-\s*(.+)$\n"                   # Line starting with - (removal)
-        r"^\+\s*(.+)$",                   # Line starting with + (addition)
+        r"^-\s*(.+)$\n"  # Line starting with - (removal)
+        r"^\+\s*(.+)$",  # Line starting with + (addition)
         re.MULTILINE,
     )
-
-
-
 
     def __init__(self):
         self.fixes: list[CodeFix] = []
@@ -213,7 +209,7 @@ class CodeRabbitParser:
         login = user.get("login", "")
         return "coderabbit" in login.lower() or "coderabbitai" in login.lower()
 
-    def parse_review_comment(self, comment: dict) -> Optional[CodeFix]:
+    def parse_review_comment(self, comment: dict) -> CodeFix | None:
         """Parse a single review comment for fix suggestions."""
         if not self.is_coderabbit_comment(comment):
             return None
@@ -233,7 +229,7 @@ class CodeRabbitParser:
 
     def _extract_fix_from_body(
         self, body: str, file_path: str, start_line: int, end_line: int
-    ) -> Optional[CodeFix]:
+    ) -> CodeFix | None:
         """Extract fix suggestion from comment body."""
         # Try before/after pattern first
         match = self.BEFORE_AFTER_PATTERN.search(body)
@@ -565,9 +561,7 @@ def run_autofix_loop(
     return iteration, all_results
 
 
-def generate_summary(
-    iterations: int, results: list[FixResult], output_path: Optional[Path]
-) -> str:
+def generate_summary(iterations: int, results: list[FixResult], output_path: Path | None) -> str:
     """Generate a markdown summary of the auto-fix run."""
     successful = [r for r in results if r.success]
     failed = [r for r in results if not r.success]
@@ -613,7 +607,7 @@ Examples:
 
 Environment Variables:
   GITHUB_TOKEN: GitHub personal access token (required)
-        """
+        """,
     )
     parser.add_argument("--repo", required=True, help="Repository in format owner/repo")
     parser.add_argument("--pr", required=True, type=int, help="Pull request number")
@@ -621,12 +615,9 @@ Environment Variables:
         "--max-iterations",
         type=int,
         default=3,
-        help="Maximum number of fix iterations (default: 3)"
+        help="Maximum number of fix iterations (default: 3)",
     )
-    parser.add_argument(
-        "--output-summary",
-        help="Path to write summary markdown file"
-    )
+    parser.add_argument("--output-summary", help="Path to write summary markdown file")
     args = parser.parse_args()
 
     # Validate arguments
@@ -657,9 +648,7 @@ Environment Variables:
         print("")
 
         # Run the auto-fix loop
-        iterations, results = run_autofix_loop(
-            github_api, args.pr, args.max_iterations, repo_root
-        )
+        iterations, results = run_autofix_loop(github_api, args.pr, args.max_iterations, repo_root)
 
         # Generate summary
         output_path = Path(args.output_summary) if args.output_summary else None
@@ -690,6 +679,7 @@ Environment Variables:
     except Exception as e:
         print(f"Error: Unexpected error: {type(e).__name__}: {e}", file=sys.stderr)
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

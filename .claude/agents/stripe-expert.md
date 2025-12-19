@@ -21,7 +21,7 @@ model: claude-sonnet-4-20250514
 
 ## Approach
 
-- Ensure secure API key management 
+- Ensure secure API key management
 - Use webhooks to handle asynchronous events
 - Implement retries for idempotency
 - Leverage Stripe's client libraries for language-specific support
@@ -57,4 +57,3 @@ model: claude-sonnet-4-20250514
 - Consistent customer experience across platforms
 - Regular feedback loop with business teams for feature updates
 - Performance metrics and KPIs for Stripe usage effectiveness
-

@@ -20,64 +20,65 @@ from pathlib import Path
 # Patterns that indicate a real secret (not a placeholder)
 SECRET_PATTERNS = [
     # API Keys (various formats)
-    (r'(?i)(api[_-]?key|apikey)\s*=\s*["\']?[a-zA-Z0-9_\-]{20,}["\']?', 'API key'),
-    (r'(?i)sk-[a-zA-Z0-9]{20,}', 'OpenAI API key'),
-    (r'(?i)sk_live_[a-zA-Z0-9]{20,}', 'Stripe live key'),
-    (r'(?i)sk_test_[a-zA-Z0-9]{20,}', 'Stripe test key'),
-    (r'(?i)xox[baprs]-[a-zA-Z0-9\-]{10,}', 'Slack token'),
-    (r'(?i)ghp_[a-zA-Z0-9]{36}', 'GitHub PAT'),
-    (r'(?i)gho_[a-zA-Z0-9]{36}', 'GitHub OAuth token'),
-    (r'(?i)github_token\s*=\s*["\']?[a-zA-Z0-9_]{30,}', 'GitHub token'),
-
+    (r'(?i)(api[_-]?key|apikey)\s*=\s*["\']?[a-zA-Z0-9_\-]{20,}["\']?', "API key"),
+    (r"(?i)sk-[a-zA-Z0-9]{20,}", "OpenAI API key"),
+    (r"(?i)sk_live_[a-zA-Z0-9]{20,}", "Stripe live key"),
+    (r"(?i)sk_test_[a-zA-Z0-9]{20,}", "Stripe test key"),
+    (r"(?i)xox[baprs]-[a-zA-Z0-9\-]{10,}", "Slack token"),
+    (r"(?i)ghp_[a-zA-Z0-9]{36}", "GitHub PAT"),
+    (r"(?i)gho_[a-zA-Z0-9]{36}", "GitHub OAuth token"),
+    (r'(?i)github_token\s*=\s*["\']?[a-zA-Z0-9_]{30,}', "GitHub token"),
     # AWS
-    (r'(?i)AKIA[0-9A-Z]{16}', 'AWS Access Key ID'),
-    (r'(?i)aws[_-]?secret[_-]?access[_-]?key\s*=\s*["\']?[a-zA-Z0-9/+=]{40}', 'AWS Secret Key'),
-
+    (r"(?i)AKIA[0-9A-Z]{16}", "AWS Access Key ID"),
+    (r'(?i)aws[_-]?secret[_-]?access[_-]?key\s*=\s*["\']?[a-zA-Z0-9/+=]{40}', "AWS Secret Key"),
     # Database passwords
-    (r'(?i)(password|passwd|pwd)\s*=\s*["\']?(?!.*(\$\{|your[_-]|changeme|placeholder|example|xxx|password))[a-zA-Z0-9!@#$%^&*()_+\-=]{8,}["\']?', 'Password'),
-    (r'(?i)postgres://[^:]+:[^@]+@', 'Database URL with credentials'),
-    (r'(?i)mysql://[^:]+:[^@]+@', 'Database URL with credentials'),
-    (r'(?i)mongodb(\+srv)?://[^:]+:[^@]+@', 'MongoDB URL with credentials'),
-
+    (
+        r'(?i)(password|passwd|pwd)\s*=\s*["\']?(?!.*(\$\{|your[_-]|changeme|placeholder|example|xxx|password))[a-zA-Z0-9!@#$%^&*()_+\-=]{8,}["\']?',
+        "Password",
+    ),
+    (r"(?i)postgres://[^:]+:[^@]+@", "Database URL with credentials"),
+    (r"(?i)mysql://[^:]+:[^@]+@", "Database URL with credentials"),
+    (r"(?i)mongodb(\+srv)?://[^:]+:[^@]+@", "MongoDB URL with credentials"),
     # Private keys
-    (r'-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----', 'Private key'),
-    (r'-----BEGIN PGP PRIVATE KEY BLOCK-----', 'PGP private key'),
-
+    (r"-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----", "Private key"),
+    (r"-----BEGIN PGP PRIVATE KEY BLOCK-----", "PGP private key"),
     # JWT/Auth secrets
-    (r'(?i)(jwt[_-]?secret|auth[_-]?secret|secret[_-]?key)\s*=\s*["\']?[a-zA-Z0-9_\-]{32,}["\']?', 'JWT/Auth secret'),
-
+    (
+        r'(?i)(jwt[_-]?secret|auth[_-]?secret|secret[_-]?key)\s*=\s*["\']?[a-zA-Z0-9_\-]{32,}["\']?',
+        "JWT/Auth secret",
+    ),
     # Generic secrets
-    (r'(?i)bearer\s+[a-zA-Z0-9_\-\.]{20,}', 'Bearer token'),
-    (r'(?i)token\s*=\s*["\']?[a-zA-Z0-9_\-]{32,}["\']?', 'Token'),
+    (r"(?i)bearer\s+[a-zA-Z0-9_\-\.]{20,}", "Bearer token"),
+    (r'(?i)token\s*=\s*["\']?[a-zA-Z0-9_\-]{32,}["\']?', "Token"),
 ]
 
 # Safe placeholder patterns (these are OK)
 SAFE_PATTERNS = [
-    r'(?i)your[_-]',           # your-api-key, your_password
-    r'(?i)changeme',           # changeme
-    r'(?i)placeholder',        # placeholder
-    r'(?i)example',            # example.com, example-key
-    r'(?i)xxx+',               # xxx, xxxx
-    r'(?i)replace[_-]?this',   # replace_this
-    r'(?i)insert[_-]?here',    # insert_here
-    r'(?i)<[^>]+>',            # <your-key-here>
-    r'(?i)\$\{[^}]+\}',        # ${VARIABLE}
-    r'(?i)localhost',          # localhost URLs are fine
-    r'(?i)127\.0\.0\.1',       # localhost IP
-    r'(?i)host\.docker\.internal',  # Docker internal
-    r'^#',                     # Comments
-    r'^\s*$',                  # Empty lines
+    r"(?i)your[_-]",  # your-api-key, your_password
+    r"(?i)changeme",  # changeme
+    r"(?i)placeholder",  # placeholder
+    r"(?i)example",  # example.com, example-key
+    r"(?i)xxx+",  # xxx, xxxx
+    r"(?i)replace[_-]?this",  # replace_this
+    r"(?i)insert[_-]?here",  # insert_here
+    r"(?i)<[^>]+>",  # <your-key-here>
+    r"(?i)\$\{[^}]+\}",  # ${VARIABLE}
+    r"(?i)localhost",  # localhost URLs are fine
+    r"(?i)127\.0\.0\.1",  # localhost IP
+    r"(?i)host\.docker\.internal",  # Docker internal
+    r"^#",  # Comments
+    r"^\s*$",  # Empty lines
 ]
 
 # File patterns to scan
 ENV_FILE_PATTERNS = [
-    '**/.env',
-    '**/.env.example',
-    '**/.env.local',
-    '**/.env.*.local',
-    '**/.env.production',
-    '**/.env.staging',
-    '**/.env.development',
+    "**/.env",
+    "**/.env.example",
+    "**/.env.local",
+    "**/.env.*.local",
+    "**/.env.production",
+    "**/.env.staging",
+    "**/.env.development",
 ]
 
 
@@ -94,14 +95,21 @@ def scan_file(filepath: Path, ci_mode: bool = False) -> list[dict]:
     issues = []
 
     try:
-        content = filepath.read_text(encoding='utf-8', errors='ignore')
+        content = filepath.read_text(encoding="utf-8", errors="ignore")
     except Exception as e:
-        return [{'file': str(filepath), 'line': 0, 'issue': f'Could not read file: {e}', 'severity': 'error'}]
+        return [
+            {
+                "file": str(filepath),
+                "line": 0,
+                "issue": f"Could not read file: {e}",
+                "severity": "error",
+            }
+        ]
 
     for line_num, line in enumerate(content.splitlines(), 1):
         # Skip empty lines and comments
         stripped = line.strip()
-        if not stripped or stripped.startswith('#'):
+        if not stripped or stripped.startswith("#"):
             continue
 
         # Skip if it's a safe placeholder
@@ -113,24 +121,28 @@ def scan_file(filepath: Path, ci_mode: bool = False) -> list[dict]:
             if re.search(pattern, line):
                 # Double-check it's not a safe value
                 if not is_safe_value(line):
-                    issues.append({
-                        'file': str(filepath),
-                        'line': line_num,
-                        'issue': f'Potential {secret_type} detected',
-                        'content': line[:80] + ('...' if len(line) > 80 else ''),
-                        'severity': 'error'
-                    })
+                    issues.append(
+                        {
+                            "file": str(filepath),
+                            "line": line_num,
+                            "issue": f"Potential {secret_type} detected",
+                            "content": line[:80] + ("..." if len(line) > 80 else ""),
+                            "severity": "error",
+                        }
+                    )
                     break  # One issue per line is enough
 
     # In CI mode, also flag non-example .env files
-    if ci_mode and filepath.name == '.env' or '.env.local' in filepath.name:
-        if 'example' not in filepath.name.lower():
-            issues.append({
-                'file': str(filepath),
-                'line': 0,
-                'issue': f'Non-example .env file should not be committed',
-                'severity': 'error'
-            })
+    if ci_mode and filepath.name == ".env" or ".env.local" in filepath.name:
+        if "example" not in filepath.name.lower():
+            issues.append(
+                {
+                    "file": str(filepath),
+                    "line": 0,
+                    "issue": "Non-example .env file should not be committed",
+                    "severity": "error",
+                }
+            )
 
     return issues
 
@@ -142,9 +154,9 @@ def scan_directory(root: Path, ci_mode: bool = False) -> list[dict]:
     for pattern in ENV_FILE_PATTERNS:
         for filepath in root.glob(pattern):
             # Skip node_modules and other ignored directories
-            if 'node_modules' in filepath.parts:
+            if "node_modules" in filepath.parts:
                 continue
-            if '.git' in filepath.parts:
+            if ".git" in filepath.parts:
                 continue
 
             issues = scan_file(filepath, ci_mode)
@@ -154,10 +166,10 @@ def scan_directory(root: Path, ci_mode: bool = False) -> list[dict]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Scan .env files for secrets')
-    parser.add_argument('--ci', action='store_true', help='CI mode (stricter checks)')
-    parser.add_argument('--fix', action='store_true', help='Show suggested fixes')
-    parser.add_argument('path', nargs='?', default='.', help='Path to scan')
+    parser = argparse.ArgumentParser(description="Scan .env files for secrets")
+    parser.add_argument("--ci", action="store_true", help="CI mode (stricter checks)")
+    parser.add_argument("--fix", action="store_true", help="Show suggested fixes")
+    parser.add_argument("path", nargs="?", default=".", help="Path to scan")
     args = parser.parse_args()
 
     root = Path(args.path).resolve()
@@ -171,16 +183,18 @@ def main():
         return 0
 
     # Group by severity
-    errors = [i for i in issues if i['severity'] == 'error']
-    warnings = [i for i in issues if i['severity'] == 'warning']
+    errors = [i for i in issues if i["severity"] == "error"]
+    warnings = [i for i in issues if i["severity"] == "warning"]
 
     for issue in issues:
-        severity_icon = "[ERROR]" if issue['severity'] == 'error' else "[WARN]"
+        severity_icon = "[ERROR]" if issue["severity"] == "error" else "[WARN]"
         print(f"{severity_icon} {issue['file']}:{issue['line']}")
         print(f"  {issue['issue']}")
-        if 'content' in issue:
+        if "content" in issue:
             # Mask potential secret
-            masked = re.sub(r'=\s*["\']?([^"\'\s]{4})[^"\'\s]*["\']?', r'= \1****', issue['content'])
+            masked = re.sub(
+                r'=\s*["\']?([^"\'\s]{4})[^"\'\s]*["\']?', r"= \1****", issue["content"]
+            )
             print(f"  Content: {masked}")
         print()
 
@@ -205,5 +219,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

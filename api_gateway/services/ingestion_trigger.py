@@ -37,25 +37,31 @@ import logging
 import sys
 import time
 from pathlib import Path
-from typing import List, Optional
 
 from ..config import settings
 from ..utils.logger import get_logger
-from .weaviate_connection import WeaviateConnection, CODE_ENTITY_COLLECTION_NAME, DOCUMENTATION_COLLECTION_NAME
-from .doc_ingestion import (
-    ingest_documentation,
-    collection_status as doc_collection_status,
-    chunk_by_headers,
-    get_doc_text_for_embedding,
-)
 from .code_ingestion import (
-    ingest_code_entities,
-    collection_status as code_collection_status,
     AI_SERVICE_DIRS,
+)
+from .code_ingestion import collection_status as code_collection_status
+from .code_ingestion import (
     get_embedding,
+    ingest_code_entities,
 )
 from .code_parsers import CodeParser
-
+from .doc_ingestion import (
+    chunk_by_headers,
+)
+from .doc_ingestion import collection_status as doc_collection_status
+from .doc_ingestion import (
+    get_doc_text_for_embedding,
+    ingest_documentation,
+)
+from .weaviate_connection import (
+    CODE_ENTITY_COLLECTION_NAME,
+    DOCUMENTATION_COLLECTION_NAME,
+    WeaviateConnection,
+)
 
 logger = get_logger("api_gateway.ingestion_trigger")
 
@@ -88,6 +94,7 @@ def print_progress(
 CODE_EXTENSIONS = {".py", ".ts", ".tsx", ".js", ".jsx", ".css"}
 DOC_EXTENSIONS = {".md"}
 
+
 # Queue file location for deferred ingestion (relative to workspace root)
 def _get_ingestion_queue_file() -> Path:
     """
@@ -98,6 +105,7 @@ def _get_ingestion_queue_file() -> Path:
     """
     workspace_root = Path(__file__).resolve().parents[2]
     return workspace_root / "logs" / "ingestion_queue.txt"
+
 
 INGESTION_QUEUE_FILE = _get_ingestion_queue_file()
 
@@ -119,7 +127,7 @@ def _relative_to_workspace(path: Path) -> str:
         return str(path.resolve())
 
 
-def run_incremental(file_paths: List[str], dry_run: bool = False) -> int:
+def run_incremental(file_paths: list[str], dry_run: bool = False) -> int:
     """
     Run incremental ingestion for specific files.
 
@@ -137,9 +145,9 @@ def run_incremental(file_paths: List[str], dry_run: bool = False) -> int:
     code_parser = CodeParser()
 
     # Categorize files
-    code_files: List[Path] = []
-    doc_files: List[Path] = []
-    skipped_files: List[str] = []
+    code_files: list[Path] = []
+    doc_files: list[Path] = []
+    skipped_files: list[str] = []
 
     for file_path_str in file_paths:
         file_path = workspace_root / file_path_str
@@ -186,6 +194,7 @@ def run_incremental(file_paths: List[str], dry_run: bool = False) -> int:
                     try:
                         # Delete existing chunks for this file
                         from weaviate.classes.query import Filter
+
                         doc_collection.data.delete_many(
                             where=Filter.by_property("file_path").equal(rel_path)
                         )
@@ -196,10 +205,7 @@ def run_incremental(file_paths: List[str], dry_run: bool = False) -> int:
                             # Compute embedding (required for semantic search)
                             text = get_doc_text_for_embedding(chunk)
                             vector = get_embedding(text)
-                            doc_collection.data.insert(
-                                chunk.to_properties(),
-                                vector=vector
-                            )
+                            doc_collection.data.insert(chunk.to_properties(), vector=vector)
 
                         print(f"  [doc] {rel_path}: {len(chunks)} chunks")
                     except Exception as exc:
@@ -216,6 +222,7 @@ def run_incremental(file_paths: List[str], dry_run: bool = False) -> int:
                     try:
                         # Delete existing entities for this file
                         from weaviate.classes.query import Filter
+
                         code_collection.data.delete_many(
                             where=Filter.by_property("file_path").equal(rel_path)
                         )
@@ -226,10 +233,7 @@ def run_incremental(file_paths: List[str], dry_run: bool = False) -> int:
                             # Compute embedding
                             text = f"{entity.entity_type}: {entity.full_name} {entity.signature} {entity.docstring}"
                             vector = get_embedding(text)
-                            code_collection.data.insert(
-                                entity.to_properties(),
-                                vector=vector
-                            )
+                            code_collection.data.insert(entity.to_properties(), vector=vector)
 
                         print(f"  [code] {rel_path}: {len(entities)} entities")
                     except Exception as exc:
@@ -263,7 +267,7 @@ def process_queue(dry_run: bool = False) -> int:
         return 0
 
     # Read and deduplicate queued files
-    with open(INGESTION_QUEUE_FILE, "r") as f:
+    with open(INGESTION_QUEUE_FILE) as f:
         all_files = [line.strip() for line in f if line.strip()]
 
     if not all_files:
@@ -313,7 +317,7 @@ def show_queue() -> int:
         print("No queued files.")
         return 0
 
-    with open(INGESTION_QUEUE_FILE, "r") as f:
+    with open(INGESTION_QUEUE_FILE) as f:
         all_files = [line.strip() for line in f if line.strip()]
 
     if not all_files:
@@ -331,7 +335,9 @@ def show_queue() -> int:
     print(f"Queued files ({len(unique_files)} unique, {len(all_files)} total entries):")
     for f in unique_files:
         suffix = Path(f).suffix.lower()
-        file_type = "code" if suffix in CODE_EXTENSIONS else "doc" if suffix in DOC_EXTENSIONS else "?"
+        file_type = (
+            "code" if suffix in CODE_EXTENSIONS else "doc" if suffix in DOC_EXTENSIONS else "?"
+        )
         print(f"  [{file_type}] {f}")
 
     return 0
@@ -377,7 +383,7 @@ def run_status() -> int:
 
 
 def run_ingestion(
-    targets: List[str],
+    targets: list[str],
     reindex: bool,
     dry_run: bool,
     code_service: str,
@@ -427,9 +433,11 @@ def run_ingestion(
                 all_stats["documentation"] = doc_stats
 
                 print()
-                print(f"Documentation complete: {doc_stats.get('files', 0)} files, "
-                      f"{doc_stats.get('chunks', 0)} chunks, "
-                      f"{doc_stats.get('errors', 0)} errors")
+                print(
+                    f"Documentation complete: {doc_stats.get('files', 0)} files, "
+                    f"{doc_stats.get('chunks', 0)} chunks, "
+                    f"{doc_stats.get('errors', 0)} errors"
+                )
                 print()
 
                 if doc_stats.get("errors", 0) > 0:
@@ -453,9 +461,11 @@ def run_ingestion(
                 all_stats["code"] = code_stats
 
                 print()
-                print(f"Code complete: {code_stats.get('files', 0)} files, "
-                      f"{code_stats.get('entities', 0)} entities, "
-                      f"{code_stats.get('errors', 0)} errors")
+                print(
+                    f"Code complete: {code_stats.get('files', 0)} files, "
+                    f"{code_stats.get('entities', 0)} entities, "
+                    f"{code_stats.get('errors', 0)} errors"
+                )
                 print()
 
                 if code_stats.get("errors", 0) > 0:
@@ -473,7 +483,7 @@ def run_ingestion(
     return exit_code
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI entry point for ingestion trigger.
 
@@ -508,7 +518,7 @@ Examples:
         nargs="?",
         default=None,
         help="What to ingest: 'all' (doc + code), 'doc', 'code', 'status' check, "
-             "'queue' (show pending), or 'process-queue' (run queued ingestion)",
+        "'queue' (show pending), or 'process-queue' (run queued ingestion)",
     )
 
     parser.add_argument(
@@ -519,11 +529,12 @@ Examples:
     )
 
     parser.add_argument(
-        "--service", "-s",
+        "--service",
+        "-s",
         choices=service_choices,
         default="all",
         help="For code ingestion: 'all' (default, all AI services), 'core', "
-             "or a specific service name.",
+        "or a specific service name.",
     )
 
     parser.add_argument(
@@ -539,7 +550,8 @@ Examples:
     )
 
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Enable verbose (DEBUG) logging.",
     )

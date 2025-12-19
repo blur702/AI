@@ -9,13 +9,11 @@ from __future__ import annotations
 
 import logging
 from types import TracebackType
-from typing import Optional, Type
 from urllib.parse import urlparse
 
 import weaviate
 
 from ..config import settings
-
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +32,7 @@ class WeaviateConnection:
             results = collection.query.near_text(query="example")
     """
 
-    def __init__(self, custom_logger: Optional[logging.Logger] = None) -> None:
+    def __init__(self, custom_logger: logging.Logger | None = None) -> None:
         """
         Initialize connection manager.
 
@@ -42,7 +40,7 @@ class WeaviateConnection:
             custom_logger: Optional logger to use instead of module logger.
                           Useful for MCP server which logs to stderr.
         """
-        self.client: Optional[weaviate.WeaviateClient] = None
+        self.client: weaviate.WeaviateClient | None = None
         self._logger = custom_logger or logger
 
     def __enter__(self) -> weaviate.WeaviateClient:
@@ -81,9 +79,9 @@ class WeaviateConnection:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
     ) -> None:
         """
         Exit context manager and close client connection.
@@ -144,4 +142,6 @@ TYPESCRIPT_DOCS_COLLECTION_NAME = "TypeScriptDocs"  # TypeScript language docume
 PHP_DOCS_COLLECTION_NAME = "PHPDocs"  # PHP language documentation from php.net
 
 # Congressional data collection
-CONGRESSIONAL_DATA_COLLECTION_NAME = "CongressionalData"  # House member websites, press releases, voting records
+CONGRESSIONAL_DATA_COLLECTION_NAME = (
+    "CongressionalData"  # House member websites, press releases, voting records
+)

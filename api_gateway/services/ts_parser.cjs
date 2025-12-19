@@ -263,8 +263,7 @@ function parseFile(filePath) {
     // If UTF-8 fails, try reading as latin1 (ISO-8859-1) which accepts any byte sequence
     fileContent = fs.readFileSync(absolutePath, "latin1");
   }
-  const isTypeScript =
-    filePath.endsWith(".ts") || filePath.endsWith(".tsx");
+  const isTypeScript = filePath.endsWith(".ts") || filePath.endsWith(".tsx");
   const language = isTypeScript ? "typescript" : "javascript";
 
   const sourceFile = ts.createSourceFile(
@@ -278,7 +277,7 @@ function parseFile(filePath) {
         : ts.ScriptKind.TS
       : filePath.endsWith(".jsx")
         ? ts.ScriptKind.JSX
-        : ts.ScriptKind.JS
+        : ts.ScriptKind.JS,
   );
 
   const entities = [];
@@ -349,7 +348,7 @@ function parseFile(filePath) {
             const returnType = getReturnType(func, sourceFile);
             const isAsync =
               func.modifiers?.some(
-                (m) => m.kind === ts.SyntaxKind.AsyncKeyword
+                (m) => m.kind === ts.SyntaxKind.AsyncKeyword,
               ) || false;
 
             entities.push({
@@ -362,7 +361,7 @@ function parseFile(filePath) {
                 name,
                 params,
                 returnType,
-                isAsync
+                isAsync,
               ),
               parameters: JSON.stringify(params),
               return_type: returnType,
@@ -448,7 +447,7 @@ function parseFile(filePath) {
           const methodDecorators = getDecorators(member, sourceFile);
           const memberStart = getLineInfo(
             sourceFile,
-            member.getStart(sourceFile)
+            member.getStart(sourceFile),
           );
           const memberEnd = getLineInfo(sourceFile, member.getEnd());
 
@@ -462,7 +461,7 @@ function parseFile(filePath) {
               methodName,
               methodParams,
               methodReturnType,
-              isAsync
+              isAsync,
             ).replace("function ", ""),
             parameters: JSON.stringify(methodParams),
             return_type: methodReturnType,
@@ -480,7 +479,7 @@ function parseFile(filePath) {
           const propDecorators = getDecorators(member, sourceFile);
           const memberStart = getLineInfo(
             sourceFile,
-            member.getStart(sourceFile)
+            member.getStart(sourceFile),
           );
           const memberEnd = getLineInfo(sourceFile, member.getEnd());
 
@@ -505,7 +504,7 @@ function parseFile(filePath) {
           const ctorDecorators = getDecorators(member, sourceFile);
           const memberStart = getLineInfo(
             sourceFile,
-            member.getStart(sourceFile)
+            member.getStart(sourceFile),
           );
           const memberEnd = getLineInfo(sourceFile, member.getEnd());
 

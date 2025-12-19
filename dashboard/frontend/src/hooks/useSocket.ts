@@ -1,7 +1,14 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { ServiceStatus, ServiceState, ServicesResponse, ServiceStatusUpdate, ModelDownloadProgress, ModelLoadProgress } from '../types';
-import { getApiBase } from '../config/services';
+import { useEffect, useState, useCallback, useRef } from "react";
+import { io, Socket } from "socket.io-client";
+import {
+  ServiceStatus,
+  ServiceState,
+  ServicesResponse,
+  ServiceStatusUpdate,
+  ModelDownloadProgress,
+  ModelLoadProgress,
+} from "../types";
+import { getApiBase } from "../config/services";
 
 interface UseSocketReturn {
   connected: boolean;
@@ -19,10 +26,12 @@ export function useSocket(): UseSocketReturn {
   const fetchStatuses = useCallback(async () => {
     try {
       const response = await fetch(`${getApiBase()}/api/services`, {
-        credentials: 'include'
+        credentials: "include",
       });
       if (!response.ok) {
-        console.error(`Error fetching statuses: ${response.status} ${response.statusText}`);
+        console.error(
+          `Error fetching statuses: ${response.status} ${response.statusText}`,
+        );
         return;
       }
       const data: ServicesResponse = await response.json();
@@ -30,7 +39,7 @@ export function useSocket(): UseSocketReturn {
         setServices(data.services);
       }
     } catch (error) {
-      console.error('Error fetching statuses:', error);
+      console.error("Error fetching statuses:", error);
     }
   }, []);
 
@@ -39,43 +48,45 @@ export function useSocket(): UseSocketReturn {
 
     // Fetch session token for Socket.IO authentication
     fetch(`${getApiBase()}/api/auth/token`, {
-      credentials: 'include',
+      credentials: "include",
       signal: abortController.signal,
     })
-      .then(res => {
+      .then((res) => {
         if (abortController.signal.aborted) return;
-        if (!res.ok) throw new Error('Authentication required');
+        if (!res.ok) throw new Error("Authentication required");
         return res.json();
       })
-      .then(data => {
+      .then((data) => {
         if (abortController.signal.aborted || !data) return;
         // Connect with token in auth payload
         const socket = io(getApiBase(), {
-          transports: ['websocket', 'polling'],
+          transports: ["websocket", "polling"],
           auth: {
-            token: data.token
-          }
+            token: data.token,
+          },
         });
         socketRef.current = socket;
 
-        socket.on('connect', () => {
-          console.log('WebSocket connected');
+        socket.on("connect", () => {
+          console.log("WebSocket connected");
           setConnected(true);
           // Fetch initial statuses when connected
           fetchStatuses();
         });
 
-        socket.on('disconnect', () => {
-          console.log('WebSocket disconnected');
+        socket.on("disconnect", () => {
+          console.log("WebSocket disconnected");
           setConnected(false);
         });
 
-        socket.on('service_status', (data: ServiceStatusUpdate) => {
-          console.log('Service status update:', data);
-          setServices(prev => {
+        socket.on("service_status", (data: ServiceStatusUpdate) => {
+          console.log("Service status update:", data);
+          setServices((prev) => {
             // Only update if service exists in state
             if (!prev[data.service_id]) {
-              console.warn(`Service status update for unknown service: ${data.service_id}`);
+              console.warn(
+                `Service status update for unknown service: ${data.service_id}`,
+              );
               return prev;
             }
             return {
@@ -83,35 +94,45 @@ export function useSocket(): UseSocketReturn {
               [data.service_id]: {
                 ...prev[data.service_id],
                 status: data.status,
-                error: data.message || null
-              }
+                error: data.message || null,
+              },
             };
           });
         });
 
         // Model download progress events
-        socket.on('model_download_progress', (data: ModelDownloadProgress) => {
-          console.log('Model download progress:', data);
+        socket.on("model_download_progress", (data: ModelDownloadProgress) => {
+          console.log("Model download progress:", data);
           // Notify the useModels hook via window callback
-          const updateFn = (window as unknown as { __updateModelDownloadProgress?: (p: ModelDownloadProgress) => void }).__updateModelDownloadProgress;
+          const updateFn = (
+            window as unknown as {
+              __updateModelDownloadProgress?: (
+                p: ModelDownloadProgress,
+              ) => void;
+            }
+          ).__updateModelDownloadProgress;
           if (updateFn) {
             updateFn(data);
           }
         });
 
         // Model load/unload progress events
-        socket.on('model_load_progress', (data: ModelLoadProgress) => {
-          console.log('Model load progress:', data);
+        socket.on("model_load_progress", (data: ModelLoadProgress) => {
+          console.log("Model load progress:", data);
           // Notify the useModels hook via window callback
-          const updateFn = (window as unknown as { __updateModelLoadProgress?: (p: ModelLoadProgress) => void }).__updateModelLoadProgress;
+          const updateFn = (
+            window as unknown as {
+              __updateModelLoadProgress?: (p: ModelLoadProgress) => void;
+            }
+          ).__updateModelLoadProgress;
           if (updateFn) {
             updateFn(data);
           }
         });
       })
-      .catch(error => {
-        if (error.name === 'AbortError') return;
-        console.error('Socket.IO authentication failed:', error);
+      .catch((error) => {
+        if (error.name === "AbortError") return;
+        console.error("Socket.IO authentication failed:", error);
         setConnected(false);
         // Still fetch statuses even if WebSocket fails - allows polling fallback
         fetchStatuses();
@@ -126,95 +147,101 @@ export function useSocket(): UseSocketReturn {
   }, [fetchStatuses]);
 
   const startService = useCallback(async (serviceId: string) => {
-    setServices(prev => ({
+    setServices((prev) => ({
       ...prev,
       [serviceId]: {
         ...prev[serviceId],
-        status: 'starting' as ServiceStatus,
-        error: null
-      }
+        status: "starting" as ServiceStatus,
+        error: null,
+      },
     }));
 
     try {
-      const response = await fetch(`${getApiBase()}/api/services/${serviceId}/start`, {
-        method: 'POST',
-        credentials: 'include'
-      });
+      const response = await fetch(
+        `${getApiBase()}/api/services/${serviceId}/start`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const data = await response.json();
 
       if (!data.success) {
-        setServices(prev => ({
+        setServices((prev) => ({
           ...prev,
           [serviceId]: {
             ...prev[serviceId],
-            status: 'error' as ServiceStatus,
-            error: data.error || 'Failed to start'
-          }
+            status: "error" as ServiceStatus,
+            error: data.error || "Failed to start",
+          },
         }));
       }
     } catch (error) {
-      console.error('Error starting service:', error);
-      setServices(prev => ({
+      console.error("Error starting service:", error);
+      setServices((prev) => ({
         ...prev,
         [serviceId]: {
           ...prev[serviceId],
-          status: 'error' as ServiceStatus,
-          error: 'Connection error'
-        }
+          status: "error" as ServiceStatus,
+          error: "Connection error",
+        },
       }));
     }
   }, []);
 
   const stopService = useCallback(async (serviceId: string) => {
-    setServices(prev => ({
+    setServices((prev) => ({
       ...prev,
       [serviceId]: {
         ...prev[serviceId],
-        status: 'stopping' as ServiceStatus,
-        error: null
-      }
+        status: "stopping" as ServiceStatus,
+        error: null,
+      },
     }));
 
     try {
-      const response = await fetch(`${getApiBase()}/api/services/${serviceId}/stop`, {
-        method: 'POST',
-        credentials: 'include'
-      });
+      const response = await fetch(
+        `${getApiBase()}/api/services/${serviceId}/stop`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       const data = await response.json();
 
       if (data.success) {
-        setServices(prev => ({
+        setServices((prev) => ({
           ...prev,
           [serviceId]: {
             ...prev[serviceId],
-            status: 'stopped' as ServiceStatus
-          }
+            status: "stopped" as ServiceStatus,
+          },
         }));
       } else {
-        setServices(prev => ({
+        setServices((prev) => ({
           ...prev,
           [serviceId]: {
             ...prev[serviceId],
-            status: 'error' as ServiceStatus,
-            error: data.error || 'Failed to stop'
-          }
+            status: "error" as ServiceStatus,
+            error: data.error || "Failed to stop",
+          },
         }));
       }
     } catch (error) {
-      console.error('Error stopping service:', error);
-      setServices(prev => ({
+      console.error("Error stopping service:", error);
+      setServices((prev) => ({
         ...prev,
         [serviceId]: {
           ...prev[serviceId],
-          status: 'error' as ServiceStatus,
-          error: 'Connection error'
-        }
+          status: "error" as ServiceStatus,
+          error: "Connection error",
+        },
       }));
     }
   }, []);
@@ -224,6 +251,6 @@ export function useSocket(): UseSocketReturn {
     services,
     startService,
     stopService,
-    refreshStatuses: fetchStatuses
+    refreshStatuses: fetchStatuses,
   };
 }

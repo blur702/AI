@@ -25,27 +25,27 @@ import argparse
 import time
 from datetime import datetime
 
-from api_gateway.services.weaviate_connection import WeaviateConnection
-from api_gateway.utils.logger import get_logger
+from api_gateway.services.image_lib_scrapers import (
+    OpenCVDocScraper,
+    PillowDocScraper,
+)
 
 # Import all scrapers
 from api_gateway.services.pytorch_docs_scraper import PyTorchDocScraper
-from api_gateway.services.tensorflow_docs_scraper import TensorFlowDocScraper
-from api_gateway.services.sklearn_docs_scraper import ScikitLearnDocScraper
-from api_gateway.services.web_framework_scrapers import (
-    DjangoDocScraper,
-    FlaskDocScraper,
-    FastAPIDocScraper,
-)
-from api_gateway.services.image_lib_scrapers import (
-    PillowDocScraper,
-    OpenCVDocScraper,
-)
 from api_gateway.services.scraping_lib_scrapers import (
     BeautifulSoupDocScraper,
     ScrapyDocScraper,
 )
+from api_gateway.services.sklearn_docs_scraper import ScikitLearnDocScraper
+from api_gateway.services.tensorflow_docs_scraper import TensorFlowDocScraper
 from api_gateway.services.vscode_docs_scraper import VSCodeDocScraper
+from api_gateway.services.weaviate_connection import WeaviateConnection
+from api_gateway.services.web_framework_scrapers import (
+    DjangoDocScraper,
+    FastAPIDocScraper,
+    FlaskDocScraper,
+)
+from api_gateway.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -319,7 +319,9 @@ Examples:
                 logger.info("    %s SUCCESS  %5d pages  (%.1fs)", name.ljust(15), scraped, elapsed)
                 total_scraped += scraped
             else:
-                logger.info("    %s FAILED   %s", name.ljust(15), stats.get("error", "unknown")[:30])
+                logger.info(
+                    "    %s FAILED   %s", name.ljust(15), stats.get("error", "unknown")[:30]
+                )
                 total_failed += 1
 
         logger.info("  Total pages scraped: %d", total_scraped)

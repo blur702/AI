@@ -57,4 +57,3 @@ model: claude-sonnet-4-20250514
 - Security audits and compliance reports
 - Performance tuning logs and findings
 - Anomaly detection configurations and alerts
-

@@ -7,14 +7,12 @@ used by all ingestion services (doc_ingestion, code_ingestion, talking_head_sche
 
 from __future__ import annotations
 
-from typing import List
-
 import httpx
 
 from ..config import settings
 
 
-def get_embedding(text: str) -> List[float]:
+def get_embedding(text: str) -> list[float]:
     """
     Generate embedding vector for text using Ollama API.
 

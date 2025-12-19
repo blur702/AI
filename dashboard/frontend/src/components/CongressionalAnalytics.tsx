@@ -1,8 +1,8 @@
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardHeader from '@mui/material/CardHeader';
-import Grid from '@mui/material/Grid';
-import Typography from '@mui/material/Typography';
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardHeader from "@mui/material/CardHeader";
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
 import {
   BarChart,
   Bar,
@@ -16,49 +16,59 @@ import {
   Legend,
   LineChart,
   Line,
-} from 'recharts';
-import { CongressionalStatus, CongressionalQueryResult } from '../types';
+} from "recharts";
+import { CongressionalStatus, CongressionalQueryResult } from "../types";
 
 interface CongressionalAnalyticsProps {
-  stats: CongressionalStatus['collections']['congressional_data'];
+  stats: CongressionalStatus["collections"]["congressional_data"];
   queryResults?: CongressionalQueryResult[];
 }
 
 const PARTY_COLORS: Record<string, string> = {
-  Democrat: '#1976d2',
-  Republican: '#d32f2f',
-  Independent: '#616161',
+  Democrat: "#1976d2",
+  Republican: "#d32f2f",
+  Independent: "#616161",
 };
 
-export function CongressionalAnalytics({ stats, queryResults }: CongressionalAnalyticsProps) {
+export function CongressionalAnalytics({
+  stats,
+  queryResults,
+}: CongressionalAnalyticsProps) {
   const memberData = Object.entries(stats.member_counts || {})
     .map(([name, count]) => ({
       name,
       count: count as number,
-      party: stats.member_meta?.[name]?.party || 'Unknown',
+      party: stats.member_meta?.[name]?.party || "Unknown",
     }))
     .sort((a, b) => (b.count as number) - (a.count as number))
     .slice(0, 10);
 
-  const partyData = Object.entries(stats.party_counts || {}).map(([name, value]) => ({
-    name,
-    value,
-  }));
+  const partyData = Object.entries(stats.party_counts || {}).map(
+    ([name, value]) => ({
+      name,
+      value,
+    }),
+  );
 
-  const chamberData = Object.entries(stats.chamber_counts || {}).map(([name, value]) => ({
-    name,
-    value,
-  }));
+  const chamberData = Object.entries(stats.chamber_counts || {}).map(
+    ([name, value]) => ({
+      name,
+      value,
+    }),
+  );
 
   const timelineData =
     queryResults && queryResults.length
       ? Object.values(
-          queryResults.reduce<Record<string, { date: string; count: number }>>((acc, r) => {
-            const day = r.scraped_at.split('T')[0];
-            if (!acc[day]) acc[day] = { date: day, count: 0 };
-            acc[day].count += 1;
-            return acc;
-          }, {}),
+          queryResults.reduce<Record<string, { date: string; count: number }>>(
+            (acc, r) => {
+              const day = r.scraped_at.split("T")[0];
+              if (!acc[day]) acc[day] = { date: day, count: 0 };
+              acc[day].count += 1;
+              return acc;
+            },
+            {},
+          ),
         ).sort((a, b) => (a.date < b.date ? -1 : 1))
       : [];
 
@@ -82,10 +92,7 @@ export function CongressionalAnalytics({ stats, queryResults }: CongressionalAna
                     {memberData.map((entry, index) => (
                       <Cell
                         key={index}
-                        fill={
-                          PARTY_COLORS[entry.party] ||
-                          '#9e9e9e'
-                        }
+                        fill={PARTY_COLORS[entry.party] || "#9e9e9e"}
                       />
                     ))}
                   </Bar>
@@ -121,7 +128,9 @@ export function CongressionalAnalytics({ stats, queryResults }: CongressionalAna
                         key={index}
                         fill={
                           PARTY_COLORS[entry.name] ||
-                          ['#1976d2', '#d32f2f', '#616161', '#9e9e9e'][index % 4]
+                          ["#1976d2", "#d32f2f", "#616161", "#9e9e9e"][
+                            index % 4
+                          ]
                         }
                       />
                     ))}

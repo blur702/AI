@@ -30,7 +30,7 @@ import argparse
 import hashlib
 import uuid
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
@@ -39,7 +39,6 @@ from weaviate.exceptions import WeaviateBaseError
 
 from ..utils.logger import get_logger
 from .weaviate_connection import REACT_ECOSYSTEM_COLLECTION_NAME, WeaviateConnection
-
 
 logger = get_logger("api_gateway.react_docs_schema")
 
@@ -60,6 +59,7 @@ but globally unique identifiers for all React ecosystem documentation.
 # -----------------------------------------------------------------------------
 # Helper Functions
 # -----------------------------------------------------------------------------
+
 
 def compute_react_content_hash(
     title: str,
@@ -108,6 +108,7 @@ def generate_react_uuid(url: str, title: str) -> str:
 # Dataclass
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class ReactEcosystemDoc:
     """
@@ -125,6 +126,7 @@ class ReactEcosystemDoc:
         content_hash: SHA256 hash for change detection
         uuid: Stable UUID5 identifier
     """
+
     title: str
     url: str
     content: str
@@ -136,7 +138,7 @@ class ReactEcosystemDoc:
     content_hash: str
     uuid: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """Convert to Weaviate properties dict."""
         return {
             "title": self.title,
@@ -155,6 +157,7 @@ class ReactEcosystemDoc:
 # -----------------------------------------------------------------------------
 # Collection Lifecycle Functions
 # -----------------------------------------------------------------------------
+
 
 def create_react_ecosystem_collection(
     client: weaviate.WeaviateClient,
@@ -251,7 +254,7 @@ def react_ecosystem_collection_exists(client: weaviate.WeaviateClient) -> bool:
     return client.collections.exists(REACT_ECOSYSTEM_COLLECTION_NAME)
 
 
-def get_react_ecosystem_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_react_ecosystem_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for the ReactEcosystem collection.
 
@@ -272,7 +275,7 @@ def get_react_ecosystem_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]
     total = agg.total_count or 0
 
     # Breakdown by package
-    package_counts: Dict[str, int] = {}
+    package_counts: dict[str, int] = {}
     try:
         group_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="package"),
@@ -304,11 +307,10 @@ def get_react_ecosystem_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]
 # CLI Entry Point
 # -----------------------------------------------------------------------------
 
+
 def main() -> None:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Manage ReactEcosystem Weaviate collection"
-    )
+    parser = argparse.ArgumentParser(description="Manage ReactEcosystem Weaviate collection")
     parser.add_argument(
         "command",
         choices=["status", "create", "delete"],
@@ -329,9 +331,9 @@ def main() -> None:
             print("=" * 40)
             print(f"Exists: {stats['exists']}")
             print(f"Total objects: {stats['object_count']}")
-            if stats['package_counts']:
+            if stats["package_counts"]:
                 print("\nBy package:")
-                for pkg, count in sorted(stats['package_counts'].items()):
+                for pkg, count in sorted(stats["package_counts"].items()):
                     print(f"  {pkg}: {count}")
 
         elif args.command == "create":

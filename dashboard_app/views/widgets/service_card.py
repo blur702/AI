@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Callable
 from tkinter import ttk
-from typing import Callable, Dict, Any
+from typing import Any
 
 
 class ServiceCard(ttk.Frame):
@@ -10,10 +11,10 @@ class ServiceCard(ttk.Frame):
     def __init__(
         self,
         master,
-        status: Dict[str, Any],
+        status: dict[str, Any],
         on_start: Callable[[str], None],
         on_stop: Callable[[str], None],
-        on_open: Callable[[Dict[str, Any]], None] | None = None,
+        on_open: Callable[[dict[str, Any]], None] | None = None,
         **kwargs,
     ):
         super().__init__(master, style="Card.TFrame", padding=8, **kwargs)
@@ -51,9 +52,7 @@ class ServiceCard(ttk.Frame):
         self.stop_btn.pack(side="left", padx=(4, 0))
 
         if on_open is not None:
-            self.open_btn = ttk.Button(
-                btn_frame, text="Open", command=lambda: on_open(status)
-            )
+            self.open_btn = ttk.Button(btn_frame, text="Open", command=lambda: on_open(status))
             self.open_btn.pack(side="left", padx=(4, 0))
         else:
             self.open_btn = None
@@ -61,7 +60,7 @@ class ServiceCard(ttk.Frame):
         self.columnconfigure(0, weight=1)
         self.update_status(status)
 
-    def update_status(self, status: Dict[str, Any]) -> None:
+    def update_status(self, status: dict[str, Any]) -> None:
         """Refresh the visual state based on latest status dict."""
         state = (status.get("status") or "stopped").lower()
         style = "StatusStopped.TLabel"

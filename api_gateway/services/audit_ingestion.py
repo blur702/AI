@@ -15,11 +15,13 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any
 
 from weaviate.classes.query import Filter
 
+from ..utils.logger import get_logger
 from .doc_ingestion import (
     chunk_by_headers,
     collection_status,
@@ -31,8 +33,6 @@ from .weaviate_connection import (
     DOCUMENTATION_COLLECTION_NAME,
     WeaviateConnection,
 )
-from ..utils.logger import get_logger
-
 
 logger = get_logger("api_gateway.audit_ingestion")
 
@@ -50,7 +50,7 @@ def _relative_to_workspace(path: Path) -> str:
         return str(path.resolve())
 
 
-def _load_audit_report(path: Path) -> Dict[str, List[str]]:
+def _load_audit_report(path: Path) -> dict[str, list[str]]:
     """Load audit report JSON from disk."""
     data = json.loads(path.read_text(encoding="utf-8"))
     missing = data.get("missing", []) or []
@@ -63,14 +63,14 @@ def _load_audit_report(path: Path) -> Dict[str, List[str]]:
     }
 
 
-def _expected_chunks_for_files(files: Iterable[Path]) -> Dict[str, int]:
+def _expected_chunks_for_files(files: Iterable[Path]) -> dict[str, int]:
     """
     Compute expected chunk count per file using chunk_by_headers.
 
     Returns:
         Dict mapping workspace-relative file_path -> expected chunk count.
     """
-    counts: Dict[str, int] = {}
+    counts: dict[str, int] = {}
     for path in files:
         try:
             chunks = chunk_by_headers(path)
@@ -83,8 +83,8 @@ def _expected_chunks_for_files(files: Iterable[Path]) -> Dict[str, int]:
 
 def _verify_files(
     client,
-    files_to_ingest: List[Path],
-) -> List[Dict[str, Any]]:
+    files_to_ingest: list[Path],
+) -> list[dict[str, Any]]:
     """
     Verify that each file has the expected number of chunks in Weaviate.
 
@@ -95,7 +95,7 @@ def _verify_files(
     collection = client.collections.get(DOCUMENTATION_COLLECTION_NAME)
     expected_counts = _expected_chunks_for_files(files_to_ingest)
 
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
 
     for file_path in files_to_ingest:
         rel_path = _relative_to_workspace(file_path)
@@ -130,7 +130,7 @@ def _verify_files(
     return results
 
 
-def run_audit_ingestion(audit: Dict[str, List[str]]) -> Dict[str, Any]:
+def run_audit_ingestion(audit: dict[str, list[str]]) -> dict[str, Any]:
     """
     Run documentation ingestion based on an audit report.
 
@@ -173,9 +173,7 @@ def run_audit_ingestion(audit: Dict[str, List[str]]) -> Dict[str, Any]:
     if total_md_files == 0:
         logger.warning("No markdown files discovered by scan_markdown_files()")
 
-    coverage = (
-        len(files_to_ingest_paths) / total_md_files if total_md_files > 0 else 0.0
-    )
+    coverage = len(files_to_ingest_paths) / total_md_files if total_md_files > 0 else 0.0
 
     logger.info(
         "Files to ingest cover %.1f%% of markdown corpus (%d of %d)",
@@ -215,7 +213,7 @@ def run_audit_ingestion(audit: Dict[str, List[str]]) -> Dict[str, Any]:
         errors = int(incremental_stats.get("errors", 0))
 
     # Verification
-    verification_details: List[Dict[str, Any]] = []
+    verification_details: list[dict[str, Any]] = []
     verification_passed = True
     collection_object_count = 0
 
@@ -231,7 +229,7 @@ def run_audit_ingestion(audit: Dict[str, List[str]]) -> Dict[str, Any]:
             status_dict = collection_status(client)
             collection_object_count = int(status_dict.get("object_count", 0))
 
-    report: Dict[str, Any] = {
+    report: dict[str, Any] = {
         "strategy": strategy,
         "files_processed": len(files_to_ingest_paths),
         "chunks_inserted": chunks_inserted,
@@ -277,4 +275,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import httpx
 
@@ -14,10 +14,10 @@ class ServiceProxy:
         service_url: str,
         method: str,
         path: str,
-        headers: Dict[str, str],
-        body: Optional[bytes],
+        headers: dict[str, str],
+        body: bytes | None,
         timeout: int = 300,
-    ) -> Tuple[int, Dict[str, Any], bytes]:
+    ) -> tuple[int, dict[str, Any], bytes]:
         url = service_url.rstrip("/") + "/" + path.lstrip("/")
         hop_by_hop = {
             "connection",
@@ -29,9 +29,7 @@ class ServiceProxy:
             "transfer-encoding",
             "upgrade",
         }
-        filtered_headers = {
-            k: v for k, v in headers.items() if k.lower() not in hop_by_hop
-        }
+        filtered_headers = {k: v for k, v in headers.items() if k.lower() not in hop_by_hop}
 
         try:
             response = await self.client.request(
@@ -48,4 +46,3 @@ class ServiceProxy:
 
         resp_headers = dict(response.headers)
         return response.status_code, resp_headers, response.content
-

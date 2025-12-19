@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import { CongressionalScrapeConfig } from '../types';
+import { useEffect, useState } from "react";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import { CongressionalScrapeConfig } from "../types";
 
 interface CongressionalScrapeDialogProps {
   open: boolean;
@@ -21,15 +21,15 @@ export function CongressionalScrapeDialog({
   onClose,
   onStart,
 }: CongressionalScrapeDialogProps) {
-  const [maxMembers, setMaxMembers] = useState<string>('');
-  const [maxPages, setMaxPages] = useState<string>('5');
+  const [maxMembers, setMaxMembers] = useState<string>("");
+  const [maxPages, setMaxPages] = useState<string>("5");
   const [dryRun, setDryRun] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) {
-      setMaxMembers('');
-      setMaxPages('5');
+      setMaxMembers("");
+      setMaxPages("5");
       setDryRun(false);
       setError(null);
     }
@@ -37,11 +37,11 @@ export function CongressionalScrapeDialog({
 
   const validate = (): boolean => {
     if (maxMembers && Number.isNaN(Number(maxMembers))) {
-      setError('Max members must be a number');
+      setError("Max members must be a number");
       return false;
     }
     if (maxPages && (Number.isNaN(Number(maxPages)) || Number(maxPages) <= 0)) {
-      setError('Max pages per member must be a positive number');
+      setError("Max pages per member must be a positive number");
       return false;
     }
     setError(null);
@@ -58,7 +58,7 @@ export function CongressionalScrapeDialog({
     if (ok) {
       onClose();
     } else {
-      setError('Failed to start scraping. Please try again.');
+      setError("Failed to start scraping. Please try again.");
     }
   };
 
@@ -67,8 +67,8 @@ export function CongressionalScrapeDialog({
       <DialogTitle>Start Congressional Scraping</DialogTitle>
       <DialogContent sx={{ pt: 1 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Configure how many members and pages to scrape. Use dry run to preview without
-          writing to the database.
+          Configure how many members and pages to scrape. Use dry run to preview
+          without writing to the database.
         </Typography>
         <TextField
           label="Max members"

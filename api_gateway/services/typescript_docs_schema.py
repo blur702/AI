@@ -29,7 +29,7 @@ import argparse
 import hashlib
 import uuid
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any
 
 import weaviate
 from weaviate.classes.aggregate import GroupByAggregate
@@ -38,7 +38,6 @@ from weaviate.exceptions import WeaviateBaseError
 
 from ..utils.logger import get_logger
 from .weaviate_connection import TYPESCRIPT_DOCS_COLLECTION_NAME, WeaviateConnection
-
 
 logger = get_logger("api_gateway.typescript_docs_schema")
 
@@ -59,6 +58,7 @@ but globally unique identifiers for all TypeScript documentation.
 # -----------------------------------------------------------------------------
 # Helper Functions
 # -----------------------------------------------------------------------------
+
 
 def compute_typescript_content_hash(
     title: str,
@@ -107,6 +107,7 @@ def generate_typescript_uuid(url: str, title: str) -> str:
 # Dataclass
 # -----------------------------------------------------------------------------
 
+
 @dataclass
 class TypeScriptDoc:
     """
@@ -124,6 +125,7 @@ class TypeScriptDoc:
         content_hash: SHA256 hash for change detection
         uuid: Stable UUID5 identifier
     """
+
     title: str
     url: str
     content: str
@@ -135,7 +137,7 @@ class TypeScriptDoc:
     content_hash: str
     uuid: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """Convert to Weaviate properties dict."""
         return {
             "title": self.title,
@@ -154,6 +156,7 @@ class TypeScriptDoc:
 # -----------------------------------------------------------------------------
 # Collection Lifecycle Functions
 # -----------------------------------------------------------------------------
+
 
 def create_typescript_docs_collection(
     client: weaviate.WeaviateClient,
@@ -250,7 +253,7 @@ def typescript_docs_collection_exists(client: weaviate.WeaviateClient) -> bool:
     return client.collections.exists(TYPESCRIPT_DOCS_COLLECTION_NAME)
 
 
-def get_typescript_docs_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_typescript_docs_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for the TypeScriptDocs collection.
 
@@ -271,7 +274,7 @@ def get_typescript_docs_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]
     total = agg.total_count or 0
 
     # Breakdown by section
-    section_counts: Dict[str, int] = {}
+    section_counts: dict[str, int] = {}
     try:
         group_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="section"),
@@ -303,11 +306,10 @@ def get_typescript_docs_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]
 # CLI Entry Point
 # -----------------------------------------------------------------------------
 
+
 def main() -> None:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Manage TypeScriptDocs Weaviate collection"
-    )
+    parser = argparse.ArgumentParser(description="Manage TypeScriptDocs Weaviate collection")
     parser.add_argument(
         "command",
         choices=["status", "create", "delete"],
@@ -328,9 +330,9 @@ def main() -> None:
             print("=" * 40)
             print(f"Exists: {stats['exists']}")
             print(f"Total objects: {stats['object_count']}")
-            if stats['section_counts']:
+            if stats["section_counts"]:
                 print("\nBy section:")
-                for section, count in sorted(stats['section_counts'].items()):
+                for section, count in sorted(stats["section_counts"].items()):
                     print(f"  {section}: {count}")
 
         elif args.command == "create":

@@ -6,7 +6,6 @@ canceling in-progress jobs, and receiving real-time updates via WebSocket.
 All generation requests (image, video, audio, music) return job IDs that can
 be monitored through these endpoints.
 """
-from typing import List
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from sqlalchemy import select
@@ -16,13 +15,12 @@ from ..models.database import AsyncSessionLocal, Job, JobStatus
 from ..models.schemas import JobListResponse, JobStatusResponse
 from ..services.job_queue import JobQueueManager, JobWorker
 
-
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 queue_manager = JobQueueManager()
 worker = JobWorker()
 
 
-async def get_jobs_for_key() -> List[Job]:
+async def get_jobs_for_key() -> list[Job]:
     """
     Retrieve all jobs from the database.
 
@@ -165,4 +163,3 @@ async def job_updates_ws(websocket: WebSocket, job_id: str) -> None:
         return
     finally:
         await websocket.close()
-

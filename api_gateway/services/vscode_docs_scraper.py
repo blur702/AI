@@ -232,7 +232,9 @@ class VSCodeDocScraper(BaseDocScraper):
         breadcrumb = soup.select_one("nav.breadcrumb, .breadcrumbs, nav[aria-label='breadcrumb']")
         if breadcrumb:
             items = breadcrumb.select("a, span")
-            return " > ".join(item.get_text(strip=True) for item in items if item.get_text(strip=True))
+            return " > ".join(
+                item.get_text(strip=True) for item in items if item.get_text(strip=True)
+            )
         return ""
 
     def parse_page(self, url: str, html: str) -> DocPage | None:
@@ -241,9 +243,7 @@ class VSCodeDocScraper(BaseDocScraper):
 
         # Extract title
         title_elem = (
-            soup.select_one("h1.title")
-            or soup.select_one("h1")
-            or soup.select_one("title")
+            soup.select_one("h1.title") or soup.select_one("h1") or soup.select_one("title")
         )
         title = title_elem.get_text(strip=True) if title_elem else ""
 

@@ -1,7 +1,8 @@
 """Create N8N owner user directly in database."""
+
+import os
 import sqlite3
 import uuid
-import os
 from datetime import datetime
 
 # N8N database path
@@ -13,18 +14,22 @@ PASSWORD = "admin123"
 FIRST_NAME = "Admin"
 LAST_NAME = "User"
 
+
 def generate_password_hash(password: str) -> str:
     """Generate bcrypt-compatible hash for N8N."""
     try:
         import bcrypt
+
         salt = bcrypt.gensalt(rounds=10)
         return bcrypt.hashpw(password.encode(), salt).decode()
     except ImportError:
         print("Installing bcrypt...")
         os.system("pip install bcrypt -q")
         import bcrypt
+
         salt = bcrypt.gensalt(rounds=10)
         return bcrypt.hashpw(password.encode(), salt).decode()
+
 
 def create_owner():
     """Create owner user in N8N database."""
@@ -51,10 +56,13 @@ def create_owner():
     # Insert user - adjust based on actual schema
     try:
         # Try newer schema first
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO user (id, email, firstName, lastName, password, createdAt, updatedAt)
             VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (user_id, EMAIL, FIRST_NAME, LAST_NAME, password_hash, now, now))
+        """,
+            (user_id, EMAIL, FIRST_NAME, LAST_NAME, password_hash, now, now),
+        )
 
         # Check if there's a role table or column
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%role%'")
@@ -82,6 +90,7 @@ def create_owner():
         conn.rollback()
 
     conn.close()
+
 
 if __name__ == "__main__":
     create_owner()

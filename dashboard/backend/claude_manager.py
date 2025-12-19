@@ -13,12 +13,13 @@ import subprocess
 import threading
 import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
-EmitCallback = Callable[[str, Dict[str, Any]], None]
+EmitCallback = Callable[[str, dict[str, Any]], None]
 
 # Working directory for Claude CLI execution (hardcoded for security)
 CLAUDE_WORKING_DIR = os.path.abspath("d:\\AI")
@@ -39,13 +40,13 @@ class ClaudeSession:
     mode: str  # "normal" or "yolo"
     status: str = "starting"  # starting, running, completed, cancelled, error, timeout
     start_time: float = field(default_factory=time.time)
-    end_time: Optional[float] = None
-    output_lines: List[str] = field(default_factory=list)
-    error_message: Optional[str] = None
-    process: Optional[subprocess.Popen] = None
+    end_time: float | None = None
+    output_lines: list[str] = field(default_factory=list)
+    error_message: str | None = None
+    process: subprocess.Popen | None = None
     cancel_requested: bool = False
 
-    def to_dict(self, include_output: bool = False) -> Dict[str, Any]:
+    def to_dict(self, include_output: bool = False) -> dict[str, Any]:
         """Convert session to dictionary for API responses."""
         result = {
             "session_id": self.session_id,
@@ -83,10 +84,10 @@ class ClaudeManager:
         """
         self.emit = emit_callback
         self.start_background_task = socketio_start_task
-        self._sessions: Dict[str, ClaudeSession] = {}
+        self._sessions: dict[str, ClaudeSession] = {}
         self._lock = threading.Lock()
         self._timeout_seconds = DEFAULT_TIMEOUT_SECONDS
-        self._cleanup_thread: Optional[threading.Thread] = None
+        self._cleanup_thread: threading.Thread | None = None
         self._cleanup_stop = False
 
         # Start cleanup thread
@@ -96,9 +97,7 @@ class ClaudeManager:
         """Start the background cleanup thread."""
         self._cleanup_stop = False
         self._cleanup_thread = threading.Thread(
-            target=self._cleanup_loop,
-            daemon=True,
-            name="claude-session-cleanup"
+            target=self._cleanup_loop, daemon=True, name="claude-session-cleanup"
         )
         self._cleanup_thread.start()
         logger.info("Claude session cleanup thread started")
@@ -135,7 +134,7 @@ class ClaudeManager:
         """Set the execution timeout in seconds."""
         self._timeout_seconds = max(30, min(seconds, 3600))  # 30s to 1 hour
 
-    def execute_claude(self, prompt: str, mode: str) -> Dict[str, Any]:
+    def execute_claude(self, prompt: str, mode: str) -> dict[str, Any]:
         """
         Start a Claude CLI execution.
 
@@ -171,8 +170,7 @@ class ClaudeManager:
         # Check concurrent session limit
         with self._lock:
             active_count = sum(
-                1 for s in self._sessions.values()
-                if s.status in ("starting", "running")
+                1 for s in self._sessions.values() if s.status in ("starting", "running")
             )
             if active_count >= MAX_CONCURRENT_SESSIONS:
                 return {
@@ -235,12 +233,15 @@ class ClaudeManager:
 
         try:
             # Emit starting status
-            self.emit("claude_status", {
-                "session_id": session_id,
-                "status": "running",
-                "message": "Starting Claude CLI",
-                "timestamp": time.time(),
-            })
+            self.emit(
+                "claude_status",
+                {
+                    "session_id": session_id,
+                    "status": "running",
+                    "message": "Starting Claude CLI",
+                    "timestamp": time.time(),
+                },
+            )
 
             # Start process
             process = subprocess.Popen(
@@ -260,11 +261,11 @@ class ClaudeManager:
                     session.process = process
 
             # Stream output
-            for line in iter(process.stdout.readline, ''):
+            for line in iter(process.stdout.readline, ""):
                 if not line:
                     break
 
-                line = line.rstrip('\n\r')
+                line = line.rstrip("\n\r")
 
                 with self._lock:
                     session = self._sessions.get(session_id)
@@ -275,11 +276,14 @@ class ClaudeManager:
                         cancel_requested = True
 
                 # Emit output line
-                self.emit("claude_output", {
-                    "session_id": session_id,
-                    "line": line,
-                    "timestamp": time.time(),
-                })
+                self.emit(
+                    "claude_output",
+                    {
+                        "session_id": session_id,
+                        "line": line,
+                        "timestamp": time.time(),
+                    },
+                )
 
                 # Check cancellation
                 if cancel_requested:
@@ -293,7 +297,9 @@ class ClaudeManager:
                 if elapsed > self._timeout_seconds:
                     logger.warning(f"Session {session_id} timed out after {elapsed:.1f}s")
                     self._terminate_process(process)
-                    self._finalize_session(session_id, "timeout", f"Execution timed out after {self._timeout_seconds}s")
+                    self._finalize_session(
+                        session_id, "timeout", f"Execution timed out after {self._timeout_seconds}s"
+                    )
                     return
 
             # Wait for process to complete
@@ -302,7 +308,9 @@ class ClaudeManager:
             if return_code == 0:
                 self._finalize_session(session_id, "completed", "Execution completed successfully")
             else:
-                self._finalize_session(session_id, "error", f"Process exited with code {return_code}")
+                self._finalize_session(
+                    session_id, "error", f"Process exited with code {return_code}"
+                )
 
         except FileNotFoundError:
             error_msg = "Claude CLI not found - ensure @anthropic-ai/claude-code is installed"
@@ -359,17 +367,24 @@ class ClaudeManager:
                 duration = end_time - session.start_time
 
         if session:
-            logger.info(f"Claude execution completed: session={session_id}, status={status}, duration={duration:.1f}s")
+            logger.info(
+                f"Claude execution completed: session={session_id}, status={status}, duration={duration:.1f}s"
+            )
         else:
-            logger.warning(f"Claude session not found during finalization: session={session_id}, status={status}")
+            logger.warning(
+                f"Claude session not found during finalization: session={session_id}, status={status}"
+            )
 
         # Emit final status
-        self.emit("claude_status", {
-            "session_id": session_id,
-            "status": status,
-            "message": message,
-            "timestamp": end_time,
-        })
+        self.emit(
+            "claude_status",
+            {
+                "session_id": session_id,
+                "status": status,
+                "message": message,
+                "timestamp": end_time,
+            },
+        )
 
         # Emit updated session list
         self._emit_session_list()
@@ -379,19 +394,17 @@ class ClaudeManager:
         sessions = self.get_sessions()
         self.emit("claude_session_list", {"sessions": sessions})
 
-    def get_sessions(self) -> List[Dict[str, Any]]:
+    def get_sessions(self) -> list[dict[str, Any]]:
         """Get list of all sessions."""
         with self._lock:
             return [
                 session.to_dict()
                 for session in sorted(
-                    self._sessions.values(),
-                    key=lambda s: s.start_time,
-                    reverse=True
+                    self._sessions.values(), key=lambda s: s.start_time, reverse=True
                 )
             ]
 
-    def get_session(self, session_id: str, include_output: bool = False) -> Dict[str, Any]:
+    def get_session(self, session_id: str, include_output: bool = False) -> dict[str, Any]:
         """
         Get details for a specific session.
 
@@ -408,7 +421,7 @@ class ClaudeManager:
                 return {"error": "Session not found"}
             return session.to_dict(include_output=include_output)
 
-    def cancel_session(self, session_id: str) -> Dict[str, Any]:
+    def cancel_session(self, session_id: str) -> dict[str, Any]:
         """
         Request cancellation of a running session.
 
@@ -444,12 +457,11 @@ class ClaudeManager:
 
 
 # Singleton instance
-_manager: Optional[ClaudeManager] = None
+_manager: ClaudeManager | None = None
 
 
 def get_claude_manager(
-    emit_callback: Optional[EmitCallback] = None,
-    socketio_start_task: Optional[Callable] = None
+    emit_callback: EmitCallback | None = None, socketio_start_task: Callable | None = None
 ) -> ClaudeManager:
     """
     Get or create the singleton ClaudeManager instance.
@@ -464,6 +476,8 @@ def get_claude_manager(
     global _manager
     if _manager is None:
         if emit_callback is None or socketio_start_task is None:
-            raise RuntimeError("emit_callback and socketio_start_task required for first initialization")
+            raise RuntimeError(
+                "emit_callback and socketio_start_task required for first initialization"
+            )
         _manager = ClaudeManager(emit_callback, socketio_start_task)
     return _manager

@@ -36,7 +36,7 @@ import time
 from abc import ABC, abstractmethod
 from contextlib import nullcontext
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -48,9 +48,9 @@ from urllib.robotparser import RobotFileParser
 import httpx
 from bs4 import BeautifulSoup
 
-from api_gateway.utils.logger import get_logger
-from api_gateway.utils.embeddings import get_embedding
 from api_gateway.services.weaviate_connection import WeaviateConnection
+from api_gateway.utils.embeddings import get_embedding
+from api_gateway.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -75,6 +75,7 @@ USER_AGENTS = [
 @dataclass
 class DocPage:
     """Represents a parsed documentation page."""
+
     url: str
     title: str
     content: str
@@ -109,6 +110,7 @@ class DocPage:
 @dataclass
 class ScraperConfig:
     """Configuration for scraper behavior."""
+
     # Rate limiting
     min_delay: float = 1.0  # Minimum seconds between requests
     max_delay: float = 3.0  # Maximum seconds between requests
@@ -306,8 +308,7 @@ class BaseDocScraper(ABC):
         if self._request_count % self.config.batch_size == 0:
             pause = self._get_batch_pause()
             logger.info(
-                "[%s] Batch pause: %.1fs after %d requests",
-                self.name, pause, self._request_count
+                "[%s] Batch pause: %.1fs after %d requests", self.name, pause, self._request_count
             )
             time.sleep(pause)
             # Rotate User-Agent after batch pause
@@ -387,14 +388,12 @@ class BaseDocScraper(ABC):
                 if response.status_code == 429:
                     self.stats["rate_limits_hit"] += 1
                     backoff = min(
-                        self.config.backoff_base ** (attempt + 1),
-                        self.config.backoff_max
+                        self.config.backoff_base ** (attempt + 1), self.config.backoff_max
                     )
                     # Add jitter to backoff
                     backoff *= random.uniform(0.8, 1.2)
                     logger.warning(
-                        "[%s] Rate limited (429), backing off %.1fs: %s",
-                        self.name, backoff, url
+                        "[%s] Rate limited (429), backing off %.1fs: %s", self.name, backoff, url
                     )
                     time.sleep(backoff)
                     self._rotate_user_agent()
@@ -402,10 +401,13 @@ class BaseDocScraper(ABC):
 
                 # Handle server errors
                 if response.status_code >= 500:
-                    backoff = self.config.backoff_base ** attempt
+                    backoff = self.config.backoff_base**attempt
                     logger.warning(
                         "[%s] Server error %d, retrying in %.1fs: %s",
-                        self.name, response.status_code, backoff, url
+                        self.name,
+                        response.status_code,
+                        backoff,
+                        url,
                     )
                     time.sleep(backoff)
                     continue
@@ -422,14 +424,14 @@ class BaseDocScraper(ABC):
                 return html
 
             except httpx.TimeoutException:
-                backoff = self.config.backoff_base ** attempt
+                backoff = self.config.backoff_base**attempt
                 logger.warning("[%s] Timeout, retrying in %.1fs: %s", self.name, backoff, url)
                 time.sleep(backoff)
 
             except httpx.RequestError as e:
                 logger.warning("[%s] Request error: %s - %s", self.name, url, e)
                 if attempt < self.config.max_retries - 1:
-                    time.sleep(self.config.backoff_base ** attempt)
+                    time.sleep(self.config.backoff_base**attempt)
 
         self.stats["pages_failed"] += 1
         return None
@@ -445,11 +447,13 @@ class BaseDocScraper(ABC):
             "queue": queue,
             "depth_map": depth_map,
             "stats": self.stats,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
         checkpoint_path = self._get_checkpoint_path()
         checkpoint_path.write_text(json.dumps(checkpoint, indent=2))
-        logger.info("[%s] Checkpoint saved: %d seen, %d queued", self.name, len(self._seen_urls), len(queue))
+        logger.info(
+            "[%s] Checkpoint saved: %d seen, %d queued", self.name, len(self._seen_urls), len(queue)
+        )
 
     def _load_checkpoint(self) -> tuple[list[str], dict[str, int]] | None:
         """Load checkpoint if exists."""
@@ -463,7 +467,9 @@ class BaseDocScraper(ABC):
             self.stats = checkpoint["stats"]
             logger.info(
                 "[%s] Resumed from checkpoint: %d seen, %d queued",
-                self.name, len(self._seen_urls), len(checkpoint["queue"])
+                self.name,
+                len(self._seen_urls),
+                len(checkpoint["queue"]),
             )
             return checkpoint["queue"], checkpoint["depth_map"]
         except Exception as e:
@@ -473,6 +479,7 @@ class BaseDocScraper(ABC):
     def generate_uuid(self, page: DocPage) -> str:
         """Generate stable UUID for a doc page."""
         import uuid
+
         key = f"{self.name}:{page.url}"
         return str(uuid.UUID(hashlib.md5(key.encode()).hexdigest()))
 
@@ -506,7 +513,7 @@ class BaseDocScraper(ABC):
                 queue, depth_map = checkpoint
             else:
                 queue = self.get_seed_urls()
-                depth_map = {url: 0 for url in queue}
+                depth_map = dict.fromkeys(queue, 0)
                 self._seen_urls = set()
 
             # Use context manager for proper resource cleanup
@@ -534,7 +541,9 @@ class BaseDocScraper(ABC):
 
                     # Check page limit
                     if self.config.max_pages > 0 and pages_processed >= self.config.max_pages:
-                        logger.info("[%s] Reached max pages limit (%d)", self.name, self.config.max_pages)
+                        logger.info(
+                            "[%s] Reached max pages limit (%d)", self.name, self.config.max_pages
+                        )
                         break
 
                     # Fetch page
@@ -590,7 +599,10 @@ class BaseDocScraper(ABC):
                     if pages_processed % 10 == 0:
                         logger.info(
                             "[%s] Progress: %d scraped, %d queued, %d seen",
-                            self.name, pages_processed, len(queue), len(self._seen_urls)
+                            self.name,
+                            pages_processed,
+                            len(queue),
+                            len(self._seen_urls),
                         )
 
                     # Extract and queue new links

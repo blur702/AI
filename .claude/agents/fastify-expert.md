@@ -57,4 +57,3 @@ model: claude-sonnet-4-20250514
 - Secure application with best practices implemented
 - Deployment-ready Fastify server setup
 - Comprehensive API documentation with examples
-

@@ -26,13 +26,12 @@ Usage:
     print(settings.API_PORT)
     print(settings.WEAVIATE_URL)
 """
+
 import os
 from pathlib import Path
-from typing import Dict, List
 from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
-
 
 # Load .env with override to ensure file values take precedence
 load_dotenv(override=True)
@@ -66,6 +65,7 @@ class Settings:
         OLLAMA_API_ENDPOINT: Ollama API base URL
         SERVICES: Dictionary of service names to endpoint URLs
     """
+
     API_PORT: int = int(os.getenv("API_PORT", "1301"))
 
     # PostgreSQL configuration
@@ -113,8 +113,8 @@ class Settings:
     DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", "3600"))
 
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
-    CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "*").split(",")
-    
+    CORS_ORIGINS: list[str] = os.getenv("CORS_ORIGINS", "*").split(",")
+
     # VRAM Manager path - resolves relative paths to absolute
     @staticmethod
     def _resolve_vram_path() -> str:
@@ -130,22 +130,22 @@ class Settings:
         vram_path = os.getenv("VRAM_MANAGER_PATH", "./vram_manager.py")
         if not vram_path:
             vram_path = "./vram_manager.py"
-        
+
         # Resolve relative paths relative to project root (parent of api_gateway)
         path = Path(vram_path)
         if not path.is_absolute():
             # Get project root (parent directory of api_gateway)
             project_root = Path(__file__).resolve().parent.parent
             path = (project_root / vram_path).resolve()
-        
+
         return str(path)
-    
+
     VRAM_MANAGER_PATH: str = _resolve_vram_path.__func__()
 
     # Weaviate Vector Database
     WEAVIATE_URL: str = os.getenv("WEAVIATE_URL", "http://localhost:8080")
     WEAVIATE_GRPC_HOST: str = os.getenv("WEAVIATE_GRPC_HOST", "localhost")
-    
+
     # Validate WEAVIATE_GRPC_PORT is a valid integer
     @staticmethod
     def _parse_grpc_port() -> int:
@@ -163,9 +163,10 @@ class Settings:
             return int(port_str)
         except ValueError:
             import logging
+
             logging.warning(f"Invalid WEAVIATE_GRPC_PORT '{port_str}', using default 50051")
             return 50051
-    
+
     WEAVIATE_GRPC_PORT: int = _parse_grpc_port.__func__()
     OLLAMA_EMBEDDING_MODEL: str = os.getenv("OLLAMA_EMBEDDING_MODEL", "snowflake-arctic-embed:l")
     # Ollama API endpoint for embeddings (from Weaviate's perspective)
@@ -174,7 +175,7 @@ class Settings:
 
     # Known embedding models and their vector dimensions
     # Used by migrate_embeddings and collection schemas
-    EMBEDDING_MODEL_DIMENSIONS: Dict[str, int] = {
+    EMBEDDING_MODEL_DIMENSIONS: dict[str, int] = {
         "nomic-embed-text": 768,
         "snowflake-arctic-embed:l": 1024,
         "mxbai-embed-large": 1024,
@@ -191,7 +192,7 @@ class Settings:
         """
         return cls.EMBEDDING_MODEL_DIMENSIONS.get(cls.OLLAMA_EMBEDDING_MODEL, 1024)
 
-    SERVICES: Dict[str, str] = {
+    SERVICES: dict[str, str] = {
         "comfyui": "http://localhost:8188",
         "alltalk": "http://localhost:7851",
         "ollama": "http://localhost:11434",

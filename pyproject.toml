@@ -1,0 +1,87 @@
+# Python tool configuration
+# This file configures black, isort, and ruff to exclude venvs and large AI project directories
+
+[tool.black]
+line-length = 100
+target-version = ['py311']
+extend-exclude = '''
+(
+    alltalk_tts
+    | audiocraft
+    | ComfyUI
+    | DiffRhythm
+    | local-talking-llm
+    | MusicGPT
+    | stable-audio-tools
+    | stability-matrix
+    | Wan2GP
+    | YuE
+    | \.venv
+    | venv
+    | node_modules
+    | ollama-models
+    | weaviate_share
+    | data/scraper
+)
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+skip_glob = [
+    "alltalk_tts/*",
+    "audiocraft/*",
+    "ComfyUI/*",
+    "DiffRhythm/*",
+    "local-talking-llm/*",
+    "MusicGPT/*",
+    "stable-audio-tools/*",
+    "stability-matrix/*",
+    "Wan2GP/*",
+    "YuE/*",
+    ".venv/*",
+    "venv/*",
+    "node_modules/*",
+    "ollama-models/*",
+    "weaviate_share/*",
+    "data/scraper/*",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+# Ruff respects .gitignore by default, but we add explicit excludes for safety
+extend-exclude = [
+    "alltalk_tts",
+    "audiocraft",
+    "ComfyUI",
+    "DiffRhythm",
+    "local-talking-llm",
+    "MusicGPT",
+    "stable-audio-tools",
+    "stability-matrix",
+    "Wan2GP",
+    "YuE",
+    ".venv",
+    "venv",
+    "node_modules",
+    "ollama-models",
+    "weaviate_share",
+    "data/scraper",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+]
+ignore = [
+    "E501",   # line too long (handled by black)
+    "B008",   # do not perform function calls in argument defaults
+    "C901",   # too complex
+]

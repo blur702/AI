@@ -346,7 +346,7 @@ test.describe("Service Toggle - Dashboard Interactions", () => {
       const card = dashboardPage.getServiceCardByName(TEST_SERVICE.name);
 
       // Ensure service is running (start if needed)
-      let svc = await getServiceStatus(dashboardAPI, TEST_SERVICE.id);
+      const svc = await getServiceStatus(dashboardAPI, TEST_SERVICE.id);
       if (svc?.status !== "running") {
         await clickStartWithRetry(
           card,
@@ -627,7 +627,7 @@ test.describe("Service Toggle - Dashboard Interactions", () => {
       const card = dashboardPage.getServiceCardByName(TEST_SERVICE.name);
 
       // Ensure running
-      let svc = await getServiceStatus(dashboardAPI, TEST_SERVICE.id);
+      const svc = await getServiceStatus(dashboardAPI, TEST_SERVICE.id);
       if (svc?.status !== "running") {
         await clickStartWithRetry(
           card,
@@ -1145,7 +1145,7 @@ test.describe("Service Toggle - Dashboard Interactions", () => {
       const card = dashboardPage.getServiceCardByName(TEST_SERVICE.name);
 
       // Ensure service is running
-      let svc = await getServiceStatus(dashboardAPI, TEST_SERVICE.id);
+      const svc = await getServiceStatus(dashboardAPI, TEST_SERVICE.id);
       if (svc?.status !== "running") {
         await clickStartWithRetry(
           card,

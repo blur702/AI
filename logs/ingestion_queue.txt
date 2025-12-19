@@ -869,3 +869,7 @@ docs/DRUPAL_UPDATE_QUICKREF.md
 drupal_modules/WEBFORM_LIBRARIES_INSTALLATION.md
 drupal_modules/WEBFORM_LIBRARIES_QUICKSTART.md
 drupal_modules/congressional_query/README.md
+api_gateway/services/congressional_parallel_supervisor.py
+api_gateway/services/congressional_worker.py
+api_gateway/services/congressional_parallel_supervisor.py
+api_gateway/services/congressional_worker.py

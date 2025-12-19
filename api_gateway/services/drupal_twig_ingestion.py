@@ -18,7 +18,7 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List
+
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property, VectorDistances
 
@@ -38,6 +38,7 @@ DRUPAL_WEB_ROOT = settings.DRUPAL_WEB_ROOT
 @dataclass
 class TwigTemplate:
     """Represents a Drupal Twig template."""
+
     template_name: str
     content: str
     file_path: str
@@ -46,7 +47,7 @@ class TwigTemplate:
     template_type: str  # 'page', 'node', 'block', 'field', 'views', 'form', 'other'
     description: str  # extracted from comments
 
-    def to_properties(self) -> Dict[str, str]:
+    def to_properties(self) -> dict[str, str]:
         return {
             "template_name": self.template_name,
             "content": self.content,
@@ -130,24 +131,24 @@ def extract_description(content: str) -> str:
     # {# ... #} or multiline {#\n...\n#}
 
     # Try to find the first comment block
-    match = re.search(r'\{#\s*(.*?)\s*#\}', content, re.DOTALL)
+    match = re.search(r"\{#\s*(.*?)\s*#\}", content, re.DOTALL)
     if match:
         comment = match.group(1).strip()
         # Clean up the comment
-        lines = comment.split('\n')
+        lines = comment.split("\n")
         # Take first few meaningful lines
         desc_lines = []
         for line in lines[:5]:
-            line = line.strip().strip('*').strip('-').strip()
-            if line and not line.startswith('@') and not line.startswith('Available variables'):
+            line = line.strip().strip("*").strip("-").strip()
+            if line and not line.startswith("@") and not line.startswith("Available variables"):
                 desc_lines.append(line)
         if desc_lines:
-            return ' '.join(desc_lines)[:500]
+            return " ".join(desc_lines)[:500]
 
     return ""
 
 
-def fetch_twig_files() -> List[Dict[str, str]]:
+def fetch_twig_files() -> list[dict[str, str]]:
     """Fetch list of Twig template files from Drupal server."""
     # Find all .html.twig files in themes and modules
     command = f"""find {DRUPAL_WEB_ROOT}/core/themes {DRUPAL_WEB_ROOT}/core/modules {DRUPAL_WEB_ROOT}/modules/contrib {DRUPAL_WEB_ROOT}/themes/custom -name '*.html.twig' -type f 2>/dev/null"""
@@ -155,40 +156,42 @@ def fetch_twig_files() -> List[Dict[str, str]]:
     output = run_ssh_command(command)
     files = []
 
-    for line in output.strip().split('\n'):
+    for line in output.strip().split("\n"):
         if not line:
             continue
         path = line.strip()
 
         # Determine source type and name
-        if '/core/themes/' in path:
-            source_type = 'core_theme'
-            parts = path.split('/core/themes/')[1].split('/')
+        if "/core/themes/" in path:
+            source_type = "core_theme"
+            parts = path.split("/core/themes/")[1].split("/")
             source_name = parts[0]
-        elif '/core/modules/' in path:
-            source_type = 'core_module'
-            parts = path.split('/core/modules/')[1].split('/')
+        elif "/core/modules/" in path:
+            source_type = "core_module"
+            parts = path.split("/core/modules/")[1].split("/")
             source_name = parts[0]
-        elif '/modules/contrib/' in path:
-            source_type = 'contrib_module'
-            parts = path.split('/modules/contrib/')[1].split('/')
+        elif "/modules/contrib/" in path:
+            source_type = "contrib_module"
+            parts = path.split("/modules/contrib/")[1].split("/")
             source_name = parts[0]
-        elif '/themes/custom/' in path:
-            source_type = 'custom_theme'
-            parts = path.split('/themes/custom/')[1].split('/')
+        elif "/themes/custom/" in path:
+            source_type = "custom_theme"
+            parts = path.split("/themes/custom/")[1].split("/")
             source_name = parts[0]
         else:
-            source_type = 'other'
-            source_name = 'unknown'
+            source_type = "other"
+            source_name = "unknown"
 
         template_name = Path(path).name
 
-        files.append({
-            'path': path,
-            'template_name': template_name,
-            'source_type': source_type,
-            'source_name': source_name,
-        })
+        files.append(
+            {
+                "path": path,
+                "template_name": template_name,
+                "source_type": source_type,
+                "source_name": source_name,
+            }
+        )
 
     logger.info("Found %d Twig template files on Drupal server", len(files))
     return files
@@ -200,29 +203,31 @@ def fetch_file_content(remote_path: str) -> str:
     return run_ssh_command(command)
 
 
-def process_templates(file_list: List[Dict[str, str]]) -> List[TwigTemplate]:
+def process_templates(file_list: list[dict[str, str]]) -> list[TwigTemplate]:
     """Fetch and process all template files."""
-    templates: List[TwigTemplate] = []
+    templates: list[TwigTemplate] = []
 
     for file_info in file_list:
-        logger.debug("Processing: %s", file_info['path'])
-        content = fetch_file_content(file_info['path'])
+        logger.debug("Processing: %s", file_info["path"])
+        content = fetch_file_content(file_info["path"])
 
         if not content or len(content.strip()) < 10:
             continue
 
-        template_type = determine_template_type(file_info['template_name'], content)
+        template_type = determine_template_type(file_info["template_name"], content)
         description = extract_description(content)
 
-        templates.append(TwigTemplate(
-            template_name=file_info['template_name'],
-            content=content[:10000],  # Limit content size
-            file_path=file_info['path'],
-            source_type=file_info['source_type'],
-            source_name=file_info['source_name'],
-            template_type=template_type,
-            description=description,
-        ))
+        templates.append(
+            TwigTemplate(
+                template_name=file_info["template_name"],
+                content=content[:10000],  # Limit content size
+                file_path=file_info["path"],
+                source_type=file_info["source_type"],
+                source_name=file_info["source_name"],
+                template_type=template_type,
+                description=description,
+            )
+        )
 
     return templates
 
@@ -272,7 +277,13 @@ def ingest_templates(dry_run: bool = False, verbose: bool = False) -> int:
     if dry_run:
         logger.info("Dry run - would ingest %d templates", len(templates))
         for t in templates[:5]:
-            logger.info("  [%s/%s] %s: %s", t.source_type, t.source_name, t.template_name, t.description[:50] if t.description else "(no desc)")
+            logger.info(
+                "  [%s/%s] %s: %s",
+                t.source_type,
+                t.source_name,
+                t.template_name,
+                t.description[:50] if t.description else "(no desc)",
+            )
         return len(templates)
 
     # Connect to Weaviate and ingest

@@ -34,10 +34,9 @@ import argparse
 import asyncio
 import json
 import sys
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
-from sqlalchemy import select, and_, func
+from sqlalchemy import and_, func, select
 
 from api_gateway.models.database import (
     AsyncSessionLocal,
@@ -49,10 +48,10 @@ from api_gateway.models.database import (
 async def store_error(
     service: str,
     message: str,
-    file_path: Optional[str] = None,
-    line_number: Optional[int] = None,
+    file_path: str | None = None,
+    line_number: int | None = None,
     severity: str = "error",
-    stack_trace: Optional[str] = None,
+    stack_trace: str | None = None,
 ) -> str:
     """
     Store a new error in the database.
@@ -68,7 +67,11 @@ async def store_error(
         context["line_number"] = line_number
 
     # Map severity string to enum
-    severity_enum = ErrorSeverity(severity) if severity in [e.value for e in ErrorSeverity] else ErrorSeverity.error
+    severity_enum = (
+        ErrorSeverity(severity)
+        if severity in [e.value for e in ErrorSeverity]
+        else ErrorSeverity.error
+    )
 
     async with AsyncSessionLocal() as session:
         error = Error(
@@ -96,16 +99,14 @@ async def resolve_error(
         True if error was found and updated, False otherwise.
     """
     async with AsyncSessionLocal() as session:
-        result = await session.execute(
-            select(Error).where(Error.id == error_id)
-        )
+        result = await session.execute(select(Error).where(Error.id == error_id))
         error = result.scalar_one_or_none()
 
         if not error:
             return False
 
         error.resolved = True
-        error.resolved_at = datetime.now(timezone.utc)
+        error.resolved_at = datetime.now(UTC)
         error.resolution = resolution
         await session.commit()
         return True
@@ -135,7 +136,7 @@ async def resolve_errors_by_file(
         count = 0
         for error in errors:
             error.resolved = True
-            error.resolved_at = datetime.now(timezone.utc)
+            error.resolved_at = datetime.now(UTC)
             error.resolution = resolution
             count += 1
 
@@ -144,8 +145,8 @@ async def resolve_errors_by_file(
 
 
 async def find_errors(
-    file_path: Optional[str] = None,
-    service: Optional[str] = None,
+    file_path: str | None = None,
+    service: str | None = None,
     unresolved_only: bool = True,
     limit: int = 50,
 ) -> list[dict]:
@@ -203,9 +204,7 @@ async def get_error_stats() -> dict:
     """Get error statistics."""
     async with AsyncSessionLocal() as session:
         # Count total using SQL COUNT
-        total_result = await session.execute(
-            select(func.count(Error.id))
-        )
+        total_result = await session.execute(select(func.count(Error.id)))
         total = total_result.scalar_one()
 
         # Count unresolved using SQL COUNT
@@ -232,9 +231,7 @@ async def get_error_stats() -> dict:
 
 def main() -> None:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Track errors in PostgreSQL database"
-    )
+    parser = argparse.ArgumentParser(description="Track errors in PostgreSQL database")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # store command

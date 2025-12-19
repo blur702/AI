@@ -54,8 +54,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
 }
 
 .expand-icon {
@@ -95,7 +100,7 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   color: #fff;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: "Consolas", "Monaco", monospace;
   font-size: 0.9rem;
   resize: vertical;
   min-height: 80px;
@@ -371,7 +376,7 @@
   background: #0d1117;
   border-radius: 6px;
   padding: 12px;
-  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-family: "Consolas", "Monaco", "Courier New", monospace;
   font-size: 0.85rem;
   line-height: 1.5;
   max-height: 400px;
@@ -427,8 +432,13 @@
 }
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* Scrollbar styling for terminal */
@@ -479,7 +489,7 @@
     animation: none !important;
     animation-duration: 0s !important;
   }
-  
+
   /* Disable transitions */
   .claude-toggle,
   .session-item,

@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
 import {
   CongressionalStatus,
   CongressionalProgress,
@@ -8,8 +8,8 @@ import {
   CongressionalScrapeConfig,
   CongressionalChatRequest,
   CongressionalChatResponse,
-} from '../types';
-import { getApiBase } from '../config/services';
+} from "../types";
+import { getApiBase } from "../config/services";
 
 interface UseCongressionalReturn {
   status: CongressionalStatus | null;
@@ -20,8 +20,12 @@ interface UseCongressionalReturn {
   cancelScrape: () => Promise<boolean>;
   pauseScrape: () => Promise<boolean>;
   resumeScrape: () => Promise<boolean>;
-  queryData: (request: CongressionalQueryRequest) => Promise<CongressionalQueryResponse | null>;
-  askQuestion: (request: CongressionalChatRequest) => Promise<CongressionalChatResponse | null>;
+  queryData: (
+    request: CongressionalQueryRequest,
+  ) => Promise<CongressionalQueryResponse | null>;
+  askQuestion: (
+    request: CongressionalChatRequest,
+  ) => Promise<CongressionalChatResponse | null>;
   refreshStatus: () => Promise<void>;
 }
 
@@ -35,7 +39,7 @@ export function useCongressional(): UseCongressionalReturn {
   const fetchStatus = useCallback(async () => {
     try {
       const response = await fetch(`${getApiBase()}/api/congressional/status`, {
-        credentials: 'include',
+        credentials: "include",
       });
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -44,8 +48,8 @@ export function useCongressional(): UseCongressionalReturn {
       setStatus(data);
       setError(null);
     } catch (err) {
-      console.error('Error fetching congressional status:', err);
-      setError('Failed to fetch congressional status');
+      console.error("Error fetching congressional status:", err);
+      setError("Failed to fetch congressional status");
     } finally {
       setLoading(false);
     }
@@ -55,81 +59,95 @@ export function useCongressional(): UseCongressionalReturn {
     const abortController = new AbortController();
 
     fetch(`${getApiBase()}/api/auth/token`, {
-      credentials: 'include',
+      credentials: "include",
       signal: abortController.signal,
     })
       .then((res) => {
         if (abortController.signal.aborted) return null;
-        if (!res.ok) throw new Error('Authentication required');
+        if (!res.ok) throw new Error("Authentication required");
         return res.json();
       })
       .then((data) => {
         if (!data || abortController.signal.aborted) return;
 
         const socket = io(getApiBase(), {
-          transports: ['websocket', 'polling'],
+          transports: ["websocket", "polling"],
           auth: { token: data.token },
         });
         socketRef.current = socket;
 
-        socket.on('connect_error', (err) => {
-          console.error('Socket.IO connection error (congressional):', err);
+        socket.on("connect_error", (err) => {
+          console.error("Socket.IO connection error (congressional):", err);
           setError(
-            'Failed to establish real-time connection for congressional data. Please check your network and authentication.',
+            "Failed to establish real-time connection for congressional data. Please check your network and authentication.",
           );
           setLoading(false);
         });
 
-        socket.on('disconnect', (reason) => {
-          console.log('Socket.IO disconnected (congressional):', reason);
-          if (reason !== 'io server disconnect' && reason !== 'io client disconnect') {
-            setError('Real-time connection for congressional data lost. Updates may be delayed.');
+        socket.on("disconnect", (reason) => {
+          console.log("Socket.IO disconnected (congressional):", reason);
+          if (
+            reason !== "io server disconnect" &&
+            reason !== "io client disconnect"
+          ) {
+            setError(
+              "Real-time connection for congressional data lost. Updates may be delayed.",
+            );
           }
         });
 
-        socket.on('connect', () => {
-          console.log('Socket.IO connected for congressional data');
-          setError((prev) => (prev && prev.includes('Real-time connection for congressional') ? null : prev));
+        socket.on("connect", () => {
+          console.log("Socket.IO connected for congressional data");
+          setError((prev) =>
+            prev && prev.includes("Real-time connection for congressional")
+              ? null
+              : prev,
+          );
         });
 
-        socket.on('congressional_started', () => {
+        socket.on("congressional_started", () => {
           setProgress(null);
           setError(null);
           fetchStatus();
         });
 
-        socket.on('congressional_progress', (data: CongressionalProgress) => {
+        socket.on("congressional_progress", (data: CongressionalProgress) => {
           setProgress(data);
         });
 
-        socket.on('congressional_complete', () => {
+        socket.on("congressional_complete", () => {
           fetchStatus();
         });
 
-        socket.on('congressional_error', (data: { error: string; stats?: unknown }) => {
-          console.error('Congressional scraping error:', data);
-          setError(data.error || 'Congressional scraping failed');
+        socket.on(
+          "congressional_error",
+          (data: { error: string; stats?: unknown }) => {
+            console.error("Congressional scraping error:", data);
+            setError(data.error || "Congressional scraping failed");
+            fetchStatus();
+          },
+        );
+
+        socket.on("congressional_cancelled", () => {
           fetchStatus();
         });
 
-        socket.on('congressional_cancelled', () => {
+        socket.on("congressional_paused", () => {
           fetchStatus();
         });
 
-        socket.on('congressional_paused', () => {
-          fetchStatus();
-        });
-
-        socket.on('congressional_resumed', () => {
+        socket.on("congressional_resumed", () => {
           fetchStatus();
         });
 
         fetchStatus();
       })
       .catch((err) => {
-        if ((err as Error).name === 'AbortError') return;
-        console.error('Socket.IO authentication failed (congressional):', err);
-        setError('Authentication failed for congressional data. Please log in again.');
+        if ((err as Error).name === "AbortError") return;
+        console.error("Socket.IO authentication failed (congressional):", err);
+        setError(
+          "Authentication failed for congressional data. Please log in again.",
+        );
         setLoading(false);
         if (socketRef.current) {
           socketRef.current.disconnect();
@@ -149,78 +167,106 @@ export function useCongressional(): UseCongressionalReturn {
   const startScrape = useCallback(async (config: CongressionalScrapeConfig) => {
     setError(null);
     try {
-      const response = await fetch(`${getApiBase()}/api/congressional/scrape/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(config),
-      });
+      const response = await fetch(
+        `${getApiBase()}/api/congressional/scrape/start`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify(config),
+        },
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
-        setError(data.error || data.message || 'Failed to start congressional scraping');
+        setError(
+          data.error ||
+            data.message ||
+            "Failed to start congressional scraping",
+        );
         return false;
       }
       return true;
     } catch (err) {
-      console.error('Error starting congressional scraping:', err);
-      setError('Connection error while starting congressional scraping');
+      console.error("Error starting congressional scraping:", err);
+      setError("Connection error while starting congressional scraping");
       return false;
     }
   }, []);
 
   const cancelScrape = useCallback(async () => {
     try {
-      const response = await fetch(`${getApiBase()}/api/congressional/scrape/cancel`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `${getApiBase()}/api/congressional/scrape/cancel`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
-        setError(data.error || data.message || 'Failed to cancel congressional scraping');
+        setError(
+          data.error ||
+            data.message ||
+            "Failed to cancel congressional scraping",
+        );
         return false;
       }
       return true;
     } catch (err) {
-      console.error('Error cancelling congressional scraping:', err);
-      setError('Connection error while cancelling congressional scraping');
+      console.error("Error cancelling congressional scraping:", err);
+      setError("Connection error while cancelling congressional scraping");
       return false;
     }
   }, []);
 
   const pauseScrape = useCallback(async () => {
     try {
-      const response = await fetch(`${getApiBase()}/api/congressional/scrape/pause`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `${getApiBase()}/api/congressional/scrape/pause`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
-        setError(data.error || data.message || 'Failed to pause congressional scraping');
+        setError(
+          data.error ||
+            data.message ||
+            "Failed to pause congressional scraping",
+        );
         return false;
       }
       return true;
     } catch (err) {
-      console.error('Error pausing congressional scraping:', err);
-      setError('Connection error while pausing congressional scraping');
+      console.error("Error pausing congressional scraping:", err);
+      setError("Connection error while pausing congressional scraping");
       return false;
     }
   }, []);
 
   const resumeScrape = useCallback(async () => {
     try {
-      const response = await fetch(`${getApiBase()}/api/congressional/scrape/resume`, {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const response = await fetch(
+        `${getApiBase()}/api/congressional/scrape/resume`,
+        {
+          method: "POST",
+          credentials: "include",
+        },
+      );
       const data = await response.json();
       if (!response.ok || !data.success) {
-        setError(data.error || data.message || 'Failed to resume congressional scraping');
+        setError(
+          data.error ||
+            data.message ||
+            "Failed to resume congressional scraping",
+        );
         return false;
       }
       return true;
     } catch (err) {
-      console.error('Error resuming congressional scraping:', err);
-      setError('Connection error while resuming congressional scraping');
+      console.error("Error resuming congressional scraping:", err);
+      setError("Connection error while resuming congressional scraping");
       return false;
     }
   }, []);
@@ -229,19 +275,15 @@ export function useCongressional(): UseCongressionalReturn {
     setError(null);
     try {
       const response = await fetch(`${getApiBase()}/api/congressional/query`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(request),
       });
       const data: CongressionalQueryResponse = await response.json();
       if (!response.ok || !data.success) {
         // Log details for diagnostics
-        console.error(
-          'Congressional query failed',
-          response.status,
-          data,
-        );
+        console.error("Congressional query failed", response.status, data);
         const message =
           data?.error ||
           data?.message ||
@@ -251,8 +293,8 @@ export function useCongressional(): UseCongressionalReturn {
       }
       return data;
     } catch (err) {
-      console.error('Error querying congressional data:', err);
-      setError('Connection error while querying congressional data');
+      console.error("Error querying congressional data:", err);
+      setError("Connection error while querying congressional data");
       return null;
     }
   }, []);
@@ -261,24 +303,23 @@ export function useCongressional(): UseCongressionalReturn {
     setError(null);
     try {
       const response = await fetch(`${getApiBase()}/api/congressional/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(request),
       });
       const data: CongressionalChatResponse = await response.json();
       if (!response.ok || !data.success) {
-        console.error('Congressional chat failed', response.status, data);
+        console.error("Congressional chat failed", response.status, data);
         const message =
-          data?.error ||
-          `Chat request failed (HTTP ${response.status})`;
+          data?.error || `Chat request failed (HTTP ${response.status})`;
         setError(message);
         return null;
       }
       return data;
     } catch (err) {
-      console.error('Error in congressional chat:', err);
-      setError('Connection error while processing your question');
+      console.error("Error in congressional chat:", err);
+      setError("Connection error while processing your question");
       return null;
     }
   }, []);

@@ -14,7 +14,6 @@ import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 from api_gateway.config import settings
 from api_gateway.services.drupal_ssh import (
@@ -41,9 +40,7 @@ def attach_deploy_log(verbose: bool = False) -> Path:
     timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     log_file = log_dir / f"drupal_deployment_{timestamp}.log"
     handler = logging.FileHandler(log_file)
-    handler.setFormatter(
-        logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-    )
+    handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
     SCRIPT_LOGGER.addHandler(handler)
     if verbose:
         SCRIPT_LOGGER.setLevel(logging.DEBUG)
@@ -52,16 +49,16 @@ def attach_deploy_log(verbose: bool = False) -> Path:
 
 @dataclass
 class DeploymentState:
-    commands: List[str] = field(default_factory=list)
+    commands: list[str] = field(default_factory=list)
     start_time: datetime = field(default_factory=datetime.utcnow)
-    backup_id: Optional[str] = None
+    backup_id: str | None = None
     uploaded_files: int = 0
     verified: bool = False
 
     def add_command(self, command: str) -> None:
         self.commands.append(command)
 
-    def report(self) -> Dict[str, str]:
+    def report(self) -> dict[str, str]:
         duration = (datetime.utcnow() - self.start_time).total_seconds()
         return {
             "duration_seconds": f"{duration:.2f}",
@@ -157,8 +154,12 @@ class DrupalModuleDeployer:
         if self.module_name not in stdout:
             raise DeploymentError("Module verification failed")
         self.state.verified = True
-        self.run(f'cd {self.remote_root} && {DRUSH_PATH} sql-query "DESCRIBE page_password_protect"')
-        self.run(f'cd {self.remote_root} && {DRUSH_PATH} field:list node | grep field_page_password_protected')
+        self.run(
+            f'cd {self.remote_root} && {DRUSH_PATH} sql-query "DESCRIBE page_password_protect"'
+        )
+        self.run(
+            f"cd {self.remote_root} && {DRUSH_PATH} field:list node | grep field_page_password_protected"
+        )
 
     def create_backup(self) -> str:
         timestamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
@@ -189,14 +190,14 @@ class DrupalModuleDeployer:
         self.clear_caches()
         SCRIPT_LOGGER.info("Rolled back deployment from backup %s", backup_id)
 
-    def list_backups(self) -> List[str]:
+    def list_backups(self) -> list[str]:
         try:
             stdout = self.run("ls /tmp/drupal_module_backups").stdout
         except SSHCommandError:
             return []
         return [line.strip() for line in stdout.strip().splitlines() if line.strip()]
 
-    def deploy(self) -> Dict[str, str]:
+    def deploy(self) -> dict[str, str]:
         SCRIPT_LOGGER.info("Deploying module %s to %s", self.module_name, self.remote_root)
         if self.remote_module_exists() and not self.force:
             SCRIPT_LOGGER.info("Remote module already exists, creating backup.")
@@ -217,6 +218,7 @@ class DrupalModuleDeployer:
 
 class DeploymentError(Exception):
     """Represents a failure during deployment."""
+
     pass
 
 
@@ -234,7 +236,9 @@ def parse_args() -> argparse.Namespace:
         help="Remote modules directory",
     )
     parser.add_argument("--dry-run", action="store_true", help="Log actions without executing")
-    parser.add_argument("--force", action="store_true", help="Force deployment even if module exists")
+    parser.add_argument(
+        "--force", action="store_true", help="Force deployment even if module exists"
+    )
     parser.add_argument("--skip-backup", action="store_true", help="Skip creating remote backup")
     parser.add_argument("--rollback", help="Rollback to backup ID")
     parser.add_argument("--list-backups", action="store_true", help="List remote backups")

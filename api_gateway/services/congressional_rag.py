@@ -5,9 +5,7 @@ Provides natural language question-answering over congressional data
 by combining vector search with LLM generation.
 """
 
-import json
 from dataclasses import dataclass
-from typing import List, Optional
 
 import httpx
 
@@ -40,6 +38,7 @@ Format your response in clear, readable paragraphs. Use bullet points for lists 
 @dataclass
 class RAGSource:
     """A source document used in the RAG response."""
+
     member_name: str
     title: str
     content_preview: str
@@ -51,17 +50,18 @@ class RAGSource:
 @dataclass
 class RAGResponse:
     """Response from the RAG system."""
+
     answer: str
-    sources: List[RAGSource]
+    sources: list[RAGSource]
     model: str
-    tokens_used: Optional[int] = None
+    tokens_used: int | None = None
 
 
 def search_congressional_context(
     question: str,
     limit: int = 8,
-    member_filter: Optional[str] = None,
-) -> List[dict]:
+    member_filter: str | None = None,
+) -> list[dict]:
     """
     Search congressional data for relevant context.
 
@@ -85,6 +85,7 @@ def search_congressional_context(
 
         # Build filter if member specified
         from weaviate.classes.query import Filter
+
         filters = None
         if member_filter:
             filters = Filter.by_property("member_name").equal(member_filter)
@@ -111,7 +112,7 @@ def search_congressional_context(
     return results
 
 
-def format_context(documents: List[dict]) -> str:
+def format_context(documents: list[dict]) -> str:
     """Format search results into context for the LLM."""
     if not documents:
         return "No relevant documents found."
@@ -128,9 +129,7 @@ def format_context(documents: List[dict]) -> str:
             content = content[:1500] + "..."
 
         context_parts.append(
-            f"[Document {i}] {member} ({party})\n"
-            f"Title: {title}\n"
-            f"Content: {content}\n"
+            f"[Document {i}] {member} ({party})\n" f"Title: {title}\n" f"Content: {content}\n"
         )
 
     return "\n---\n".join(context_parts)
@@ -199,7 +198,7 @@ def generate_answer(
 def answer_question(
     question: str,
     model: str = "qwen3-coder-roo:latest",
-    member_filter: Optional[str] = None,
+    member_filter: str | None = None,
     num_sources: int = 8,
 ) -> RAGResponse:
     """
@@ -245,7 +244,11 @@ def answer_question(
         RAGSource(
             member_name=doc.get("member_name", "Unknown"),
             title=doc.get("title", "Untitled"),
-            content_preview=doc.get("content_text", "")[:200] + "..." if len(doc.get("content_text", "")) > 200 else doc.get("content_text", ""),
+            content_preview=(
+                doc.get("content_text", "")[:200] + "..."
+                if len(doc.get("content_text", "")) > 200
+                else doc.get("content_text", "")
+            ),
             url=doc.get("url", ""),
             party=doc.get("party", "?"),
             state=doc.get("state", "?"),

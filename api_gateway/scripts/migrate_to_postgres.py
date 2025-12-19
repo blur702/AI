@@ -59,31 +59,38 @@ def get_sqlite_connection() -> sqlite3.Connection | None:
 async def create_tables(conn: asyncpg.Connection) -> None:
     """Create PostgreSQL tables."""
     # Create ENUM types (PostgreSQL doesn't support IF NOT EXISTS for types directly)
-    await conn.execute("""
+    await conn.execute(
+        """
         DO $$ BEGIN
             CREATE TYPE job_status AS ENUM ('pending', 'running', 'completed', 'failed');
         EXCEPTION
             WHEN duplicate_object THEN null;
         END $$;
-    """)
+    """
+    )
 
-    await conn.execute("""
+    await conn.execute(
+        """
         DO $$ BEGIN
             CREATE TYPE todo_status AS ENUM ('pending', 'in_progress', 'completed');
         EXCEPTION
             WHEN duplicate_object THEN null;
         END $$;
-    """)
+    """
+    )
 
-    await conn.execute("""
+    await conn.execute(
+        """
         DO $$ BEGIN
             CREATE TYPE error_severity AS ENUM ('info', 'warning', 'error', 'critical');
         EXCEPTION
             WHEN duplicate_object THEN null;
         END $$;
-    """)
+    """
+    )
 
-    await conn.execute("""
+    await conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS jobs (
             id VARCHAR PRIMARY KEY,
             service VARCHAR NOT NULL,
@@ -95,9 +102,11 @@ async def create_tables(conn: asyncpg.Connection) -> None:
             updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
             timeout_seconds INTEGER NOT NULL DEFAULT 300
         );
-    """)
+    """
+    )
 
-    await conn.execute("""
+    await conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS api_keys (
             key VARCHAR PRIMARY KEY,
             name VARCHAR NOT NULL,
@@ -106,9 +115,11 @@ async def create_tables(conn: asyncpg.Connection) -> None:
             is_active BOOLEAN NOT NULL DEFAULT TRUE
         );
         CREATE INDEX IF NOT EXISTS idx_api_keys_key ON api_keys(key);
-    """)
+    """
+    )
 
-    await conn.execute("""
+    await conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS todos (
             id VARCHAR PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
@@ -121,9 +132,11 @@ async def create_tables(conn: asyncpg.Connection) -> None:
             updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
             completed_at TIMESTAMP
         );
-    """)
+    """
+    )
 
-    await conn.execute("""
+    await conn.execute(
+        """
         CREATE TABLE IF NOT EXISTS errors (
             id VARCHAR PRIMARY KEY,
             service VARCHAR(100) NOT NULL,
@@ -139,15 +152,20 @@ async def create_tables(conn: asyncpg.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_errors_service ON errors(service);
         CREATE INDEX IF NOT EXISTS idx_errors_job_id ON errors(job_id);
         CREATE INDEX IF NOT EXISTS idx_errors_created_at ON errors(created_at);
-    """)
+    """
+    )
 
     print("Tables created successfully")
 
 
-async def migrate_jobs(sqlite_conn: sqlite3.Connection, pg_conn: asyncpg.Connection, dry_run: bool) -> int:
+async def migrate_jobs(
+    sqlite_conn: sqlite3.Connection, pg_conn: asyncpg.Connection, dry_run: bool
+) -> int:
     """Migrate jobs table data."""
     cursor = sqlite_conn.cursor()
-    cursor.execute("SELECT id, service, status, request_data, result, error, created_at, updated_at, timeout_seconds FROM jobs")
+    cursor.execute(
+        "SELECT id, service, status, request_data, result, error, created_at, updated_at, timeout_seconds FROM jobs"
+    )
     rows = cursor.fetchall()
 
     if dry_run:
@@ -155,17 +173,22 @@ async def migrate_jobs(sqlite_conn: sqlite3.Connection, pg_conn: asyncpg.Connect
         return len(rows)
 
     for row in rows:
-        await pg_conn.execute("""
+        await pg_conn.execute(
+            """
             INSERT INTO jobs (id, service, status, request_data, result, error, created_at, updated_at, timeout_seconds)
             VALUES ($1, $2, $3::job_status, $4::jsonb, $5::jsonb, $6, $7, $8, $9)
             ON CONFLICT (id) DO NOTHING
-        """, *row)
+        """,
+            *row,
+        )
 
     print(f"  Migrated {len(rows)} jobs")
     return len(rows)
 
 
-async def migrate_api_keys(sqlite_conn: sqlite3.Connection, pg_conn: asyncpg.Connection, dry_run: bool) -> int:
+async def migrate_api_keys(
+    sqlite_conn: sqlite3.Connection, pg_conn: asyncpg.Connection, dry_run: bool
+) -> int:
     """Migrate api_keys table data."""
     cursor = sqlite_conn.cursor()
     cursor.execute("SELECT key, name, created_at, last_used_at, is_active FROM api_keys")
@@ -176,20 +199,21 @@ async def migrate_api_keys(sqlite_conn: sqlite3.Connection, pg_conn: asyncpg.Con
         return len(rows)
 
     for row in rows:
-        await pg_conn.execute("""
+        await pg_conn.execute(
+            """
             INSERT INTO api_keys (key, name, created_at, last_used_at, is_active)
             VALUES ($1, $2, $3, $4, $5)
             ON CONFLICT (key) DO NOTHING
-        """, *row)
+        """,
+            *row,
+        )
 
     print(f"  Migrated {len(rows)} API keys")
     return len(rows)
 
 
 async def _migrate_data_tables(
-    sqlite_conn: sqlite3.Connection,
-    pg_conn: asyncpg.Connection,
-    dry_run: bool
+    sqlite_conn: sqlite3.Connection, pg_conn: asyncpg.Connection, dry_run: bool
 ) -> int:
     """Migrate all data tables and return total count."""
     total_migrated = 0
@@ -269,7 +293,9 @@ async def run_migration(dry_run: bool = False) -> bool:
 
 def main():
     parser = argparse.ArgumentParser(description="Migrate SQLite data to PostgreSQL")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be migrated without making changes")
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would be migrated without making changes"
+    )
     args = parser.parse_args()
 
     success = asyncio.run(run_migration(dry_run=args.dry_run))

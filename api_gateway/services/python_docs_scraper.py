@@ -30,9 +30,10 @@ import logging
 import re
 import time
 from collections import deque
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Callable, Deque, Dict, Generator, List, Optional, Set, Tuple
+from datetime import UTC, datetime
+from typing import Any
 from urllib.parse import urljoin, urlparse
 
 import httpx
@@ -50,7 +51,6 @@ from .python_docs_schema import (
 )
 from .weaviate_connection import PYTHON_DOCS_COLLECTION_NAME, WeaviateConnection
 
-
 logger = get_logger("api_gateway.python_docs_scraper")
 
 
@@ -64,10 +64,10 @@ DEFAULT_BATCH_DELAY = 3.0  # seconds pause after each batch
 
 # Python versions and sections to scrape
 # "3" maps to the latest stable (3.13) docs.
-PYTHON_VERSIONS: List[str] = ["3", "3.12"]
+PYTHON_VERSIONS: list[str] = ["3", "3.12"]
 
 # Each tuple: (path_suffix, section_type)
-PYTHON_SECTIONS: List[Tuple[str, str]] = [
+PYTHON_SECTIONS: list[tuple[str, str]] = [
     ("/tutorial/index.html", "Tutorial"),
     ("/reference/index.html", "Reference"),
     ("/library/index.html", "Library"),
@@ -81,7 +81,7 @@ class ScrapeConfig:
     request_delay: float = DEFAULT_REQUEST_DELAY
     batch_size: int = DEFAULT_BATCH_SIZE
     batch_delay: float = DEFAULT_BATCH_DELAY
-    max_entities: Optional[int] = None
+    max_entities: int | None = None
     dry_run: bool = False
 
 
@@ -100,7 +100,7 @@ def get_doc_text_for_embedding(doc: PythonDoc) -> str:
     Returns:
         Combined text from title, version, section_type, and content (limited to 2000 chars)
     """
-    parts: List[str] = []
+    parts: list[str] = []
     if doc.title:
         parts.append(doc.title)
     if doc.version:
@@ -122,10 +122,10 @@ class PythonDocsScraper:
 
     def __init__(
         self,
-        config: Optional[ScrapeConfig] = None,
-        progress_callback: Optional[ProgressCallback] = None,
-        check_cancelled: Optional[CancelCheck] = None,
-        check_paused: Optional[PauseCheck] = None,
+        config: ScrapeConfig | None = None,
+        progress_callback: ProgressCallback | None = None,
+        check_cancelled: CancelCheck | None = None,
+        check_paused: PauseCheck | None = None,
     ):
         """
         Initialize the Python documentation scraper.
@@ -154,9 +154,9 @@ class PythonDocsScraper:
         )
         self._request_count = 0
         self._last_request_time = 0.0
-        self._seen_urls: Set[str] = set()
+        self._seen_urls: set[str] = set()
 
-    def __enter__(self) -> "PythonDocsScraper":
+    def __enter__(self) -> PythonDocsScraper:
         """Context manager entry."""
         return self
 
@@ -234,7 +234,7 @@ class PythonDocsScraper:
 
         self._last_request_time = time.time()
 
-    def _fetch(self, url: str) -> Optional[BeautifulSoup]:
+    def _fetch(self, url: str) -> BeautifulSoup | None:
         """
         Fetch URL with rate limiting and error handling.
 
@@ -374,9 +374,9 @@ class PythonDocsScraper:
             if content:
                 return content
 
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
-    def _extract_links(self, soup: BeautifulSoup, base_url: str, version: str) -> List[str]:
+    def _extract_links(self, soup: BeautifulSoup, base_url: str, version: str) -> list[str]:
         """
         Extract links to other Python documentation pages.
 
@@ -388,7 +388,7 @@ class PythonDocsScraper:
         Returns:
             List of absolute URLs to valid Python documentation pages
         """
-        links: List[str] = []
+        links: list[str] = []
         for a in soup.select("a[href]"):
             href = a.get("href", "")
             if not href:
@@ -405,10 +405,7 @@ class PythonDocsScraper:
                 url = urljoin(base_url, href)
 
             url = self._normalize_url(url)
-            if (
-                self._is_python_doc_url(url, version)
-                and url not in self._seen_urls
-            ):
+            if self._is_python_doc_url(url, version) and url not in self._seen_urls:
                 links.append(url)
 
         return links
@@ -419,7 +416,7 @@ class PythonDocsScraper:
         url: str,
         version: str,
         section_type: str,
-    ) -> Optional[PythonDoc]:
+    ) -> PythonDoc | None:
         """
         Parse a single Python docs page and extract documentation.
 
@@ -443,7 +440,7 @@ class PythonDocsScraper:
             return None
 
         last_modified = self._extract_last_modified(soup)
-        scraped_at = datetime.now(timezone.utc).isoformat()
+        scraped_at = datetime.now(UTC).isoformat()
         content_hash = compute_python_content_hash(
             title=title,
             content=content,
@@ -492,7 +489,7 @@ class PythonDocsScraper:
             section_type,
         )
 
-        queue: Deque[str] = deque([start_url])
+        queue: deque[str] = deque([start_url])
         entity_count = 0
 
         while queue:
@@ -542,9 +539,7 @@ class PythonDocsScraper:
 
             new_links = self._extract_links(soup, url, version)
             for link in new_links:
-                if section_path.rsplit("/", 1)[0] in link or link.startswith(
-                    start_url
-                ):
+                if section_path.rsplit("/", 1)[0] in link or link.startswith(start_url):
                     if link not in self._seen_urls:
                         queue.append(link)
 
@@ -577,11 +572,11 @@ class PythonDocsScraper:
 
 
 def scrape_python_docs(
-    config: Optional[ScrapeConfig] = None,
-    progress_callback: Optional[ProgressCallback] = None,
-    check_cancelled: Optional[CancelCheck] = None,
-    check_paused: Optional[PauseCheck] = None,
-) -> Dict[str, Any]:
+    config: ScrapeConfig | None = None,
+    progress_callback: ProgressCallback | None = None,
+    check_cancelled: CancelCheck | None = None,
+    check_paused: PauseCheck | None = None,
+) -> dict[str, Any]:
     """
     Scrape Python documentation and ingest into Weaviate.
 
@@ -645,15 +640,15 @@ def scrape_python_docs(
                 0,
                 "Loading existing UUIDs and content hashes for deduplication",
             )
-            existing_docs: Dict[str, Optional[str]] = {}
+            existing_docs: dict[str, str | None] = {}
             try:
                 logger.info(
                     "Loading existing entity UUIDs and content hashes for deduplication...",
                 )
                 for obj in collection.iterator(include_vector=False):
                     props = getattr(obj, "properties", None)
-                    uuid_val: Optional[str] = None
-                    content_hash: Optional[str] = None
+                    uuid_val: str | None = None
+                    content_hash: str | None = None
                     if props and isinstance(props, dict):
                         uuid_val = props.get("uuid")
                         content_hash = props.get("content_hash")
@@ -782,7 +777,7 @@ def scrape_python_docs(
         logger.exception("Scraping failed: %s", e)
         errors += 1
 
-    result: Dict[str, Any] = {
+    result: dict[str, Any] = {
         "entities_processed": entities_processed,
         "entities_inserted": entities_inserted,
         "errors": errors,
@@ -808,7 +803,7 @@ def _configure_logging(verbose: bool) -> None:
         logger.setLevel(level)
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI entry point for Python documentation scraper.
 

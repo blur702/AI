@@ -2,6 +2,11 @@ import { defineConfig, devices } from '@playwright/test';
 import * as dotenv from 'dotenv';
 import * as os from 'os';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+// ESM equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename); 
 
 // Load environment-specific config
 const envFile = process.env.TEST_ENVIRONMENT === 'vps' ? '.env.vps' : '.env';

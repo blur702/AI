@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import json
 import os
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict
-
 
 APP_NAME = "DashboardApp"
 
@@ -51,7 +49,7 @@ class AppConfig:
     poll_models_interval: int = 10
 
     # Service auto-start preferences (service_id -> bool)
-    service_autostart: Dict[str, bool] | None = None
+    service_autostart: dict[str, bool] | None = None
 
 
 def load_config() -> AppConfig:

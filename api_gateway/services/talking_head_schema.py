@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 import weaviate
@@ -30,8 +30,8 @@ from ..config import settings
 from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
 from .weaviate_connection import (
-    TALKING_HEAD_PROFILES_COLLECTION_NAME,
     CONVERSATION_MEMORY_COLLECTION_NAME,
+    TALKING_HEAD_PROFILES_COLLECTION_NAME,
     VOICE_CLONES_COLLECTION_NAME,
     WeaviateConnection,
 )
@@ -44,7 +44,7 @@ logger = get_logger("api_gateway.talking_head_schema")
 # =============================================================================
 
 
-def get_profile_text_for_embedding(profile: "TalkingHeadProfile") -> str:
+def get_profile_text_for_embedding(profile: TalkingHeadProfile) -> str:
     """
     Build text representation of a TalkingHeadProfile for embedding.
 
@@ -66,7 +66,7 @@ def get_profile_text_for_embedding(profile: "TalkingHeadProfile") -> str:
     return text
 
 
-def get_conversation_text_for_embedding(message: "ConversationMessage") -> str:
+def get_conversation_text_for_embedding(message: ConversationMessage) -> str:
     """
     Build text representation of a ConversationMessage for embedding.
 
@@ -88,7 +88,7 @@ def get_conversation_text_for_embedding(message: "ConversationMessage") -> str:
     return text
 
 
-def get_voice_text_for_embedding(voice: "VoiceClone") -> str:
+def get_voice_text_for_embedding(voice: VoiceClone) -> str:
     """
     Build text representation of a VoiceClone for embedding.
 
@@ -142,7 +142,7 @@ class TalkingHeadProfile:
     created_at: str
     last_used: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to dictionary for Weaviate insertion.
 
@@ -187,7 +187,7 @@ class ConversationMessage:
     emotion_tags: str  # JSON array string
     context_summary: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to dictionary for Weaviate insertion.
 
@@ -229,7 +229,7 @@ class VoiceClone:
     language: str
     created_at: str
 
-    def to_properties(self) -> Dict[str, Any]:
+    def to_properties(self) -> dict[str, Any]:
         """
         Convert to dictionary for Weaviate insertion.
 
@@ -283,9 +283,7 @@ def create_talking_head_profiles_collection(
         client.collections.create(
             name=TALKING_HEAD_PROFILES_COLLECTION_NAME,
             vectorizer_config=Configure.Vectorizer.none(),
-            vector_index_config=Configure.VectorIndex.hnsw(
-                distance_metric=VectorDistances.COSINE
-            ),
+            vector_index_config=Configure.VectorIndex.hnsw(distance_metric=VectorDistances.COSINE),
             properties=[
                 Property(name="avatar_id", data_type=DataType.TEXT),
                 Property(name="avatar_name", data_type=DataType.TEXT),
@@ -298,13 +296,9 @@ def create_talking_head_profiles_collection(
                 Property(name="last_used", data_type=DataType.TEXT),
             ],
         )
-        logger.info(
-            "Collection '%s' created successfully", TALKING_HEAD_PROFILES_COLLECTION_NAME
-        )
+        logger.info("Collection '%s' created successfully", TALKING_HEAD_PROFILES_COLLECTION_NAME)
     else:
-        logger.info(
-            "Collection '%s' already exists", TALKING_HEAD_PROFILES_COLLECTION_NAME
-        )
+        logger.info("Collection '%s' already exists", TALKING_HEAD_PROFILES_COLLECTION_NAME)
 
 
 def create_conversation_memory_collection(
@@ -338,9 +332,7 @@ def create_conversation_memory_collection(
         client.collections.create(
             name=CONVERSATION_MEMORY_COLLECTION_NAME,
             vectorizer_config=Configure.Vectorizer.none(),
-            vector_index_config=Configure.VectorIndex.hnsw(
-                distance_metric=VectorDistances.COSINE
-            ),
+            vector_index_config=Configure.VectorIndex.hnsw(distance_metric=VectorDistances.COSINE),
             properties=[
                 Property(name="conversation_id", data_type=DataType.TEXT),
                 Property(name="avatar_id", data_type=DataType.TEXT),
@@ -352,13 +344,9 @@ def create_conversation_memory_collection(
                 Property(name="context_summary", data_type=DataType.TEXT),
             ],
         )
-        logger.info(
-            "Collection '%s' created successfully", CONVERSATION_MEMORY_COLLECTION_NAME
-        )
+        logger.info("Collection '%s' created successfully", CONVERSATION_MEMORY_COLLECTION_NAME)
     else:
-        logger.info(
-            "Collection '%s' already exists", CONVERSATION_MEMORY_COLLECTION_NAME
-        )
+        logger.info("Collection '%s' already exists", CONVERSATION_MEMORY_COLLECTION_NAME)
 
 
 def create_voice_clones_collection(
@@ -392,9 +380,7 @@ def create_voice_clones_collection(
         client.collections.create(
             name=VOICE_CLONES_COLLECTION_NAME,
             vectorizer_config=Configure.Vectorizer.none(),
-            vector_index_config=Configure.VectorIndex.hnsw(
-                distance_metric=VectorDistances.COSINE
-            ),
+            vector_index_config=Configure.VectorIndex.hnsw(distance_metric=VectorDistances.COSINE),
             properties=[
                 Property(name="voice_id", data_type=DataType.TEXT),
                 Property(name="voice_name", data_type=DataType.TEXT),
@@ -405,9 +391,7 @@ def create_voice_clones_collection(
                 Property(name="created_at", data_type=DataType.TEXT),
             ],
         )
-        logger.info(
-            "Collection '%s' created successfully", VOICE_CLONES_COLLECTION_NAME
-        )
+        logger.info("Collection '%s' created successfully", VOICE_CLONES_COLLECTION_NAME)
     else:
         logger.info("Collection '%s' already exists", VOICE_CLONES_COLLECTION_NAME)
 
@@ -432,18 +416,14 @@ def delete_talking_head_profiles_collection(client: weaviate.WeaviateClient) -> 
     """
     try:
         if client.collections.exists(TALKING_HEAD_PROFILES_COLLECTION_NAME):
-            logger.info(
-                "Deleting collection '%s'", TALKING_HEAD_PROFILES_COLLECTION_NAME
-            )
+            logger.info("Deleting collection '%s'", TALKING_HEAD_PROFILES_COLLECTION_NAME)
             client.collections.delete(TALKING_HEAD_PROFILES_COLLECTION_NAME)
             logger.info(
                 "Collection '%s' deleted successfully",
                 TALKING_HEAD_PROFILES_COLLECTION_NAME,
             )
             return True
-        logger.info(
-            "Collection '%s' does not exist", TALKING_HEAD_PROFILES_COLLECTION_NAME
-        )
+        logger.info("Collection '%s' does not exist", TALKING_HEAD_PROFILES_COLLECTION_NAME)
         return False
     except Exception as exc:
         logger.error(
@@ -469,18 +449,14 @@ def delete_conversation_memory_collection(client: weaviate.WeaviateClient) -> bo
     """
     try:
         if client.collections.exists(CONVERSATION_MEMORY_COLLECTION_NAME):
-            logger.info(
-                "Deleting collection '%s'", CONVERSATION_MEMORY_COLLECTION_NAME
-            )
+            logger.info("Deleting collection '%s'", CONVERSATION_MEMORY_COLLECTION_NAME)
             client.collections.delete(CONVERSATION_MEMORY_COLLECTION_NAME)
             logger.info(
                 "Collection '%s' deleted successfully",
                 CONVERSATION_MEMORY_COLLECTION_NAME,
             )
             return True
-        logger.info(
-            "Collection '%s' does not exist", CONVERSATION_MEMORY_COLLECTION_NAME
-        )
+        logger.info("Collection '%s' does not exist", CONVERSATION_MEMORY_COLLECTION_NAME)
         return False
     except Exception as exc:
         logger.error(
@@ -508,16 +484,12 @@ def delete_voice_clones_collection(client: weaviate.WeaviateClient) -> bool:
         if client.collections.exists(VOICE_CLONES_COLLECTION_NAME):
             logger.info("Deleting collection '%s'", VOICE_CLONES_COLLECTION_NAME)
             client.collections.delete(VOICE_CLONES_COLLECTION_NAME)
-            logger.info(
-                "Collection '%s' deleted successfully", VOICE_CLONES_COLLECTION_NAME
-            )
+            logger.info("Collection '%s' deleted successfully", VOICE_CLONES_COLLECTION_NAME)
             return True
         logger.info("Collection '%s' does not exist", VOICE_CLONES_COLLECTION_NAME)
         return False
     except Exception as exc:
-        logger.error(
-            "Failed to delete collection '%s': %s", VOICE_CLONES_COLLECTION_NAME, exc
-        )
+        logger.error("Failed to delete collection '%s': %s", VOICE_CLONES_COLLECTION_NAME, exc)
         raise
 
 
@@ -537,9 +509,7 @@ def talking_head_profiles_collection_exists(client: weaviate.WeaviateClient) -> 
         True if collection exists, False otherwise
     """
     exists = client.collections.exists(TALKING_HEAD_PROFILES_COLLECTION_NAME)
-    logger.debug(
-        "Collection '%s' exists: %s", TALKING_HEAD_PROFILES_COLLECTION_NAME, exists
-    )
+    logger.debug("Collection '%s' exists: %s", TALKING_HEAD_PROFILES_COLLECTION_NAME, exists)
     return exists
 
 
@@ -554,9 +524,7 @@ def conversation_memory_collection_exists(client: weaviate.WeaviateClient) -> bo
         True if collection exists, False otherwise
     """
     exists = client.collections.exists(CONVERSATION_MEMORY_COLLECTION_NAME)
-    logger.debug(
-        "Collection '%s' exists: %s", CONVERSATION_MEMORY_COLLECTION_NAME, exists
-    )
+    logger.debug("Collection '%s' exists: %s", CONVERSATION_MEMORY_COLLECTION_NAME, exists)
     return exists
 
 
@@ -580,7 +548,7 @@ def voice_clones_collection_exists(client: weaviate.WeaviateClient) -> bool:
 # =============================================================================
 
 
-def get_talking_head_profiles_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_talking_head_profiles_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for TalkingHeadProfiles collection.
 
@@ -598,9 +566,7 @@ def get_talking_head_profiles_stats(client: weaviate.WeaviateClient) -> Dict[str
     """
     try:
         if not client.collections.exists(TALKING_HEAD_PROFILES_COLLECTION_NAME):
-            logger.info(
-                "Collection '%s' does not exist", TALKING_HEAD_PROFILES_COLLECTION_NAME
-            )
+            logger.info("Collection '%s' does not exist", TALKING_HEAD_PROFILES_COLLECTION_NAME)
             return {"exists": False, "object_count": 0, "avatar_type_counts": {}}
 
         collection = client.collections.get(TALKING_HEAD_PROFILES_COLLECTION_NAME)
@@ -608,7 +574,7 @@ def get_talking_head_profiles_stats(client: weaviate.WeaviateClient) -> Dict[str
         total = agg.total_count or 0
 
         # Aggregate by avatar_type
-        avatar_type_counts: Dict[str, int] = {}
+        avatar_type_counts: dict[str, int] = {}
         grouped_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="avatar_type"),
             total_count=True,
@@ -638,7 +604,7 @@ def get_talking_head_profiles_stats(client: weaviate.WeaviateClient) -> Dict[str
         raise
 
 
-def get_conversation_memory_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_conversation_memory_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for ConversationMemory collection.
 
@@ -656,9 +622,7 @@ def get_conversation_memory_stats(client: weaviate.WeaviateClient) -> Dict[str, 
     """
     try:
         if not client.collections.exists(CONVERSATION_MEMORY_COLLECTION_NAME):
-            logger.info(
-                "Collection '%s' does not exist", CONVERSATION_MEMORY_COLLECTION_NAME
-            )
+            logger.info("Collection '%s' does not exist", CONVERSATION_MEMORY_COLLECTION_NAME)
             return {"exists": False, "object_count": 0, "conversation_counts": {}}
 
         collection = client.collections.get(CONVERSATION_MEMORY_COLLECTION_NAME)
@@ -666,7 +630,7 @@ def get_conversation_memory_stats(client: weaviate.WeaviateClient) -> Dict[str, 
         total = agg.total_count or 0
 
         # Aggregate by conversation_id
-        conversation_counts: Dict[str, int] = {}
+        conversation_counts: dict[str, int] = {}
         grouped_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="conversation_id"),
             total_count=True,
@@ -689,13 +653,11 @@ def get_conversation_memory_stats(client: weaviate.WeaviateClient) -> Dict[str, 
             "conversation_counts": conversation_counts,
         }
     except Exception as e:
-        logger.exception(
-            "Failed to get stats for '%s': %s", CONVERSATION_MEMORY_COLLECTION_NAME, e
-        )
+        logger.exception("Failed to get stats for '%s': %s", CONVERSATION_MEMORY_COLLECTION_NAME, e)
         raise
 
 
-def get_voice_clones_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_voice_clones_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for VoiceClones collection.
 
@@ -713,9 +675,7 @@ def get_voice_clones_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
     """
     try:
         if not client.collections.exists(VOICE_CLONES_COLLECTION_NAME):
-            logger.info(
-                "Collection '%s' does not exist", VOICE_CLONES_COLLECTION_NAME
-            )
+            logger.info("Collection '%s' does not exist", VOICE_CLONES_COLLECTION_NAME)
             return {"exists": False, "object_count": 0, "language_counts": {}}
 
         collection = client.collections.get(VOICE_CLONES_COLLECTION_NAME)
@@ -723,7 +683,7 @@ def get_voice_clones_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
         total = agg.total_count or 0
 
         # Aggregate by language
-        language_counts: Dict[str, int] = {}
+        language_counts: dict[str, int] = {}
         grouped_agg = collection.aggregate.over_all(
             group_by=GroupByAggregate(prop="language"),
             total_count=True,
@@ -747,9 +707,7 @@ def get_voice_clones_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
             "language_counts": language_counts,
         }
     except Exception as e:
-        logger.exception(
-            "Failed to get stats for '%s': %s", VOICE_CLONES_COLLECTION_NAME, e
-        )
+        logger.exception("Failed to get stats for '%s': %s", VOICE_CLONES_COLLECTION_NAME, e)
         raise
 
 
@@ -904,9 +862,7 @@ def create_all_talking_head_collections(
     Raises:
         WeaviateBaseError: If any collection creation fails
     """
-    logger.info(
-        "Creating all talking head collections (force_reindex=%s)", force_reindex
-    )
+    logger.info("Creating all talking head collections (force_reindex=%s)", force_reindex)
     create_talking_head_profiles_collection(client, force_reindex)
     create_conversation_memory_collection(client, force_reindex)
     create_voice_clones_collection(client, force_reindex)
@@ -915,7 +871,7 @@ def create_all_talking_head_collections(
 
 def delete_all_talking_head_collections(
     client: weaviate.WeaviateClient,
-) -> Dict[str, bool]:
+) -> dict[str, bool]:
     """
     Delete all three talking head collections.
 
@@ -943,7 +899,7 @@ def delete_all_talking_head_collections(
     return results
 
 
-def get_all_talking_head_stats(client: weaviate.WeaviateClient) -> Dict[str, Any]:
+def get_all_talking_head_stats(client: weaviate.WeaviateClient) -> dict[str, Any]:
     """
     Get statistics for all three talking head collections.
 
@@ -971,7 +927,7 @@ def get_all_talking_head_stats(client: weaviate.WeaviateClient) -> Dict[str, Any
 # =============================================================================
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI interface for talking head schema management.
 

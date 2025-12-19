@@ -57,4 +57,3 @@ model: claude-sonnet-4-20250514
 - Logs and metrics for ongoing monitoring
 - Best practice guidelines for MQTT implementations
 - Comprehensive test cases for MQTT systems
-

@@ -6,7 +6,9 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    sans-serif;
   min-height: 100vh;
   color: var(--mui-palette-text-primary);
   background: linear-gradient(
@@ -15,5 +17,7 @@ body {
     var(--mui-palette-background-paper, #16213e) 50%,
     var(--mui-palette-background-gradient-stop, #0f3460) 100%
   );
-  transition: background 0.3s ease, color 0.3s ease;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
 }

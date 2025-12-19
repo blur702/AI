@@ -1,4 +1,10 @@
-export type ServiceStatus = 'stopped' | 'starting' | 'running' | 'paused' | 'stopping' | 'error';
+export type ServiceStatus =
+  | "stopped"
+  | "starting"
+  | "running"
+  | "paused"
+  | "stopping"
+  | "error";
 
 export interface ServiceConfig {
   id: string;
@@ -8,11 +14,11 @@ export interface ServiceConfig {
   description: string;
   tags: string[];
   cardClass: string;
-  section: 'main' | 'music' | 'image';
+  section: "main" | "music" | "image";
   external?: boolean;
-  proxyId?: string;  // ID for reverse proxy path (e.g., 'n8n' -> /proxy/n8n/)
-  instructions?: string;  // Setup instructions shown when service is running
-  models?: string[];  // Model names this service uses ('*' for any Ollama model)
+  proxyId?: string; // ID for reverse proxy path (e.g., 'n8n' -> /proxy/n8n/)
+  instructions?: string; // Setup instructions shown when service is running
+  models?: string[]; // Model names this service uses ('*' for any Ollama model)
 }
 
 export interface ServiceState {
@@ -77,14 +83,14 @@ export interface OllamaModelDetailed extends OllamaModel {
 export interface ModelDownloadProgress {
   model_name: string;
   progress: string;
-  status: 'downloading' | 'complete' | 'error';
+  status: "downloading" | "complete" | "error";
 }
 
 export interface ModelLoadProgress {
   model_name: string;
   progress: number; // 0-100 percentage
-  status: 'loading' | 'unloading' | 'complete' | 'error';
-  action: 'load' | 'unload';
+  status: "loading" | "unloading" | "complete" | "error";
+  action: "load" | "unload";
   message?: string;
 }
 
@@ -178,8 +184,8 @@ export interface IngestionStatus {
 
 export interface IngestionProgress {
   task_id: string;
-  type: 'documentation' | 'code' | 'drupal' | 'mdn_javascript' | 'mdn_webapis';
-  phase: 'scanning' | 'processing' | 'indexing' | 'complete' | 'cancelled';
+  type: "documentation" | "code" | "drupal" | "mdn_javascript" | "mdn_webapis";
+  phase: "scanning" | "processing" | "indexing" | "complete" | "cancelled";
   current: number;
   total: number;
   message: string;
@@ -188,7 +194,7 @@ export interface IngestionProgress {
 
 export interface IngestionPhaseComplete {
   task_id: string;
-  type: 'documentation' | 'code' | 'drupal' | 'mdn_javascript' | 'mdn_webapis';
+  type: "documentation" | "code" | "drupal" | "mdn_javascript" | "mdn_webapis";
   stats: {
     files?: number;
     chunks?: number;
@@ -205,9 +211,21 @@ export interface IngestionComplete {
   stats: {
     documentation?: { files: number; chunks: number; errors: number };
     code?: { files: number; entities: number; errors: number };
-    drupal?: { entities_inserted: number; entities_updated: number; errors: number };
-    mdn_javascript?: { entities_inserted: number; entities_updated: number; errors: number };
-    mdn_webapis?: { entities_inserted: number; entities_updated: number; errors: number };
+    drupal?: {
+      entities_inserted: number;
+      entities_updated: number;
+      errors: number;
+    };
+    mdn_javascript?: {
+      entities_inserted: number;
+      entities_updated: number;
+      errors: number;
+    };
+    mdn_webapis?: {
+      entities_inserted: number;
+      entities_updated: number;
+      errors: number;
+    };
   };
   duration_seconds: number;
 }
@@ -219,22 +237,34 @@ export interface IngestionError {
 }
 
 export interface IngestionRequest {
-  types: ('documentation' | 'code' | 'drupal' | 'mdn_javascript' | 'mdn_webapis')[];
+  types: (
+    | "documentation"
+    | "code"
+    | "drupal"
+    | "mdn_javascript"
+    | "mdn_webapis"
+  )[];
   reindex: boolean;
   code_service?: string;
   drupal_limit?: number | null;
   mdn_limit?: number | null;
-  mdn_section?: string | null;  // For mdn_webapis: 'css', 'html', or 'webapi'
+  mdn_section?: string | null; // For mdn_webapis: 'css', 'html', or 'webapi'
 }
 
 // Claude Code Execution Types
 
-export type ClaudeSessionStatus = 'starting' | 'running' | 'completed' | 'cancelled' | 'error' | 'timeout';
+export type ClaudeSessionStatus =
+  | "starting"
+  | "running"
+  | "completed"
+  | "cancelled"
+  | "error"
+  | "timeout";
 
 export interface ClaudeSession {
   session_id: string;
   prompt: string;
-  mode: 'normal' | 'yolo';
+  mode: "normal" | "yolo";
   status: ClaudeSessionStatus;
   start_time: number;
   end_time: number | null;
@@ -271,7 +301,7 @@ export interface ClaudeExecuteResponse {
 }
 
 export interface HealthStatus {
-  status: 'healthy' | 'warning' | 'error';
+  status: "healthy" | "warning" | "error";
   uptime_seconds: number;
   cpu: {
     percent: number;
@@ -302,18 +332,24 @@ export interface IngestionResumed {
 
 export interface ServicePaused {
   service_id: string;
-  status: 'paused';
+  status: "paused";
   message: string;
 }
 
 export interface ServiceResumed {
   service_id: string;
-  status: 'running';
+  status: "running";
   message: string;
 }
 
 export interface CleanCollectionsRequest {
-  collections: ('documentation' | 'code_entity' | 'drupal_api' | 'mdn_javascript' | 'mdn_webapis')[];
+  collections: (
+    | "documentation"
+    | "code_entity"
+    | "drupal_api"
+    | "mdn_javascript"
+    | "mdn_webapis"
+  )[];
 }
 
 export interface CleanCollectionsResponse {
@@ -336,4 +372,4 @@ export type {
   CongressionalChatSource,
   CongressionalChatResponse,
   ChatHistoryItem,
-} from './congressional';
+} from "./congressional";

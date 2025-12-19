@@ -1,11 +1,31 @@
 /* Card icon gradient colors - preserved for service-specific styling */
-.card-openwebui .card-icon { background: linear-gradient(135deg, #667eea, #764ba2) !important; }
-.card-comfyui .card-icon { background: linear-gradient(135deg, #f093fb, #f5576c) !important; }
-.card-alltalk .card-icon { background: linear-gradient(135deg, #4facfe, #00f2fe) !important; }
-.card-ollama .card-icon { background: linear-gradient(135deg, #43e97b, #38f9d7) !important; }
-.card-wan2gp .card-icon { background: linear-gradient(135deg, #ff6b6b, #feca57) !important; }
-.card-n8n .card-icon { background: linear-gradient(135deg, #22c55e, #16a34a) !important; }
-.card-yue .card-icon { background: linear-gradient(135deg, #a855f7, #ec4899) !important; }
-.card-diffrhythm .card-icon { background: linear-gradient(135deg, #06b6d4, #3b82f6) !important; }
-.card-musicgen .card-icon { background: linear-gradient(135deg, #f59e0b, #ef4444) !important; }
-.card-stableaudio .card-icon { background: linear-gradient(135deg, #10b981, #059669) !important; }
+.card-openwebui .card-icon {
+  background: linear-gradient(135deg, #667eea, #764ba2) !important;
+}
+.card-comfyui .card-icon {
+  background: linear-gradient(135deg, #f093fb, #f5576c) !important;
+}
+.card-alltalk .card-icon {
+  background: linear-gradient(135deg, #4facfe, #00f2fe) !important;
+}
+.card-ollama .card-icon {
+  background: linear-gradient(135deg, #43e97b, #38f9d7) !important;
+}
+.card-wan2gp .card-icon {
+  background: linear-gradient(135deg, #ff6b6b, #feca57) !important;
+}
+.card-n8n .card-icon {
+  background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+}
+.card-yue .card-icon {
+  background: linear-gradient(135deg, #a855f7, #ec4899) !important;
+}
+.card-diffrhythm .card-icon {
+  background: linear-gradient(135deg, #06b6d4, #3b82f6) !important;
+}
+.card-musicgen .card-icon {
+  background: linear-gradient(135deg, #f59e0b, #ef4444) !important;
+}
+.card-stableaudio .card-icon {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+}

@@ -93,11 +93,7 @@ class PyTorchDocScraper(BaseDocScraper):
             return False
 
         # Must be docs or tutorials
-        if not (
-            "/docs/stable/" in url
-            or "/docs/main/" in url
-            or "/tutorials/" in url
-        ):
+        if not ("/docs/stable/" in url or "/docs/main/" in url or "/tutorials/" in url):
             return False
 
         # Skip version-specific docs (we want stable)
@@ -109,10 +105,7 @@ class PyTorchDocScraper(BaseDocScraper):
             return False
 
         # Skip media/images
-        if any(
-            pattern in url
-            for pattern in ["/_images/", "/_static/", "/_sources/"]
-        ):
+        if any(pattern in url for pattern in ["/_images/", "/_static/", "/_sources/"]):
             return False
 
         return True
@@ -196,7 +189,9 @@ class PyTorchDocScraper(BaseDocScraper):
         breadcrumb = soup.select_one(".breadcrumb, nav[aria-label='breadcrumb']")
         if breadcrumb:
             items = breadcrumb.select("li, a")
-            return " > ".join(item.get_text(strip=True) for item in items if item.get_text(strip=True))
+            return " > ".join(
+                item.get_text(strip=True) for item in items if item.get_text(strip=True)
+            )
         return ""
 
     def parse_page(self, url: str, html: str) -> DocPage | None:
@@ -204,10 +199,7 @@ class PyTorchDocScraper(BaseDocScraper):
         soup = BeautifulSoup(html, "html.parser")
 
         # Extract title
-        title_elem = (
-            soup.select_one("h1")
-            or soup.select_one("title")
-        )
+        title_elem = soup.select_one("h1") or soup.select_one("title")
         title = title_elem.get_text(strip=True) if title_elem else ""
 
         # Clean up title

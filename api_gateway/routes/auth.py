@@ -5,9 +5,9 @@ Provides endpoints for creating, listing, and deactivating API keys used for
 authenticating requests to the API Gateway. Keys are stored in PostgreSQL
 and validated via middleware on protected routes.
 """
+
 import secrets
-from datetime import datetime, timezone
-from typing import List
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
@@ -16,7 +16,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..middleware.response import unified_response
 from ..models.database import APIKey, AsyncSessionLocal
 from ..models.schemas import CreateAPIKeyRequest
-
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -55,7 +54,7 @@ async def create_api_key(
     api_key = APIKey(
         key=key_value,
         name=payload.name,
-        created_at=datetime.now(timezone.utc),
+        created_at=datetime.now(UTC),
     )
     session.add(api_key)
     await session.commit()
@@ -87,7 +86,7 @@ async def list_api_keys(
               for each key.
     """
     result = await session.execute(select(APIKey))
-    items: List[APIKey] = result.scalars().all()
+    items: list[APIKey] = result.scalars().all()
     keys = [
         {
             "name": item.name,
@@ -102,9 +101,7 @@ async def list_api_keys(
 
 @router.delete("/keys/{key}")
 @unified_response
-async def deactivate_api_key(
-    key: str, session: AsyncSession = Depends(get_session)
-) -> dict:
+async def deactivate_api_key(key: str, session: AsyncSession = Depends(get_session)) -> dict:
     """
     Deactivate an API key to prevent further use.
 
@@ -124,4 +121,3 @@ async def deactivate_api_key(
         api_key.is_active = False
         await session.commit()
     return {"success": True}
-

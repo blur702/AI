@@ -98,7 +98,9 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
-          git add -u
+          # Exclude workflow files - GitHub Apps can't push workflow changes
+          git add -u -- ':!.github/workflows/*'
+
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else

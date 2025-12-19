@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from tkinter import Tk
-from tkinter import ttk
-
+from tkinter import Tk, ttk
 
 # Color palette
 PRIMARY = "#1976d2"
@@ -85,4 +83,3 @@ def apply_style(root: Tk, theme: str = "dark") -> None:
             background=ERROR,
             foreground="white",
         )
-

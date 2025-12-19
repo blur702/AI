@@ -7,15 +7,16 @@ including member information, press releases, and voting records.
 All endpoints require API key authentication via X-API-Key header and are
 subject to rate limiting (60 requests per minute per API key by default).
 """
+
 from __future__ import annotations
 
 import asyncio
 import time
 from collections import defaultdict
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import UTC, datetime
+from typing import Any
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, Field
 from weaviate.classes.aggregate import GroupByAggregate
@@ -34,7 +35,6 @@ from ..models.schemas import (
     CongressionalQueryResult,
     CongressionalScrapeRequest,
     CongressionalScrapeStatusResponse,
-    UnifiedError,
     UnifiedResponse,
 )
 from ..services.congressional_job_manager import CongressionalJobManager
@@ -46,7 +46,6 @@ from ..services.weaviate_connection import (
 from ..utils.embeddings import get_embedding
 from ..utils.exceptions import InvalidAPIKeyError
 from ..utils.logger import get_logger
-
 
 # -----------------------------------------------------------------------------
 # Rate Limiting Exception
@@ -81,7 +80,7 @@ api_key_header = APIKeyHeader(
 # -----------------------------------------------------------------------------
 
 # In-memory rate limiting (requests per minute per API key)
-_rate_limit_store: Dict[str, List[float]] = defaultdict(list)
+_rate_limit_store: dict[str, list[float]] = defaultdict(list)
 RATE_LIMIT_REQUESTS = 60  # requests per window
 RATE_LIMIT_WINDOW = 60  # window in seconds
 
@@ -114,7 +113,7 @@ def _get_rate_limit_reset(api_key: str) -> int:
 
 async def verify_api_key(
     request: Request,
-    x_api_key: Optional[str] = Depends(api_key_header),
+    x_api_key: str | None = Depends(api_key_header),
 ) -> str:
     """
     Validate API key from X-API-Key header.
@@ -143,7 +142,7 @@ async def verify_api_key(
             raise InvalidAPIKeyError("API key is inactive")
 
         # Update last used timestamp
-        api_key.last_used_at = datetime.now(timezone.utc)
+        api_key.last_used_at = datetime.now(UTC)
         await session.commit()
 
     # Store in request state for downstream use
@@ -208,19 +207,19 @@ class CongressionalStatsResponse(BaseModel):
 
     total_documents: int = Field(..., description="Total documents in collection")
     total_members: int = Field(..., description="Number of unique members indexed")
-    parties: Dict[str, int] = Field(..., description="Document count by party")
-    states: Dict[str, int] = Field(..., description="Document count by state")
-    last_updated: Optional[str] = Field(None, description="ISO timestamp of last update")
+    parties: dict[str, int] = Field(..., description="Document count by party")
+    states: dict[str, int] = Field(..., description="Document count by state")
+    last_updated: str | None = Field(None, description="ISO timestamp of last update")
 
 
 class ScrapeStartResponse(BaseModel):
     """Response model for scrape job start."""
 
     status: str = Field(..., description="Job status (running, idle, etc.)")
-    stats: Dict[str, Any] = Field(default_factory=dict, description="Scrape statistics")
-    started_at: Optional[str] = Field(None, description="ISO timestamp of job start")
-    completed_at: Optional[str] = Field(None, description="ISO timestamp of job completion")
-    error: Optional[str] = Field(None, description="Error message if job failed")
+    stats: dict[str, Any] = Field(default_factory=dict, description="Scrape statistics")
+    started_at: str | None = Field(None, description="ISO timestamp of job start")
+    completed_at: str | None = Field(None, description="ISO timestamp of job completion")
+    error: str | None = Field(None, description="Error message if job failed")
 
 
 class CancelResponse(BaseModel):
@@ -381,7 +380,7 @@ Jobs run asynchronously. Use `/scrape/status` to monitor progress.
 async def start_congressional_scrape(
     payload: CongressionalScrapeRequest,
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Start a background congressional scraping job."""
     from ..services.congressional_scraper import ScrapeConfig
 
@@ -400,9 +399,7 @@ async def start_congressional_scrape(
         "status": state.status,
         "stats": state.stats,
         "started_at": state.started_at.isoformat() if state.started_at else None,
-        "completed_at": (
-            state.completed_at.isoformat() if state.completed_at else None
-        ),
+        "completed_at": (state.completed_at.isoformat() if state.completed_at else None),
         "error": state.error,
     }
 
@@ -442,7 +439,7 @@ async def start_congressional_scrape(
 @unified_response
 async def get_congressional_scrape_status(
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Get current status of the congressional scraping job."""
     state = job_manager.get_status()
     resp = CongressionalScrapeStatusResponse(
@@ -464,7 +461,7 @@ async def get_congressional_scrape_status(
 @unified_response
 async def cancel_congressional_scrape(
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Request cancellation of the current congressional scraping job."""
     job_manager.cancel_scrape()
     return {"cancelled": True}
@@ -479,7 +476,7 @@ async def cancel_congressional_scrape(
 @unified_response
 async def pause_congressional_scrape(
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Pause the current congressional scraping job."""
     job_manager.pause_scrape()
     return {"paused": True}
@@ -494,7 +491,7 @@ async def pause_congressional_scrape(
 @unified_response
 async def resume_congressional_scrape(
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Resume a paused congressional scraping job."""
     job_manager.resume_scrape()
     return {"resumed": True}
@@ -550,7 +547,7 @@ Returns member information including:
 @unified_response
 async def list_congressional_members(
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """List unique congressional members present in the index."""
     with WeaviateConnection() as client:
         if not client.collections.exists(CONGRESSIONAL_DATA_COLLECTION_NAME):
@@ -558,7 +555,7 @@ async def list_congressional_members(
 
         collection = client.collections.get(CONGRESSIONAL_DATA_COLLECTION_NAME)
 
-        members: List[CongressionalMemberInfo] = []
+        members: list[CongressionalMemberInfo] = []
 
         try:
             agg = collection.aggregate.over_all(
@@ -658,7 +655,7 @@ Results are ranked by semantic similarity to the query.
 async def query_congressional_content(
     payload: CongressionalQueryRequest,
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Perform semantic search over congressional content."""
     if not payload.query.strip():
         raise HTTPException(status_code=400, detail="Query text must not be empty")
@@ -671,7 +668,7 @@ async def query_congressional_content(
 
         collection = client.collections.get(CONGRESSIONAL_DATA_COLLECTION_NAME)
 
-        filters: List[Filter] = []
+        filters: list[Filter] = []
 
         if payload.member_name:
             filters.append(
@@ -696,7 +693,7 @@ async def query_congressional_content(
                 Filter.by_property("scraped_at").less_than_equal(date_to),
             )
 
-        combined_filter: Optional[Filter] = None
+        combined_filter: Filter | None = None
         for f in filters:
             combined_filter = f if combined_filter is None else combined_filter & f
 
@@ -713,9 +710,9 @@ async def query_congressional_content(
                 detail="Failed to query congressional collection",
             ) from exc
 
-        results: List[CongressionalQueryResult] = []
+        results: list[CongressionalQueryResult] = []
         for obj in res.objects or []:
-            props: Dict[str, Any] = obj.properties or {}
+            props: dict[str, Any] = obj.properties or {}
             results.append(
                 CongressionalQueryResult(
                     member_name=props.get("member_name", ""),
@@ -794,9 +791,10 @@ Optionally filter to a specific member's content using `member_filter`.
 async def chat_with_congressional_data(
     payload: CongressionalChatRequest,
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Chat with congressional data using RAG (Retrieval-Augmented Generation)."""
     import uuid
+
     from ..services.congressional_rag import answer_question
 
     if not payload.message.strip():
@@ -883,7 +881,7 @@ Return statistics for the CongressionalData collection including:
 @unified_response
 async def get_congressional_collection_stats(
     api_key: str = Depends(check_rate_limit),
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Return basic statistics for the CongressionalData collection."""
     with WeaviateConnection() as client:
         stats = get_congressional_stats(client)

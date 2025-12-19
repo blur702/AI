@@ -4,9 +4,11 @@ Unified response middleware for API Gateway.
 Provides a decorator that wraps endpoint responses in a standard format
 with success/error handling and consistent JSON structure.
 """
-from datetime import datetime, timezone
+
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
 from functools import wraps
-from typing import Any, Awaitable, Callable, Dict
+from typing import Any
 
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
@@ -27,6 +29,7 @@ def _get_rate_limit_error():
     """Lazily import RateLimitExceededError to avoid circular imports."""
     try:
         from ..routes.congressional import RateLimitExceededError
+
         return RateLimitExceededError
     except ImportError:
         return None
@@ -45,6 +48,7 @@ def unified_response(func: Callable[..., Awaitable[Any]]) -> Callable[..., Await
     Returns:
         Wrapped function that returns JSONResponse with unified format
     """
+
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> JSONResponse:
         """
@@ -60,16 +64,18 @@ def unified_response(func: Callable[..., Awaitable[Any]]) -> Callable[..., Await
         Returns:
             JSONResponse with UnifiedResponse format
         """
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         try:
             result = await func(*args, **kwargs)
-            payload: Dict[str, Any] = {
+            payload: dict[str, Any] = {
                 "success": True,
                 "data": result if isinstance(result, dict) else result,
                 "error": None,
-                "job_id": getattr(result, "job_id", None)
-                if not isinstance(result, dict)
-                else result.get("job_id"),
+                "job_id": (
+                    getattr(result, "job_id", None)
+                    if not isinstance(result, dict)
+                    else result.get("job_id")
+                ),
                 "timestamp": now,
             }
             return JSONResponse(content=UnifiedResponse(**payload).dict())
@@ -139,4 +145,3 @@ def unified_response(func: Callable[..., Awaitable[Any]]) -> Callable[..., Await
             )
 
     return wrapper
-

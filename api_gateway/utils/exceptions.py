@@ -59,4 +59,3 @@ class JobTimeoutError(Exception):
         """Initialize with error message."""
         self.message = message
         super().__init__(message)
-

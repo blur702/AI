@@ -20,4 +20,3 @@ class SettingsTab(ttk.Frame):
             wraplength=600,
             justify="left",
         ).pack(anchor="w", padx=8, pady=8)
-

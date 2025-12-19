@@ -3,6 +3,7 @@ LLM generation routes for Ollama integration.
 
 Provides endpoints for text generation and model listing via the Ollama API.
 """
+
 import asyncio
 
 from fastapi import APIRouter
@@ -11,7 +12,6 @@ from ..middleware.response import unified_response
 from ..models.schemas import LLMRequest
 from ..services.job_queue import JobQueueManager
 from ..services.vram_service import VRAMService
-
 
 router = APIRouter(prefix="/llm", tags=["llm"])
 queue_manager = JobQueueManager()
@@ -52,4 +52,3 @@ async def list_models() -> dict:
     # Run sync subprocess call in thread pool to avoid blocking event loop
     models = await asyncio.to_thread(VRAMService.get_loaded_models)
     return {"models": models}
-

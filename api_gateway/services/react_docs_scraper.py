@@ -45,6 +45,7 @@ from bs4 import BeautifulSoup
 if TYPE_CHECKING:
     import weaviate
 
+from ..utils.logger import get_logger
 from .base_doc_scraper import BaseDocScraper, DocPage, ScraperConfig
 from .react_docs_schema import (
     REACT_ECOSYSTEM_COLLECTION_NAME,
@@ -52,8 +53,6 @@ from .react_docs_schema import (
     get_react_ecosystem_stats,
 )
 from .weaviate_connection import WeaviateConnection
-from ..utils.logger import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -221,9 +220,7 @@ class ReactEcosystemScraper(BaseDocScraper):
     def get_seed_urls(self) -> list[str]:
         """Get seed URLs for all or specified libraries."""
         urls = []
-        libraries = (
-            [self.library] if self.library else list(REACT_LIBRARIES.keys())
-        )
+        libraries = [self.library] if self.library else list(REACT_LIBRARIES.keys())
 
         for lib_key in libraries:
             if lib_key in REACT_LIBRARIES:
@@ -269,10 +266,20 @@ class ReactEcosystemScraper(BaseDocScraper):
 
         # Remove navigation, footer, etc.
         for selector in [
-            "nav", "footer", "header", "aside",
-            "[role='navigation']", "[role='banner']",
-            ".sidebar", ".toc", ".nav", ".footer", ".header",
-            "script", "style", "noscript",
+            "nav",
+            "footer",
+            "header",
+            "aside",
+            "[role='navigation']",
+            "[role='banner']",
+            ".sidebar",
+            ".toc",
+            ".nav",
+            ".footer",
+            ".header",
+            "script",
+            "style",
+            "noscript",
         ]:
             for elem in soup.select(selector):
                 elem.decompose()
@@ -327,10 +334,9 @@ class ReactEcosystemScraper(BaseDocScraper):
         breadcrumb = ""
         breadcrumb_elem = soup.select_one("[aria-label='breadcrumb']")
         if breadcrumb_elem:
-            breadcrumb = " > ".join([
-                li.get_text(strip=True)
-                for li in breadcrumb_elem.select("li, a")
-            ])
+            breadcrumb = " > ".join(
+                [li.get_text(strip=True) for li in breadcrumb_elem.select("li, a")]
+            )
 
         return DocPage(
             url=url,
@@ -342,7 +348,7 @@ class ReactEcosystemScraper(BaseDocScraper):
             code_examples=code_examples,
         )
 
-    def create_collection(self, client: "weaviate.WeaviateClient") -> None:
+    def create_collection(self, client: weaviate.WeaviateClient) -> None:
         """Create the ReactEcosystem collection."""
         create_react_ecosystem_collection(client)
 
@@ -380,15 +386,14 @@ def scrape_react_ecosystem(
 
 def main() -> None:
     """CLI entry point."""
-    parser = argparse.ArgumentParser(
-        description="Scrape React ecosystem documentation"
-    )
+    parser = argparse.ArgumentParser(description="Scrape React ecosystem documentation")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # scrape command
     scrape_parser = subparsers.add_parser("scrape", help="Scrape documentation")
     scrape_parser.add_argument(
-        "--library", "-l",
+        "--library",
+        "-l",
         choices=list(REACT_LIBRARIES.keys()),
         help="Specific library to scrape (default: all)",
     )
@@ -415,7 +420,8 @@ def main() -> None:
     # reindex command
     reindex_parser = subparsers.add_parser("reindex", help="Force reindex")
     reindex_parser.add_argument(
-        "--library", "-l",
+        "--library",
+        "-l",
         choices=list(REACT_LIBRARIES.keys()),
         help="Specific library to reindex",
     )
@@ -450,9 +456,9 @@ def main() -> None:
             print("=" * 50)
             print(f"Exists: {stats['exists']}")
             print(f"Total objects: {stats['object_count']}")
-            if stats['package_counts']:
+            if stats["package_counts"]:
                 print("\nBy package:")
-                for pkg, count in sorted(stats['package_counts'].items()):
+                for pkg, count in sorted(stats["package_counts"].items()):
                     print(f"  {pkg}: {count}")
             print("=" * 50)
 
@@ -462,7 +468,7 @@ def main() -> None:
 
         logger.info("Reindexing React ecosystem docs...")
         stats = scrape_react_ecosystem(
-            library=args.library if hasattr(args, 'library') else None,
+            library=args.library if hasattr(args, "library") else None,
             resume=False,
         )
 

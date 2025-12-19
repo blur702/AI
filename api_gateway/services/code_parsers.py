@@ -39,7 +39,7 @@ import shutil
 import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from ..utils.logger import get_logger
 from .code_entity_schema import CodeEntity
@@ -69,9 +69,7 @@ def _relative_to_workspace(path: Path) -> str:
         return str(path.resolve())
 
 
-def _build_full_name(
-    file_path: Path, entity_name: str, parent: Optional[str] = None
-) -> str:
+def _build_full_name(file_path: Path, entity_name: str, parent: str | None = None) -> str:
     """
     Build fully qualified name for an entity.
 
@@ -104,7 +102,7 @@ def _build_full_name(
     return f"{module_path}.{entity_name}"
 
 
-def _serialize_parameters(params: List[Dict[str, Any]]) -> str:
+def _serialize_parameters(params: list[dict[str, Any]]) -> str:
     """
     Convert parameter list to JSON string.
 
@@ -117,7 +115,7 @@ def _serialize_parameters(params: List[Dict[str, Any]]) -> str:
     return json.dumps(params)
 
 
-def _serialize_decorators(decorators: List[str]) -> str:
+def _serialize_decorators(decorators: list[str]) -> str:
     """
     Convert decorator list to JSON array string.
 
@@ -158,7 +156,7 @@ class BaseParser(ABC):
     """
 
     @abstractmethod
-    def parse_file(self, file_path: Path) -> List[CodeEntity]:
+    def parse_file(self, file_path: Path) -> list[CodeEntity]:
         """
         Parse a file and extract code entities.
 
@@ -201,7 +199,7 @@ class PythonParser(BaseParser):
         """Return language identifier."""
         return "python"
 
-    def parse_file(self, file_path: Path) -> List[CodeEntity]:
+    def parse_file(self, file_path: Path) -> list[CodeEntity]:
         """
         Parse a Python file and extract code entities.
 
@@ -225,14 +223,14 @@ class PythonParser(BaseParser):
             logger.exception("Syntax error in %s: %s", file_path, exc)
             return []
 
-        entities: List[CodeEntity] = []
+        entities: list[CodeEntity] = []
         imports = self._extract_imports(tree)
         source_lines = source_code.splitlines()
 
         class EntityVisitor(ast.NodeVisitor):
             def __init__(
                 visitor_self,
-                parent: Optional[str] = None,
+                parent: str | None = None,
                 parent_is_class: bool = False,
             ):
                 visitor_self.parent = parent
@@ -256,9 +254,7 @@ class PythonParser(BaseParser):
                     if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
                         nested_visitor.visit(child)
 
-            def visit_AsyncFunctionDef(
-                visitor_self, node: ast.AsyncFunctionDef
-            ) -> None:
+            def visit_AsyncFunctionDef(visitor_self, node: ast.AsyncFunctionDef) -> None:
                 entity = self._extract_function(
                     node,
                     file_path,
@@ -321,7 +317,7 @@ class PythonParser(BaseParser):
         )
         return entities
 
-    def _extract_imports(self, tree: ast.Module) -> List[str]:
+    def _extract_imports(self, tree: ast.Module) -> list[str]:
         """
         Extract all import statements from a Python AST.
 
@@ -331,7 +327,7 @@ class PythonParser(BaseParser):
         Returns:
             List of imported module/package names
         """
-        imports: List[str] = []
+        imports: list[str] = []
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
@@ -349,9 +345,9 @@ class PythonParser(BaseParser):
         self,
         node: ast.FunctionDef | ast.AsyncFunctionDef,
         file_path: Path,
-        source_lines: List[str],
-        imports: List[str],
-        parent: Optional[str] = None,
+        source_lines: list[str],
+        imports: list[str],
+        parent: str | None = None,
         is_async: bool = False,
         is_method: bool = False,
     ) -> CodeEntity:
@@ -373,11 +369,11 @@ class PythonParser(BaseParser):
         name = node.name
 
         # Parameters - extract all categories
-        params: List[Dict[str, Any]] = []
+        params: list[dict[str, Any]] = []
 
         # 1. Standard positional args (node.args.args)
         for arg in node.args.args:
-            param_info: Dict[str, Any] = {
+            param_info: dict[str, Any] = {
                 "name": arg.arg,
                 "type": None,
                 "default": None,
@@ -493,9 +489,9 @@ class PythonParser(BaseParser):
         self,
         node: ast.ClassDef,
         file_path: Path,
-        source_lines: List[str],
-        imports: List[str],
-        parent: Optional[str] = None,
+        source_lines: list[str],
+        imports: list[str],
+        parent: str | None = None,
     ) -> CodeEntity:
         """
         Extract a class entity from AST node.
@@ -561,8 +557,8 @@ class PythonParser(BaseParser):
         name: str,
         node: ast.Assign,
         file_path: Path,
-        source_lines: List[str],
-        imports: List[str],
+        source_lines: list[str],
+        imports: list[str],
     ) -> CodeEntity:
         """
         Extract a module-level variable assignment.
@@ -614,8 +610,8 @@ class PythonParser(BaseParser):
         self,
         node: ast.AnnAssign,
         file_path: Path,
-        source_lines: List[str],
-        imports: List[str],
+        source_lines: list[str],
+        imports: list[str],
     ) -> CodeEntity:
         """
         Extract an annotated module-level variable.
@@ -690,7 +686,7 @@ class TypeScriptParser(BaseParser):
             file_extension: File extension to determine language (.ts, .tsx, .js, .jsx)
         """
         self._file_extension = file_extension
-        self._node_path: Optional[str] = None
+        self._node_path: str | None = None
         self._ts_parser_path = Path(__file__).parent / "ts_parser.cjs"
 
     @property
@@ -705,7 +701,7 @@ class TypeScriptParser(BaseParser):
             return "typescript"
         return "javascript"
 
-    def _get_node_path(self) -> Optional[str]:
+    def _get_node_path(self) -> str | None:
         """
         Get path to Node.js executable.
 
@@ -716,7 +712,7 @@ class TypeScriptParser(BaseParser):
             self._node_path = shutil.which("node")
         return self._node_path
 
-    def parse_file(self, file_path: Path) -> List[CodeEntity]:
+    def parse_file(self, file_path: Path) -> list[CodeEntity]:
         """
         Parse a TypeScript/JavaScript file and extract code entities.
 
@@ -771,7 +767,7 @@ class TypeScriptParser(BaseParser):
             logger.exception("Failed to parse TypeScript parser output for %s: %s", file_path, exc)
             return []
 
-        entities: List[CodeEntity] = []
+        entities: list[CodeEntity] = []
         relative_path = _relative_to_workspace(file_path)
 
         for raw in raw_entities:
@@ -852,7 +848,7 @@ class CSSParser(BaseParser):
         """Return language identifier."""
         return "css"
 
-    def parse_file(self, file_path: Path) -> List[CodeEntity]:
+    def parse_file(self, file_path: Path) -> list[CodeEntity]:
         """
         Parse a CSS file and extract style rules and animations.
 
@@ -870,11 +866,11 @@ class CSSParser(BaseParser):
             logger.exception("Failed to read file %s: %s", file_path, exc)
             return []
 
-        entities: List[CodeEntity] = []
+        entities: list[CodeEntity] = []
         relative_path = _relative_to_workspace(file_path)
 
         # Track keyframe positions to avoid double-matching their internal rules
-        keyframe_spans: List[Tuple[int, int]] = []
+        keyframe_spans: list[tuple[int, int]] = []
 
         # Extract keyframe animations directly from original content
         for match in self.KEYFRAMES_PATTERN.finditer(content):
@@ -896,9 +892,7 @@ class CSSParser(BaseParser):
 
             # Parse keyframe steps
             steps = []
-            for step_match in re.finditer(
-                r"([\d%]+|from|to)\s*\{([^}]*)\}", animation_body
-            ):
+            for step_match in re.finditer(r"([\d%]+|from|to)\s*\{([^}]*)\}", animation_body):
                 step_name = step_match.group(1).strip()
                 step_props = self._parse_properties(step_match.group(2))
                 steps.append({"step": step_name, "properties": step_props})
@@ -918,7 +912,7 @@ class CSSParser(BaseParser):
                 modifiers="",
                 parent_entity="",
                 language=self.language,
-                source_code=content[match.start():match.end()].strip(),
+                source_code=content[match.start() : match.end()].strip(),
                 dependencies="[]",
                 relationships="{}",
             )
@@ -986,7 +980,7 @@ class CSSParser(BaseParser):
                 modifiers="",
                 parent_entity="",
                 language=self.language,
-                source_code=content[actual_start:match.end()].strip(),
+                source_code=content[actual_start : match.end()].strip(),
                 dependencies="[]",
                 relationships="{}",
             )
@@ -999,7 +993,7 @@ class CSSParser(BaseParser):
         )
         return entities
 
-    def _parse_properties(self, block: str) -> List[Dict[str, str]]:
+    def _parse_properties(self, block: str) -> list[dict[str, str]]:
         """
         Parse CSS properties from a block of text.
 
@@ -1011,13 +1005,13 @@ class CSSParser(BaseParser):
         """
         properties = []
         for match in self.PROPERTY_PATTERN.finditer(block):
-            properties.append({
-                "property": match.group(1).strip(),
-                "value": match.group(2).strip(),
-            })
+            properties.append(
+                {
+                    "property": match.group(1).strip(),
+                    "value": match.group(2).strip(),
+                }
+            )
         return properties
-
-
 
 
 # =============================================================================
@@ -1119,7 +1113,7 @@ class RustParser(BaseParser):
         """Return language identifier."""
         return "rust"
 
-    def parse_file(self, file_path: Path) -> List[CodeEntity]:
+    def parse_file(self, file_path: Path) -> list[CodeEntity]:
         """
         Parse a Rust file and extract code entities.
 
@@ -1137,7 +1131,7 @@ class RustParser(BaseParser):
             logger.exception("Failed to read file %s: %s", file_path, exc)
             return []
 
-        entities: List[CodeEntity] = []
+        entities: list[CodeEntity] = []
         relative_path = _relative_to_workspace(file_path)
 
         # Extract functions
@@ -1286,7 +1280,7 @@ class RustParser(BaseParser):
 
         return i
 
-    def _extract_functions(self, content: str, file_path: str) -> List[CodeEntity]:
+    def _extract_functions(self, content: str, file_path: str) -> list[CodeEntity]:
         """Extract function definitions."""
         entities = []
         for match in self.FN_PATTERN.finditer(content):
@@ -1299,7 +1293,7 @@ class RustParser(BaseParser):
             line_start = _count_line_number(content, match.start())
             block_end = self._find_block_end(content, match.end())
             line_end = _count_line_number(content, block_end)
-            source = content[match.start():block_end].strip()
+            source = content[match.start() : block_end].strip()
 
             # Parse parameters
             param_list = self._parse_rust_params(params)
@@ -1310,28 +1304,30 @@ class RustParser(BaseParser):
 
             docstring = self._extract_doc_comment(content, match.start())
 
-            entities.append(CodeEntity(
-                entity_type="function",
-                name=name,
-                full_name=_build_full_name(Path(file_path), name),
-                file_path=file_path,
-                line_start=line_start,
-                line_end=line_end,
-                signature=signature,
-                parameters=json.dumps(param_list),
-                return_type=return_type,
-                docstring=docstring,
-                decorators="[]",
-                modifiers=modifiers,
-                parent_entity="",
-                language=self.language,
-                source_code=source[:2000],  # Truncate long sources
-                dependencies="[]",
-                relationships="{}",
-            ))
+            entities.append(
+                CodeEntity(
+                    entity_type="function",
+                    name=name,
+                    full_name=_build_full_name(Path(file_path), name),
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    signature=signature,
+                    parameters=json.dumps(param_list),
+                    return_type=return_type,
+                    docstring=docstring,
+                    decorators="[]",
+                    modifiers=modifiers,
+                    parent_entity="",
+                    language=self.language,
+                    source_code=source[:2000],  # Truncate long sources
+                    dependencies="[]",
+                    relationships="{}",
+                )
+            )
         return entities
 
-    def _parse_rust_params(self, params: str) -> List[Dict[str, Any]]:
+    def _parse_rust_params(self, params: str) -> list[dict[str, Any]]:
         """Parse Rust function parameters.
 
         Handles nested brackets for:
@@ -1361,7 +1357,7 @@ class RustParser(BaseParser):
             param_list.append(self._parse_single_param(current.strip()))
         return param_list
 
-    def _parse_single_param(self, param: str) -> Dict[str, Any]:
+    def _parse_single_param(self, param: str) -> dict[str, Any]:
         """Parse a single Rust parameter."""
         # Handle self, &self, &mut self
         if param in ("self", "&self", "&mut self"):
@@ -1372,7 +1368,7 @@ class RustParser(BaseParser):
             return {"name": parts[0].strip(), "type": parts[1].strip(), "kind": "positional"}
         return {"name": param, "type": "", "kind": "positional"}
 
-    def _extract_structs(self, content: str, file_path: str) -> List[CodeEntity]:
+    def _extract_structs(self, content: str, file_path: str) -> list[CodeEntity]:
         """Extract struct definitions."""
         entities = []
         for match in self.STRUCT_PATTERN.finditer(content):
@@ -1384,36 +1380,38 @@ class RustParser(BaseParser):
             # Find end of struct
             if content[match.end() - 1] == ";":
                 line_end = line_start
-                source = content[match.start():match.end()].strip()
+                source = content[match.start() : match.end()].strip()
             else:
                 block_end = self._find_block_end(content, match.end())
                 line_end = _count_line_number(content, block_end)
-                source = content[match.start():block_end].strip()
+                source = content[match.start() : block_end].strip()
 
             docstring = self._extract_doc_comment(content, match.start())
 
-            entities.append(CodeEntity(
-                entity_type="struct",
-                name=name,
-                full_name=_build_full_name(Path(file_path), name),
-                file_path=file_path,
-                line_start=line_start,
-                line_end=line_end,
-                signature=f"struct {name}{generics}",
-                parameters="[]",
-                return_type="",
-                docstring=docstring,
-                decorators="[]",
-                modifiers=modifiers,
-                parent_entity="",
-                language=self.language,
-                source_code=source[:2000],
-                dependencies="[]",
-                relationships="{}",
-            ))
+            entities.append(
+                CodeEntity(
+                    entity_type="struct",
+                    name=name,
+                    full_name=_build_full_name(Path(file_path), name),
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    signature=f"struct {name}{generics}",
+                    parameters="[]",
+                    return_type="",
+                    docstring=docstring,
+                    decorators="[]",
+                    modifiers=modifiers,
+                    parent_entity="",
+                    language=self.language,
+                    source_code=source[:2000],
+                    dependencies="[]",
+                    relationships="{}",
+                )
+            )
         return entities
 
-    def _extract_traits(self, content: str, file_path: str) -> List[CodeEntity]:
+    def _extract_traits(self, content: str, file_path: str) -> list[CodeEntity]:
         """Extract trait definitions."""
         entities = []
         for match in self.TRAIT_PATTERN.finditer(content):
@@ -1424,31 +1422,33 @@ class RustParser(BaseParser):
             line_start = _count_line_number(content, match.start())
             block_end = self._find_block_end(content, match.end())
             line_end = _count_line_number(content, block_end)
-            source = content[match.start():block_end].strip()
+            source = content[match.start() : block_end].strip()
             docstring = self._extract_doc_comment(content, match.start())
 
-            entities.append(CodeEntity(
-                entity_type="trait",
-                name=name,
-                full_name=_build_full_name(Path(file_path), name),
-                file_path=file_path,
-                line_start=line_start,
-                line_end=line_end,
-                signature=f"trait {name}{generics}",
-                parameters="[]",
-                return_type="",
-                docstring=docstring,
-                decorators="[]",
-                modifiers=modifiers,
-                parent_entity="",
-                language=self.language,
-                source_code=source[:2000],
-                dependencies="[]",
-                relationships="{}",
-            ))
+            entities.append(
+                CodeEntity(
+                    entity_type="trait",
+                    name=name,
+                    full_name=_build_full_name(Path(file_path), name),
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    signature=f"trait {name}{generics}",
+                    parameters="[]",
+                    return_type="",
+                    docstring=docstring,
+                    decorators="[]",
+                    modifiers=modifiers,
+                    parent_entity="",
+                    language=self.language,
+                    source_code=source[:2000],
+                    dependencies="[]",
+                    relationships="{}",
+                )
+            )
         return entities
 
-    def _extract_enums(self, content: str, file_path: str) -> List[CodeEntity]:
+    def _extract_enums(self, content: str, file_path: str) -> list[CodeEntity]:
         """Extract enum definitions."""
         entities = []
         for match in self.ENUM_PATTERN.finditer(content):
@@ -1459,31 +1459,33 @@ class RustParser(BaseParser):
             line_start = _count_line_number(content, match.start())
             block_end = self._find_block_end(content, match.end())
             line_end = _count_line_number(content, block_end)
-            source = content[match.start():block_end].strip()
+            source = content[match.start() : block_end].strip()
             docstring = self._extract_doc_comment(content, match.start())
 
-            entities.append(CodeEntity(
-                entity_type="enum",
-                name=name,
-                full_name=_build_full_name(Path(file_path), name),
-                file_path=file_path,
-                line_start=line_start,
-                line_end=line_end,
-                signature=f"enum {name}{generics}",
-                parameters="[]",
-                return_type="",
-                docstring=docstring,
-                decorators="[]",
-                modifiers=modifiers,
-                parent_entity="",
-                language=self.language,
-                source_code=source[:2000],
-                dependencies="[]",
-                relationships="{}",
-            ))
+            entities.append(
+                CodeEntity(
+                    entity_type="enum",
+                    name=name,
+                    full_name=_build_full_name(Path(file_path), name),
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    signature=f"enum {name}{generics}",
+                    parameters="[]",
+                    return_type="",
+                    docstring=docstring,
+                    decorators="[]",
+                    modifiers=modifiers,
+                    parent_entity="",
+                    language=self.language,
+                    source_code=source[:2000],
+                    dependencies="[]",
+                    relationships="{}",
+                )
+            )
         return entities
 
-    def _extract_impls(self, content: str, file_path: str) -> List[CodeEntity]:
+    def _extract_impls(self, content: str, file_path: str) -> list[CodeEntity]:
         """Extract impl blocks."""
         entities = []
         for match in self.IMPL_PATTERN.finditer(content):
@@ -1495,7 +1497,7 @@ class RustParser(BaseParser):
             line_start = _count_line_number(content, match.start())
             block_end = self._find_block_end(content, match.end())
             line_end = _count_line_number(content, block_end)
-            source = content[match.start():block_end].strip()
+            source = content[match.start() : block_end].strip()
 
             if trait_name:
                 # Use underscores for consistent naming across name and full_name
@@ -1505,28 +1507,30 @@ class RustParser(BaseParser):
                 name = type_name
                 signature = f"impl{generics} {type_name}"
 
-            entities.append(CodeEntity(
-                entity_type="impl",
-                name=name,
-                full_name=_build_full_name(Path(file_path), name),
-                file_path=file_path,
-                line_start=line_start,
-                line_end=line_end,
-                signature=signature,
-                parameters="[]",
-                return_type="",
-                docstring="",
-                decorators="[]",
-                modifiers=modifiers,
-                parent_entity="",
-                language=self.language,
-                source_code=source[:2000],
-                dependencies="[]",
-                relationships="{}",
-            ))
+            entities.append(
+                CodeEntity(
+                    entity_type="impl",
+                    name=name,
+                    full_name=_build_full_name(Path(file_path), name),
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    signature=signature,
+                    parameters="[]",
+                    return_type="",
+                    docstring="",
+                    decorators="[]",
+                    modifiers=modifiers,
+                    parent_entity="",
+                    language=self.language,
+                    source_code=source[:2000],
+                    dependencies="[]",
+                    relationships="{}",
+                )
+            )
         return entities
 
-    def _extract_constants(self, content: str, file_path: str) -> List[CodeEntity]:
+    def _extract_constants(self, content: str, file_path: str) -> list[CodeEntity]:
         """Extract const and static declarations."""
         entities = []
         for match in self.CONST_PATTERN.finditer(content):
@@ -1539,28 +1543,30 @@ class RustParser(BaseParser):
             line_end = line_start
             docstring = self._extract_doc_comment(content, match.start())
 
-            entities.append(CodeEntity(
-                entity_type="constant" if "const" in kind else "static",
-                name=name,
-                full_name=_build_full_name(Path(file_path), name),
-                file_path=file_path,
-                line_start=line_start,
-                line_end=line_end,
-                signature=f"{kind} {name}: {type_annotation}",
-                parameters="[]",
-                return_type=type_annotation,
-                docstring=docstring,
-                decorators="[]",
-                modifiers=modifiers,
-                parent_entity="",
-                language=self.language,
-                source_code="",
-                dependencies="[]",
-                relationships="{}",
-            ))
+            entities.append(
+                CodeEntity(
+                    entity_type="constant" if "const" in kind else "static",
+                    name=name,
+                    full_name=_build_full_name(Path(file_path), name),
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    signature=f"{kind} {name}: {type_annotation}",
+                    parameters="[]",
+                    return_type=type_annotation,
+                    docstring=docstring,
+                    decorators="[]",
+                    modifiers=modifiers,
+                    parent_entity="",
+                    language=self.language,
+                    source_code="",
+                    dependencies="[]",
+                    relationships="{}",
+                )
+            )
         return entities
 
-    def _extract_type_aliases(self, content: str, file_path: str) -> List[CodeEntity]:
+    def _extract_type_aliases(self, content: str, file_path: str) -> list[CodeEntity]:
         """Extract type alias declarations."""
         entities = []
         for match in self.TYPE_ALIAS_PATTERN.finditer(content):
@@ -1573,25 +1579,27 @@ class RustParser(BaseParser):
             line_end = line_start
             docstring = self._extract_doc_comment(content, match.start())
 
-            entities.append(CodeEntity(
-                entity_type="type",
-                name=name,
-                full_name=_build_full_name(Path(file_path), name),
-                file_path=file_path,
-                line_start=line_start,
-                line_end=line_end,
-                signature=f"type {name}{generics} = {aliased_type}",
-                parameters="[]",
-                return_type=aliased_type,
-                docstring=docstring,
-                decorators="[]",
-                modifiers=modifiers,
-                parent_entity="",
-                language=self.language,
-                source_code="",
-                dependencies="[]",
-                relationships="{}",
-            ))
+            entities.append(
+                CodeEntity(
+                    entity_type="type",
+                    name=name,
+                    full_name=_build_full_name(Path(file_path), name),
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    signature=f"type {name}{generics} = {aliased_type}",
+                    parameters="[]",
+                    return_type=aliased_type,
+                    docstring=docstring,
+                    decorators="[]",
+                    modifiers=modifiers,
+                    parent_entity="",
+                    language=self.language,
+                    source_code="",
+                    dependencies="[]",
+                    relationships="{}",
+                )
+            )
         return entities
 
 
@@ -1628,7 +1636,7 @@ class CodeParser:
         self._css_parser = CSSParser()
         self._rust_parser = RustParser()
 
-    def parse_file(self, file_path: Path) -> List[CodeEntity]:
+    def parse_file(self, file_path: Path) -> list[CodeEntity]:
         """
         Parse a file and extract code entities.
 
@@ -1667,7 +1675,7 @@ class CodeParser:
             return []
 
     @classmethod
-    def get_supported_extensions(cls) -> List[str]:
+    def get_supported_extensions(cls) -> list[str]:
         """
         Return list of supported file extensions.
 
@@ -1695,7 +1703,7 @@ class CodeParser:
 # =============================================================================
 
 
-def parse_file(file_path: Path) -> List[CodeEntity]:
+def parse_file(file_path: Path) -> list[CodeEntity]:
     """
     Convenience function to parse a file without explicitly creating a parser.
 
@@ -1709,7 +1717,7 @@ def parse_file(file_path: Path) -> List[CodeEntity]:
     return parser.parse_file(file_path)
 
 
-def get_supported_extensions() -> List[str]:
+def get_supported_extensions() -> list[str]:
     """Return list of supported file extensions."""
     return CodeParser.get_supported_extensions()
 

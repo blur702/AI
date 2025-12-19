@@ -68,21 +68,22 @@ test.describe('Dashboard Backend Ollama Models API', () => {
   test.describe('POST /api/models/ollama/unload', () => {
     test('rejects request without model_name', async ({ dashboardAPI }) => {
       try {
-        // @ts-expect-error - Testing invalid input
-        await dashboardAPI.unloadModel(undefined);
-        expect.fail('Should have thrown an error');
-      } catch (error: any) {
+        await dashboardAPI.unloadModel(undefined as unknown as string);
+        throw new Error('Should have thrown an error');
+      } catch (error: unknown) {
         // API should reject missing model_name
-        expect(error.message || error.toString()).toBeDefined();
+        const err = error as Error;
+        expect(err.message || String(err)).toBeDefined();
       }
     });
 
     test('rejects request with empty model_name', async ({ dashboardAPI }) => {
       try {
         await dashboardAPI.unloadModel('');
-        expect.fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.message || error.toString()).toBeDefined();
+        throw new Error('Should have thrown an error');
+      } catch (error: unknown) {
+        const err = error as Error;
+        expect(err.message || String(err)).toBeDefined();
       }
     });
 
@@ -101,20 +102,21 @@ test.describe('Dashboard Backend Ollama Models API', () => {
   test.describe('POST /api/models/ollama/load', () => {
     test('rejects request without model_name', async ({ dashboardAPI }) => {
       try {
-        // @ts-expect-error - Testing invalid input
-        await dashboardAPI.loadModel(undefined);
-        expect.fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.message || error.toString()).toBeDefined();
+        await dashboardAPI.loadModel(undefined as unknown as string);
+        throw new Error('Should have thrown an error');
+      } catch (error: unknown) {
+        const err = error as Error;
+        expect(err.message || String(err)).toBeDefined();
       }
     });
 
     test('rejects request with empty model_name', async ({ dashboardAPI }) => {
       try {
         await dashboardAPI.loadModel('');
-        expect.fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.message || error.toString()).toBeDefined();
+        throw new Error('Should have thrown an error');
+      } catch (error: unknown) {
+        const err = error as Error;
+        expect(err.message || String(err)).toBeDefined();
       }
     });
   });

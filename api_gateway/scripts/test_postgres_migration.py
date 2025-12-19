@@ -100,16 +100,16 @@ async def test_crud_operations():
     """Test basic CRUD operations."""
     print("\nTesting CRUD operations...")
 
-    from sqlalchemy import select, delete
+    from sqlalchemy import delete, select
 
     from api_gateway.models.database import (
         AsyncSessionLocal,
+        Error,
+        ErrorSeverity,
         Job,
         JobStatus,
         Todo,
         TodoStatus,
-        Error,
-        ErrorSeverity,
     )
 
     test_id = str(uuid.uuid4())

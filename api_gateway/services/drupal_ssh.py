@@ -5,16 +5,15 @@ Provides a centralized way to load PuTTY credentials, build sanitized command
 lines, and execute commands with retries and masked logging. Used by ingestion
 services and the new deployment workflow.
 """
+
 from __future__ import annotations
 
 import json
 import logging
-import os
 import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Optional
 
 from ..config import settings
 
@@ -35,7 +34,7 @@ class SSHConfig:
     hostkey: str
 
 
-def load_mcp_config() -> Dict[str, str]:
+def load_mcp_config() -> dict[str, str]:
     """Parse .mcp.json to extract PuTTY credentials, if available."""
     config_path = Path(".mcp.json")
     if not config_path.exists():
@@ -76,14 +75,13 @@ def get_ssh_config() -> SSHConfig:
 
 def _sanitize_command(cmd: list[str], password: str) -> str:
     """Mask password when logging the full command."""
-    sanitized = [
-        "***" if part == password else part
-        for part in cmd
-    ]
+    sanitized = ["***" if part == password else part for part in cmd]
     return " ".join(sanitized)
 
 
-def run_drupal_ssh(command: str, timeout: int = 60, retries: int = 3) -> subprocess.CompletedProcess:
+def run_drupal_ssh(
+    command: str, timeout: int = 60, retries: int = 3
+) -> subprocess.CompletedProcess:
     """Execute an SSH command with retry logic."""
     cfg = get_ssh_config()
     base_cmd = [
@@ -97,7 +95,7 @@ def run_drupal_ssh(command: str, timeout: int = 60, retries: int = 3) -> subproc
         command,
     ]
 
-    last_exc: Optional[SSHCommandError] = None
+    last_exc: SSHCommandError | None = None
     for attempt in range(1, retries + 1):
         safe_cmd = _sanitize_command(base_cmd, cfg.password)
         LOGGER.debug("Running SSH command (%d/%d): %s", attempt, retries, safe_cmd)
@@ -110,7 +108,7 @@ def run_drupal_ssh(command: str, timeout: int = 60, retries: int = 3) -> subproc
             f"SSH command failed (exit {proc.returncode}): {command}; stderr: {proc.stderr.strip()}"
         )
         if attempt < retries:
-            sleep_time = 2 ** attempt
+            sleep_time = 2**attempt
             LOGGER.warning("Retrying SSH command in %ds", sleep_time)
             time.sleep(sleep_time)
 

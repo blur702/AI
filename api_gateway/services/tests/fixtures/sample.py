@@ -8,7 +8,7 @@ ability to extract functions, classes, variables, and other entities.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Dict, Optional, TypeVar
+from typing import Any, TypeVar
 
 # Module-level constant
 DEFAULT_TIMEOUT: int = 30
@@ -38,13 +38,13 @@ def function_with_defaults(
     name: str,
     count: int = 10,
     enabled: bool = True,
-    options: Optional[Dict[str, Any]] = None,
+    options: dict[str, Any] | None = None,
 ) -> str:
     """Function with default parameter values."""
     return f"{name}: {count}, enabled={enabled}"
 
 
-async def async_function(url: str) -> Dict[str, Any]:
+async def async_function(url: str) -> dict[str, Any]:
     """
     Asynchronous function that fetches data.
 
@@ -89,7 +89,7 @@ class AdvancedService(BaseService):
     def __init__(
         self,
         name: str,
-        config: Optional[Dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
         timeout: int = DEFAULT_TIMEOUT,
     ) -> None:
         """
@@ -110,7 +110,7 @@ class AdvancedService(BaseService):
         return bool(self.config)
 
     @staticmethod
-    def validate_config(config: Dict[str, Any]) -> bool:
+    def validate_config(config: dict[str, Any]) -> bool:
         """
         Validate a configuration dictionary.
 
@@ -123,7 +123,7 @@ class AdvancedService(BaseService):
         return "name" in config
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "AdvancedService":
+    def from_dict(cls, data: dict[str, Any]) -> AdvancedService:
         """
         Create an instance from a dictionary.
 
@@ -139,7 +139,7 @@ class AdvancedService(BaseService):
             timeout=data.get("timeout", DEFAULT_TIMEOUT),
         )
 
-    async def fetch_data(self, endpoint: str) -> Dict[str, Any]:
+    async def fetch_data(self, endpoint: str) -> dict[str, Any]:
         """
         Fetch data from an endpoint asynchronously.
 
@@ -154,7 +154,7 @@ class AdvancedService(BaseService):
     class NestedHelper:
         """A nested helper class."""
 
-        def __init__(self, parent: "AdvancedService") -> None:
+        def __init__(self, parent: AdvancedService) -> None:
             self.parent = parent
 
         def get_parent_name(self) -> str:
@@ -163,7 +163,7 @@ class AdvancedService(BaseService):
 
 
 # Annotated variable with complex type
-service_registry: Dict[str, BaseService] = {}
+service_registry: dict[str, BaseService] = {}
 
 
 def _private_helper(data: Any) -> str:
@@ -175,7 +175,7 @@ def function_with_varargs(
     *args: int,
     multiplier: int = 1,
     **kwargs: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Function with *args, keyword-only args, and **kwargs.
 
@@ -203,6 +203,7 @@ def outer_function(x: int) -> int:
     Returns:
         Processed value from nested function
     """
+
     def inner_function(y: int) -> int:
         """Nested inner function that doubles the value."""
         return y * 2

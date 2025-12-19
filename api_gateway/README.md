@@ -115,18 +115,21 @@ The API Gateway integrates with Weaviate for long-term memory and RAG capabiliti
 ### Starting Weaviate
 
 **Windows:**
+
 ```cmd
 cd api_gateway
 start_weaviate.bat
 ```
 
 **macOS/Linux:**
+
 ```bash
 cd api_gateway
 docker-compose up -d
 ```
 
 **Platform-agnostic (recommended):**
+
 ```bash
 # From project root, navigate to api_gateway
 cd api_gateway
@@ -168,4 +171,3 @@ Mobile or web clients:
 - Obtain an API key via `/auth/keys`
 - Submit generation / TTS / LLM requests
 - Poll via `/jobs/{job_id}` or subscribe via WebSocket `/ws/jobs/{job_id}` for status updates
-

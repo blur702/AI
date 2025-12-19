@@ -4,8 +4,9 @@ Pydantic schemas for API request/response models.
 Defines data transfer objects for API Gateway endpoints including
 generation requests, job status responses, and unified response format.
 """
+
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -21,9 +22,9 @@ class UnifiedResponse(BaseModel):
     """Standard API response format with success/error handling."""
 
     success: bool
-    data: Optional[Dict[str, Any]] = None
-    error: Optional[UnifiedError] = None
-    job_id: Optional[str] = None
+    data: dict[str, Any] | None = None
+    error: UnifiedError | None = None
+    job_id: str | None = None
     timestamp: str
 
 
@@ -44,8 +45,8 @@ class JobStatusResponse(BaseModel):
     job_id: str
     service: str
     status: str
-    result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -89,10 +90,10 @@ class ImageGenerationRequest(BaseModel):
     """
 
     prompt: str
-    model: Optional[str] = None
-    width: Optional[int] = 512
-    height: Optional[int] = 512
-    steps: Optional[int] = 30
+    model: str | None = None
+    width: int | None = 512
+    height: int | None = 512
+    steps: int | None = 30
 
 
 class VideoGenerationRequest(BaseModel):
@@ -106,8 +107,8 @@ class VideoGenerationRequest(BaseModel):
     """
 
     prompt: str
-    duration: Optional[int] = 10
-    model: Optional[str] = None
+    duration: int | None = 10
+    model: str | None = None
 
 
 class AudioGenerationRequest(BaseModel):
@@ -122,7 +123,7 @@ class AudioGenerationRequest(BaseModel):
 
     prompt: str
     engine: str
-    duration: Optional[int] = 10
+    duration: int | None = 10
 
 
 class MusicGenerationRequest(BaseModel):
@@ -137,7 +138,7 @@ class MusicGenerationRequest(BaseModel):
 
     prompt: str
     engine: str
-    duration: Optional[int] = 30
+    duration: int | None = 30
 
 
 class TTSRequest(BaseModel):
@@ -151,8 +152,8 @@ class TTSRequest(BaseModel):
     """
 
     text: str
-    voice: Optional[str] = None
-    speed: Optional[float] = Field(default=1.0, ge=0.5, le=2.0)
+    voice: str | None = None
+    speed: float | None = Field(default=1.0, ge=0.5, le=2.0)
 
 
 class LLMRequest(BaseModel):
@@ -166,8 +167,8 @@ class LLMRequest(BaseModel):
     """
 
     prompt: str
-    model: Optional[str] = None
-    temperature: Optional[float] = Field(default=0.7, ge=0.0, le=1.0)
+    model: str | None = None
+    temperature: float | None = Field(default=0.7, ge=0.0, le=1.0)
 
 
 class JobListResponse(BaseModel):
@@ -178,7 +179,7 @@ class JobListResponse(BaseModel):
         jobs: List of job status objects
     """
 
-    jobs: List[JobStatusResponse]
+    jobs: list[JobStatusResponse]
 
 
 # -----------------------------------------------------------------------------
@@ -217,7 +218,7 @@ class CongressionalMemberResponse(BaseModel):
         members: List of congressional member info objects
     """
 
-    members: List[CongressionalMemberInfo]
+    members: list[CongressionalMemberInfo]
 
 
 class CongressionalQueryRequest(BaseModel):
@@ -236,12 +237,12 @@ class CongressionalQueryRequest(BaseModel):
     """
 
     query: str
-    member_name: Optional[str] = None
-    party: Optional[str] = None
-    state: Optional[str] = None
-    topic: Optional[str] = None
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
+    member_name: str | None = None
+    party: str | None = None
+    state: str | None = None
+    topic: str | None = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
     limit: int = Field(default=10, ge=1, le=100)
 
 
@@ -281,7 +282,7 @@ class CongressionalQueryResponse(BaseModel):
         total_results: Total number of results returned
     """
 
-    results: List[CongressionalQueryResult]
+    results: list[CongressionalQueryResult]
     total_results: int
 
 
@@ -295,8 +296,8 @@ class CongressionalScrapeRequest(BaseModel):
         dry_run: If True, don't write to database
     """
 
-    max_members: Optional[int] = None
-    max_pages_per_member: Optional[int] = 5
+    max_members: int | None = None
+    max_pages_per_member: int | None = 5
     dry_run: bool = False
 
 
@@ -313,10 +314,10 @@ class CongressionalScrapeStatusResponse(BaseModel):
     """
 
     status: str
-    stats: Dict[str, Any] = Field(default_factory=dict)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    error: Optional[str] = None
+    stats: dict[str, Any] = Field(default_factory=dict)
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    error: str | None = None
 
 
 class CongressionalChatRequest(BaseModel):
@@ -330,8 +331,8 @@ class CongressionalChatRequest(BaseModel):
     """
 
     message: str = Field(..., min_length=1, max_length=2000)
-    member_filter: Optional[str] = None
-    conversation_id: Optional[str] = None
+    member_filter: str | None = None
+    conversation_id: str | None = None
 
 
 class CongressionalChatSource(BaseModel):
@@ -367,7 +368,6 @@ class CongressionalChatResponse(BaseModel):
     """
 
     answer: str
-    sources: List[CongressionalChatSource]
+    sources: list[CongressionalChatSource]
     conversation_id: str
     model: str
-

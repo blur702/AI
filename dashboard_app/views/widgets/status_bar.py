@@ -13,4 +13,3 @@ class StatusBar(ttk.Frame):
 
     def set_status(self, text: str) -> None:
         self.label.configure(text=text)
-

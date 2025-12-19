@@ -95,11 +95,7 @@ class TensorFlowDocScraper(BaseDocScraper):
             return False
 
         # Must be docs, tutorials, or guides
-        if not (
-            "/api_docs/python/" in url
-            or "/tutorials/" in url
-            or "/guide/" in url
-        ):
+        if not ("/api_docs/python/" in url or "/tutorials/" in url or "/guide/" in url):
             return False
 
         # Skip version-specific docs
@@ -111,10 +107,7 @@ class TensorFlowDocScraper(BaseDocScraper):
             return False
 
         # Skip media/static
-        if any(
-            pattern in url
-            for pattern in ["/images/", "/static/", "/_static/"]
-        ):
+        if any(pattern in url for pattern in ["/images/", "/static/", "/_static/"]):
             return False
 
         return True
@@ -182,7 +175,9 @@ class TensorFlowDocScraper(BaseDocScraper):
         breadcrumb = soup.select_one("nav.devsite-breadcrumb-list, .breadcrumb")
         if breadcrumb:
             items = breadcrumb.select("li a, a")
-            return " > ".join(item.get_text(strip=True) for item in items if item.get_text(strip=True))
+            return " > ".join(
+                item.get_text(strip=True) for item in items if item.get_text(strip=True)
+            )
         return ""
 
     def parse_page(self, url: str, html: str) -> DocPage | None:
@@ -228,7 +223,8 @@ class TensorFlowDocScraper(BaseDocScraper):
             section=section,
             package="tensorflow",
             version="latest",
-            breadcrumb=breadcrumb or (f"TensorFlow > {module_name}" if module_name else "TensorFlow"),
+            breadcrumb=breadcrumb
+            or (f"TensorFlow > {module_name}" if module_name else "TensorFlow"),
             code_examples=code_examples,
         )
 

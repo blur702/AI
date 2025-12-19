@@ -410,6 +410,7 @@ class TestTypeScriptParser(unittest.TestCase):
         """Test parsing of TypeScript file."""
         # Skip if Node.js not available
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -423,6 +424,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_extracts_interface(self) -> None:
         """Test extraction of TypeScript interface."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -442,6 +444,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_extracts_type_alias(self) -> None:
         """Test extraction of TypeScript type alias."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -460,6 +463,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_extracts_class_with_extends(self) -> None:
         """Test extraction of class with inheritance."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -479,6 +483,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_extracts_async_function(self) -> None:
         """Test extraction of async function."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -497,6 +502,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_extracts_arrow_function(self) -> None:
         """Test extraction of arrow function assigned to variable."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -515,6 +521,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_extracts_enum(self) -> None:
         """Test extraction of TypeScript enum."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -533,6 +540,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_extracts_jsdoc_as_docstring(self) -> None:
         """Test that JSDoc comments are extracted as docstrings."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -551,12 +559,17 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_extracts_method_modifiers(self) -> None:
         """Test extraction of method modifiers (static, async, public/private)."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
         entities = self.ts_parser.parse_file(self.ts_file)
         method = next(
-            (e for e in entities if e.name == "fromConfig" and e.parent_entity == "ConfiguredService"),
+            (
+                e
+                for e in entities
+                if e.name == "fromConfig" and e.parent_entity == "ConfiguredService"
+            ),
             None,
         )
         self.assertIsNotNone(method)
@@ -569,6 +582,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_parses_javascript_file(self) -> None:
         """Test parsing of JavaScript file."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -588,6 +602,7 @@ class TestTypeScriptParser(unittest.TestCase):
     def test_handles_subprocess_timeout(self) -> None:
         """Test handling of subprocess timeout."""
         import subprocess
+
         with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("node", 30)):
             with patch("shutil.which", return_value="/usr/bin/node"):
                 parser = TypeScriptParser(file_extension=".ts")
@@ -783,8 +798,8 @@ class TestCSSParser(unittest.TestCase):
     def test_line_numbers_with_inline_css(self) -> None:
         """Test line numbers are accurate using direct content parsing."""
         # Create a temporary CSS file with known content
-        import tempfile
         import os
+        import tempfile
 
         css_content = """/* Header comment */
 /* Another comment */
@@ -797,7 +812,7 @@ class TestCSSParser(unittest.TestCase):
   color: red;
 }
 """
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.css', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".css", delete=False) as f:
             f.write(css_content)
             temp_path = f.name
 
@@ -879,6 +894,7 @@ class TestCodeParser(unittest.TestCase):
     def test_routes_to_typescript_parser(self) -> None:
         """Test that .ts files are routed to TypeScript parser."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 
@@ -894,6 +910,7 @@ class TestCodeParser(unittest.TestCase):
     def test_routes_to_javascript_parser(self) -> None:
         """Test that .js files are routed to JavaScript parser."""
         import shutil
+
         if not shutil.which("node"):
             self.skipTest("Node.js not found")
 

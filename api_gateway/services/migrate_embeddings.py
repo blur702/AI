@@ -20,17 +20,17 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
 from ..config import settings
 from ..utils.logger import get_logger
 from .weaviate_connection import (
-    WeaviateConnection,
-    DOCUMENTATION_COLLECTION_NAME,
     CODE_ENTITY_COLLECTION_NAME,
+    DOCUMENTATION_COLLECTION_NAME,
     DRUPAL_API_COLLECTION_NAME,
+    WeaviateConnection,
 )
 
 logger = get_logger("api_gateway.migrate_embeddings")
@@ -45,7 +45,7 @@ ALL_COLLECTIONS = [
 ]
 
 
-def get_ollama_models() -> List[str]:
+def get_ollama_models() -> list[str]:
     """
     Get list of models available in Ollama.
 
@@ -100,7 +100,7 @@ def check_model_available(model_name: str) -> bool:
     )
 
 
-def get_embedding_dimension(model_name: str) -> Optional[int]:
+def get_embedding_dimension(model_name: str) -> int | None:
     """
     Get embedding dimension for a model, or None if unknown.
 
@@ -113,7 +113,7 @@ def get_embedding_dimension(model_name: str) -> Optional[int]:
     return EMBEDDING_MODELS.get(model_name)
 
 
-def check_status() -> Dict[str, Any]:
+def check_status() -> dict[str, Any]:
     """
     Check current configuration and collection status.
 
@@ -151,7 +151,7 @@ def check_status() -> Dict[str, Any]:
     }
 
 
-def migrate(dry_run: bool = False) -> Dict[str, Any]:
+def migrate(dry_run: bool = False) -> dict[str, Any]:
     """
     Perform full migration: delete all collections and re-ingest.
 
@@ -172,8 +172,8 @@ def migrate(dry_run: bool = False) -> Dict[str, Any]:
             - error (str, optional): Error message if failed
     """
     # Import ingestion services here to avoid circular imports
-    from .doc_ingestion import ingest_documentation
     from .code_ingestion import ingest_code_entities
+    from .doc_ingestion import ingest_documentation
 
     model = settings.OLLAMA_EMBEDDING_MODEL
 
@@ -224,6 +224,7 @@ def migrate(dry_run: bool = False) -> Dict[str, Any]:
             logger.info("Creating empty DrupalAPIEntity collection (requires re-scraping)...")
             try:
                 from .drupal_api_schema import create_drupal_api_collection
+
                 create_drupal_api_collection(client, force_reindex=True)
                 results["collections_reindexed"]["DrupalAPIEntity"] = {
                     "note": "Collection created. Run scraper to re-populate.",
@@ -263,7 +264,7 @@ def _configure_logging(verbose: bool) -> None:
         logger.setLevel(level)
 
 
-def main(argv: Optional[List[str]] = None) -> None:
+def main(argv: list[str] | None = None) -> None:
     """
     CLI entry point for embedding model migration.
 
@@ -299,7 +300,8 @@ Examples:
         help="For migrate: show what would be done without making changes.",
     )
     parser.add_argument(
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         action="store_true",
         help="Enable verbose logging.",
     )
@@ -322,7 +324,7 @@ Examples:
                 print(f"  {coll}: {count} objects")
 
         if not status["model_available"]:
-            logger.error("Model '%s' is not available in Ollama", status['configured_model'])
+            logger.error("Model '%s' is not available in Ollama", status["configured_model"])
             print(f"\n[!] Model not available. Run: ollama pull {status['configured_model']}")
             sys.exit(1)
 
@@ -363,7 +365,9 @@ Examples:
                 print("\nRe-indexed:")
                 for coll, stats in results.get("collections_reindexed", {}).items():
                     if isinstance(stats, dict) and "files" in stats:
-                        print(f"  {coll}: {stats.get('chunks', 0)} chunks from {stats.get('files', 0)} files")
+                        print(
+                            f"  {coll}: {stats.get('chunks', 0)} chunks from {stats.get('files', 0)} files"
+                        )
                     elif isinstance(stats, dict) and "entities" in stats:
                         print(f"  {coll}: {stats.get('entities', 0)} entities")
                     else:
@@ -371,7 +375,9 @@ Examples:
 
                 # Remind about Drupal scraper
                 print("\n[!] Note: DrupalAPIEntity collection is empty.")
-                print("   To re-populate, run: python -m api_gateway.services.drupal_scraper scrape")
+                print(
+                    "   To re-populate, run: python -m api_gateway.services.drupal_scraper scrape"
+                )
             else:
                 print(f"\n[FAIL] Migration failed: {results.get('error', 'Unknown error')}")
                 sys.exit(1)

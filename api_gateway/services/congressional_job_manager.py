@@ -1,7 +1,7 @@
 import threading
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from datetime import UTC, datetime
+from typing import Any, Optional
 
 from ..utils.logger import get_logger
 from .congressional_scraper import (
@@ -9,14 +9,13 @@ from .congressional_scraper import (
     scrape_congressional_data,
 )
 
-
 logger = get_logger("api_gateway.congressional_job_manager")
 
 
 @dataclass
 class _JobState:
     status: str = "idle"  # idle/pending/running/completed/failed/cancelled
-    stats: Dict[str, Any] = field(
+    stats: dict[str, Any] = field(
         default_factory=lambda: {
             "members_processed": 0,
             "pages_scraped": 0,
@@ -26,12 +25,12 @@ class _JobState:
             "cancelled": False,
         }
     )
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    error: Optional[str] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    error: str | None = None
     cancel_flag: bool = False
     pause_flag: bool = False
-    thread: Optional[threading.Thread] = None
+    thread: threading.Thread | None = None
 
 
 class CongressionalJobManager:
@@ -76,7 +75,7 @@ class CongressionalJobManager:
     def _run_scrape(self, config: ScrapeConfig) -> None:
         with self._state_lock:
             self._state.status = "running"
-            self._state.started_at = datetime.now(timezone.utc)
+            self._state.started_at = datetime.now(UTC)
             self._state.completed_at = None
             self._state.error = None
             self._state.stats = {
@@ -101,13 +100,13 @@ class CongressionalJobManager:
                     self._state.status = "cancelled"
                 else:
                     self._state.status = "completed"
-                self._state.completed_at = datetime.now(timezone.utc)
+                self._state.completed_at = datetime.now(UTC)
         except Exception as exc:  # noqa: BLE001
             logger.exception("Congressional scrape failed: %s", exc)
             with self._state_lock:
                 self._state.status = "failed"
                 self._state.error = str(exc)
-                self._state.completed_at = datetime.now(timezone.utc)
+                self._state.completed_at = datetime.now(UTC)
 
     def start_scrape(self, config: ScrapeConfig) -> _JobState:
         with self._state_lock:
@@ -118,7 +117,7 @@ class CongressionalJobManager:
             self._state.cancel_flag = False
             self._state.pause_flag = False
             self._state.error = None
-            self._state.started_at = datetime.now(timezone.utc)
+            self._state.started_at = datetime.now(UTC)
             self._state.completed_at = None
 
             thread = threading.Thread(
@@ -158,4 +157,3 @@ class CongressionalJobManager:
     def resume_scrape(self) -> None:
         with self._state_lock:
             self._state.pause_flag = False
-
