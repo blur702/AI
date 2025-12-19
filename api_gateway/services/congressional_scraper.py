@@ -444,6 +444,107 @@ class CongressionalDocScraper(BaseDocScraper):
         logger.info("Parsed %d members from House feed", len(members))
         return members
 
+    def scrape_single_member(
+        self,
+        member: MemberInfo,
+        visited: Optional[set[str]] = None,
+    ) -> Generator[CongressionalData, None, None]:
+        """
+        Scrape a single member's website and yield CongressionalData objects.
+
+        This method is designed to be called by parallel workers, each handling
+        a subset of members.
+
+        Args:
+            member: The MemberInfo object for the member to scrape.
+            visited: Optional set of already-visited URLs to avoid duplicates
+                     across multiple calls. If None, a new set is created.
+
+        Yields:
+            CongressionalData objects for each page scraped.
+        """
+        if visited is None:
+            visited = set()
+
+        if not member.website_url:
+            logger.warning("No website URL for member: %s", member.name)
+            return
+
+        queue: List[str] = [member.website_url]
+        pages_scraped_for_member = 0
+
+        while queue and pages_scraped_for_member < self.scrape_config.max_pages_per_member:
+            if self._is_cancelled():
+                logger.info(
+                    "Scrape cancelled while processing %s",
+                    member.name,
+                )
+                break
+
+            while self._is_paused():
+                logger.info("Scrape paused; waiting before continuing")
+                time.sleep(1.0)
+
+            url = queue.pop(0)
+            if url in visited:
+                continue
+            visited.add(url)
+
+            html = self.fetch_page(url)
+            if not html:
+                continue
+
+            soup = BeautifulSoup(html, "html.parser")
+            title = self._extract_title_from_page(soup, url)
+            content = self._extract_content_from_page(soup)
+            if not content:
+                continue
+
+            topic = self._infer_topic_from_url(url)
+
+            scraped_at = datetime.now(timezone.utc).isoformat()
+            content_hash = compute_congressional_content_hash(
+                member_name=member.name,
+                content_text=content,
+                title=title,
+                url=url,
+            )
+            uuid_str = generate_congressional_uuid(
+                member_name=member.name,
+                url=url,
+            )
+
+            data = CongressionalData(
+                member_name=member.name,
+                state=member.state,
+                district=member.district,
+                party=member.party,
+                chamber=member.chamber,
+                title=title,
+                topic=topic,
+                content_text=content,
+                url=url,
+                rss_feed_url=member.rss_feed_url,
+                content_hash=content_hash,
+                scraped_at=scraped_at,
+                uuid=uuid_str,
+            )
+
+            pages_scraped_for_member += 1
+            yield data
+
+            # Discover additional links using BaseDocScraper.extract_links
+            new_links = self.extract_links(url, html)
+            for link in new_links:
+                if (
+                    pages_scraped_for_member
+                    + len(queue)
+                    >= self.scrape_config.max_pages_per_member
+                ):
+                    break
+                if link not in visited and link not in queue:
+                    queue.append(link)
+
     def scrape_all_members(self) -> Generator[CongressionalData, None, None]:
         """
         Crawl member websites and yield CongressionalData objects.
@@ -475,80 +576,8 @@ class CongressionalDocScraper(BaseDocScraper):
                 message=f"Scraping website for {member.name}",
             )
 
-            queue: List[str] = [member.website_url]
-            pages_scraped_for_member = 0
-
-            while queue and pages_scraped_for_member < self.scrape_config.max_pages_per_member:
-                if self._is_cancelled():
-                    logger.info(
-                        "Scrape cancelled while processing %s",
-                        member.name,
-                    )
-                    break
-
-                while self._is_paused():
-                    logger.info("Scrape paused; waiting before continuing")
-                    time.sleep(1.0)
-
-                url = queue.pop(0)
-                if url in visited:
-                    continue
-                visited.add(url)
-
-                html = self.fetch_page(url)
-                if not html:
-                    continue
-
-                soup = BeautifulSoup(html, "html.parser")
-                title = self._extract_title_from_page(soup, url)
-                content = self._extract_content_from_page(soup)
-                if not content:
-                    continue
-
-                topic = self._infer_topic_from_url(url)
-
-                scraped_at = datetime.now(timezone.utc).isoformat()
-                content_hash = compute_congressional_content_hash(
-                    member_name=member.name,
-                    content_text=content,
-                    title=title,
-                    url=url,
-                )
-                uuid_str = generate_congressional_uuid(
-                    member_name=member.name,
-                    url=url,
-                )
-
-                data = CongressionalData(
-                    member_name=member.name,
-                    state=member.state,
-                    district=member.district,
-                    party=member.party,
-                    chamber=member.chamber,
-                    title=title,
-                    topic=topic,
-                    content_text=content,
-                    url=url,
-                    rss_feed_url=member.rss_feed_url,
-                    content_hash=content_hash,
-                    scraped_at=scraped_at,
-                    uuid=uuid_str,
-                )
-
-                pages_scraped_for_member += 1
-                yield data
-
-                # Discover additional links using BaseDocScraper.extract_links
-                new_links = self.extract_links(url, html)
-                for link in new_links:
-                    if (
-                        pages_scraped_for_member
-                        + len(queue)
-                        >= self.scrape_config.max_pages_per_member
-                    ):
-                        break
-                    if link not in visited and link not in queue:
-                        queue.append(link)
+            # Delegate to scrape_single_member
+            yield from self.scrape_single_member(member, visited)
 
     # ------------------------------------------------------------------
     # RSS feed handling
