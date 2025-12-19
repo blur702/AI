@@ -57,6 +57,7 @@ class WorkerConfig:
     heartbeat_dir: Path
     checkpoint_dir: Path
     log_dir: Path
+    data_dir: Optional[Path] = None  # For remaining_members.json
     request_delay: float = 2.0
     batch_size: int = 10
     batch_delay: float = 5.0
@@ -65,6 +66,7 @@ class WorkerConfig:
     scrape_rss: bool = True  # Scrape RSS feeds
     discover_newsroom: bool = True  # Try common newsroom URL patterns
     checkpoint_interval: int = 5
+    use_remaining_members: bool = False  # Use remaining_members.json instead of House feed
 
 
 @dataclass
@@ -194,8 +196,51 @@ class CongressionalWorker:
             self._heartbeat_thread.join(timeout=5)
 
     def _fetch_members(self) -> List[MemberInfo]:
-        """Fetch member list using the scraper's method."""
-        logger.info("Fetching member list...")
+        """Fetch member list using the scraper's method or remaining_members.json."""
+        if self.config.use_remaining_members and self.config.data_dir:
+            # Load from remaining_members.json (for rebalanced workers)
+            remaining_path = self.config.data_dir / "remaining_members.json"
+            if remaining_path.exists():
+                logger.info("Loading members from remaining_members.json...")
+                try:
+                    data = json.loads(remaining_path.read_text())
+                    members = [
+                        MemberInfo(
+                            name=m["name"],
+                            website_url=m["url"],
+                            state=m.get("state", ""),
+                            district=m.get("district", ""),
+                            party=m.get("party", ""),
+                        )
+                        for m in data
+                    ]
+                    logger.info("Loaded %d remaining members from file", len(members))
+                    return members
+                except json.JSONDecodeError as e:
+                    logger.warning(
+                        "remaining_members.json is malformed (JSONDecodeError: %s), "
+                        "falling back to House feed",
+                        e,
+                    )
+                except (OSError, IOError) as e:
+                    logger.warning(
+                        "Failed to read remaining_members.json (%s: %s), "
+                        "falling back to House feed",
+                        type(e).__name__,
+                        e,
+                    )
+                except (KeyError, TypeError) as e:
+                    logger.warning(
+                        "remaining_members.json has invalid structure (%s: %s), "
+                        "falling back to House feed",
+                        type(e).__name__,
+                        e,
+                    )
+            else:
+                logger.warning("remaining_members.json not found, falling back to House feed")
+
+        # Default: fetch from House feed
+        logger.info("Fetching member list from House feed...")
         scrape_config = ScrapeConfig(
             request_delay=self.config.request_delay,
             batch_size=self.config.batch_size,
@@ -530,6 +575,7 @@ def main():
     parser.add_argument("--max-press-pages", type=int, help="Max press pages override")
     parser.add_argument("--no-rss", action="store_true", help="Disable RSS feed scraping")
     parser.add_argument("--no-newsroom-discovery", action="store_true", help="Disable newsroom URL discovery")
+    parser.add_argument("--remaining", action="store_true", help="Use remaining_members.json instead of House feed")
 
     args = parser.parse_args()
 
@@ -546,6 +592,7 @@ def main():
         heartbeat_dir=Path(paths_config.get("heartbeat_dir", "D:/AI/data/scraper/congressional/heartbeats")),
         checkpoint_dir=Path(paths_config.get("checkpoint_dir", "D:/AI/data/scraper/congressional/checkpoints")),
         log_dir=Path(paths_config.get("log_dir", "D:/AI/logs/congressional_scraper")),
+        data_dir=Path(paths_config.get("data_dir", "D:/AI/data/scraper/congressional")),
         request_delay=args.request_delay or worker_config.get("request_delay", 2.0),
         batch_size=worker_config.get("batch_size", 10),
         batch_delay=worker_config.get("batch_delay", 5.0),
@@ -554,6 +601,7 @@ def main():
         scrape_rss=not args.no_rss and worker_config.get("scrape_rss", True),
         discover_newsroom=not args.no_newsroom_discovery and worker_config.get("discover_newsroom", True),
         checkpoint_interval=worker_config.get("checkpoint_interval", 5),
+        use_remaining_members=args.remaining,
     )
 
     # Create worker
