@@ -9,6 +9,7 @@ Usage:
     python -m api_gateway.services.congressional_parallel_supervisor check
     python -m api_gateway.services.congressional_parallel_supervisor status
     python -m api_gateway.services.congressional_parallel_supervisor stop
+    python -m api_gateway.services.congressional_parallel_supervisor rebalance
     python -m api_gateway.services.congressional_parallel_supervisor install-task
 """
 
@@ -551,11 +552,212 @@ class ParallelSupervisor:
             logger.error("Failed to uninstall task: %s", e)
             return False
 
+    def _collect_completed_members(self) -> set:
+        """Collect all completed member names from checkpoint files."""
+        completed = set()
+
+        for checkpoint_file in self.paths.checkpoint_dir.glob("worker_*_checkpoint.json"):
+            try:
+                data = json.loads(checkpoint_file.read_text())
+                members_completed = data.get("members_completed", [])
+                completed.update(members_completed)
+                logger.info("Loaded %d completed members from %s", len(members_completed), checkpoint_file.name)
+            except Exception as e:
+                logger.warning("Failed to read checkpoint %s: %s", checkpoint_file, e)
+
+        logger.info("Total completed members from checkpoints: %d", len(completed))
+        return completed
+
+    def _clear_checkpoints_and_heartbeats(self) -> None:
+        """Clear all checkpoint and heartbeat files."""
+        # Clear checkpoints
+        for f in self.paths.checkpoint_dir.glob("worker_*_checkpoint.json"):
+            f.unlink()
+            logger.info("Deleted checkpoint: %s", f.name)
+
+        # Clear heartbeats
+        for f in self.paths.heartbeat_dir.glob("worker_*.json"):
+            f.unlink()
+            logger.info("Deleted heartbeat: %s", f.name)
+
+    def _create_rebalanced_assignments(
+        self,
+        remaining_members: List[MemberInfo]
+    ) -> WorkAssignment:
+        """Create work assignments for remaining members only."""
+        total = len(remaining_members)
+        worker_count = min(self.config.worker_count, total)  # Don't create more workers than members
+
+        if worker_count == 0:
+            return WorkAssignment(
+                created_at=datetime.now(timezone.utc).isoformat(),
+                total_members=0,
+                worker_count=0,
+                assignments=[],
+            )
+
+        chunk_size = (total + worker_count - 1) // worker_count  # Ceiling division
+
+        assignments = []
+        for i in range(worker_count):
+            start = i * chunk_size
+            end = min(start + chunk_size, total)
+            if start >= total:
+                break
+            assignments.append({
+                "worker_id": i,
+                "start_index": start,
+                "end_index": end,
+                "member_count": end - start,
+            })
+
+        return WorkAssignment(
+            created_at=datetime.now(timezone.utc).isoformat(),
+            total_members=total,
+            worker_count=len(assignments),
+            assignments=assignments,
+        )
+
+    def rebalance(self) -> Dict[str, Any]:
+        """
+        Rebalance work by redistributing remaining members across all workers.
+
+        This method:
+        1. Stops all running workers
+        2. Collects completed members from checkpoints
+        3. Fetches fresh member list
+        4. Creates new assignments for remaining members
+        5. Clears old state files
+        6. Starts fresh workers
+        """
+        logger.info("Starting rebalance operation...")
+
+        # Step 1: Stop all workers
+        logger.info("Stopping all workers...")
+        self.stop_all_workers()
+        time.sleep(2)  # Give processes time to terminate
+
+        # Step 2: Collect completed members
+        completed_members = self._collect_completed_members()
+
+        # Step 3: Fetch fresh member list
+        logger.info("Fetching current member list...")
+        all_members = self._fetch_members()
+        all_member_names = {m.name for m in all_members}
+
+        # Step 4: Calculate remaining members
+        remaining_member_names = all_member_names - completed_members
+        remaining_members = [m for m in all_members if m.name in remaining_member_names]
+        remaining_members.sort(key=lambda m: m.name)
+
+        logger.info(
+            "Rebalance: %d total, %d completed, %d remaining",
+            len(all_members),
+            len(completed_members),
+            len(remaining_members),
+        )
+
+        if not remaining_members:
+            logger.info("All members already scraped!")
+            return {
+                "status": "complete",
+                "total_members": len(all_members),
+                "completed": len(completed_members),
+                "remaining": 0,
+                "workers_started": 0,
+            }
+
+        # Step 5: Clear old state
+        logger.info("Clearing old checkpoints and heartbeats...")
+        self._clear_checkpoints_and_heartbeats()
+
+        # Step 6: Create new assignments
+        assignment = self._create_rebalanced_assignments(remaining_members)
+
+        # Save remaining members list for workers to use
+        remaining_members_path = self.paths.data_dir / "remaining_members.json"
+        remaining_members_data = [
+            {"name": m.name, "url": m.website_url, "state": m.state, "district": m.district, "party": m.party}
+            for m in remaining_members
+        ]
+        remaining_members_path.write_text(json.dumps(remaining_members_data, indent=2))
+        logger.info("Saved %d remaining members to %s", len(remaining_members), remaining_members_path)
+
+        # Save work assignments
+        self._save_work_assignments(assignment)
+
+        # Step 7: Write PID and start workers
+        self._write_pid_file()
+
+        for a in assignment.assignments:
+            worker_id = a["worker_id"]
+            start_index = a["start_index"]
+            end_index = a["end_index"]
+
+            # Start worker with --remaining flag to use remaining_members.json
+            process = self._start_worker_rebalanced(worker_id, start_index, end_index)
+
+            self.workers[worker_id] = WorkerState(
+                worker_id=worker_id,
+                pid=process.pid,
+                process=process,
+                status="running",
+                start_index=start_index,
+                end_index=end_index,
+            )
+
+        logger.info("Rebalance complete: started %d workers for %d remaining members",
+                   len(self.workers), len(remaining_members))
+
+        return {
+            "status": "rebalanced",
+            "total_members": len(all_members),
+            "completed": len(completed_members),
+            "remaining": len(remaining_members),
+            "workers_started": len(self.workers),
+            "members_per_worker": len(remaining_members) // len(self.workers) if self.workers else 0,
+        }
+
+    def _start_worker_rebalanced(self, worker_id: int, start_index: int, end_index: int) -> subprocess.Popen:
+        """Start a worker using the remaining_members.json file."""
+        cmd = [
+            sys.executable,
+            "-m", "api_gateway.services.congressional_worker",
+            "--worker-id", str(worker_id),
+            "--start-index", str(start_index),
+            "--end-index", str(end_index),
+            "--config", str(self.config_path),
+            "--remaining",  # Flag to use remaining_members.json
+        ]
+
+        log_file = self.paths.log_dir / f"worker_{worker_id}.log"
+        logger.info("Starting rebalanced worker %d (members %d-%d), log: %s",
+                   worker_id, start_index, end_index, log_file)
+
+        with open(log_file, "a") as log:
+            log.write(f"\n{'='*60}\n")
+            log.write(f"Worker {worker_id} REBALANCED start at {datetime.now(timezone.utc).isoformat()}\n")
+            log.write(f"{'='*60}\n\n")
+
+            creationflags = 0
+            if sys.platform == "win32":
+                creationflags = subprocess.CREATE_NO_WINDOW
+
+            process = subprocess.Popen(
+                cmd,
+                stdout=log,
+                stderr=subprocess.STDOUT,
+                cwd=Path("D:/AI"),
+                creationflags=creationflags,
+            )
+
+        return process
+
 
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(description="Congressional scraper parallel supervisor")
-    parser.add_argument("command", choices=["start", "check", "status", "stop", "install-task", "uninstall-task"])
+    parser.add_argument("command", choices=["start", "check", "status", "stop", "rebalance", "install-task", "uninstall-task"])
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH, help="Config file path")
     parser.add_argument("--interval", type=int, default=5, help="Task scheduler interval in minutes")
     parser.add_argument("--json", action="store_true", help="Output as JSON")
@@ -620,6 +822,34 @@ def main():
     elif args.command == "stop":
         supervisor.stop_all_workers()
         print("All workers stopped")
+
+    elif args.command == "rebalance":
+        result = supervisor.rebalance()
+        if args.json:
+            print(json.dumps(result, indent=2))
+        else:
+            print(f"Rebalance complete!")
+            print(f"  Total members: {result['total_members']}")
+            print(f"  Already completed: {result['completed']}")
+            print(f"  Remaining: {result['remaining']}")
+            print(f"  Workers started: {result['workers_started']}")
+            if result['workers_started'] > 0:
+                print(f"  Members per worker: ~{result['members_per_worker']}")
+                print("\nMonitoring workers. Press Ctrl+C to detach (workers continue in background).")
+                try:
+                    while True:
+                        time.sleep(supervisor.config.health_check_interval_seconds)
+                        results = supervisor.run_health_check()
+                        healthy = sum(1 for w in results["workers"].values() if w["health"] == "healthy")
+                        completed = sum(1 for w in results["workers"].values() if w["health"] == "completed")
+                        print(f"[{results['timestamp']}] Healthy: {healthy}, Completed: {completed}")
+
+                        all_completed = all(w["health"] == "completed" for w in results["workers"].values())
+                        if all_completed:
+                            print("All workers completed!")
+                            break
+                except KeyboardInterrupt:
+                    print("\nDetaching (workers continue in background)...")
 
     elif args.command == "install-task":
         if supervisor.install_task(args.interval):

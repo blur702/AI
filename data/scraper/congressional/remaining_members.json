@@ -1,0 +1,3089 @@
+[
+  {
+    "name": "",
+    "url": "https://clerk.house.gov/members/NJ11/vacancy",
+    "state": "NJ",
+    "district": "11th",
+    "party": ""
+  },
+  {
+    "name": "",
+    "url": "https://clerk.house.gov/members/TX18/vacancy",
+    "state": "TX",
+    "district": "18th",
+    "party": ""
+  },
+  {
+    "name": "Aaron Bean",
+    "url": "https://bean.house.gov",
+    "state": "FL",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Abraham J. Hamadeh",
+    "url": "https://hamadeh.house.gov/",
+    "state": "AZ",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Adam Gray",
+    "url": "https://gray.house.gov/",
+    "state": "CA",
+    "district": "13th",
+    "party": "D"
+  },
+  {
+    "name": "Adam Smith",
+    "url": "https://adamsmith.house.gov/",
+    "state": "WA",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Addison P. McDowell",
+    "url": "https://mcdowell.house.gov/",
+    "state": "NC",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Adelita S. Grijalva",
+    "url": "https://grijalva.house.gov/",
+    "state": "AZ",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Adrian Smith",
+    "url": "https://adriansmith.house.gov/",
+    "state": "NE",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Adriano Espaillat",
+    "url": "https://espaillat.house.gov",
+    "state": "NY",
+    "district": "13th",
+    "party": "D"
+  },
+  {
+    "name": "Al Green",
+    "url": "https://algreen.house.gov",
+    "state": "TX",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Alexandria Ocasio-Cortez",
+    "url": "https://ocasio-cortez.house.gov/",
+    "state": "NY",
+    "district": "14th",
+    "party": "D"
+  },
+  {
+    "name": "Alma S. Adams",
+    "url": "https://adams.house.gov",
+    "state": "NC",
+    "district": "12th",
+    "party": "D"
+  },
+  {
+    "name": "Ami Bera",
+    "url": "https://bera.house.gov",
+    "state": "CA",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Andrea Salinas",
+    "url": "https://salinas.house.gov",
+    "state": "OR",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Andrew Ogles",
+    "url": "https://ogles.house.gov",
+    "state": "TN",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Andrew R. Garbarino",
+    "url": "https://garbarino.house.gov",
+    "state": "NY",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Andrew S. Clyde",
+    "url": "https://clyde.house.gov",
+    "state": "GA",
+    "district": "9th",
+    "party": "R"
+  },
+  {
+    "name": "Andr\u00e9 Carson",
+    "url": "https://carson.house.gov/",
+    "state": "IN",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Andy Barr",
+    "url": "https://barr.house.gov/",
+    "state": "KY",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Andy Biggs",
+    "url": "https://biggs.house.gov",
+    "state": "AZ",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Andy Harris",
+    "url": "https://harris.house.gov/",
+    "state": "MD",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Angie Craig",
+    "url": "https://craig.house.gov",
+    "state": "MN",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Ann Wagner",
+    "url": "https://wagner.house.gov",
+    "state": "MO",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Anna Paulina Luna",
+    "url": "https://luna.house.gov",
+    "state": "FL",
+    "district": "13th",
+    "party": "R"
+  },
+  {
+    "name": "April McClain Delaney",
+    "url": "https://mcclaindelaney.house.gov/",
+    "state": "MD",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Ashley Hinson",
+    "url": "https://hinson.house.gov",
+    "state": "IA",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "August Pfluger",
+    "url": "https://pfluger.house.gov",
+    "state": "TX",
+    "district": "11th",
+    "party": "R"
+  },
+  {
+    "name": "Aumua Amata Coleman Radewagen",
+    "url": "https://radewagen.house.gov",
+    "state": "AS",
+    "district": "Delegate",
+    "party": "R"
+  },
+  {
+    "name": "Austin Scott",
+    "url": "https://austinscott.house.gov/",
+    "state": "GA",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Ayanna Pressley",
+    "url": "https://pressley.house.gov",
+    "state": "MA",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Barry Loudermilk",
+    "url": "https://loudermilk.house.gov",
+    "state": "GA",
+    "district": "11th",
+    "party": "R"
+  },
+  {
+    "name": "Barry Moore",
+    "url": "https://barrymoore.house.gov",
+    "state": "AL",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Becca Balint",
+    "url": "https://balint.house.gov",
+    "state": "VT",
+    "district": "At Large",
+    "party": "D"
+  },
+  {
+    "name": "Ben Cline",
+    "url": "https://cline.house.gov",
+    "state": "VA",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Bennie G. Thompson",
+    "url": "https://benniethompson.house.gov/",
+    "state": "MS",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Beth Van Duyne",
+    "url": "https://vanduyne.house.gov",
+    "state": "TX",
+    "district": "24th",
+    "party": "R"
+  },
+  {
+    "name": "Betty McCollum",
+    "url": "https://mccollum.house.gov",
+    "state": "MN",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Bill Foster",
+    "url": "https://foster.house.gov",
+    "state": "IL",
+    "district": "11th",
+    "party": "D"
+  },
+  {
+    "name": "Bill Huizenga",
+    "url": "https://huizenga.house.gov/",
+    "state": "MI",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Blake D. Moore",
+    "url": "https://blakemoore.house.gov",
+    "state": "UT",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Bonnie Watson Coleman",
+    "url": "https://watsoncoleman.house.gov/",
+    "state": "NJ",
+    "district": "12th",
+    "party": "D"
+  },
+  {
+    "name": "Brad Finstad",
+    "url": "https://finstad.house.gov/",
+    "state": "MN",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Brad Knott",
+    "url": "https://knott.house.gov/",
+    "state": "NC",
+    "district": "13th",
+    "party": "R"
+  },
+  {
+    "name": "Brad Sherman",
+    "url": "https://sherman.house.gov",
+    "state": "CA",
+    "district": "32nd",
+    "party": "D"
+  },
+  {
+    "name": "Bradley Scott Schneider",
+    "url": "https://schneider.house.gov",
+    "state": "IL",
+    "district": "10th",
+    "party": "D"
+  },
+  {
+    "name": "Brandon Gill",
+    "url": "https://gill.house.gov/",
+    "state": "TX",
+    "district": "26th",
+    "party": "R"
+  },
+  {
+    "name": "Brendan F. Boyle",
+    "url": "https://boyle.house.gov/",
+    "state": "PA",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Brett Guthrie",
+    "url": "https://guthrie.house.gov/",
+    "state": "KY",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Brian Babin",
+    "url": "https://babin.house.gov",
+    "state": "TX",
+    "district": "36th",
+    "party": "R"
+  },
+  {
+    "name": "Brian J. Mast",
+    "url": "https://mast.house.gov",
+    "state": "FL",
+    "district": "21st",
+    "party": "R"
+  },
+  {
+    "name": "Brian Jack",
+    "url": "https://jack.house.gov/",
+    "state": "GA",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Brian K. Fitzpatrick",
+    "url": "https://fitzpatrick.house.gov/",
+    "state": "PA",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Brittany Pettersen",
+    "url": "https://pettersen.house.gov",
+    "state": "CO",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Bruce Westerman",
+    "url": "https://westerman.house.gov/",
+    "state": "AR",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Bryan Steil",
+    "url": "https://steil.house.gov",
+    "state": "WI",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Burgess Owens",
+    "url": "https://owens.house.gov",
+    "state": "UT",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Byron Donalds",
+    "url": "https://donalds.house.gov",
+    "state": "FL",
+    "district": "19th",
+    "party": "R"
+  },
+  {
+    "name": "Carlos A. Gimenez",
+    "url": "https://gimenez.house.gov",
+    "state": "FL",
+    "district": "28th",
+    "party": "R"
+  },
+  {
+    "name": "Carol D. Miller",
+    "url": "https://miller.house.gov/",
+    "state": "WV",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Celeste Maloy",
+    "url": "https://maloy.house.gov",
+    "state": "UT",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Charles J. \"Chuck\" Fleischmann",
+    "url": "https://fleischmann.house.gov/",
+    "state": "TN",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Chellie Pingree",
+    "url": "https://pingree.house.gov/",
+    "state": "ME",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Chip Roy",
+    "url": "https://roy.house.gov",
+    "state": "TX",
+    "district": "21st",
+    "party": "R"
+  },
+  {
+    "name": "Chris Pappas",
+    "url": "https://pappas.house.gov",
+    "state": "NH",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Chrissy Houlahan",
+    "url": "https://houlahan.house.gov/",
+    "state": "PA",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Christopher H. Smith",
+    "url": "https://chrissmith.house.gov/",
+    "state": "NJ",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Christopher R. Deluzio",
+    "url": "https://deluzio.house.gov",
+    "state": "PA",
+    "district": "17th",
+    "party": "D"
+  },
+  {
+    "name": "Chuck Edwards",
+    "url": "https://edwards.house.gov",
+    "state": "NC",
+    "district": "11th",
+    "party": "R"
+  },
+  {
+    "name": "Claudia Tenney",
+    "url": "https://tenney.house.gov/",
+    "state": "NY",
+    "district": "24th",
+    "party": "R"
+  },
+  {
+    "name": "Clay Higgins",
+    "url": "https://clayhiggins.house.gov",
+    "state": "LA",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Cleo Fields",
+    "url": "https://fields.house.gov/",
+    "state": "LA",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Cliff Bentz",
+    "url": "https://bentz.house.gov",
+    "state": "OR",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Cory Mills",
+    "url": "https://mills.house.gov",
+    "state": "FL",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Craig A. Goldman",
+    "url": "https://craiggoldman.house.gov/",
+    "state": "TX",
+    "district": "12th",
+    "party": "R"
+  },
+  {
+    "name": "Dale W. Strong",
+    "url": "https://strong.house.gov",
+    "state": "AL",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Dan Crenshaw",
+    "url": "https://crenshaw.house.gov/",
+    "state": "TX",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Dan Newhouse",
+    "url": "https://newhouse.house.gov",
+    "state": "WA",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Daniel Meuser",
+    "url": "https://meuser.house.gov",
+    "state": "PA",
+    "district": "9th",
+    "party": "R"
+  },
+  {
+    "name": "Daniel S. Goldman",
+    "url": "https://goldman.house.gov",
+    "state": "NY",
+    "district": "10th",
+    "party": "D"
+  },
+  {
+    "name": "Daniel Webster",
+    "url": "https://webster.house.gov/",
+    "state": "FL",
+    "district": "11th",
+    "party": "R"
+  },
+  {
+    "name": "Danny K. Davis",
+    "url": "https://davis.house.gov",
+    "state": "IL",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Darin LaHood",
+    "url": "https://lahood.house.gov/",
+    "state": "IL",
+    "district": "16th",
+    "party": "R"
+  },
+  {
+    "name": "Darrell Issa",
+    "url": "https://issa.house.gov",
+    "state": "CA",
+    "district": "48th",
+    "party": "R"
+  },
+  {
+    "name": "Darren Soto",
+    "url": "https://soto.house.gov",
+    "state": "FL",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Dave Min",
+    "url": "https://min.house.gov/",
+    "state": "CA",
+    "district": "47th",
+    "party": "D"
+  },
+  {
+    "name": "David G. Valadao",
+    "url": "https://valadao.house.gov",
+    "state": "CA",
+    "district": "22nd",
+    "party": "R"
+  },
+  {
+    "name": "David J. Taylor",
+    "url": "https://taylor.house.gov/",
+    "state": "OH",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "David Kustoff",
+    "url": "https://kustoff.house.gov",
+    "state": "TN",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "David P. Joyce",
+    "url": "https://joyce.house.gov",
+    "state": "OH",
+    "district": "14th",
+    "party": "R"
+  },
+  {
+    "name": "David Rouzer",
+    "url": "https://rouzer.house.gov/",
+    "state": "NC",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "David Schweikert",
+    "url": "https://schweikert.house.gov/",
+    "state": "AZ",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "David Scott",
+    "url": "https://davidscott.house.gov/",
+    "state": "GA",
+    "district": "13th",
+    "party": "D"
+  },
+  {
+    "name": "Debbie Dingell",
+    "url": "https://debbiedingell.house.gov/",
+    "state": "MI",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Debbie Wasserman Schultz",
+    "url": "https://wassermanschultz.house.gov/",
+    "state": "FL",
+    "district": "25th",
+    "party": "D"
+  },
+  {
+    "name": "Deborah K. Ross",
+    "url": "https://ross.house.gov",
+    "state": "NC",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Delia C. Ramirez",
+    "url": "https://ramirez.house.gov",
+    "state": "IL",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Derek Schmidt",
+    "url": "https://schmidt.house.gov/",
+    "state": "KS",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Derek Tran",
+    "url": "https://tran.house.gov/",
+    "state": "CA",
+    "district": "45th",
+    "party": "D"
+  },
+  {
+    "name": "Derrick Van Orden",
+    "url": "https://vanorden.house.gov",
+    "state": "WI",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Diana DeGette",
+    "url": "https://degette.house.gov",
+    "state": "CO",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Diana Harshbarger",
+    "url": "https://harshbarger.house.gov",
+    "state": "TN",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Dina Titus",
+    "url": "https://titus.house.gov/",
+    "state": "NV",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Don Bacon",
+    "url": "https://bacon.house.gov",
+    "state": "NE",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Donald G. Davis",
+    "url": "https://dondavis.house.gov",
+    "state": "NC",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Donald Norcross",
+    "url": "https://norcross.house.gov",
+    "state": "NJ",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Donald S. Beyer, Jr.",
+    "url": "https://beyer.house.gov",
+    "state": "VA",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "Doris O. Matsui",
+    "url": "https://matsui.house.gov",
+    "state": "CA",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Doug LaMalfa",
+    "url": "https://lamalfa.house.gov",
+    "state": "CA",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Dusty Johnson",
+    "url": "https://dustyjohnson.house.gov/",
+    "state": "SD",
+    "district": "At Large",
+    "party": "R"
+  },
+  {
+    "name": "Dwight Evans",
+    "url": "https://evans.house.gov/",
+    "state": "PA",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Earl L. \"Buddy\" Carter",
+    "url": "https://buddycarter.house.gov/",
+    "state": "GA",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Ed Case",
+    "url": "https://case.house.gov/",
+    "state": "HI",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Eleanor Holmes Norton",
+    "url": "https://norton.house.gov/",
+    "state": "DC",
+    "district": "Delegate",
+    "party": "D"
+  },
+  {
+    "name": "Elijah Crane",
+    "url": "https://crane.house.gov",
+    "state": "AZ",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Elise M. Stefanik",
+    "url": "https://stefanik.house.gov/",
+    "state": "NY",
+    "district": "21st",
+    "party": "R"
+  },
+  {
+    "name": "Emanuel Cleaver",
+    "url": "https://cleaver.house.gov",
+    "state": "MO",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Emilia Strong Sykes",
+    "url": "https://sykes.house.gov",
+    "state": "OH",
+    "district": "13th",
+    "party": "D"
+  },
+  {
+    "name": "Emily Randall",
+    "url": "https://randall.house.gov/",
+    "state": "WA",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Eric A. \"Rick\" Crawford",
+    "url": "https://crawford.house.gov/",
+    "state": "AR",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Eric Burlison",
+    "url": "https://burlison.house.gov",
+    "state": "MO",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Eric Sorensen",
+    "url": "https://sorensen.house.gov",
+    "state": "IL",
+    "district": "17th",
+    "party": "D"
+  },
+  {
+    "name": "Eric Swalwell",
+    "url": "https://swalwell.house.gov",
+    "state": "CA",
+    "district": "14th",
+    "party": "D"
+  },
+  {
+    "name": "Erin Houchin",
+    "url": "https://houchin.house.gov",
+    "state": "IN",
+    "district": "9th",
+    "party": "R"
+  },
+  {
+    "name": "Eugene Simon Vindman",
+    "url": "https://vindman.house.gov/",
+    "state": "VA",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Frank D. Lucas",
+    "url": "https://lucas.house.gov",
+    "state": "OK",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Frank J. Mrvan",
+    "url": "https://mrvan.house.gov",
+    "state": "IN",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Frank Pallone, Jr.",
+    "url": "https://pallone.house.gov",
+    "state": "NJ",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Frederica S. Wilson",
+    "url": "https://wilson.house.gov/",
+    "state": "FL",
+    "district": "24th",
+    "party": "D"
+  },
+  {
+    "name": "Gabe Amo",
+    "url": "https://amo.house.gov",
+    "state": "RI",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Gabe Evans",
+    "url": "https://gabeevans.house.gov/",
+    "state": "CO",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Gabe Vasquez",
+    "url": "https://vasquez.house.gov",
+    "state": "NM",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Gary J. Palmer",
+    "url": "https://palmer.house.gov/",
+    "state": "AL",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "George Latimer",
+    "url": "https://latimer.house.gov/",
+    "state": "NY",
+    "district": "16th",
+    "party": "D"
+  },
+  {
+    "name": "George Whitesides",
+    "url": "https://whitesides.house.gov/",
+    "state": "CA",
+    "district": "27th",
+    "party": "D"
+  },
+  {
+    "name": "Gilbert Ray Cisneros, Jr.",
+    "url": "https://cisneros.house.gov/",
+    "state": "CA",
+    "district": "31st",
+    "party": "D"
+  },
+  {
+    "name": "Glenn Grothman",
+    "url": "https://grothman.house.gov",
+    "state": "WI",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Glenn Ivey",
+    "url": "https://ivey.house.gov",
+    "state": "MD",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Glenn Thompson",
+    "url": "https://thompson.house.gov",
+    "state": "PA",
+    "district": "15th",
+    "party": "R"
+  },
+  {
+    "name": "Grace Meng",
+    "url": "https://meng.house.gov",
+    "state": "NY",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Greg Casar",
+    "url": "https://casar.house.gov",
+    "state": "TX",
+    "district": "35th",
+    "party": "D"
+  },
+  {
+    "name": "Greg Landsman",
+    "url": "https://landsman.house.gov",
+    "state": "OH",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Greg Stanton",
+    "url": "https://stanton.house.gov/",
+    "state": "AZ",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Gregory F. Murphy",
+    "url": "https://murphy.house.gov",
+    "state": "NC",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Gregory W. Meeks",
+    "url": "https://meeks.house.gov",
+    "state": "NY",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Gus M. Bilirakis",
+    "url": "https://bilirakis.house.gov/",
+    "state": "FL",
+    "district": "12th",
+    "party": "R"
+  },
+  {
+    "name": "Guy Reschenthaler",
+    "url": "https://reschenthaler.house.gov/",
+    "state": "PA",
+    "district": "14th",
+    "party": "R"
+  },
+  {
+    "name": "Gwen Moore",
+    "url": "https://gwenmoore.house.gov",
+    "state": "WI",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "H. Morgan Griffith",
+    "url": "https://morgangriffith.house.gov/",
+    "state": "VA",
+    "district": "9th",
+    "party": "R"
+  },
+  {
+    "name": "Hakeem S. Jeffries",
+    "url": "https://jeffries.house.gov",
+    "state": "NY",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "Haley M. Stevens",
+    "url": "https://stevens.house.gov/",
+    "state": "MI",
+    "district": "11th",
+    "party": "D"
+  },
+  {
+    "name": "Harold Rogers",
+    "url": "https://halrogers.house.gov/",
+    "state": "KY",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Harriet M. Hageman",
+    "url": "https://hageman.house.gov",
+    "state": "WY",
+    "district": "At Large",
+    "party": "R"
+  },
+  {
+    "name": "Henry C. \"Hank\" Johnson, Jr.",
+    "url": "https://hankjohnson.house.gov/",
+    "state": "GA",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Henry Cuellar",
+    "url": "https://cuellar.house.gov/",
+    "state": "TX",
+    "district": "28th",
+    "party": "D"
+  },
+  {
+    "name": "Herbert C. Conaway, Jr.",
+    "url": "https://conaway.house.gov/",
+    "state": "NJ",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Hillary J. Scholten",
+    "url": "https://scholten.house.gov",
+    "state": "MI",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Ilhan Omar",
+    "url": "https://omar.house.gov/",
+    "state": "MN",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "J. French Hill",
+    "url": "https://hill.house.gov/",
+    "state": "AR",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "J. Luis Correa",
+    "url": "https://correa.house.gov",
+    "state": "CA",
+    "district": "46th",
+    "party": "D"
+  },
+  {
+    "name": "Jack Bergman",
+    "url": "https://bergman.house.gov",
+    "state": "MI",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Jahana Hayes",
+    "url": "https://hayes.house.gov",
+    "state": "CT",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Jake Auchincloss",
+    "url": "https://auchincloss.house.gov",
+    "state": "MA",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Jake Ellzey",
+    "url": "https://ellzey.house.gov/",
+    "state": "TX",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "James A. Himes",
+    "url": "https://himes.house.gov/",
+    "state": "CT",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "James C. Moylan",
+    "url": "https://moylan.house.gov",
+    "state": "GU",
+    "district": "Delegate",
+    "party": "R"
+  },
+  {
+    "name": "James Comer",
+    "url": "https://comer.house.gov/",
+    "state": "KY",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "James E. Clyburn",
+    "url": "https://clyburn.house.gov/",
+    "state": "SC",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "James P. McGovern",
+    "url": "https://mcgovern.house.gov/",
+    "state": "MA",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "James R. Baird",
+    "url": "https://baird.house.gov/",
+    "state": "IN",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "James R. Walkinshaw",
+    "url": "https://walkinshaw.house.gov/",
+    "state": "VA",
+    "district": "11th",
+    "party": "D"
+  },
+  {
+    "name": "Jamie Raskin",
+    "url": "https://raskin.house.gov",
+    "state": "MD",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "Janelle S. Bynum",
+    "url": "https://bynum.house.gov/",
+    "state": "OR",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Janice D. Schakowsky",
+    "url": "https://schakowsky.house.gov",
+    "state": "IL",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Jared F. Golden",
+    "url": "https://golden.house.gov",
+    "state": "ME",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Jared Huffman",
+    "url": "https://huffman.house.gov",
+    "state": "CA",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Jared Moskowitz",
+    "url": "https://moskowitz.house.gov",
+    "state": "FL",
+    "district": "23rd",
+    "party": "D"
+  },
+  {
+    "name": "Jasmine Crockett",
+    "url": "https://crockett.house.gov",
+    "state": "TX",
+    "district": "30th",
+    "party": "D"
+  },
+  {
+    "name": "Jason Crow",
+    "url": "https://crow.house.gov/",
+    "state": "CO",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Jason Smith",
+    "url": "https://jasonsmith.house.gov",
+    "state": "MO",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Jay Obernolte",
+    "url": "https://obernolte.house.gov",
+    "state": "CA",
+    "district": "23rd",
+    "party": "R"
+  },
+  {
+    "name": "Jeff Crank",
+    "url": "https://crank.house.gov/",
+    "state": "CO",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Jeff Hurd",
+    "url": "https://hurd.house.gov/",
+    "state": "CO",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Jefferson Shreve",
+    "url": "https://shreve.house.gov/",
+    "state": "IN",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Jefferson Van Drew",
+    "url": "https://vandrew.house.gov",
+    "state": "NJ",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Jennifer A. Kiggans",
+    "url": "https://kiggans.house.gov",
+    "state": "VA",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Jennifer L. McClellan",
+    "url": "https://mcclellan.house.gov/",
+    "state": "VA",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Jerrold Nadler",
+    "url": "https://nadler.house.gov",
+    "state": "NY",
+    "district": "12th",
+    "party": "D"
+  },
+  {
+    "name": "Jes\u00fas G. \"Chuy\" Garc\u00eda",
+    "url": "https://chuygarcia.house.gov/",
+    "state": "IL",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Jill N. Tokuda",
+    "url": "https://tokuda.house.gov",
+    "state": "HI",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Jim Costa",
+    "url": "https://costa.house.gov/",
+    "state": "CA",
+    "district": "21st",
+    "party": "D"
+  },
+  {
+    "name": "Jim Jordan",
+    "url": "https://jordan.house.gov/",
+    "state": "OH",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Jimmy Gomez",
+    "url": "https://gomez.house.gov/",
+    "state": "CA",
+    "district": "34th",
+    "party": "D"
+  },
+  {
+    "name": "Jimmy Panetta",
+    "url": "https://panetta.house.gov",
+    "state": "CA",
+    "district": "19th",
+    "party": "D"
+  },
+  {
+    "name": "Jimmy Patronis",
+    "url": "https://patronis.house.gov/",
+    "state": "FL",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Joaquin Castro",
+    "url": "https://castro.house.gov",
+    "state": "TX",
+    "district": "20th",
+    "party": "D"
+  },
+  {
+    "name": "Jodey C. Arrington",
+    "url": "https://arrington.house.gov",
+    "state": "TX",
+    "district": "19th",
+    "party": "R"
+  },
+  {
+    "name": "Joe Courtney",
+    "url": "https://courtney.house.gov/",
+    "state": "CT",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Joe Neguse",
+    "url": "https://neguse.house.gov/",
+    "state": "CO",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Joe Wilson",
+    "url": "https://joewilson.house.gov/",
+    "state": "SC",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "John B. Larson",
+    "url": "https://larson.house.gov/",
+    "state": "CT",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "John Garamendi",
+    "url": "https://garamendi.house.gov/",
+    "state": "CA",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "John H. Rutherford",
+    "url": "https://rutherford.house.gov",
+    "state": "FL",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "John J. McGuire III",
+    "url": "https://mcguire.house.gov/",
+    "state": "VA",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "John James",
+    "url": "https://james.house.gov",
+    "state": "MI",
+    "district": "10th",
+    "party": "R"
+  },
+  {
+    "name": "John Joyce",
+    "url": "https://johnjoyce.house.gov/",
+    "state": "PA",
+    "district": "13th",
+    "party": "R"
+  },
+  {
+    "name": "John R. Carter",
+    "url": "https://carter.house.gov/",
+    "state": "TX",
+    "district": "31st",
+    "party": "R"
+  },
+  {
+    "name": "John R. Moolenaar",
+    "url": "https://moolenaar.house.gov/",
+    "state": "MI",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "John W. Mannion",
+    "url": "https://mannion.house.gov/",
+    "state": "NY",
+    "district": "22nd",
+    "party": "D"
+  },
+  {
+    "name": "John W. Rose",
+    "url": "https://johnrose.house.gov/",
+    "state": "TN",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Johnny Olszewski, Jr.",
+    "url": "https://olszewski.house.gov/",
+    "state": "MD",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Jonathan L. Jackson",
+    "url": "https://jonathanjackson.house.gov",
+    "state": "IL",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Joseph D. Morelle",
+    "url": "https://morelle.house.gov",
+    "state": "NY",
+    "district": "25th",
+    "party": "D"
+  },
+  {
+    "name": "Josh Brecheen",
+    "url": "https://brecheen.house.gov",
+    "state": "OK",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Josh Gottheimer",
+    "url": "https://gottheimer.house.gov",
+    "state": "NJ",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Josh Harder",
+    "url": "https://harder.house.gov/",
+    "state": "CA",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Josh Riley",
+    "url": "https://riley.house.gov/",
+    "state": "NY",
+    "district": "19th",
+    "party": "D"
+  },
+  {
+    "name": "Joyce Beatty",
+    "url": "https://beatty.house.gov",
+    "state": "OH",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Juan Ciscomani",
+    "url": "https://ciscomani.house.gov",
+    "state": "AZ",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Juan Vargas",
+    "url": "https://vargas.house.gov",
+    "state": "CA",
+    "district": "52nd",
+    "party": "D"
+  },
+  {
+    "name": "Judy Chu",
+    "url": "https://chu.house.gov/",
+    "state": "CA",
+    "district": "28th",
+    "party": "D"
+  },
+  {
+    "name": "Julia Brownley",
+    "url": "https://juliabrownley.house.gov",
+    "state": "CA",
+    "district": "26th",
+    "party": "D"
+  },
+  {
+    "name": "Julia Letlow",
+    "url": "https://letlow.house.gov",
+    "state": "LA",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Julie Fedorchak",
+    "url": "https://fedorchak.house.gov/",
+    "state": "ND",
+    "district": "At Large",
+    "party": "R"
+  },
+  {
+    "name": "Julie Johnson",
+    "url": "https://juliejohnson.house.gov/",
+    "state": "TX",
+    "district": "32nd",
+    "party": "D"
+  },
+  {
+    "name": "Kat Cammack",
+    "url": "https://cammack.house.gov",
+    "state": "FL",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Katherine M. Clark",
+    "url": "https://katherineclark.house.gov/index.cfm/home",
+    "state": "MA",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Kathy Castor",
+    "url": "https://castor.house.gov/",
+    "state": "FL",
+    "district": "14th",
+    "party": "D"
+  },
+  {
+    "name": "Keith Self",
+    "url": "https://keithself.house.gov",
+    "state": "TX",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Kelly Morrison",
+    "url": "https://morrison.house.gov/",
+    "state": "MN",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Ken Calvert",
+    "url": "https://calvert.house.gov/",
+    "state": "CA",
+    "district": "41st",
+    "party": "R"
+  },
+  {
+    "name": "Kevin Hern",
+    "url": "https://hern.house.gov",
+    "state": "OK",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Kevin Kiley",
+    "url": "https://kiley.house.gov",
+    "state": "CA",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Kevin Mullin",
+    "url": "https://kevinmullin.house.gov",
+    "state": "CA",
+    "district": "15th",
+    "party": "D"
+  },
+  {
+    "name": "Kim Schrier",
+    "url": "https://schrier.house.gov",
+    "state": "WA",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "Kimberlyn King-Hinds",
+    "url": "https://king-hinds.house.gov/",
+    "state": "MP",
+    "district": "Delegate",
+    "party": "R"
+  },
+  {
+    "name": "Kristen McDonald Rivet",
+    "url": "https://mcdonaldrivet.house.gov/",
+    "state": "MI",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "Kweisi Mfume",
+    "url": "https://mfume.house.gov/",
+    "state": "MD",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "LaMonica McIver",
+    "url": "https://mciver.house.gov/",
+    "state": "NJ",
+    "district": "10th",
+    "party": "D"
+  },
+  {
+    "name": "Lance Gooden",
+    "url": "https://gooden.house.gov",
+    "state": "TX",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Lateefah Simon",
+    "url": "https://simon.house.gov/",
+    "state": "CA",
+    "district": "12th",
+    "party": "D"
+  },
+  {
+    "name": "Laura Friedman",
+    "url": "https://friedman.house.gov/",
+    "state": "CA",
+    "district": "30th",
+    "party": "D"
+  },
+  {
+    "name": "Laura Gillen",
+    "url": "https://gillen.house.gov/",
+    "state": "NY",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Laurel M. Lee",
+    "url": "https://laurellee.house.gov",
+    "state": "FL",
+    "district": "15th",
+    "party": "R"
+  },
+  {
+    "name": "Lauren Boebert",
+    "url": "https://boebert.house.gov",
+    "state": "CO",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Lauren Underwood",
+    "url": "https://underwood.house.gov/",
+    "state": "IL",
+    "district": "14th",
+    "party": "D"
+  },
+  {
+    "name": "Linda T. S\u00e1nchez",
+    "url": "https://lindasanchez.house.gov/",
+    "state": "CA",
+    "district": "38th",
+    "party": "D"
+  },
+  {
+    "name": "Lisa C. McClain",
+    "url": "https://mcclain.house.gov",
+    "state": "MI",
+    "district": "9th",
+    "party": "R"
+  },
+  {
+    "name": "Lizzie Fletcher",
+    "url": "https://fletcher.house.gov",
+    "state": "TX",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Lloyd Doggett",
+    "url": "https://doggett.house.gov",
+    "state": "TX",
+    "district": "37th",
+    "party": "D"
+  },
+  {
+    "name": "Lloyd Smucker",
+    "url": "https://smucker.house.gov/",
+    "state": "PA",
+    "district": "11th",
+    "party": "R"
+  },
+  {
+    "name": "Lois Frankel",
+    "url": "https://frankel.house.gov",
+    "state": "FL",
+    "district": "22nd",
+    "party": "D"
+  },
+  {
+    "name": "Lori Trahan",
+    "url": "https://trahan.house.gov",
+    "state": "MA",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Lucy McBath",
+    "url": "https://mcbath.house.gov",
+    "state": "GA",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Luz M. Rivas",
+    "url": "https://rivas.house.gov/",
+    "state": "CA",
+    "district": "29th",
+    "party": "D"
+  },
+  {
+    "name": "Madeleine Dean",
+    "url": "https://dean.house.gov",
+    "state": "PA",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Maggie Goodlander",
+    "url": "https://goodlander.house.gov/",
+    "state": "NH",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Marc A. Veasey",
+    "url": "https://veasey.house.gov",
+    "state": "TX",
+    "district": "33rd",
+    "party": "D"
+  },
+  {
+    "name": "Marcy Kaptur",
+    "url": "https://kaptur.house.gov/",
+    "state": "OH",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Maria Elvira Salazar",
+    "url": "https://salazar.house.gov",
+    "state": "FL",
+    "district": "27th",
+    "party": "R"
+  },
+  {
+    "name": "Mariannette Miller-Meeks",
+    "url": "https://millermeeks.house.gov/",
+    "state": "IA",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Marie Gluesenkamp Perez",
+    "url": "https://gluesenkampperez.house.gov",
+    "state": "WA",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Marilyn Strickland",
+    "url": "https://strickland.house.gov",
+    "state": "WA",
+    "district": "10th",
+    "party": "D"
+  },
+  {
+    "name": "Mario Diaz-Balart",
+    "url": "https://mariodiazbalart.house.gov/",
+    "state": "FL",
+    "district": "26th",
+    "party": "R"
+  },
+  {
+    "name": "Marjorie Taylor Greene",
+    "url": "https://greene.house.gov",
+    "state": "GA",
+    "district": "14th",
+    "party": "R"
+  },
+  {
+    "name": "Mark Alford",
+    "url": "https://alford.house.gov",
+    "state": "MO",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Mark B. Messmer",
+    "url": "https://messmer.house.gov/",
+    "state": "IN",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Mark DeSaulnier",
+    "url": "https://desaulnier.house.gov/",
+    "state": "CA",
+    "district": "10th",
+    "party": "D"
+  },
+  {
+    "name": "Mark E. Amodei",
+    "url": "https://amodei.house.gov",
+    "state": "NV",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Mark Harris",
+    "url": "https://markharris.house.gov/",
+    "state": "NC",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Mark Pocan",
+    "url": "https://pocan.house.gov",
+    "state": "WI",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Mark Takano",
+    "url": "https://takano.house.gov",
+    "state": "CA",
+    "district": "39th",
+    "party": "D"
+  },
+  {
+    "name": "Marlin A. Stutzman",
+    "url": "https://stutzman.house.gov/",
+    "state": "IN",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Mary E. Miller",
+    "url": "https://marymiller.house.gov",
+    "state": "IL",
+    "district": "15th",
+    "party": "R"
+  },
+  {
+    "name": "Mary Gay Scanlon",
+    "url": "https://scanlon.house.gov/",
+    "state": "PA",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Matt Van Epps",
+    "url": "https://vanepps.house.gov/",
+    "state": "TN",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Max L. Miller",
+    "url": "https://maxmiller.house.gov",
+    "state": "OH",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Maxine Dexter",
+    "url": "https://dexter.house.gov/",
+    "state": "OR",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Maxine Waters",
+    "url": "https://waters.house.gov",
+    "state": "CA",
+    "district": "43rd",
+    "party": "D"
+  },
+  {
+    "name": "Maxwell Frost",
+    "url": "https://frost.house.gov",
+    "state": "FL",
+    "district": "10th",
+    "party": "D"
+  },
+  {
+    "name": "Melanie A. Stansbury",
+    "url": "https://stansbury.house.gov/",
+    "state": "NM",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Michael A. Rulli",
+    "url": "https://rulli.house.gov",
+    "state": "OH",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Michael Baumgartner",
+    "url": "https://baumgartner.house.gov/",
+    "state": "WA",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Michael Cloud",
+    "url": "https://cloud.house.gov",
+    "state": "TX",
+    "district": "27th",
+    "party": "R"
+  },
+  {
+    "name": "Michael Guest",
+    "url": "https://guest.house.gov",
+    "state": "MS",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Michael K. Simpson",
+    "url": "https://simpson.house.gov",
+    "state": "ID",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Michael Lawler",
+    "url": "https://lawler.house.gov",
+    "state": "NY",
+    "district": "17th",
+    "party": "R"
+  },
+  {
+    "name": "Michael R. Turner",
+    "url": "https://turner.house.gov/",
+    "state": "OH",
+    "district": "10th",
+    "party": "R"
+  },
+  {
+    "name": "Michael T. McCaul",
+    "url": "https://mccaul.house.gov",
+    "state": "TX",
+    "district": "10th",
+    "party": "R"
+  },
+  {
+    "name": "Michelle Fischbach",
+    "url": "https://fischbach.house.gov",
+    "state": "MN",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Mike Bost",
+    "url": "https://bost.house.gov/",
+    "state": "IL",
+    "district": "12th",
+    "party": "R"
+  },
+  {
+    "name": "Mike Carey",
+    "url": "https://carey.house.gov",
+    "state": "OH",
+    "district": "15th",
+    "party": "R"
+  },
+  {
+    "name": "Mike Collins",
+    "url": "https://collins.house.gov",
+    "state": "GA",
+    "district": "10th",
+    "party": "R"
+  },
+  {
+    "name": "Mike Ezell",
+    "url": "https://ezell.house.gov",
+    "state": "MS",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Mike Flood",
+    "url": "https://flood.house.gov/",
+    "state": "NE",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Mike Haridopolos",
+    "url": "https://haridopolos.house.gov/",
+    "state": "FL",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Mike Johnson",
+    "url": "https://mikejohnson.house.gov",
+    "state": "LA",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Mike Kelly",
+    "url": "https://kelly.house.gov",
+    "state": "PA",
+    "district": "16th",
+    "party": "R"
+  },
+  {
+    "name": "Mike Kennedy",
+    "url": "https://mikekennedy.house.gov/",
+    "state": "UT",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Mike Levin",
+    "url": "https://levin.house.gov/",
+    "state": "CA",
+    "district": "49th",
+    "party": "D"
+  },
+  {
+    "name": "Mike Quigley",
+    "url": "https://quigley.house.gov/",
+    "state": "IL",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Mike Rogers",
+    "url": "https://mikerogers.house.gov/",
+    "state": "AL",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Mike Thompson",
+    "url": "https://mikethompson.house.gov/",
+    "state": "CA",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Monica De La Cruz",
+    "url": "https://delacruz.house.gov",
+    "state": "TX",
+    "district": "15th",
+    "party": "R"
+  },
+  {
+    "name": "Morgan Luttrell",
+    "url": "https://luttrell.house.gov",
+    "state": "TX",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Morgan McGarvey",
+    "url": "https://mcgarvey.house.gov",
+    "state": "KY",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Nancy Mace",
+    "url": "https://mace.house.gov",
+    "state": "SC",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Nancy Pelosi",
+    "url": "https://pelosi.house.gov/",
+    "state": "CA",
+    "district": "11th",
+    "party": "D"
+  },
+  {
+    "name": "Nanette Diaz Barrag\u00e1n",
+    "url": "https://barragan.house.gov",
+    "state": "CA",
+    "district": "44th",
+    "party": "D"
+  },
+  {
+    "name": "Nathaniel Moran",
+    "url": "https://moran.house.gov",
+    "state": "TX",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Neal P. Dunn",
+    "url": "https://dunn.house.gov",
+    "state": "FL",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Nellie Pou",
+    "url": "https://pou.house.gov/",
+    "state": "NJ",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Nicholas A. Langworthy",
+    "url": "https://langworthy.house.gov",
+    "state": "NY",
+    "district": "23rd",
+    "party": "R"
+  },
+  {
+    "name": "Nicholas J. Begich III",
+    "url": "https://begich.house.gov/",
+    "state": "AK",
+    "district": "At Large",
+    "party": "R"
+  },
+  {
+    "name": "Nick LaLota",
+    "url": "https://lalota.house.gov",
+    "state": "NY",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Nicole Malliotakis",
+    "url": "https://malliotakis.house.gov",
+    "state": "NY",
+    "district": "11th",
+    "party": "R"
+  },
+  {
+    "name": "Nikema Williams",
+    "url": "https://nikemawilliams.house.gov",
+    "state": "GA",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Nikki Budzinski",
+    "url": "https://budzinski.house.gov",
+    "state": "IL",
+    "district": "13th",
+    "party": "D"
+  },
+  {
+    "name": "Norma J. Torres",
+    "url": "https://torres.house.gov/",
+    "state": "CA",
+    "district": "35th",
+    "party": "D"
+  },
+  {
+    "name": "Nydia M. Vel\u00e1zquez",
+    "url": "https://velazquez.house.gov",
+    "state": "NY",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Pablo Jos\u00e9 Hern\u00e1ndez",
+    "url": "https://hernandez.house.gov/",
+    "state": "PR",
+    "district": "Resident Commissioner",
+    "party": "D"
+  },
+  {
+    "name": "Pat Fallon",
+    "url": "https://fallon.house.gov",
+    "state": "TX",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Pat Harrigan",
+    "url": "https://harrigan.house.gov/",
+    "state": "NC",
+    "district": "10th",
+    "party": "R"
+  },
+  {
+    "name": "Patrick Ryan",
+    "url": "https://patryan.house.gov/",
+    "state": "NY",
+    "district": "18th",
+    "party": "D"
+  },
+  {
+    "name": "Paul A. Gosar",
+    "url": "https://gosar.house.gov/",
+    "state": "AZ",
+    "district": "9th",
+    "party": "R"
+  },
+  {
+    "name": "Paul Tonko",
+    "url": "https://tonko.house.gov/",
+    "state": "NY",
+    "district": "20th",
+    "party": "D"
+  },
+  {
+    "name": "Pete Aguilar",
+    "url": "https://aguilar.house.gov/",
+    "state": "CA",
+    "district": "33rd",
+    "party": "D"
+  },
+  {
+    "name": "Pete Sessions",
+    "url": "https://sessions.house.gov",
+    "state": "TX",
+    "district": "17th",
+    "party": "R"
+  },
+  {
+    "name": "Pete Stauber",
+    "url": "https://stauber.house.gov",
+    "state": "MN",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Pramila Jayapal",
+    "url": "https://jayapal.house.gov",
+    "state": "WA",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Raja Krishnamoorthi",
+    "url": "https://krishnamoorthi.house.gov",
+    "state": "IL",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "Ralph Norman",
+    "url": "https://norman.house.gov",
+    "state": "SC",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Randy Feenstra",
+    "url": "https://feenstra.house.gov",
+    "state": "IA",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Randy Fine",
+    "url": "https://fine.house.gov/",
+    "state": "FL",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Randy K. Weber, Sr.",
+    "url": "https://weber.house.gov",
+    "state": "TX",
+    "district": "14th",
+    "party": "R"
+  },
+  {
+    "name": "Rashida Tlaib",
+    "url": "https://tlaib.house.gov/",
+    "state": "MI",
+    "district": "12th",
+    "party": "D"
+  },
+  {
+    "name": "Raul Ruiz",
+    "url": "https://ruiz.house.gov",
+    "state": "CA",
+    "district": "25th",
+    "party": "D"
+  },
+  {
+    "name": "Richard E. Neal",
+    "url": "https://neal.house.gov/",
+    "state": "MA",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Richard Hudson",
+    "url": "https://hudson.house.gov",
+    "state": "NC",
+    "district": "9th",
+    "party": "R"
+  },
+  {
+    "name": "Richard McCormick",
+    "url": "https://mccormick.house.gov",
+    "state": "GA",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Rick Larsen",
+    "url": "https://larsen.house.gov",
+    "state": "WA",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Rick W. Allen",
+    "url": "https://allen.house.gov",
+    "state": "GA",
+    "district": "12th",
+    "party": "R"
+  },
+  {
+    "name": "Riley M. Moore",
+    "url": "https://rileymoore.house.gov/",
+    "state": "WV",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Ritchie Torres",
+    "url": "https://ritchietorres.house.gov",
+    "state": "NY",
+    "district": "15th",
+    "party": "D"
+  },
+  {
+    "name": "Ro Khanna",
+    "url": "https://khanna.house.gov",
+    "state": "CA",
+    "district": "17th",
+    "party": "D"
+  },
+  {
+    "name": "Robert B. Aderholt",
+    "url": "https://aderholt.house.gov/",
+    "state": "AL",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Robert C. \"Bobby\" Scott",
+    "url": "https://bobbyscott.house.gov",
+    "state": "VA",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Robert E. Latta",
+    "url": "https://latta.house.gov/",
+    "state": "OH",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Robert F. Onder, Jr.",
+    "url": "https://onder.house.gov/",
+    "state": "MO",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Robert Garcia",
+    "url": "https://robertgarcia.house.gov",
+    "state": "CA",
+    "district": "42nd",
+    "party": "D"
+  },
+  {
+    "name": "Robert J. Wittman",
+    "url": "https://wittman.house.gov/",
+    "state": "VA",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Robert Menendez",
+    "url": "https://menendez.house.gov",
+    "state": "NJ",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "Robert P. Bresnahan, Jr.",
+    "url": "https://bresnahan.house.gov/",
+    "state": "PA",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Robin L. Kelly",
+    "url": "https://robinkelly.house.gov/",
+    "state": "IL",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Roger Williams",
+    "url": "https://williams.house.gov",
+    "state": "TX",
+    "district": "25th",
+    "party": "R"
+  },
+  {
+    "name": "Ron Estes",
+    "url": "https://estes.house.gov/",
+    "state": "KS",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Ronny Jackson",
+    "url": "https://jackson.house.gov",
+    "state": "TX",
+    "district": "13th",
+    "party": "R"
+  },
+  {
+    "name": "Rosa L. DeLauro",
+    "url": "https://delauro.house.gov/",
+    "state": "CT",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Rudy Yakym III",
+    "url": "https://yakym.house.gov",
+    "state": "IN",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Russ Fulcher",
+    "url": "https://fulcher.house.gov/",
+    "state": "ID",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Russell Fry",
+    "url": "https://fry.house.gov",
+    "state": "SC",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Ryan K. Zinke",
+    "url": "https://zinke.house.gov",
+    "state": "MT",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Ryan Mackenzie",
+    "url": "https://mackenzie.house.gov/",
+    "state": "PA",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Salud O. Carbajal",
+    "url": "https://carbajal.house.gov",
+    "state": "CA",
+    "district": "24th",
+    "party": "D"
+  },
+  {
+    "name": "Sam Graves",
+    "url": "https://graves.house.gov/",
+    "state": "MO",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Sam T. Liccardo",
+    "url": "https://liccardo.house.gov/",
+    "state": "CA",
+    "district": "16th",
+    "party": "D"
+  },
+  {
+    "name": "Sanford D. Bishop, Jr.",
+    "url": "https://bishop.house.gov/",
+    "state": "GA",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Sara Jacobs",
+    "url": "https://sarajacobs.house.gov",
+    "state": "CA",
+    "district": "51st",
+    "party": "D"
+  },
+  {
+    "name": "Sarah Elfreth",
+    "url": "https://elfreth.house.gov/",
+    "state": "MD",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Sarah McBride",
+    "url": "https://mcbride.house.gov/",
+    "state": "DE",
+    "district": "At Large",
+    "party": "D"
+  },
+  {
+    "name": "Scott DesJarlais",
+    "url": "https://desjarlais.house.gov/",
+    "state": "TN",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Scott Fitzgerald",
+    "url": "https://fitzgerald.house.gov",
+    "state": "WI",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Scott Franklin",
+    "url": "https://franklin.house.gov",
+    "state": "FL",
+    "district": "18th",
+    "party": "R"
+  },
+  {
+    "name": "Scott H. Peters",
+    "url": "https://scottpeters.house.gov",
+    "state": "CA",
+    "district": "50th",
+    "party": "D"
+  },
+  {
+    "name": "Scott Perry",
+    "url": "https://perry.house.gov/",
+    "state": "PA",
+    "district": "10th",
+    "party": "R"
+  },
+  {
+    "name": "Sean Casten",
+    "url": "https://casten.house.gov",
+    "state": "IL",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Seth Magaziner",
+    "url": "https://magaziner.house.gov",
+    "state": "RI",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Seth Moulton",
+    "url": "https://moulton.house.gov/",
+    "state": "MA",
+    "district": "6th",
+    "party": "D"
+  },
+  {
+    "name": "Sharice Davids",
+    "url": "https://davids.house.gov/",
+    "state": "KS",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Sheila Cherfilus-McCormick",
+    "url": "https://cherfilus-mccormick.house.gov/",
+    "state": "FL",
+    "district": "20th",
+    "party": "D"
+  },
+  {
+    "name": "Sheri Biggs",
+    "url": "https://sheribiggs.house.gov/",
+    "state": "SC",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Shomari Figures",
+    "url": "https://figures.house.gov/",
+    "state": "AL",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Shontel M. Brown",
+    "url": "https://shontelbrown.house.gov",
+    "state": "OH",
+    "district": "11th",
+    "party": "D"
+  },
+  {
+    "name": "Shri Thanedar",
+    "url": "https://thanedar.house.gov",
+    "state": "MI",
+    "district": "13th",
+    "party": "D"
+  },
+  {
+    "name": "Stacey E. Plaskett",
+    "url": "https://plaskett.house.gov/",
+    "state": "VI",
+    "district": "Delegate",
+    "party": "D"
+  },
+  {
+    "name": "Steny H. Hoyer",
+    "url": "https://hoyer.house.gov/",
+    "state": "MD",
+    "district": "5th",
+    "party": "D"
+  },
+  {
+    "name": "Stephanie I. Bice",
+    "url": "https://bice.house.gov",
+    "state": "OK",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Stephen F. Lynch",
+    "url": "https://lynch.house.gov/",
+    "state": "MA",
+    "district": "8th",
+    "party": "D"
+  },
+  {
+    "name": "Steve Cohen",
+    "url": "https://cohen.house.gov/",
+    "state": "TN",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Steve Scalise",
+    "url": "https://scalise.house.gov/",
+    "state": "LA",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Steve Womack",
+    "url": "https://womack.house.gov/",
+    "state": "AR",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Steven Horsford",
+    "url": "https://horsford.house.gov",
+    "state": "NV",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Suhas Subramanyam",
+    "url": "https://subramanyam.house.gov/",
+    "state": "VA",
+    "district": "10th",
+    "party": "D"
+  },
+  {
+    "name": "Summer L. Lee",
+    "url": "https://summerlee.house.gov",
+    "state": "PA",
+    "district": "12th",
+    "party": "D"
+  },
+  {
+    "name": "Susie Lee",
+    "url": "https://susielee.house.gov",
+    "state": "NV",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Suzan K. DelBene",
+    "url": "https://delbene.house.gov",
+    "state": "WA",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Suzanne Bonamici",
+    "url": "https://bonamici.house.gov",
+    "state": "OR",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Sydney Kamlager-Dove",
+    "url": "https://kamlager-dove.house.gov",
+    "state": "CA",
+    "district": "37th",
+    "party": "D"
+  },
+  {
+    "name": "Sylvia R. Garcia",
+    "url": "https://sylviagarcia.house.gov/",
+    "state": "TX",
+    "district": "29th",
+    "party": "D"
+  },
+  {
+    "name": "Ted Lieu",
+    "url": "https://lieu.house.gov/",
+    "state": "CA",
+    "district": "36th",
+    "party": "D"
+  },
+  {
+    "name": "Teresa Leger Fernandez",
+    "url": "https://fernandez.house.gov",
+    "state": "NM",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Terri A. Sewell",
+    "url": "https://sewell.house.gov/",
+    "state": "AL",
+    "district": "7th",
+    "party": "D"
+  },
+  {
+    "name": "Thomas H. Kean, Jr.",
+    "url": "https://kean.house.gov",
+    "state": "NJ",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Thomas Massie",
+    "url": "https://massie.house.gov",
+    "state": "KY",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Thomas P. Tiffany",
+    "url": "https://tiffany.house.gov/",
+    "state": "WI",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Thomas R. Suozzi",
+    "url": "https://suozzi.house.gov",
+    "state": "NY",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Tim Burchett",
+    "url": "https://burchett.house.gov",
+    "state": "TN",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Tim Moore",
+    "url": "https://timmoore.house.gov/",
+    "state": "NC",
+    "district": "14th",
+    "party": "R"
+  },
+  {
+    "name": "Tim Walberg",
+    "url": "https://walberg.house.gov/",
+    "state": "MI",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Timothy M. Kennedy",
+    "url": "https://kennedy.house.gov",
+    "state": "NY",
+    "district": "26th",
+    "party": "D"
+  },
+  {
+    "name": "Tom Barrett",
+    "url": "https://barrett.house.gov/",
+    "state": "MI",
+    "district": "7th",
+    "party": "R"
+  },
+  {
+    "name": "Tom Cole",
+    "url": "https://cole.house.gov",
+    "state": "OK",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Tom Emmer",
+    "url": "https://emmer.house.gov/",
+    "state": "MN",
+    "district": "6th",
+    "party": "R"
+  },
+  {
+    "name": "Tom McClintock",
+    "url": "https://mcclintock.house.gov/",
+    "state": "CA",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Tony Gonzales",
+    "url": "https://gonzales.house.gov",
+    "state": "TX",
+    "district": "23rd",
+    "party": "R"
+  },
+  {
+    "name": "Tony Wied",
+    "url": "https://wied.house.gov/",
+    "state": "WI",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Tracey Mann",
+    "url": "https://mann.house.gov",
+    "state": "KS",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Trent Kelly",
+    "url": "https://trentkelly.house.gov/",
+    "state": "MS",
+    "district": "1st",
+    "party": "R"
+  },
+  {
+    "name": "Troy A. Carter",
+    "url": "https://troycarter.house.gov",
+    "state": "LA",
+    "district": "2nd",
+    "party": "D"
+  },
+  {
+    "name": "Troy Balderson",
+    "url": "https://balderson.house.gov",
+    "state": "OH",
+    "district": "12th",
+    "party": "R"
+  },
+  {
+    "name": "Troy Downing",
+    "url": "https://downing.house.gov/",
+    "state": "MT",
+    "district": "2nd",
+    "party": "R"
+  },
+  {
+    "name": "Troy E. Nehls",
+    "url": "https://nehls.house.gov",
+    "state": "TX",
+    "district": "22nd",
+    "party": "R"
+  },
+  {
+    "name": "Val T. Hoyle",
+    "url": "https://hoyle.house.gov",
+    "state": "OR",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Valerie P. Foushee",
+    "url": "https://foushee.house.gov",
+    "state": "NC",
+    "district": "4th",
+    "party": "D"
+  },
+  {
+    "name": "Vern Buchanan",
+    "url": "https://buchanan.house.gov/",
+    "state": "FL",
+    "district": "16th",
+    "party": "R"
+  },
+  {
+    "name": "Veronica Escobar",
+    "url": "https://escobar.house.gov",
+    "state": "TX",
+    "district": "16th",
+    "party": "D"
+  },
+  {
+    "name": "Vicente Gonzalez",
+    "url": "https://gonzalez.house.gov",
+    "state": "TX",
+    "district": "34th",
+    "party": "D"
+  },
+  {
+    "name": "Victoria Spartz",
+    "url": "https://spartz.house.gov",
+    "state": "IN",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "Vince Fong",
+    "url": "https://fong.house.gov/",
+    "state": "CA",
+    "district": "20th",
+    "party": "R"
+  },
+  {
+    "name": "Virginia Foxx",
+    "url": "https://foxx.house.gov/",
+    "state": "NC",
+    "district": "5th",
+    "party": "R"
+  },
+  {
+    "name": "W. Gregory Steube",
+    "url": "https://steube.house.gov/",
+    "state": "FL",
+    "district": "17th",
+    "party": "R"
+  },
+  {
+    "name": "Warren Davidson",
+    "url": "https://davidson.house.gov/",
+    "state": "OH",
+    "district": "8th",
+    "party": "R"
+  },
+  {
+    "name": "Wesley Bell",
+    "url": "https://bell.house.gov/",
+    "state": "MO",
+    "district": "1st",
+    "party": "D"
+  },
+  {
+    "name": "Wesley Hunt",
+    "url": "https://hunt.house.gov",
+    "state": "TX",
+    "district": "38th",
+    "party": "R"
+  },
+  {
+    "name": "William R. Keating",
+    "url": "https://keating.house.gov/",
+    "state": "MA",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "William R. Timmons IV",
+    "url": "https://timmons.house.gov/",
+    "state": "SC",
+    "district": "4th",
+    "party": "R"
+  },
+  {
+    "name": "Yassamin Ansari",
+    "url": "https://ansari.house.gov/",
+    "state": "AZ",
+    "district": "3rd",
+    "party": "D"
+  },
+  {
+    "name": "Young Kim",
+    "url": "https://youngkim.house.gov",
+    "state": "CA",
+    "district": "40th",
+    "party": "R"
+  },
+  {
+    "name": "Yvette D. Clarke",
+    "url": "https://clarke.house.gov/",
+    "state": "NY",
+    "district": "9th",
+    "party": "D"
+  },
+  {
+    "name": "Zachary Nunn",
+    "url": "https://nunn.house.gov",
+    "state": "IA",
+    "district": "3rd",
+    "party": "R"
+  },
+  {
+    "name": "Zoe Lofgren",
+    "url": "https://lofgren.house.gov/",
+    "state": "CA",
+    "district": "18th",
+    "party": "D"
+  }
+]
