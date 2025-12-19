@@ -9,6 +9,16 @@
         "root@65.181.112.77",
         "/opt/mcp-server/run.sh"
       ]
+    },
+    "coderabbit": {
+      "command": "python",
+      "args": ["-m", "mcp_servers.coderabbit.main"],
+      "cwd": "D:\\AI",
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPO": "blur702/AI",
+        "PROJECT_ROOT": "D:/AI"
+      }
     }
   }
 }
