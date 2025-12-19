@@ -1,0 +1,38 @@
+# Large AI project directories (have their own git repos)
+alltalk_tts/
+audiocraft/
+ComfyUI/
+DiffRhythm/
+local-talking-llm/
+MusicGPT/
+stable-audio-tools/
+stability-matrix/
+Wan2GP/
+YuE/
+
+# Dependencies
+node_modules/
+ollama-models/
+
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+
+# Build outputs
+dist/
+build/
+
+# Test artifacts
+test-results/
+playwright-report/
+
+# Weaviate data
+weaviate_share/
+
+# Data directories
+data/scraper/
+logs/
+
+# Media files
+media/
