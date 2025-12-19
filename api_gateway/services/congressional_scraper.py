@@ -472,7 +472,9 @@ class CongressionalDocScraper(BaseDocScraper):
             return
 
         # Use deque for O(1) popleft instead of O(n) list.pop(0)
+        # Use pending set for O(1) membership check instead of O(n) deque lookup
         queue: Deque[str] = deque([member.website_url])
+        pending: set[str] = {member.website_url}
         pages_scraped_for_member = 0
 
         while queue and pages_scraped_for_member < self.scrape_config.max_pages_per_member:
@@ -545,8 +547,9 @@ class CongressionalDocScraper(BaseDocScraper):
                         >= self.scrape_config.max_pages_per_member
                     ):
                         break
-                    if link not in visited and link not in queue:
+                    if link not in visited and link not in pending:
                         queue.append(link)
+                        pending.add(link)
 
             except Exception as exc:
                 logger.warning(
