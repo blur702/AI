@@ -76,7 +76,7 @@ export class VPSTestRunner {
       // Check gateway
       console.log('[VPSTestRunner] Checking API gateway...');
       const health = await this.gatewayClient.healthCheck();
-      console.log(`[VPSTestRunner] Gateway OK - Status: ${health.status || 'healthy'}`);
+      console.log(`[VPSTestRunner] Gateway OK - Status: ${health.success ? 'healthy' : 'unhealthy'}`);
 
       // Check Ollama (embedding host)
       console.log('[VPSTestRunner] Checking Ollama...');
