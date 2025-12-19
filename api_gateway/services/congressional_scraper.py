@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 import re
 import time
+from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Deque, Dict, Generator, List, Optional
 from urllib.parse import urlparse
 
 if TYPE_CHECKING:
@@ -470,7 +471,8 @@ class CongressionalDocScraper(BaseDocScraper):
             logger.warning("No website URL for member: %s", member.name)
             return
 
-        queue: List[str] = [member.website_url]
+        # Use deque for O(1) popleft instead of O(n) list.pop(0)
+        queue: Deque[str] = deque([member.website_url])
         pages_scraped_for_member = 0
 
         while queue and pages_scraped_for_member < self.scrape_config.max_pages_per_member:
@@ -485,65 +487,75 @@ class CongressionalDocScraper(BaseDocScraper):
                 logger.info("Scrape paused; waiting before continuing")
                 time.sleep(1.0)
 
-            url = queue.pop(0)
+            url = queue.popleft()
             if url in visited:
                 continue
             visited.add(url)
 
-            html = self.fetch_page(url)
-            if not html:
+            try:
+                html = self.fetch_page(url)
+                if not html:
+                    continue
+
+                soup = BeautifulSoup(html, "html.parser")
+                title = self._extract_title_from_page(soup, url)
+                content = self._extract_content_from_page(soup)
+                if not content:
+                    continue
+
+                topic = self._infer_topic_from_url(url)
+
+                scraped_at = datetime.now(timezone.utc).isoformat()
+                content_hash = compute_congressional_content_hash(
+                    member_name=member.name,
+                    content_text=content,
+                    title=title,
+                    url=url,
+                )
+                uuid_str = generate_congressional_uuid(
+                    member_name=member.name,
+                    url=url,
+                )
+
+                data = CongressionalData(
+                    member_name=member.name,
+                    state=member.state,
+                    district=member.district,
+                    party=member.party,
+                    chamber=member.chamber,
+                    title=title,
+                    topic=topic,
+                    content_text=content,
+                    url=url,
+                    rss_feed_url=member.rss_feed_url,
+                    content_hash=content_hash,
+                    scraped_at=scraped_at,
+                    uuid=uuid_str,
+                )
+
+                pages_scraped_for_member += 1
+                yield data
+
+                # Discover additional links using BaseDocScraper.extract_links
+                new_links = self.extract_links(url, html)
+                for link in new_links:
+                    if (
+                        pages_scraped_for_member
+                        + len(queue)
+                        >= self.scrape_config.max_pages_per_member
+                    ):
+                        break
+                    if link not in visited and link not in queue:
+                        queue.append(link)
+
+            except Exception as exc:
+                logger.warning(
+                    "Failed to process page %s for member %s: %s",
+                    url,
+                    member.name,
+                    exc,
+                )
                 continue
-
-            soup = BeautifulSoup(html, "html.parser")
-            title = self._extract_title_from_page(soup, url)
-            content = self._extract_content_from_page(soup)
-            if not content:
-                continue
-
-            topic = self._infer_topic_from_url(url)
-
-            scraped_at = datetime.now(timezone.utc).isoformat()
-            content_hash = compute_congressional_content_hash(
-                member_name=member.name,
-                content_text=content,
-                title=title,
-                url=url,
-            )
-            uuid_str = generate_congressional_uuid(
-                member_name=member.name,
-                url=url,
-            )
-
-            data = CongressionalData(
-                member_name=member.name,
-                state=member.state,
-                district=member.district,
-                party=member.party,
-                chamber=member.chamber,
-                title=title,
-                topic=topic,
-                content_text=content,
-                url=url,
-                rss_feed_url=member.rss_feed_url,
-                content_hash=content_hash,
-                scraped_at=scraped_at,
-                uuid=uuid_str,
-            )
-
-            pages_scraped_for_member += 1
-            yield data
-
-            # Discover additional links using BaseDocScraper.extract_links
-            new_links = self.extract_links(url, html)
-            for link in new_links:
-                if (
-                    pages_scraped_for_member
-                    + len(queue)
-                    >= self.scrape_config.max_pages_per_member
-                ):
-                    break
-                if link not in visited and link not in queue:
-                    queue.append(link)
 
     def scrape_all_members(self) -> Generator[CongressionalData, None, None]:
         """
