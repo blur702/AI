@@ -223,8 +223,15 @@ test.describe("All Services Load Test", () => {
               await startButton.click({ timeout: 10000 });
             } catch (clickError: any) {
               // Element may have been detached during React re-render or timed out
-              if (clickError.message?.includes('detached') || clickError.message?.includes('Target closed') || clickError.message?.includes('timeout') || clickError.message?.includes('Timeout')) {
-                console.log(`Button click failed (${clickError.message?.substring(0, 50)}...), retrying via API...`);
+              if (
+                clickError.message?.includes("detached") ||
+                clickError.message?.includes("Target closed") ||
+                clickError.message?.includes("timeout") ||
+                clickError.message?.includes("Timeout")
+              ) {
+                console.log(
+                  `Button click failed (${clickError.message?.substring(0, 50)}...), retrying via API...`,
+                );
                 // Fallback: start service via API directly
                 try {
                   await dashboardAPI.post(`/api/services/${service.id}/start`);

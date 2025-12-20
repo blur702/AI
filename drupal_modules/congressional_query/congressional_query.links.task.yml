@@ -1,47 +1,47 @@
 # Admin Configuration Tabs
 congressional_query.admin_settings:
-  title: 'Settings'
+  title: "Settings"
   route_name: congressional_query.admin
   base_route: congressional_query.admin
 
 congressional_query.admin_api_keys:
-  title: 'API Keys'
+  title: "API Keys"
   route_name: congressional_query.api_keys
   base_route: congressional_query.admin
   weight: 10
 
 congressional_query.admin_cache:
-  title: 'Cache'
+  title: "Cache"
   route_name: congressional_query.cache_clear
   base_route: congressional_query.admin
   weight: 20
 
 # Admin Reports Tabs
 congressional_query.reports_dashboard:
-  title: 'Dashboard'
+  title: "Dashboard"
   route_name: congressional_query.admin_dashboard
   base_route: congressional_query.admin_dashboard
 
 congressional_query.reports_analytics:
-  title: 'Analytics'
+  title: "Analytics"
   route_name: congressional_query.analytics
   base_route: congressional_query.admin_dashboard
   weight: 10
 
 congressional_query.reports_history:
-  title: 'Query History'
+  title: "Query History"
   route_name: congressional_query.query_history
   base_route: congressional_query.admin_dashboard
   weight: 20
 
 congressional_query.reports_api_analytics:
-  title: 'API Analytics'
+  title: "API Analytics"
   route_name: congressional_query.api_analytics
   base_route: congressional_query.admin_dashboard
   weight: 30
 
 congressional_query.reports_bulk:
-  title: 'Bulk Operations'
+  title: "Bulk Operations"
   route_name: congressional_query.bulk_operations
   base_route: congressional_query.admin_dashboard
   weight: 40

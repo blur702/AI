@@ -329,6 +329,7 @@ python -m api_gateway.services.congressional_scraper status
 CongressionalData collection fields:
 
 **Core fields:**
+
 - `member_name`, `state`, `district`, `party`, `chamber`
 - `title`, `topic`, `content_text`, `url`
 - `content_type` ("page", "rss", or "vote")
@@ -336,6 +337,7 @@ CongressionalData collection fields:
 - `scraped_at`, `content_hash`, `uuid`
 
 **Voting record fields:**
+
 - `vote_id` (e.g., "119-1-123")
 - `bill_number`, `bill_title`
 - `vote_position` ("Yea", "Nay", "Present", "Not Voting")
@@ -363,7 +365,19 @@ python -m api_gateway.services.congressional_votes_scraper status
 ```
 
 **API Key:** Get a free key at <https://api.congress.gov/sign-up/> and set:
+**API Key:** Get a free key at <https://api.congress.gov/sign-up/> and set:
 
 ```bash
 CONGRESS_API_KEY=your-api-key-here
+```
+
+````bash
+**API Key:** Get a free key at <https://api.congress.gov/sign-up/> and set:
+
+```bash
+CONGRESS_API_KEY=your-api-key-here
+````
+
+```
+
 ```

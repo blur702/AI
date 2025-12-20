@@ -418,14 +418,8 @@ class CongressionalDocScraper(BaseDocScraper):
                     party = item.get("party") or item.get("Party") or ""
 
                 chamber = item.get("chamber") or item.get("Chamber") or "House"
-                website_url = (
-                    item.get("website") or item.get("WebsiteUrl") or ""
-                )
-                rss_feed_url = (
-                    item.get("rss_feed_url")
-                    or item.get("RssFeedUrl")
-                    or ""
-                )
+                website_url = item.get("website") or item.get("WebsiteUrl") or ""
+                rss_feed_url = item.get("rss_feed_url") or item.get("RssFeedUrl") or ""
 
                 if not website_url:
                     continue
@@ -647,8 +641,7 @@ class CongressionalDocScraper(BaseDocScraper):
                 new_links = self.extract_links(url, html)
                 for link in new_links:
                     if (
-                        pages_scraped_for_member
-                        + len(queue)
+                        pages_scraped_for_member + len(queue)
                         >= self.scrape_config.max_pages_per_member
                     ):
                         break
@@ -810,9 +803,7 @@ def scrape_congressional_data(
                         vector = get_embedding(data.content_text)
 
                         try:
-                            existing = collection.query.fetch_object_by_id(
-                                data.uuid
-                            )
+                            existing = collection.query.fetch_object_by_id(data.uuid)
                         except Exception:
                             existing = None
 
@@ -822,10 +813,7 @@ def scrape_congressional_data(
                             None,
                         ):
                             props = existing.properties or {}
-                            if (
-                                props.get("content_hash")
-                                == data.content_hash
-                            ):
+                            if props.get("content_hash") == data.content_hash:
                                 # Unchanged
                                 continue
 

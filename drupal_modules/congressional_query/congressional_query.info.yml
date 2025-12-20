@@ -1,8 +1,8 @@
-name: 'Congressional Query'
-description: 'Query LLM about congressional members with voting records via SSH tunnel'
+name: "Congressional Query"
+description: "Query LLM about congressional members with voting records via SSH tunnel"
 type: module
 core_version_requirement: ^9 || ^10 || ^11
-package: 'AI Services'
+package: "AI Services"
 dependencies:
   - drupal:node
   - drupal:user

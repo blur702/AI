@@ -1,11 +1,11 @@
-import { expect, Page } from '@playwright/test';
-import { UnifiedResponse, JobInfo } from '../api-clients/GatewayAPIClient';
+import { expect, Page } from "@playwright/test";
+import { UnifiedResponse, JobInfo } from "../api-clients/GatewayAPIClient";
 
 export function assertAPIResponse<T = any>(
   response: UnifiedResponse<T>,
-  expectedStatus: 'success' | 'error'
+  expectedStatus: "success" | "error",
 ): void {
-  const isSuccess = expectedStatus === 'success';
+  const isSuccess = expectedStatus === "success";
   expect(response.success).toBe(isSuccess);
   if (isSuccess) {
     expect(response.data).toBeTruthy();
@@ -14,14 +14,17 @@ export function assertAPIResponse<T = any>(
   }
 }
 
-export function assertJobStatus(job: JobInfo, expectedStatus: JobInfo['status']): void {
+export function assertJobStatus(
+  job: JobInfo,
+  expectedStatus: JobInfo["status"],
+): void {
   expect(job.status).toBe(expectedStatus);
 }
 
 export async function assertElementVisible(
   page: Page,
   selector: string,
-  message?: string
+  message?: string,
 ): Promise<void> {
   try {
     await expect(page.locator(selector)).toBeVisible();
@@ -35,7 +38,7 @@ export async function assertElementVisible(
 
 export function assertVRAMUsage(
   vramData: { gpu: { used_mb: number } },
-  expectedRange: { min: number; max: number }
+  expectedRange: { min: number; max: number },
 ): void {
   const used = vramData.gpu.used_mb;
   expect(used).toBeGreaterThanOrEqual(expectedRange.min);

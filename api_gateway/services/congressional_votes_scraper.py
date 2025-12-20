@@ -110,9 +110,7 @@ class CongressionalVotesScraper:
         self._last_request_time = 0.0
 
         if not self._api_key:
-            logger.warning(
-                "CONGRESS_API_KEY not set. Get one at https://api.congress.gov/sign-up/"
-            )
+            logger.warning("CONGRESS_API_KEY not set. Get one at https://api.congress.gov/sign-up/")
 
     def __enter__(self) -> CongressionalVotesScraper:
         self._client = httpx.Client(
@@ -135,9 +133,7 @@ class CongressionalVotesScraper:
                 pass
         return False
 
-    def _emit_progress(
-        self, phase: str, current: int, total: int, message: str
-    ) -> None:
+    def _emit_progress(self, phase: str, current: int, total: int, message: str) -> None:
         if self.progress_callback:
             try:
                 self.progress_callback(phase, current, total, message)
@@ -215,9 +211,7 @@ class CongressionalVotesScraper:
         )
         return votes
 
-    def fetch_vote_details(
-        self, congress: int, session: int, roll_call: int
-    ) -> VoteInfo | None:
+    def fetch_vote_details(self, congress: int, session: int, roll_call: int) -> VoteInfo | None:
         """
         Fetch details for a specific vote.
 
@@ -262,9 +256,7 @@ class CongressionalVotesScraper:
             url=f"https://www.congress.gov/roll-call-votes/{congress}/{session}/{roll_call}",
         )
 
-    def fetch_member_votes(
-        self, congress: int, session: int, roll_call: int
-    ) -> list[MemberVote]:
+    def fetch_member_votes(self, congress: int, session: int, roll_call: int) -> list[MemberVote]:
         """
         Fetch individual member votes for a roll call.
 
@@ -308,9 +300,7 @@ class CongressionalVotesScraper:
                 )
             )
 
-        logger.debug(
-            "Fetched %d member votes for roll call %d", len(members), roll_call
-        )
+        logger.debug("Fetched %d member votes for roll call %d", len(members), roll_call)
         return members
 
     def scrape_votes(self) -> Generator[CongressionalData, None, None]:
@@ -358,9 +348,11 @@ class CongressionalVotesScraper:
             if self._is_cancelled():
                 break
 
-            roll_call = vote_summary.get("rollCallVoteNumber") or vote_summary.get(
-                "rollCallNumber"
-            ) or vote_summary.get("voteNumber")
+            roll_call = (
+                vote_summary.get("rollCallVoteNumber")
+                or vote_summary.get("rollCallNumber")
+                or vote_summary.get("voteNumber")
+            )
             if not roll_call:
                 continue
 
@@ -585,9 +577,7 @@ if __name__ == "__main__":
     import json
     import sys
 
-    parser = argparse.ArgumentParser(
-        description="Congressional voting records scraper"
-    )
+    parser = argparse.ArgumentParser(description="Congressional voting records scraper")
     parser.add_argument(
         "command",
         choices=["scrape", "status"],

@@ -1,5 +1,5 @@
-import WebSocket from 'ws';
-import { BaseAPIClient, BaseAPIClientOptions } from './BaseAPIClient';
+import WebSocket from "ws";
+import { BaseAPIClient, BaseAPIClientOptions } from "./BaseAPIClient";
 
 export interface UnifiedError {
   code: string;
@@ -30,7 +30,7 @@ export interface CreateAPIKeyResponse {
 
 export interface JobInfo<TMeta = any> {
   id: string;
-  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: "queued" | "running" | "completed" | "failed" | "cancelled";
   createdAt: string;
   updatedAt: string;
   result?: unknown;
@@ -42,7 +42,7 @@ export type GatewayWebSocketCallback = (data: any) => void;
 
 export class GatewayAPIClient extends BaseAPIClient {
   getHealth(): Promise<UnifiedResponse> {
-    return this.get<UnifiedResponse>('/health');
+    return this.get<UnifiedResponse>("/health");
   }
 
   /**
@@ -53,27 +53,27 @@ export class GatewayAPIClient extends BaseAPIClient {
   }
 
   generateImage(request: any): Promise<UnifiedResponse> {
-    return this.post<UnifiedResponse>('/generate/image', request);
+    return this.post<UnifiedResponse>("/generate/image", request);
   }
 
   generateVideo(request: any): Promise<UnifiedResponse> {
-    return this.post<UnifiedResponse>('/generate/video', request);
+    return this.post<UnifiedResponse>("/generate/video", request);
   }
 
   generateAudio(request: any): Promise<UnifiedResponse> {
-    return this.post<UnifiedResponse>('/generate/audio', request);
+    return this.post<UnifiedResponse>("/generate/audio", request);
   }
 
   generateMusic(request: any): Promise<UnifiedResponse> {
-    return this.post<UnifiedResponse>('/generate/music', request);
+    return this.post<UnifiedResponse>("/generate/music", request);
   }
 
   generateLLM(request: any): Promise<UnifiedResponse> {
-    return this.post<UnifiedResponse>('/llm/generate', request);
+    return this.post<UnifiedResponse>("/llm/generate", request);
   }
 
   listModels(): Promise<UnifiedResponse> {
-    return this.get<UnifiedResponse>('/llm/models');
+    return this.get<UnifiedResponse>("/llm/models");
   }
 
   getJob(jobId: string): Promise<UnifiedResponse<JobInfo>> {
@@ -81,20 +81,23 @@ export class GatewayAPIClient extends BaseAPIClient {
   }
 
   listJobs(skip = 0, limit = 20): Promise<UnifiedResponse<JobInfo[]>> {
-    return this.get<UnifiedResponse<JobInfo[]>>('/jobs', { skip, limit });
+    return this.get<UnifiedResponse<JobInfo[]>>("/jobs", { skip, limit });
   }
 
   cancelJob(jobId: string): Promise<UnifiedResponse> {
     return this.post<UnifiedResponse>(`/jobs/${jobId}/cancel`);
   }
 
-  connectJobWebSocket(jobId: string, callback: GatewayWebSocketCallback): Promise<WebSocket> {
-    const url = this.baseUrl.replace(/^http/, 'ws') + `/ws/jobs/${jobId}`;
+  connectJobWebSocket(
+    jobId: string,
+    callback: GatewayWebSocketCallback,
+  ): Promise<WebSocket> {
+    const url = this.baseUrl.replace(/^http/, "ws") + `/ws/jobs/${jobId}`;
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(url);
 
-      ws.on('open', () => resolve(ws));
-      ws.on('message', (data) => {
+      ws.on("open", () => resolve(ws));
+      ws.on("message", (data) => {
         try {
           const parsed = JSON.parse(data.toString());
           callback(parsed);
@@ -102,21 +105,26 @@ export class GatewayAPIClient extends BaseAPIClient {
           callback(data.toString());
         }
       });
-      ws.on('error', (err) => reject(err));
+      ws.on("error", (err) => reject(err));
     });
   }
 
-  async waitForJobCompletion(jobId: string, timeoutMs = 600_000): Promise<JobInfo> {
+  async waitForJobCompletion(
+    jobId: string,
+    timeoutMs = 600_000,
+  ): Promise<JobInfo> {
     const start = Date.now();
 
     while (Date.now() - start < timeoutMs) {
       const response = await this.getJob(jobId);
       if (!response.success || !response.data) {
-        throw new Error(`Unexpected job response while waiting: ${JSON.stringify(response)}`);
+        throw new Error(
+          `Unexpected job response while waiting: ${JSON.stringify(response)}`,
+        );
       }
 
       const job = response.data;
-      if (['completed', 'failed', 'cancelled'].includes(job.status)) {
+      if (["completed", "failed", "cancelled"].includes(job.status)) {
         return job;
       }
 
@@ -132,21 +140,27 @@ export class GatewayAPIClient extends BaseAPIClient {
    * Creates a new API key with the given name.
    */
   createAPIKey(name: string): Promise<UnifiedResponse<CreateAPIKeyResponse>> {
-    return this.post<UnifiedResponse<CreateAPIKeyResponse>>('/auth/keys', { name });
+    return this.post<UnifiedResponse<CreateAPIKeyResponse>>("/auth/keys", {
+      name,
+    });
   }
 
   /**
    * Lists all API keys (without exposing the actual key values).
    */
   listAPIKeys(): Promise<UnifiedResponse<{ keys: APIKeyInfo[] }>> {
-    return this.get<UnifiedResponse<{ keys: APIKeyInfo[] }>>('/auth/keys');
+    return this.get<UnifiedResponse<{ keys: APIKeyInfo[] }>>("/auth/keys");
   }
 
   /**
    * Deactivates an API key.
    */
-  deactivateAPIKey(key: string): Promise<UnifiedResponse<{ success: boolean }>> {
-    return this.delete<UnifiedResponse<{ success: boolean }>>(`/auth/keys/${key}`);
+  deactivateAPIKey(
+    key: string,
+  ): Promise<UnifiedResponse<{ success: boolean }>> {
+    return this.delete<UnifiedResponse<{ success: boolean }>>(
+      `/auth/keys/${key}`,
+    );
   }
 
   /**
@@ -157,7 +171,7 @@ export class GatewayAPIClient extends BaseAPIClient {
     const options = this.getOptions();
     return new GatewayAPIClient(this.baseUrl, {
       ...options,
-      headers: { ...options.headers, ...headers }
+      headers: { ...options.headers, ...headers },
     });
   }
 
@@ -166,6 +180,6 @@ export class GatewayAPIClient extends BaseAPIClient {
    * Delegates to withHeaders to reuse the safe header-augmentation mechanism.
    */
   withAPIKey(apiKey: string): GatewayAPIClient {
-    return this.withHeaders({ 'X-API-Key': apiKey });
+    return this.withHeaders({ "X-API-Key": apiKey });
   }
 }

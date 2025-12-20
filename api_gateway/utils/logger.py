@@ -20,6 +20,7 @@ Usage:
     logger = get_logger("api_gateway.mymodule")
     logger.info("Message")
 """
+
 import logging
 import os
 import sys
@@ -148,9 +149,7 @@ def get_logger(name: str) -> logging.Logger:
 
     logger.setLevel(getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
 
-    formatter = logging.Formatter(
-        "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
     # Console handler - always added
     console_handler = logging.StreamHandler()
@@ -177,4 +176,3 @@ def get_logger(name: str) -> logging.Logger:
 
 
 logger = get_logger("api_gateway")
-

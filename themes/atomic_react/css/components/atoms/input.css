@@ -30,7 +30,9 @@ select {
   background-color: var(--color-background);
   border: 2px solid var(--color-gray-400);
   border-radius: var(--border-radius-md);
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
 /* ==========================================================================
@@ -186,7 +188,9 @@ input[type="file"]::file-selector-button {
   border: 2px solid var(--color-primary);
   border-radius: var(--border-radius-md);
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 input[type="file"]::file-selector-button:hover {

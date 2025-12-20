@@ -1,4 +1,4 @@
-import { expect, Page, Response } from '@playwright/test';
+import { expect, Page, Response } from "@playwright/test";
 
 export class BasePage {
   protected readonly page: Page;
@@ -10,7 +10,7 @@ export class BasePage {
   async goto(url: string): Promise<void> {
     try {
       console.log(`[BasePage] Navigating to ${url}`);
-      await this.page.goto(url, { waitUntil: 'networkidle' });
+      await this.page.goto(url, { waitUntil: "networkidle" });
     } catch (error) {
       console.error(`[BasePage] Failed to navigate to ${url}`, error);
       throw error;
@@ -19,9 +19,9 @@ export class BasePage {
 
   async waitForPageLoad(): Promise<void> {
     try {
-      await this.page.waitForLoadState('networkidle');
+      await this.page.waitForLoadState("networkidle");
     } catch (error) {
-      console.error('[BasePage] Error waiting for page load', error);
+      console.error("[BasePage] Error waiting for page load", error);
       throw error;
     }
   }
@@ -47,7 +47,10 @@ export class BasePage {
     try {
       await this.page.fill(selector, value);
     } catch (error) {
-      console.error(`[BasePage] Error filling input ${selector} with value ${value}`, error);
+      console.error(
+        `[BasePage] Error filling input ${selector} with value ${value}`,
+        error,
+      );
       throw error;
     }
   }
@@ -56,7 +59,10 @@ export class BasePage {
     try {
       await this.page.selectOption(selector, value);
     } catch (error) {
-      console.error(`[BasePage] Error selecting option ${value} on ${selector}`, error);
+      console.error(
+        `[BasePage] Error selecting option ${value} on ${selector}`,
+        error,
+      );
       throw error;
     }
   }
@@ -65,29 +71,38 @@ export class BasePage {
     try {
       await this.page.waitForSelector(selector, { timeout });
     } catch (error) {
-      console.error(`[BasePage] Error waiting for selector: ${selector}`, error);
+      console.error(
+        `[BasePage] Error waiting for selector: ${selector}`,
+        error,
+      );
       throw error;
     }
   }
 
   async waitForNavigation(): Promise<void> {
     try {
-      await this.page.waitForLoadState('load');
+      await this.page.waitForLoadState("load");
     } catch (error) {
-      console.error('[BasePage] Error waiting for navigation', error);
+      console.error("[BasePage] Error waiting for navigation", error);
       throw error;
     }
   }
 
-  async waitForResponse(urlPattern: RegExp | string, timeout = 10_000): Promise<Response> {
+  async waitForResponse(
+    urlPattern: RegExp | string,
+    timeout = 10_000,
+  ): Promise<Response> {
     try {
       const response = await this.page.waitForResponse(
-        (res) => (typeof urlPattern === 'string' ? res.url().includes(urlPattern) : urlPattern.test(res.url())),
-        { timeout }
+        (res) =>
+          typeof urlPattern === "string"
+            ? res.url().includes(urlPattern)
+            : urlPattern.test(res.url()),
+        { timeout },
       );
       return response;
     } catch (error) {
-      console.error('[BasePage] Error waiting for response', error);
+      console.error("[BasePage] Error waiting for response", error);
       throw error;
     }
   }

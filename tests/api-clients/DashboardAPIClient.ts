@@ -1,5 +1,5 @@
-import WebSocket from 'ws';
-import { BaseAPIClient } from './BaseAPIClient';
+import WebSocket from "ws";
+import { BaseAPIClient } from "./BaseAPIClient";
 
 export interface GPUInfo {
   name: string;
@@ -36,7 +36,7 @@ export interface OllamaModelsResponse {
 export interface ServiceInfo {
   id: string;
   name: string;
-  status: 'running' | 'stopped' | 'starting' | 'stopping' | 'error' | 'unknown';
+  status: "running" | "stopped" | "starting" | "stopping" | "error" | "unknown";
   port?: number;
   url?: string;
   gpu_intensive?: boolean;
@@ -63,7 +63,7 @@ export class DashboardAPIClient extends BaseAPIClient {
    * Get all services and their statuses
    */
   getServices(): Promise<ServicesResponse> {
-    return this.get<ServicesResponse>('/api/services');
+    return this.get<ServicesResponse>("/api/services");
   }
 
   /**
@@ -97,7 +97,7 @@ export class DashboardAPIClient extends BaseAPIClient {
    */
   async restartService(serviceId: string): Promise<ServiceActionResponse> {
     await this.stopService(serviceId);
-    await this.waitForServiceStatus(serviceId, 'stopped', 30000);
+    await this.waitForServiceStatus(serviceId, "stopped", 30000);
     return this.startService(serviceId);
   }
 
@@ -111,10 +111,10 @@ export class DashboardAPIClient extends BaseAPIClient {
    */
   async waitForServiceStatus(
     serviceId: string,
-    expectedStatus: ServiceInfo['status'],
+    expectedStatus: ServiceInfo["status"],
     timeoutMs: number = 60000,
     pollIntervalMs: number = 5000,
-    maxConsecutiveErrors: number = 3
+    maxConsecutiveErrors: number = 3,
   ): Promise<void> {
     const start = Date.now();
     let consecutiveErrors = 0;
@@ -132,31 +132,31 @@ export class DashboardAPIClient extends BaseAPIClient {
         if (status.status === expectedStatus) {
           return;
         }
-        if (status.status === 'error') {
+        if (status.status === "error") {
           throw new Error(
-            `Service '${serviceId}' entered error state: ${status.error} ${formatContext()}`
+            `Service '${serviceId}' entered error state: ${status.error} ${formatContext()}`,
           );
         }
       } catch (error: any) {
         const errorStatus = error.status;
-        const errorMessage = error.message || 'Unknown error';
+        const errorMessage = error.message || "Unknown error";
 
         // Fatal errors: service not found - re-throw immediately
-        if (errorMessage.includes('not found')) {
+        if (errorMessage.includes("not found")) {
           throw error;
         }
 
         // Fatal errors: authentication/authorization failures - re-throw immediately
         if (errorStatus === 401 || errorStatus === 403) {
           throw new Error(
-            `Authentication/authorization failed (${errorStatus}): ${errorMessage} ${formatContext()}`
+            `Authentication/authorization failed (${errorStatus}): ${errorMessage} ${formatContext()}`,
           );
         }
 
         // Fatal errors: other client errors (4xx) - re-throw immediately
         if (errorStatus >= 400 && errorStatus < 500) {
           throw new Error(
-            `Client error (${errorStatus}): ${errorMessage} ${formatContext()}`
+            `Client error (${errorStatus}): ${errorMessage} ${formatContext()}`,
           );
         }
 
@@ -164,22 +164,22 @@ export class DashboardAPIClient extends BaseAPIClient {
         consecutiveErrors++;
         console.warn(
           `[DashboardAPIClient] Transient error while polling service status ` +
-          `(attempt ${consecutiveErrors}/${maxConsecutiveErrors}): ${errorMessage} ${formatContext()}`
+            `(attempt ${consecutiveErrors}/${maxConsecutiveErrors}): ${errorMessage} ${formatContext()}`,
         );
 
         // Fail fast if too many consecutive transient errors
         if (consecutiveErrors >= maxConsecutiveErrors) {
           throw new Error(
             `Too many consecutive errors (${consecutiveErrors}) while waiting for service: ` +
-            `${errorMessage} ${formatContext()}`
+              `${errorMessage} ${formatContext()}`,
           );
         }
       }
-      await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+      await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
     }
 
     throw new Error(
-      `Service '${serviceId}' did not reach status '${expectedStatus}' within ${timeoutMs}ms ${formatContext()}`
+      `Service '${serviceId}' did not reach status '${expectedStatus}' within ${timeoutMs}ms ${formatContext()}`,
     );
   }
 
@@ -189,8 +189,17 @@ export class DashboardAPIClient extends BaseAPIClient {
    * @param timeoutMs - Maximum time to wait (default: 60000ms)
    * @param pollIntervalMs - Interval between status checks (default: 5000ms)
    */
-  waitForHealthy(serviceId: string, timeoutMs: number = 60000, pollIntervalMs: number = 5000): Promise<void> {
-    return this.waitForServiceStatus(serviceId, 'running', timeoutMs, pollIntervalMs);
+  waitForHealthy(
+    serviceId: string,
+    timeoutMs: number = 60000,
+    pollIntervalMs: number = 5000,
+  ): Promise<void> {
+    return this.waitForServiceStatus(
+      serviceId,
+      "running",
+      timeoutMs,
+      pollIntervalMs,
+    );
   }
 
   /**
@@ -199,7 +208,7 @@ export class DashboardAPIClient extends BaseAPIClient {
   async isServiceRunning(serviceId: string): Promise<boolean> {
     try {
       const status = await this.getServiceStatus(serviceId);
-      return status.status === 'running';
+      return status.status === "running";
     } catch {
       return false;
     }
@@ -208,46 +217,61 @@ export class DashboardAPIClient extends BaseAPIClient {
   // VRAM and Model Management
 
   getVRAMStatus(): Promise<VRAMStatusResponse> {
-    return this.get<VRAMStatusResponse>('/api/vram/status');
+    return this.get<VRAMStatusResponse>("/api/vram/status");
   }
 
   listOllamaModels(): Promise<OllamaModelsResponse> {
-    return this.get<OllamaModelsResponse>('/api/models/ollama/list');
+    return this.get<OllamaModelsResponse>("/api/models/ollama/list");
   }
 
   async getLoadedModels(): Promise<OllamaModel[]> {
-    const response = await this.get<OllamaModelsResponse>('/api/models/ollama/loaded');
+    const response = await this.get<OllamaModelsResponse>(
+      "/api/models/ollama/loaded",
+    );
     return response.models;
   }
 
   loadModel(modelName: string): Promise<{ status: string }> {
-    return this.post<{ status: string }>('/api/models/ollama/load', { model_name: modelName });
+    return this.post<{ status: string }>("/api/models/ollama/load", {
+      model_name: modelName,
+    });
   }
 
   unloadModel(modelName: string): Promise<{ status: string }> {
-    return this.post<{ status: string }>('/api/models/ollama/unload', { model_name: modelName });
+    return this.post<{ status: string }>("/api/models/ollama/unload", {
+      model_name: modelName,
+    });
   }
 
   downloadModel(modelName: string): Promise<{ status: string }> {
-    return this.post<{ status: string }>('/api/models/ollama/download', { model_name: modelName });
+    return this.post<{ status: string }>("/api/models/ollama/download", {
+      model_name: modelName,
+    });
   }
 
-  connectVRAMWebSocket(callback: DashboardWebSocketCallback): Promise<WebSocket> {
-    const url = this.baseUrl.replace(/^http/, 'ws') + '/ws/vram';
+  connectVRAMWebSocket(
+    callback: DashboardWebSocketCallback,
+  ): Promise<WebSocket> {
+    const url = this.baseUrl.replace(/^http/, "ws") + "/ws/vram";
     return this.connectWebSocket(url, callback);
   }
 
-  connectModelDownloadWebSocket(callback: DashboardWebSocketCallback): Promise<WebSocket> {
-    const url = this.baseUrl.replace(/^http/, 'ws') + '/ws/model-downloads';
+  connectModelDownloadWebSocket(
+    callback: DashboardWebSocketCallback,
+  ): Promise<WebSocket> {
+    const url = this.baseUrl.replace(/^http/, "ws") + "/ws/model-downloads";
     return this.connectWebSocket(url, callback);
   }
 
-  private connectWebSocket(url: string, callback: DashboardWebSocketCallback): Promise<WebSocket> {
+  private connectWebSocket(
+    url: string,
+    callback: DashboardWebSocketCallback,
+  ): Promise<WebSocket> {
     return new Promise((resolve, reject) => {
       const ws = new WebSocket(url);
 
-      ws.on('open', () => resolve(ws));
-      ws.on('message', (data: WebSocket.RawData) => {
+      ws.on("open", () => resolve(ws));
+      ws.on("message", (data: WebSocket.RawData) => {
         try {
           const parsed = JSON.parse(data.toString());
           callback(parsed);
@@ -255,7 +279,7 @@ export class DashboardAPIClient extends BaseAPIClient {
           callback(data.toString());
         }
       });
-      ws.on('error', (err: Error) => reject(err));
+      ws.on("error", (err: Error) => reject(err));
     });
   }
 }

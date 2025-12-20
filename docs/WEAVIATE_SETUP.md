@@ -10,6 +10,7 @@
 Weaviate is a vector database that provides semantic search and retrieval-augmented generation (RAG) capabilities. This setup uses Docker to run Weaviate with the `text2vec-ollama` module, enabling embedding generation via the locally running Ollama instance.
 
 **Architecture:**
+
 ```
 ┌─────────────────────┐     ┌─────────────────────────────┐
 │   API Gateway       │────▶│   Weaviate Container        │
@@ -31,12 +32,14 @@ Weaviate is a vector database that provides semantic search and retrieval-augmen
 ### 1. Docker Desktop for Windows
 
 **Installation:**
+
 1. Download Docker Desktop from https://www.docker.com/products/docker-desktop/
 2. Run the installer and follow the prompts
 3. Restart your computer when prompted
 4. Launch Docker Desktop and complete the initial setup
 
 **Verify Installation:**
+
 ```powershell
 docker --version
 docker-compose --version
@@ -44,11 +47,11 @@ docker-compose --version
 
 ### 2. System Requirements
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| RAM for Weaviate | 4GB | 8GB |
-| Disk Space | 10GB | 50GB+ (depends on data) |
-| Docker Desktop | Latest stable | Latest stable |
+| Component        | Minimum       | Recommended             |
+| ---------------- | ------------- | ----------------------- |
+| RAM for Weaviate | 4GB           | 8GB                     |
+| Disk Space       | 10GB          | 50GB+ (depends on data) |
+| Docker Desktop   | Latest stable | Latest stable           |
 
 ### 3. Ollama with Embedding Model
 
@@ -59,6 +62,7 @@ ollama pull snowflake-arctic-embed:l
 ```
 
 Verify Ollama is running:
+
 ```powershell
 curl http://localhost:11434/api/tags
 ```
@@ -72,6 +76,7 @@ curl http://localhost:11434/api/tags
 Navigate to the api_gateway directory from your project root and run the startup script:
 
 **Windows:**
+
 ```powershell
 # From project root (e.g., D:\AI or /path/to/AI)
 cd api_gateway
@@ -79,6 +84,7 @@ cd api_gateway
 ```
 
 **macOS/Linux:**
+
 ```bash
 # From project root
 cd api_gateway
@@ -86,6 +92,7 @@ docker-compose up -d
 ```
 
 The script will:
+
 1. Check if Docker Desktop is running
 2. Warn if Ollama is not available (non-blocking)
 3. Start the Weaviate container
@@ -94,16 +101,19 @@ The script will:
 ### Step 2: Verify Weaviate is Running
 
 **Health Check:**
+
 ```powershell
 curl http://localhost:8080/v1/.well-known/ready
 ```
 
 Expected response:
+
 ```json
 {}
 ```
 
 **Check Weaviate Meta Info:**
+
 ```powershell
 curl http://localhost:8080/v1/meta
 ```
@@ -133,18 +143,19 @@ WEAVIATE_GRPC_PORT=50051
 OLLAMA_EMBEDDING_MODEL=snowflake-arctic-embed:l
 ```
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `WEAVIATE_URL` | HTTP endpoint for Weaviate | `http://localhost:8080` |
-| `WEAVIATE_GRPC_HOST` | gRPC host for high-performance connections | `localhost` |
-| `WEAVIATE_GRPC_PORT` | gRPC port | `50051` |
-| `OLLAMA_EMBEDDING_MODEL` | Default embedding model | `snowflake-arctic-embed:l` |
+| Variable                 | Description                                | Default                    |
+| ------------------------ | ------------------------------------------ | -------------------------- |
+| `WEAVIATE_URL`           | HTTP endpoint for Weaviate                 | `http://localhost:8080`    |
+| `WEAVIATE_GRPC_HOST`     | gRPC host for high-performance connections | `localhost`                |
+| `WEAVIATE_GRPC_PORT`     | gRPC port                                  | `50051`                    |
+| `OLLAMA_EMBEDDING_MODEL` | Default embedding model                    | `snowflake-arctic-embed:l` |
 
 ### Customizing the Embedding Model
 
 To use a different embedding model:
 
 1. Pull the model in Ollama:
+
    ```powershell
    ollama pull mxbai-embed-large
    ```
@@ -155,6 +166,7 @@ To use a different embedding model:
    ```
 
 **Popular Embedding Models:**
+
 - `snowflake-arctic-embed:l` - State-of-the-art retrieval quality, 1024 dims (recommended)
 - `nomic-embed-text` - Good balance of speed and quality, 768 dims
 - `mxbai-embed-large` - Higher quality, slower, 1024 dims
@@ -165,10 +177,11 @@ To use a different embedding model:
 Currently, anonymous access is enabled for development. To enable authentication:
 
 1. Edit `docker-compose.yml`:
+
    ```yaml
-   AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'false'
-   AUTHENTICATION_APIKEY_ENABLED: 'true'
-   AUTHENTICATION_APIKEY_ALLOWED_KEYS: 'your-api-key-here'
+   AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "false"
+   AUTHENTICATION_APIKEY_ENABLED: "true"
+   AUTHENTICATION_APIKEY_ALLOWED_KEYS: "your-api-key-here"
    ```
 
 2. Restart Weaviate:
@@ -182,11 +195,13 @@ Currently, anonymous access is enabled for development. To enable authentication
 Data is persisted in the Docker volume `weaviate_data`. This survives container restarts.
 
 **Backup:**
+
 ```powershell
 docker run --rm -v weaviate_data:/data -v ${PWD}:/backup alpine tar czf /backup/weaviate_backup.tar.gz /data
 ```
 
 **Restore:**
+
 ```powershell
 docker run --rm -v weaviate_data:/data -v ${PWD}:/backup alpine tar xzf /backup/weaviate_backup.tar.gz -C /
 ```
@@ -200,17 +215,17 @@ docker run --rm -v weaviate_data:/data -v ${PWD}:/backup alpine tar xzf /backup/
 On Windows with Docker Desktop, containers access host services via `host.docker.internal`. The docker-compose.yml configures:
 
 ```yaml
-OLLAMA_API_ENDPOINT: 'http://host.docker.internal:11434'
+OLLAMA_API_ENDPOINT: "http://host.docker.internal:11434"
 ```
 
 This allows the Weaviate container to reach Ollama running natively on the Windows host.
 
 ### Port Mappings
 
-| Port | Protocol | Purpose |
-|------|----------|---------|
-| 8080 | HTTP | REST API, GraphQL endpoint |
-| 50051 | gRPC | High-performance client connections |
+| Port  | Protocol | Purpose                             |
+| ----- | -------- | ----------------------------------- |
+| 8080  | HTTP     | REST API, GraphQL endpoint          |
+| 50051 | gRPC     | High-performance client connections |
 
 ### Data Flow for Embedding Generation
 
@@ -229,6 +244,7 @@ This allows the Weaviate container to reach Ollama running natively on the Windo
 **Error:** `ERROR: Docker is not running. Please start Docker Desktop first.`
 
 **Solution:**
+
 1. Open Docker Desktop application
 2. Wait for Docker to fully start (whale icon in system tray is stable)
 3. Run `start_weaviate.bat` again
@@ -238,6 +254,7 @@ This allows the Weaviate container to reach Ollama running natively on the Windo
 **Error:** `WARNING: Ollama does not appear to be running on port 11434.`
 
 **Solution:**
+
 1. Start Ollama if not running
 2. Verify with: `curl http://localhost:11434/api/tags`
 3. Weaviate will work once Ollama is available
@@ -247,6 +264,7 @@ This allows the Weaviate container to reach Ollama running natively on the Windo
 **Error:** Port 8080 or 50051 already in use
 
 **Solution:**
+
 1. Check what's using the port:
    ```powershell
    netstat -ano | findstr :8080
@@ -254,7 +272,7 @@ This allows the Weaviate container to reach Ollama running natively on the Windo
 2. Either stop the conflicting service or modify `docker-compose.yml`:
    ```yaml
    ports:
-     - "8081:8080"  # Change host port
+     - "8081:8080" # Change host port
    ```
 
 ### Embedding Generation Fails
@@ -262,6 +280,7 @@ This allows the Weaviate container to reach Ollama running natively on the Windo
 **Symptoms:** Weaviate returns errors when adding objects with vectorizer
 
 **Checks:**
+
 1. Verify Ollama is running: `ollama ps`
 2. Verify the embedding model is available: `ollama list`
 3. Check Weaviate logs: `docker-compose logs -f`
@@ -269,6 +288,7 @@ This allows the Weaviate container to reach Ollama running natively on the Windo
 ### Data Persistence Issues
 
 **Reset Everything:**
+
 ```powershell
 docker-compose down -v  # -v removes volumes
 docker-compose up -d
@@ -345,6 +365,7 @@ finally:
 ### Curl Test
 
 **Create a collection:**
+
 ```powershell
 curl -X POST http://localhost:8080/v1/schema -H "Content-Type: application/json" -d '{
   "class": "Article",
@@ -363,6 +384,7 @@ curl -X POST http://localhost:8080/v1/schema -H "Content-Type: application/json"
 ```
 
 **Add an object:**
+
 ```powershell
 curl -X POST http://localhost:8080/v1/objects -H "Content-Type: application/json" -d '{
   "class": "Article",
@@ -374,6 +396,7 @@ curl -X POST http://localhost:8080/v1/objects -H "Content-Type: application/json
 ```
 
 **Query with GraphQL:**
+
 ```powershell
 curl -X POST http://localhost:8080/v1/graphql -H "Content-Type: application/json" -d '{
   "query": "{ Get { Article(nearText: {concepts: [\"artificial intelligence\"]}) { title content } } }"
@@ -465,39 +488,44 @@ When changing embedding models (e.g., from `nomic-embed-text` to `snowflake-arct
 
 ### Why Migration is Required
 
-| Model | Dimensions | Context |
-|-------|-----------|---------|
-| nomic-embed-text | 768 | 8192 |
-| snowflake-arctic-embed:l | 1024 | 512 |
-| mxbai-embed-large | 1024 | 512 |
+| Model                    | Dimensions | Context |
+| ------------------------ | ---------- | ------- |
+| nomic-embed-text         | 768        | 8192    |
+| snowflake-arctic-embed:l | 1024       | 512     |
+| mxbai-embed-large        | 1024       | 512     |
 
 Vectors from different models are incompatible - you cannot query embeddings created by one model using vectors from another.
 
 ### Migration Steps
 
 1. **Verify the new model is available:**
+
    ```powershell
    ollama pull snowflake-arctic-embed:l
    ollama list
    ```
 
 2. **Update environment configuration:**
+
    ```powershell
    # Edit .env (both root and api_gateway/.env)
    OLLAMA_EMBEDDING_MODEL=snowflake-arctic-embed:l
    ```
 
 3. **Check current status:**
+
    ```powershell
    python -m api_gateway.services.migrate_embeddings check
    ```
 
 4. **Preview migration (dry run):**
+
    ```powershell
    python -m api_gateway.services.migrate_embeddings migrate --dry-run
    ```
 
 5. **Perform full migration:**
+
    ```powershell
    python -m api_gateway.services.migrate_embeddings migrate
    ```
@@ -515,25 +543,25 @@ Vectors from different models are incompatible - you cannot query embeddings cre
 
 ### Migration Script Reference
 
-| Command | Description |
-|---------|-------------|
-| `migrate_embeddings check` | Show configured model and collection status |
-| `migrate_embeddings migrate --dry-run` | Preview what would be deleted/re-indexed |
-| `migrate_embeddings migrate` | Perform full migration (interactive confirmation) |
+| Command                                | Description                                       |
+| -------------------------------------- | ------------------------------------------------- |
+| `migrate_embeddings check`             | Show configured model and collection status       |
+| `migrate_embeddings migrate --dry-run` | Preview what would be deleted/re-indexed          |
+| `migrate_embeddings migrate`           | Perform full migration (interactive confirmation) |
 
 ---
 
 ## Management Commands
 
-| Command | Description |
-|---------|-------------|
-| `docker-compose up -d` | Start Weaviate in background |
-| `docker-compose down` | Stop Weaviate |
-| `docker-compose down -v` | Stop and remove data |
-| `docker-compose logs -f` | View live logs |
-| `docker-compose restart` | Restart Weaviate |
-| `docker-compose ps` | Check container status |
+| Command                  | Description                  |
+| ------------------------ | ---------------------------- |
+| `docker-compose up -d`   | Start Weaviate in background |
+| `docker-compose down`    | Stop Weaviate                |
+| `docker-compose down -v` | Stop and remove data         |
+| `docker-compose logs -f` | View live logs               |
+| `docker-compose restart` | Restart Weaviate             |
+| `docker-compose ps`      | Check container status       |
 
 ---
 
-*This document is part of the AI Workspace documentation. See `PROJECT_STRUCTURE.md` for the full system overview.*
+_This document is part of the AI Workspace documentation. See `PROJECT_STRUCTURE.md` for the full system overview._

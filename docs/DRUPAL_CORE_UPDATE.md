@@ -10,13 +10,13 @@ This guide provides a complete, production-ready procedure for updating Drupal c
 
 Before starting the update, verify the following requirements:
 
-| Requirement | Minimum | Recommended | Verification Command |
-|-------------|---------|-------------|---------------------|
-| Composer | 2.x | 2.7+ | `composer --version` |
-| Drush | 12.4.3 | 13.x | `drush --version` |
-| PHP | 8.3 | 8.4 | `php --version` |
-| SSH Access | Required | - | `ssh user@server` |
-| Database Backup | Complete | - | See below |
+| Requirement     | Minimum  | Recommended | Verification Command |
+| --------------- | -------- | ----------- | -------------------- |
+| Composer        | 2.x      | 2.7+        | `composer --version` |
+| Drush           | 12.4.3   | 13.x        | `drush --version`    |
+| PHP             | 8.3      | 8.4         | `php --version`      |
+| SSH Access      | Required | -           | `ssh user@server`    |
+| Database Backup | Complete | -           | See below            |
 
 ---
 
@@ -141,6 +141,7 @@ composer update "drupal/core-*" --with-all-dependencies
 ### Expected Output
 
 Composer will:
+
 1. Download new package versions
 2. Update the lock file
 3. Install updated packages
@@ -347,15 +348,15 @@ drush cache:rebuild
 
 ## Quick Reference Cheat Sheet
 
-| Step | Command | Purpose |
-|------|---------|---------|
-| 1 | `drush sql:dump > backup-$(date +%Y%m%d).sql` | Backup database |
-| 2 | `mkdir -p ../composer-backup && cp composer.json composer.lock ../composer-backup/` | Backup composer files |
-| 3 | `drush state:set system.maintenance_mode 1 -y && drush cr` | Enable maintenance mode |
-| 4 | `composer require drupal/core-recommended:11.3.0 drupal/core-composer-scaffold:11.3.0 drupal/core-project-message:11.3.0 --update-with-all-dependencies` | Update core |
-| 5 | `drush updb -y && drush cr` | Update database and cache |
-| 6 | `drush state:set system.maintenance_mode 0 -y && drush cr` | Disable maintenance mode |
-| 7 | `drush status` | Verify version |
+| Step | Command                                                                                                                                                  | Purpose                   |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| 1    | `drush sql:dump > backup-$(date +%Y%m%d).sql`                                                                                                            | Backup database           |
+| 2    | `mkdir -p ../composer-backup && cp composer.json composer.lock ../composer-backup/`                                                                      | Backup composer files     |
+| 3    | `drush state:set system.maintenance_mode 1 -y && drush cr`                                                                                               | Enable maintenance mode   |
+| 4    | `composer require drupal/core-recommended:11.3.0 drupal/core-composer-scaffold:11.3.0 drupal/core-project-message:11.3.0 --update-with-all-dependencies` | Update core               |
+| 5    | `drush updb -y && drush cr`                                                                                                                              | Update database and cache |
+| 6    | `drush state:set system.maintenance_mode 0 -y && drush cr`                                                                                               | Disable maintenance mode  |
+| 7    | `drush status`                                                                                                                                           | Verify version            |
 
 ---
 
@@ -542,4 +543,4 @@ Test via the Connection Status block or admin dashboard.
 
 ---
 
-*Last updated: December 2024*
+_Last updated: December 2024_

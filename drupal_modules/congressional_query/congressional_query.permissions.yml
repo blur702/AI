@@ -1,24 +1,24 @@
 use congressional query:
-  title: 'Use Congressional Query'
-  description: 'Access congressional query forms and chat interface'
+  title: "Use Congressional Query"
+  description: "Access congressional query forms and chat interface"
 
 administer congressional query:
-  title: 'Administer Congressional Query'
-  description: 'Configure SSH, Ollama, and Weaviate settings'
+  title: "Administer Congressional Query"
+  description: "Configure SSH, Ollama, and Weaviate settings"
 
 view congressional query logs:
-  title: 'View Query Logs'
-  description: 'Access query history and statistics'
+  title: "View Query Logs"
+  description: "Access query history and statistics"
 
 use congressional query api:
-  title: 'Use Congressional Query API'
-  description: 'Access REST API endpoints with API key'
+  title: "Use Congressional Query API"
+  description: "Access REST API endpoints with API key"
 
 manage congressional query api keys:
-  title: 'Manage API Keys'
-  description: 'Create, view, and revoke API keys'
+  title: "Manage API Keys"
+  description: "Create, view, and revoke API keys"
   restrict access: true
 
 view congressional query api logs:
-  title: 'View API Logs'
-  description: 'Access API usage logs and analytics'
+  title: "View API Logs"
+  description: "Access API usage logs and analytics"

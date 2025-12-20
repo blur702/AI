@@ -22,11 +22,13 @@ pip install -r requirements.txt
 ## Configuration
 
 1. Copy the environment template:
+
    ```bash
    cp .env.example .env
    ```
 
 2. Edit `.env` and add your Brevo MCP token:
+
    ```
    BREVO_MCP_TOKEN=your_brevo_mcp_token_here
    ```
@@ -85,37 +87,44 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
 The Brevo MCP endpoint provides access to these services:
 
 ### Email
+
 - **Email Campaigns** - Create, send, and manage marketing campaigns
 - **Transactional Emails** - Send triggered emails via SMTP or API
 - **Email Templates** - Manage reusable email templates
 
 ### Contacts & Lists
+
 - **Contacts** - Create, update, and manage contact records
 - **Lists** - Organize contacts into mailing lists
 - **Segments** - Create dynamic contact segments
 - **Attributes** - Define custom contact attributes
 
 ### CRM
+
 - **Deals** - Manage sales pipeline and opportunities
 - **Companies** - Track business accounts
 - **Tasks** - Create and assign follow-up tasks
 - **Notes** - Add notes to CRM records
 
 ### Messaging
+
 - **SMS Campaigns** - Send bulk SMS messages
 - **WhatsApp** - WhatsApp Business messaging
 - **Inbound Parsing** - Process incoming emails
 
 ### Configuration
+
 - **Senders** - Manage verified sender identities
 - **Domains** - Configure sending domains
 - **Webhooks** - Set up event notifications
 
 ### Analytics
+
 - **Reports** - Access campaign statistics
 - **Events** - Track email events (opens, clicks, etc.)
 
 ### Account
+
 - **Users** - Manage team members
 - **Account Info** - Access account details
 
@@ -154,22 +163,27 @@ VS Code/Claude Desktop
 ## Troubleshooting
 
 ### Connection Errors
+
 - Verify internet connectivity
 - Check Brevo service status at https://status.brevo.com
 - Ensure the MCP token is valid
 
 ### Authentication Errors
+
 - Verify `BREVO_MCP_TOKEN` is set correctly in `.env`
 - Check that the token has MCP permissions in Brevo settings
 - Ensure the token hasn't been revoked
 
 ### STDIO Transport Issues
+
 - Ensure all logging goes to stderr (not stdout)
 - Check that no print statements write to stdout
 - Verify the MCP client configuration uses correct command/args
 
 ### Debug Mode
+
 Enable debug logging to see detailed request/response information:
+
 ```
 LOG_LEVEL=DEBUG
 ```

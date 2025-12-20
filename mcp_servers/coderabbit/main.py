@@ -108,7 +108,7 @@ class GitHubAPI:
             except requests.exceptions.RequestException as e:
                 last_exception = e
             if attempt < retries - 1:
-                time.sleep(2 ** attempt)
+                time.sleep(2**attempt)
         raise last_exception or RuntimeError("Request failed after retries")
 
     def list_open_prs(self) -> list[dict]:
@@ -372,13 +372,15 @@ def get_coderabbit_reviews(pr_number: int) -> dict[str, Any]:
         for review in reviews:
             if _parser.is_coderabbit_comment(review):
                 body = review.get("body", "")
-                coderabbit_reviews.append({
-                    "id": review["id"],
-                    "state": review["state"],
-                    "body_preview": body[:300] + "..." if len(body) > 300 else body,
-                    "submitted_at": review.get("submitted_at"),
-                    "commit_id": review.get("commit_id", "")[:7],
-                })
+                coderabbit_reviews.append(
+                    {
+                        "id": review["id"],
+                        "state": review["state"],
+                        "body_preview": body[:300] + "..." if len(body) > 300 else body,
+                        "submitted_at": review.get("submitted_at"),
+                        "commit_id": review.get("commit_id", "")[:7],
+                    }
+                )
 
         return {"success": True, "data": coderabbit_reviews}
     except Exception as e:
@@ -407,9 +409,7 @@ def get_pending_fixes(pr_number: int) -> dict[str, Any]:
 
         # Also get reviews to associate review_id
         reviews = api.get_pr_reviews(pr_number)
-        coderabbit_review_ids = [
-            r["id"] for r in reviews if _parser.is_coderabbit_comment(r)
-        ]
+        coderabbit_review_ids = [r["id"] for r in reviews if _parser.is_coderabbit_comment(r)]
         default_review_id = coderabbit_review_ids[0] if coderabbit_review_ids else 0
 
         fixes = []
@@ -564,7 +564,9 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
 
 
 @mcp.tool()
-def dismiss_review(pr_number: int, review_id: int, message: str = "Fixes applied") -> dict[str, Any]:
+def dismiss_review(
+    pr_number: int, review_id: int, message: str = "Fixes applied"
+) -> dict[str, Any]:
     """
     Dismiss a CodeRabbit review.
 

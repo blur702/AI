@@ -14,7 +14,9 @@
   background-color: rgba(0, 0, 0, 0.5);
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--transition-normal), visibility var(--transition-normal);
+  transition:
+    opacity var(--transition-normal),
+    visibility var(--transition-normal);
 }
 
 .dialog-backdrop--open {
@@ -40,7 +42,9 @@
   box-shadow: var(--shadow-xl);
   opacity: 0;
   visibility: hidden;
-  transition: opacity var(--transition-normal), visibility var(--transition-normal),
+  transition:
+    opacity var(--transition-normal),
+    visibility var(--transition-normal),
     transform var(--transition-normal);
 }
 
@@ -100,7 +104,9 @@
   border-radius: var(--border-radius-full);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .dialog__close:hover {

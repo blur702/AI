@@ -6,9 +6,9 @@ dependencies:
     - node
     - user
 id: cat_breeds
-label: 'Cat Breeds'
+label: "Cat Breeds"
 module: views
-description: 'A listing of cat breed articles with filtering'
+description: "A listing of cat breed articles with filtering"
 tag: cats
 base_table: node_field_data
 base_field: nid
@@ -19,7 +19,7 @@ display:
     display_plugin: default
     position: 0
     display_options:
-      title: 'Cat Breeds'
+      title: "Cat Breeds"
       fields:
         title:
           id: title
@@ -27,17 +27,17 @@ display:
           field: title
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           entity_type: node
           entity_field: title
           plugin_id: field
-          label: ''
+          label: ""
           exclude: false
           alter:
             alter_text: false
-          element_class: ''
+          element_class: ""
           element_default_classes: true
-          empty: ''
+          empty: ""
           hide_empty: false
           empty_zero: false
           hide_alter_empty: true
@@ -53,7 +53,7 @@ display:
           delta_reversed: false
           delta_first_last: false
           multi_type: separator
-          separator: ', '
+          separator: ", "
           field_api_classes: false
         field_origin:
           id: field_origin
@@ -61,15 +61,15 @@ display:
           field: field_origin
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           plugin_id: field
-          label: 'Origin'
+          label: "Origin"
           exclude: false
           alter:
             alter_text: false
-          element_class: ''
+          element_class: ""
           element_default_classes: true
-          empty: ''
+          empty: ""
           hide_empty: false
           type: string
           settings: {}
@@ -79,9 +79,9 @@ display:
           field: field_size
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           plugin_id: field
-          label: 'Size'
+          label: "Size"
           exclude: false
           type: list_default
           settings: {}
@@ -91,9 +91,9 @@ display:
           field: field_coat_type
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           plugin_id: field
-          label: 'Coat'
+          label: "Coat"
           exclude: false
           type: list_default
           settings: {}
@@ -103,9 +103,9 @@ display:
           field: body
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           plugin_id: field
-          label: ''
+          label: ""
           exclude: false
           type: text_trimmed
           settings:
@@ -118,12 +118,12 @@ display:
           total_pages: 0
           id: 0
           tags:
-            next: 'Next ›'
-            previous: '‹ Previous'
+            next: "Next ›"
+            previous: "‹ Previous"
           expose:
             items_per_page: true
-            items_per_page_label: 'Items per page'
-            items_per_page_options: '12, 24, 48'
+            items_per_page_label: "Items per page"
+            items_per_page_options: "12, 24, 48"
             items_per_page_options_all: false
           quantity: 9
       exposed_form:
@@ -132,14 +132,14 @@ display:
           submit_button: Filter
           reset_button: true
           reset_button_label: Reset
-          exposed_sorts_label: 'Sort by'
+          exposed_sorts_label: "Sort by"
           expose_sort_order: true
           sort_asc_label: Asc
           sort_desc_label: Desc
       access:
         type: perm
         options:
-          perm: 'access content'
+          perm: "access content"
       cache:
         type: tag
         options: {}
@@ -150,11 +150,11 @@ display:
           field: area_text_custom
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           plugin_id: text_custom
-          label: ''
+          label: ""
           empty: true
-          content: 'No cat breeds found matching your criteria.'
+          content: "No cat breeds found matching your criteria."
           tokenize: false
       sorts:
         title:
@@ -163,7 +163,7 @@ display:
           field: title
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           entity_type: node
           entity_field: title
           plugin_id: standard
@@ -181,17 +181,17 @@ display:
           entity_type: node
           entity_field: status
           plugin_id: boolean
-          value: '1'
+          value: "1"
           group: 1
           expose:
-            operator: ''
+            operator: ""
         type:
           id: type
           table: node_field_data
           field: type
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           entity_type: node
           entity_field: type
           plugin_id: bundle
@@ -207,7 +207,7 @@ display:
           field: field_size_value
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           plugin_id: list_field
           operator: or
           value: {}
@@ -216,7 +216,7 @@ display:
           expose:
             operator_id: field_size_value_op
             label: Size
-            description: ''
+            description: ""
             use_operator: false
             operator: field_size_value_op
             operator_limit_selection: false
@@ -235,7 +235,7 @@ display:
           field: field_coat_type_value
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           plugin_id: list_field
           operator: or
           value: {}
@@ -243,8 +243,8 @@ display:
           exposed: true
           expose:
             operator_id: field_coat_type_value_op
-            label: 'Coat Type'
-            description: ''
+            label: "Coat Type"
+            description: ""
             use_operator: false
             operator: field_coat_type_value_op
             operator_limit_selection: false
@@ -263,18 +263,18 @@ display:
           field: title
           relationship: none
           group_type: group
-          admin_label: ''
+          admin_label: ""
           entity_type: node
           entity_field: title
           plugin_id: string
           operator: contains
-          value: ''
+          value: ""
           group: 1
           exposed: true
           expose:
             operator_id: title_op
             label: Search
-            description: ''
+            description: ""
             use_operator: false
             operator: title_op
             operator_limit_selection: false
@@ -285,13 +285,13 @@ display:
             multiple: false
             remember_roles:
               authenticated: authenticated
-            placeholder: 'Search cat breeds...'
+            placeholder: "Search cat breeds..."
           is_grouped: false
       style:
         type: default
         options:
           grouping: {}
-          row_class: ''
+          row_class: ""
           default_row_class: true
           uses_fields: false
       row:
@@ -300,7 +300,7 @@ display:
       query:
         type: views_query
         options:
-          query_comment: ''
+          query_comment: ""
           disable_sql_rewrite: false
           distinct: false
           replica: false
@@ -319,12 +319,12 @@ display:
       path: cats
       menu:
         type: normal
-        title: 'Cat Breeds'
-        description: 'Browse our collection of cat breeds'
+        title: "Cat Breeds"
+        description: "Browse our collection of cat breeds"
         weight: 0
         menu_name: main
-        parent: ''
-        context: '0'
+        parent: ""
+        context: "0"
       display_extenders: {}
   block_1:
     id: block_1
@@ -332,7 +332,7 @@ display:
     display_plugin: block
     position: 2
     display_options:
-      block_description: 'Cat Breeds List'
+      block_description: "Cat Breeds List"
       pager:
         type: some
         options:

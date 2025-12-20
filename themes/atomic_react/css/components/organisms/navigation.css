@@ -36,7 +36,9 @@
   color: var(--color-text-primary);
   text-decoration: none;
   border-radius: var(--border-radius-md);
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .primary-nav__link:hover {
@@ -90,7 +92,9 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(-0.5rem);
-  transition: opacity var(--transition-fast), visibility var(--transition-fast),
+  transition:
+    opacity var(--transition-fast),
+    visibility var(--transition-fast),
     transform var(--transition-fast);
 }
 
@@ -114,7 +118,9 @@
   color: var(--color-text-primary);
   text-decoration: none;
   border-radius: var(--border-radius-md);
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .primary-nav__dropdown-link:hover {
@@ -280,7 +286,9 @@
   min-height: 44px;
   color: var(--color-text-primary);
   text-decoration: none;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .sidebar-nav__link:hover {
@@ -330,7 +338,9 @@
   color: var(--color-text-primary);
   text-decoration: none;
   border-radius: var(--border-radius-md);
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .pager__item a:hover {

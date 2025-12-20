@@ -25,17 +25,20 @@ Query LLM about congressional members with voting records via SSH tunnel to remo
 ## Installation
 
 1. Copy the module to your Drupal modules directory:
+
    ```bash
    cp -r congressional_query /path/to/drupal/modules/custom/
    ```
 
 2. Install PHP dependencies:
+
    ```bash
    cd /path/to/drupal/modules/custom/congressional_query
    composer install
    ```
 
 3. Enable the module:
+
    ```bash
    drush en congressional_query
    ```
@@ -46,38 +49,38 @@ Query LLM about congressional members with voting records via SSH tunnel to remo
 
 ### SSH Settings
 
-| Setting | Description |
-|---------|-------------|
-| SSH Host | Remote server hostname or IP |
-| SSH Port | SSH port (default: 22) |
-| SSH Username | SSH login username |
-| SSH Password | SSH password (optional if using key) |
-| Private Key Path | Path to SSH private key file |
+| Setting          | Description                          |
+| ---------------- | ------------------------------------ |
+| SSH Host         | Remote server hostname or IP         |
+| SSH Port         | SSH port (default: 22)               |
+| SSH Username     | SSH login username                   |
+| SSH Password     | SSH password (optional if using key) |
+| Private Key Path | Path to SSH private key file         |
 
 ### Ollama Settings
 
-| Setting | Description |
-|---------|-------------|
-| Ollama Endpoint | API endpoint (default: http://localhost:11434) |
-| LLM Model | Model for answer generation (default: qwen3-coder-roo:latest) |
-| Embedding Model | Model for embeddings (default: snowflake-arctic-embed:l) |
-| Temperature | Generation temperature 0.0-2.0 (default: 0.3) |
+| Setting         | Description                                                   |
+| --------------- | ------------------------------------------------------------- |
+| Ollama Endpoint | API endpoint (default: http://localhost:11434)                |
+| LLM Model       | Model for answer generation (default: qwen3-coder-roo:latest) |
+| Embedding Model | Model for embeddings (default: snowflake-arctic-embed:l)      |
+| Temperature     | Generation temperature 0.0-2.0 (default: 0.3)                 |
 
 ### Weaviate Settings
 
-| Setting | Description |
-|---------|-------------|
+| Setting      | Description                                    |
+| ------------ | ---------------------------------------------- |
 | Weaviate URL | HTTP endpoint (default: http://localhost:8080) |
-| gRPC Port | gRPC port (default: 50051) |
-| Collection | Collection name (default: CongressionalData) |
+| gRPC Port    | gRPC port (default: 50051)                     |
+| Collection   | Collection name (default: CongressionalData)   |
 
 ### Query Settings
 
-| Setting | Description |
-|---------|-------------|
-| Default Num Sources | Sources to retrieve per query (default: 8) |
-| Max Context Length | Max characters per source (default: 1500) |
-| Log Retention Days | Days to keep query logs (default: 90) |
+| Setting               | Description                                |
+| --------------------- | ------------------------------------------ |
+| Default Num Sources   | Sources to retrieve per query (default: 8) |
+| Max Context Length    | Max characters per source (default: 1500)  |
+| Log Retention Days    | Days to keep query logs (default: 90)      |
 | Session Timeout Hours | Conversation session timeout (default: 24) |
 
 ## Usage
@@ -103,6 +106,7 @@ Access at `/congressional/chat`
 ### Connection Status Block
 
 Add the "Congressional Query Connection Status" block to any region to monitor:
+
 - SSH tunnel status
 - Ollama LLM connectivity
 - Weaviate database status
@@ -114,6 +118,7 @@ Configure auto-refresh interval and detail display in block settings.
 Access at `/admin/reports/congressional-query`
 
 View:
+
 - Total queries and daily/weekly stats
 - Average response times
 - Top member filters used
@@ -136,6 +141,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "query_id": 123,
@@ -149,6 +155,7 @@ Response:
 ### Chat Endpoint
 
 Send message:
+
 ```
 POST /api/congressional/chat
 Content-Type: application/json
@@ -161,17 +168,18 @@ Content-Type: application/json
 ```
 
 Get conversation history:
+
 ```
 GET /api/congressional/chat/{conversation_id}
 ```
 
 ## Permissions
 
-| Permission | Description |
-|------------|-------------|
-| Use Congressional Query | Access query forms and chat interface |
+| Permission                     | Description                                  |
+| ------------------------------ | -------------------------------------------- |
+| Use Congressional Query        | Access query forms and chat interface        |
 | Administer Congressional Query | Configure SSH, Ollama, and Weaviate settings |
-| View Query Logs | Access query history and statistics |
+| View Query Logs                | Access query history and statistics          |
 
 ## Architecture
 
@@ -235,17 +243,18 @@ For instructions on updating Drupal core to version 11.3.0 or higher, see the [D
 **Important**: Keeping Drupal core updated is essential for continued security coverage. Drupal 11.2.x will reach end-of-life when Drupal 11.4.0 is released.
 
 The Congressional Query module is compatible with Drupal 11.3.0 and has been tested with:
+
 - Drupal 9.x, 10.x, and 11.x
 - PHP 8.1 through 8.4
 - Drush 12.x and 13.x
 
 ## Related Documentation
 
-| Document | Description |
-|----------|-------------|
-| [Drupal Core Update Guide](../../docs/DRUPAL_CORE_UPDATE.md) | Update Drupal core to 11.3.0 |
+| Document                                                               | Description                                   |
+| ---------------------------------------------------------------------- | --------------------------------------------- |
+| [Drupal Core Update Guide](../../docs/DRUPAL_CORE_UPDATE.md)           | Update Drupal core to 11.3.0                  |
 | [Webform Libraries Installation](../WEBFORM_LIBRARIES_INSTALLATION.md) | Install external libraries for Webform module |
-| [Webform Libraries Quick Start](../WEBFORM_LIBRARIES_QUICKSTART.md) | Quick reference for library installation |
+| [Webform Libraries Quick Start](../WEBFORM_LIBRARIES_QUICKSTART.md)    | Quick reference for library installation      |
 
 **Note**: If using Webform elements in forms that interact with this module, ensure the Webform external libraries are installed locally for optimal performance. See the Webform Libraries documentation for details.
 

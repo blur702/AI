@@ -1,21 +1,38 @@
 {
   "image": [
     { "name": "simple", "prompt": "A small red cube on a white table." },
-    { "name": "complex", "prompt": "A futuristic cityscape at sunset with flying cars and neon signs, ultra detailed, 8k." },
+    {
+      "name": "complex",
+      "prompt": "A futuristic cityscape at sunset with flying cars and neon signs, ultra detailed, 8k."
+    },
     { "name": "edge_case", "prompt": "" }
   ],
   "video": [
-    { "name": "short_clip", "prompt": "A cat jumping over a fence in slow motion." }
+    {
+      "name": "short_clip",
+      "prompt": "A cat jumping over a fence in slow motion."
+    }
   ],
   "music": [
-    { "name": "rock", "prompt": "High-energy rock track with electric guitars and drums." },
-    { "name": "ambient", "prompt": "Soft ambient music with gentle synth pads." }
+    {
+      "name": "rock",
+      "prompt": "High-energy rock track with electric guitars and drums."
+    },
+    {
+      "name": "ambient",
+      "prompt": "Soft ambient music with gentle synth pads."
+    }
   ],
   "llm": [
-    { "name": "qa", "prompt": "Explain the concept of VRAM in GPUs in simple terms." }
+    {
+      "name": "qa",
+      "prompt": "Explain the concept of VRAM in GPUs in simple terms."
+    }
   ],
   "tts": [
-    { "name": "sample", "text": "This is a sample text for text-to-speech testing." }
+    {
+      "name": "sample",
+      "text": "This is a sample text for text-to-speech testing."
+    }
   ]
 }
-

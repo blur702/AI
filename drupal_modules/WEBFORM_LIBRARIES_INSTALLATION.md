@@ -15,13 +15,13 @@ The Webform module uses external libraries to provide enhanced form elements suc
 
 ## Prerequisites
 
-| Requirement | Description |
-|-------------|-------------|
-| Drupal 11.x | With Webform module installed |
-| SSH Access | Shell access to remote server |
-| wget or curl | For downloading files |
-| unzip | For extracting ZIP archives |
-| drush | For clearing caches (optional) |
+| Requirement  | Description                    |
+| ------------ | ------------------------------ |
+| Drupal 11.x  | With Webform module installed  |
+| SSH Access   | Shell access to remote server  |
+| wget or curl | For downloading files          |
+| unzip        | For extracting ZIP archives    |
+| drush        | For clearing caches (optional) |
 
 ---
 
@@ -118,20 +118,20 @@ Libraries are installed in versioned subdirectories within `/libraries` at your 
 
 ## Library Details
 
-| Library | Version | Purpose | Webform Elements |
-|---------|---------|---------|------------------|
-| CodeMirror | 5.65.12 | Code/text editor | CodeMirror, HTML Editor |
-| jQuery InputMask | 5.0.9 | Input formatting | Input masks |
-| jQuery Intl-Tel-Input | 17.0.19 | Phone number input | Telephone (International) |
-| jQuery RateIt | 1.1.5 | Star rating widget | Rating |
-| jQuery Select2 | 4.0.13 | Enhanced select boxes | Select (Select2) |
-| jQuery TextCounter | 0.9.1 | Character counter | Textfield, Textarea |
-| jQuery Timepicker | 1.14.0 | Time selection | Time |
-| Popper.js | 2.11.6 | Tooltip positioning | Help tooltips |
-| Progress Tracker | 2.0.7 | Multi-step progress | Wizard progress bar |
-| Signature Pad | 2.3.0 | Signature capture | Signature |
-| Tabby | 12.0.3 | Tab navigation | Tabs element |
-| Tippy.js | 6.3.7 | Tooltips | Help tooltips |
+| Library               | Version | Purpose               | Webform Elements          |
+| --------------------- | ------- | --------------------- | ------------------------- |
+| CodeMirror            | 5.65.12 | Code/text editor      | CodeMirror, HTML Editor   |
+| jQuery InputMask      | 5.0.9   | Input formatting      | Input masks               |
+| jQuery Intl-Tel-Input | 17.0.19 | Phone number input    | Telephone (International) |
+| jQuery RateIt         | 1.1.5   | Star rating widget    | Rating                    |
+| jQuery Select2        | 4.0.13  | Enhanced select boxes | Select (Select2)          |
+| jQuery TextCounter    | 0.9.1   | Character counter     | Textfield, Textarea       |
+| jQuery Timepicker     | 1.14.0  | Time selection        | Time                      |
+| Popper.js             | 2.11.6  | Tooltip positioning   | Help tooltips             |
+| Progress Tracker      | 2.0.7   | Multi-step progress   | Wizard progress bar       |
+| Signature Pad         | 2.3.0   | Signature capture     | Signature                 |
+| Tabby                 | 12.0.3  | Tab navigation        | Tabs element              |
+| Tippy.js              | 6.3.7   | Tooltips              | Help tooltips             |
 
 ---
 
@@ -142,6 +142,7 @@ Libraries are installed in versioned subdirectories within `/libraries` at your 
 CodeMirror provides syntax-highlighted code editing.
 
 **Download:**
+
 ```bash
 cd /tmp
 wget https://github.com/codemirror/codemirror5/archive/refs/tags/5.65.12.zip -O codemirror.zip
@@ -154,6 +155,7 @@ rm -rf codemirror.zip codemirror5-5.65.12
 ```
 
 **Required Files:**
+
 - `5.65.12/lib/codemirror.js`
 - `5.65.12/lib/codemirror.css`
 - `5.65.12/mode/css/css.js`
@@ -171,6 +173,7 @@ rm -rf codemirror.zip codemirror5-5.65.12
 Provides input masking for formatted data entry.
 
 **Download:**
+
 ```bash
 mkdir -p /var/www/drupal/libraries/jquery.inputmask/5.0.9/dist
 cd /var/www/drupal/libraries/jquery.inputmask/5.0.9/dist
@@ -179,6 +182,7 @@ echo "5.0.9" > /var/www/drupal/libraries/jquery.inputmask/.version
 ```
 
 **Required Files:**
+
 - `5.0.9/dist/jquery.inputmask.min.js`
 
 ---
@@ -188,6 +192,7 @@ echo "5.0.9" > /var/www/drupal/libraries/jquery.inputmask/.version
 International telephone input with country flags and validation.
 
 **Download:**
+
 ```bash
 cd /tmp
 wget https://github.com/jackocnr/intl-tel-input/archive/refs/tags/v17.0.19.zip -O intl-tel-input.zip
@@ -199,6 +204,7 @@ rm -rf intl-tel-input.zip intl-tel-input-17.0.19
 ```
 
 **Required Files:**
+
 - `17.0.19/build/js/intlTelInput.min.js`
 - `17.0.19/build/css/intlTelInput.min.css`
 - `17.0.19/build/img/flags.png`
@@ -211,6 +217,7 @@ rm -rf intl-tel-input.zip intl-tel-input-17.0.19
 Star rating widget for form feedback.
 
 **Download:**
+
 ```bash
 mkdir -p /var/www/drupal/libraries/jquery.rateit/1.1.5/scripts
 mkdir -p /var/www/drupal/libraries/jquery.rateit/1.1.5/styles
@@ -222,6 +229,7 @@ echo "1.1.5" > /var/www/drupal/libraries/jquery.rateit/.version
 ```
 
 **Required Files:**
+
 - `1.1.5/scripts/jquery.rateit.min.js`
 - `1.1.5/styles/rateit.css`
 
@@ -232,6 +240,7 @@ echo "1.1.5" > /var/www/drupal/libraries/jquery.rateit/.version
 Enhanced select boxes with search and multi-select.
 
 **Download:**
+
 ```bash
 cd /tmp
 wget https://github.com/select2/select2/archive/refs/tags/4.0.13.zip -O select2.zip
@@ -243,6 +252,7 @@ rm -rf select2.zip select2-4.0.13
 ```
 
 **Required Files:**
+
 - `4.0.13/dist/js/select2.min.js`
 - `4.0.13/dist/css/select2.min.css`
 
@@ -253,6 +263,7 @@ rm -rf select2.zip select2-4.0.13
 Character and word counter for text fields.
 
 **Download:**
+
 ```bash
 cd /tmp
 wget https://github.com/ractoon/jQuery-Text-Counter/archive/refs/tags/0.9.1.zip -O textcounter.zip
@@ -264,6 +275,7 @@ rm -rf textcounter.zip jQuery-Text-Counter-0.9.1
 ```
 
 **Required Files:**
+
 - `0.9.1/textcounter.min.js`
 
 ---
@@ -273,6 +285,7 @@ rm -rf textcounter.zip jQuery-Text-Counter-0.9.1
 Time selection dropdown widget.
 
 **Download:**
+
 ```bash
 cd /tmp
 wget https://github.com/jonthornton/jquery-timepicker/archive/refs/tags/1.14.0.zip -O timepicker.zip
@@ -285,6 +298,7 @@ rm -rf timepicker.zip jquery-timepicker-1.14.0
 ```
 
 **Required Files:**
+
 - `1.14.0/jquery.timepicker.min.js`
 - `1.14.0/jquery.timepicker.min.css`
 
@@ -295,6 +309,7 @@ rm -rf timepicker.zip jquery-timepicker-1.14.0
 Tooltip and popover positioning engine.
 
 **Download:**
+
 ```bash
 mkdir -p /var/www/drupal/libraries/popperjs/2.11.6/dist/umd
 cd /var/www/drupal/libraries/popperjs/2.11.6/dist/umd
@@ -303,6 +318,7 @@ echo "2.11.6" > /var/www/drupal/libraries/popperjs/.version
 ```
 
 **Required Files:**
+
 - `2.11.6/dist/umd/popper.min.js`
 
 ---
@@ -312,6 +328,7 @@ echo "2.11.6" > /var/www/drupal/libraries/popperjs/.version
 Visual progress indicator for multi-step forms.
 
 **Download:**
+
 ```bash
 cd /tmp
 wget https://github.com/NigelOToole/progress-tracker/archive/refs/tags/2.0.7.zip -O progress-tracker.zip
@@ -323,6 +340,7 @@ echo "2.0.7" > /var/www/drupal/libraries/progress-tracker/.version
 ```
 
 **Required Files:**
+
 - `2.0.7/src/progress-tracker.js`
 - `2.0.7/src/styles/progress-tracker.css`
 
@@ -333,6 +351,7 @@ echo "2.0.7" > /var/www/drupal/libraries/progress-tracker/.version
 HTML5 canvas-based signature capture.
 
 **Download:**
+
 ```bash
 cd /tmp
 wget https://github.com/szimek/signature_pad/archive/refs/tags/v2.3.0.zip -O signature_pad.zip
@@ -344,6 +363,7 @@ echo "2.3.0" > /var/www/drupal/libraries/signature_pad/.version
 ```
 
 **Required Files:**
+
 - `2.3.0/dist/signature_pad.min.js`
 
 ---
@@ -353,6 +373,7 @@ echo "2.3.0" > /var/www/drupal/libraries/signature_pad/.version
 Lightweight tab navigation.
 
 **Download:**
+
 ```bash
 cd /tmp
 wget https://github.com/cferdinandi/tabby/archive/refs/tags/12.0.3.zip -O tabby.zip
@@ -364,6 +385,7 @@ echo "12.0.3" > /var/www/drupal/libraries/tabby/.version
 ```
 
 **Required Files:**
+
 - `12.0.3/dist/js/tabby.min.js`
 - `12.0.3/dist/css/tabby.min.css`
 
@@ -374,6 +396,7 @@ echo "12.0.3" > /var/www/drupal/libraries/tabby/.version
 Modern tooltip library built on Popper.js.
 
 **Download:**
+
 ```bash
 mkdir -p /var/www/drupal/libraries/tippyjs/6.3.7/dist
 cd /var/www/drupal/libraries/tippyjs/6.3.7/dist
@@ -383,6 +406,7 @@ echo "6.3.7" > /var/www/drupal/libraries/tippyjs/.version
 ```
 
 **Required Files:**
+
 - `6.3.7/dist/tippy.umd.min.js`
 - `6.3.7/dist/tippy.css`
 
@@ -458,16 +482,16 @@ Or via admin UI: **Configuration > Development > Performance > Clear all caches*
 
 Create a test webform at `/admin/structure/webform/add` and add elements that use each library:
 
-| Element to Add | Library Tested |
-|----------------|----------------|
-| CodeMirror (YAML) | CodeMirror |
+| Element to Add            | Library Tested |
+| ------------------------- | -------------- |
+| CodeMirror (YAML)         | CodeMirror     |
 | Telephone (International) | Intl-Tel-Input |
-| Rating | RateIt |
-| Select (Select2) | Select2 |
-| Textfield with counter | TextCounter |
-| Time | Timepicker |
-| Signature | Signature Pad |
-| Tabs container | Tabby |
+| Rating                    | RateIt         |
+| Select (Select2)          | Select2        |
+| Textfield with counter    | TextCounter    |
+| Time                      | Timepicker     |
+| Signature                 | Signature Pad  |
+| Tabs container            | Tabby          |
 
 ---
 
@@ -478,6 +502,7 @@ Create a test webform at `/admin/structure/webform/add` and add elements that us
 **Symptoms:** Library shows as "CDN" or "Not installed" in status report.
 
 **Solutions:**
+
 1. **Check directory name** - Must match exactly (e.g., `jquery.select2` not `select2`)
 2. **Check file structure** - Files must be in correct subdirectories
 3. **Clear cache** - Run `drush cr` after any changes
@@ -493,12 +518,12 @@ find /var/www/drupal/libraries -type f -exec chmod 644 {} \;
 
 **Alternative CDN URLs:**
 
-| Library | Alternative URL |
-|---------|-----------------|
+| Library    | Alternative URL                                                               |
+| ---------- | ----------------------------------------------------------------------------- |
 | CodeMirror | `https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.12/codemirror.min.js` |
-| InputMask | `https://unpkg.com/inputmask@5.0.9/dist/jquery.inputmask.min.js` |
-| Select2 | `https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js` |
-| Tippy.js | `https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js` |
+| InputMask  | `https://unpkg.com/inputmask@5.0.9/dist/jquery.inputmask.min.js`              |
+| Select2    | `https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js`     |
+| Tippy.js   | `https://unpkg.com/tippy.js@6.3.7/dist/tippy-bundle.umd.min.js`               |
 
 ### Version Mismatches
 
@@ -510,6 +535,7 @@ drush pm:show webform | grep -i libraries
 ```
 
 To upgrade a library:
+
 1. Remove old library directory
 2. Download new version following instructions above
 3. Clear cache
@@ -542,6 +568,7 @@ After installation, configure Webform library settings:
 To update libraries to newer versions:
 
 1. **Backup existing libraries:**
+
    ```bash
    tar -czvf libraries-backup-$(date +%Y%m%d).tar.gz /var/www/drupal/libraries
    ```
@@ -576,4 +603,4 @@ To update libraries to newer versions:
 
 ---
 
-*Last updated: December 2024*
+_Last updated: December 2024_
