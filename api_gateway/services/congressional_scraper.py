@@ -4,22 +4,25 @@ import json
 import re
 import time
 from collections import deque
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Callable, Deque, Dict, Generator, List, Optional
+from datetime import UTC, datetime
+from typing import TYPE_CHECKING, Any
 from urllib.parse import urlparse
 
 if TYPE_CHECKING:
     import weaviate
+
     from .base_doc_scraper import DocPage
 
-import httpx
 import feedparser
+import httpx
 from bs4 import BeautifulSoup
 
 from ..utils.embeddings import get_embedding
 from ..utils.logger import get_logger
-from .base_doc_scraper import BaseDocScraper, ScraperConfig as DocScraperConfig
+from .base_doc_scraper import BaseDocScraper
+from .base_doc_scraper import ScraperConfig as DocScraperConfig
 from .congressional_schema import (
     CongressionalData,
     compute_congressional_content_hash,
@@ -31,7 +34,6 @@ from .weaviate_connection import (
     CONGRESSIONAL_DATA_COLLECTION_NAME,
     WeaviateConnection,
 )
-
 
 logger = get_logger("api_gateway.congressional_scraper")
 
@@ -47,7 +49,7 @@ class ScrapeConfig:
     request_delay: float = DEFAULT_REQUEST_DELAY
     batch_size: int = DEFAULT_BATCH_SIZE
     batch_delay: float = DEFAULT_BATCH_DELAY
-    max_members: Optional[int] = None
+    max_members: int | None = None
     max_pages_per_member: int = 5
     max_press_pages: int = 500  # Higher limit for press/news pages
     scrape_rss: bool = True  # Whether to scrape RSS feeds
@@ -83,9 +85,9 @@ class CongressionalDocScraper(BaseDocScraper):
     def __init__(
         self,
         config: ScrapeConfig,
-        progress_callback: Optional[ProgressCallback] = None,
-        check_cancelled: Optional[CancelCheck] = None,
-        check_paused: Optional[PauseCheck] = None,
+        progress_callback: ProgressCallback | None = None,
+        check_cancelled: CancelCheck | None = None,
+        check_paused: PauseCheck | None = None,
     ) -> None:
         # Map congressional scrape config to BaseDocScraper config
         doc_config = DocScraperConfig(
@@ -108,15 +110,15 @@ class CongressionalDocScraper(BaseDocScraper):
         self.check_cancelled = check_cancelled
         self.check_paused = check_paused
 
-        self._members: List[MemberInfo] = []
-        self._member_by_host: Dict[str, MemberInfo] = {}
+        self._members: list[MemberInfo] = []
+        self._member_by_host: dict[str, MemberInfo] = {}
         self.members_attempted: int = 0
 
     # ------------------------------------------------------------------
     # Context manager for HTTP client
     # ------------------------------------------------------------------
 
-    def __enter__(self) -> "CongressionalDocScraper":
+    def __enter__(self) -> CongressionalDocScraper:
         if self._client is None:
             self._client = httpx.Client(
                 http2=True,
@@ -156,7 +158,7 @@ class CongressionalDocScraper(BaseDocScraper):
 
         return [m.website_url for m in self._members]
 
-    def parse_page(self, url: str, html: str) -> "DocPage | None":
+    def parse_page(self, url: str, html: str) -> DocPage | None:
         """
         Minimal DocPage parser to satisfy BaseDocScraper.
 
@@ -180,7 +182,7 @@ class CongressionalDocScraper(BaseDocScraper):
             section="congressional",
         )
 
-    def create_collection(self, client: "weaviate.WeaviateClient") -> None:
+    def create_collection(self, client: weaviate.WeaviateClient) -> None:
         create_congressional_data_collection(client)
 
     # ------------------------------------------------------------------
@@ -320,7 +322,7 @@ class CongressionalDocScraper(BaseDocScraper):
     # JSON and RSS fetching (shared client + rate limiting)
     # ------------------------------------------------------------------
 
-    def _fetch_json(self, url: str) -> Optional[Dict[str, Any]]:
+    def _fetch_json(self, url: str) -> dict[str, Any] | None:
         if self._is_cancelled():
             return None
         if self._client is None:
@@ -348,7 +350,7 @@ class CongressionalDocScraper(BaseDocScraper):
             logger.warning("Failed to decode JSON from %s: %s", url, exc)
             return None
 
-    def _fetch_rss(self, url: str) -> Optional[str]:
+    def _fetch_rss(self, url: str) -> str | None:
         if self._is_cancelled():
             return None
         if self._client is None:
@@ -375,13 +377,13 @@ class CongressionalDocScraper(BaseDocScraper):
     # Member feed and site scraping
     # ------------------------------------------------------------------
 
-    def fetch_member_feed(self) -> List[MemberInfo]:
+    def fetch_member_feed(self) -> list[MemberInfo]:
         logger.info("Fetching House member feed from %s", HOUSE_FEED_URL)
         data = self._fetch_json(HOUSE_FEED_URL)
         if not data:
             return []
 
-        members: List[MemberInfo] = []
+        members: list[MemberInfo] = []
 
         # Handle different feed formats:
         # - {"items": [...]} - simple list
@@ -448,7 +450,7 @@ class CongressionalDocScraper(BaseDocScraper):
     def scrape_single_member(
         self,
         member: MemberInfo,
-        visited: Optional[set[str]] = None,
+        visited: set[str] | None = None,
     ) -> Generator[CongressionalData, None, None]:
         """
         Scrape a single member's website and yield CongressionalData objects.
@@ -471,7 +473,7 @@ class CongressionalDocScraper(BaseDocScraper):
             logger.warning("No website URL for member: %s", member.name)
             return
 
-        queue: Deque[str] = deque([member.website_url])
+        queue: deque[str] = deque([member.website_url])
         pages_scraped_for_member = 0
 
         while queue and pages_scraped_for_member < self.scrape_config.max_pages_per_member:
@@ -501,7 +503,7 @@ class CongressionalDocScraper(BaseDocScraper):
                     continue
 
                 topic = self._infer_topic_from_url(url)
-                scraped_at = datetime.now(timezone.utc).isoformat()
+                scraped_at = datetime.now(UTC).isoformat()
                 content_hash = compute_congressional_content_hash(
                     member_name=member.name,
                     content_text=content,
@@ -578,7 +580,7 @@ class CongressionalDocScraper(BaseDocScraper):
                 message=f"Scraping website for {member.name}",
             )
 
-            queue: List[str] = [member.website_url]
+            queue: list[str] = [member.website_url]
             pages_scraped_for_member = 0
 
             while queue and pages_scraped_for_member < self.scrape_config.max_pages_per_member:
@@ -610,7 +612,7 @@ class CongressionalDocScraper(BaseDocScraper):
 
                 topic = self._infer_topic_from_url(url)
 
-                scraped_at = datetime.now(timezone.utc).isoformat()
+                scraped_at = datetime.now(UTC).isoformat()
                 content_hash = compute_congressional_content_hash(
                     member_name=member.name,
                     content_text=content,
@@ -661,7 +663,7 @@ class CongressionalDocScraper(BaseDocScraper):
         self,
         rss_url: str,
         member: MemberInfo,
-    ) -> List[CongressionalData]:
+    ) -> list[CongressionalData]:
         """
         Parse an RSS feed for a member using the shared HTTP client and
         rate-limiting behavior.
@@ -673,7 +675,7 @@ class CongressionalDocScraper(BaseDocScraper):
             return []
 
         logger.info("Fetching RSS feed for %s: %s", member.name, rss_url)
-        entries: List[CongressionalData] = []
+        entries: list[CongressionalData] = []
 
         rss_text = self._fetch_rss(rss_url)
         if not rss_text:
@@ -709,12 +711,12 @@ class CongressionalDocScraper(BaseDocScraper):
                     if getattr(entry, "published_parsed", None):
                         published_dt = datetime(
                             *entry.published_parsed[:6],
-                            tzinfo=timezone.utc,
+                            tzinfo=UTC,
                         )
                     else:
-                        published_dt = datetime.now(timezone.utc)
+                        published_dt = datetime.now(UTC)
                 except Exception:
-                    published_dt = datetime.now(timezone.utc)
+                    published_dt = datetime.now(UTC)
 
                 scraped_at = published_dt.isoformat()
                 content_text = self._clean_text(summary)
@@ -763,14 +765,14 @@ class CongressionalDocScraper(BaseDocScraper):
 
 
 def scrape_congressional_data(
-    config: Optional[ScrapeConfig] = None,
-    progress_callback: Optional[ProgressCallback] = None,
-    check_cancelled: Optional[CancelCheck] = None,
-    check_paused: Optional[PauseCheck] = None,
-) -> Dict[str, Any]:
+    config: ScrapeConfig | None = None,
+    progress_callback: ProgressCallback | None = None,
+    check_cancelled: CancelCheck | None = None,
+    check_paused: PauseCheck | None = None,
+) -> dict[str, Any]:
     cfg = config or ScrapeConfig()
 
-    stats: Dict[str, Any] = {
+    stats: dict[str, Any] = {
         "members_processed": 0,
         "pages_scraped": 0,
         "pages_updated": 0,
@@ -903,6 +905,29 @@ if __name__ == "__main__":
         default=None,
         help="Limit number of members to scrape",
     )
+    parser.add_argument(
+        "--votes-only",
+        action="store_true",
+        help="Only scrape voting records (uses Congress.gov API)",
+    )
+    parser.add_argument(
+        "--max-votes",
+        type=int,
+        default=None,
+        help="Maximum number of votes to scrape (requires --votes-only)",
+    )
+    parser.add_argument(
+        "--congress",
+        type=int,
+        default=119,
+        help="Congress number for voting records (default: 119)",
+    )
+    parser.add_argument(
+        "--session",
+        type=int,
+        default=1,
+        help="Session number for voting records (default: 1)",
+    )
 
     args = parser.parse_args()
 
@@ -912,6 +937,24 @@ if __name__ == "__main__":
         logging.getLogger().setLevel(logging.DEBUG)
 
     if args.command == "scrape":
+        # Check if voting-only mode
+        if args.votes_only:
+            from .congressional_votes_scraper import (
+                VoteScrapeConfig,
+                scrape_voting_records,
+            )
+
+            vote_cfg = VoteScrapeConfig(
+                congress=args.congress,
+                session=args.session,
+                max_votes=args.max_votes,
+                dry_run=args.dry_run,
+            )
+            result = scrape_voting_records(vote_cfg)
+            print(json.dumps(result, indent=2))
+            sys.exit(0)
+
+        # Regular website scraping
         cfg = ScrapeConfig(
             max_members=args.limit,
             dry_run=args.dry_run,
@@ -923,6 +966,16 @@ if __name__ == "__main__":
     if args.command == "status":
         with WeaviateConnection() as client:
             stats = get_congressional_stats(client)
+
+        # Also include voting stats if available
+        try:
+            from .congressional_votes_scraper import get_voting_stats
+
+            vote_stats = get_voting_stats()
+            stats["voting_records"] = vote_stats
+        except Exception:
+            pass
+
         print(json.dumps(stats, indent=2))
         sys.exit(0)
 

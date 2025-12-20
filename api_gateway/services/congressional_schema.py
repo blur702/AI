@@ -96,7 +96,7 @@ def generate_congressional_uuid(member_name: str, url: str) -> str:
 @dataclass
 class CongressionalData:
     """
-    Represents a congressional document (webpage or RSS entry).
+    Represents a congressional document (webpage, RSS entry, or vote record).
 
     Attributes:
         member_name: Name of the congressional member
@@ -113,6 +113,17 @@ class CongressionalData:
         scraped_at: ISO timestamp of when content was scraped
         uuid: Stable UUID for this document
         policy_topics: LLM-classified policy topics (healthcare, immigration, etc.)
+        content_type: Type of content ("page", "rss", "vote")
+        vote_id: Unique vote identifier (e.g., "119-1-123")
+        bill_number: Bill number if vote is on legislation (e.g., "H.R. 1234")
+        bill_title: Title of the bill being voted on
+        vote_position: Member's vote ("Yea", "Nay", "Present", "Not Voting")
+        vote_date: Date of the vote (ISO format)
+        roll_call_number: Roll call number for the vote
+        vote_question: The question being voted on
+        vote_result: Result of the vote ("Passed", "Failed", etc.)
+        congress: Congress number (e.g., 119)
+        session: Session number (1 or 2)
     """
 
     member_name: str
@@ -129,6 +140,18 @@ class CongressionalData:
     scraped_at: str = ""
     uuid: str = field(default_factory=lambda: str(uuid.uuid4()))
     policy_topics: list[str] = field(default_factory=list)
+    # Voting record fields
+    content_type: str = "page"  # "page", "rss", or "vote"
+    vote_id: str = ""
+    bill_number: str = ""
+    bill_title: str = ""
+    vote_position: str = ""
+    vote_date: str = ""
+    roll_call_number: int = 0
+    vote_question: str = ""
+    vote_result: str = ""
+    congress: int = 0
+    session: int = 0
 
     def to_properties(self) -> dict[str, Any]:
         """
@@ -151,6 +174,17 @@ class CongressionalData:
             "content_hash": self.content_hash,
             "scraped_at": self.scraped_at,
             "policy_topics": self.policy_topics,
+            "content_type": self.content_type,
+            "vote_id": self.vote_id,
+            "bill_number": self.bill_number,
+            "bill_title": self.bill_title,
+            "vote_position": self.vote_position,
+            "vote_date": self.vote_date,
+            "roll_call_number": self.roll_call_number,
+            "vote_question": self.vote_question,
+            "vote_result": self.vote_result,
+            "congress": self.congress,
+            "session": self.session,
         }
 
 
@@ -258,6 +292,62 @@ def create_congressional_data_collection(
                 name="policy_topics",
                 data_type=DataType.TEXT_ARRAY,
                 description="LLM-classified policy topics (healthcare, immigration, etc.)",
+            ),
+            # Voting record properties
+            Property(
+                name="content_type",
+                data_type=DataType.TEXT,
+                description="Type of content: page, rss, or vote",
+            ),
+            Property(
+                name="vote_id",
+                data_type=DataType.TEXT,
+                description="Unique vote identifier (e.g., 119-1-123)",
+            ),
+            Property(
+                name="bill_number",
+                data_type=DataType.TEXT,
+                description="Bill number if vote is on legislation (e.g., H.R. 1234)",
+            ),
+            Property(
+                name="bill_title",
+                data_type=DataType.TEXT,
+                description="Title of the bill being voted on",
+            ),
+            Property(
+                name="vote_position",
+                data_type=DataType.TEXT,
+                description="Member vote: Yea, Nay, Present, Not Voting",
+            ),
+            Property(
+                name="vote_date",
+                data_type=DataType.TEXT,
+                description="Date of the vote (ISO format)",
+            ),
+            Property(
+                name="roll_call_number",
+                data_type=DataType.INT,
+                description="Roll call number for the vote",
+            ),
+            Property(
+                name="vote_question",
+                data_type=DataType.TEXT,
+                description="The question being voted on",
+            ),
+            Property(
+                name="vote_result",
+                data_type=DataType.TEXT,
+                description="Result of the vote (Passed, Failed, etc.)",
+            ),
+            Property(
+                name="congress",
+                data_type=DataType.INT,
+                description="Congress number (e.g., 119)",
+            ),
+            Property(
+                name="session",
+                data_type=DataType.INT,
+                description="Session number (1 or 2)",
             ),
         ],
     )
@@ -406,3 +496,117 @@ def migrate_add_policy_topics(client: weaviate.WeaviateClient) -> bool:
     except Exception as exc:
         logger.error("Failed to add policy_topics property: %s", exc)
         return False
+
+
+def migrate_add_voting_fields(client: weaviate.WeaviateClient) -> bool:
+    """
+    Add voting record properties to existing CongressionalData collection.
+
+    This migration adds fields for tracking congressional voting records:
+    content_type, vote_id, bill_number, bill_title, vote_position,
+    vote_date, roll_call_number, vote_question, vote_result, congress, session.
+
+    Safe to call multiple times - will skip properties that already exist.
+
+    Args:
+        client: Active Weaviate client connection
+
+    Returns:
+        True if migration was applied or properties already exist, False on error
+    """
+    if not client.collections.exists(CONGRESSIONAL_DATA_COLLECTION_NAME):
+        logger.info("Collection does not exist, skipping migration")
+        return True
+
+    collection = client.collections.get(CONGRESSIONAL_DATA_COLLECTION_NAME)
+
+    # Check existing properties
+    try:
+        config = collection.config.get()
+        existing_props = {p.name for p in config.properties}
+    except Exception as exc:
+        logger.warning("Could not check existing properties: %s", exc)
+        existing_props = set()
+
+    # Define new voting properties
+    voting_properties = [
+        Property(
+            name="content_type",
+            data_type=DataType.TEXT,
+            description="Type of content: page, rss, or vote",
+        ),
+        Property(
+            name="vote_id",
+            data_type=DataType.TEXT,
+            description="Unique vote identifier (e.g., 119-1-123)",
+        ),
+        Property(
+            name="bill_number",
+            data_type=DataType.TEXT,
+            description="Bill number if vote is on legislation (e.g., H.R. 1234)",
+        ),
+        Property(
+            name="bill_title",
+            data_type=DataType.TEXT,
+            description="Title of the bill being voted on",
+        ),
+        Property(
+            name="vote_position",
+            data_type=DataType.TEXT,
+            description="Member vote: Yea, Nay, Present, Not Voting",
+        ),
+        Property(
+            name="vote_date",
+            data_type=DataType.TEXT,
+            description="Date of the vote (ISO format)",
+        ),
+        Property(
+            name="roll_call_number",
+            data_type=DataType.INT,
+            description="Roll call number for the vote",
+        ),
+        Property(
+            name="vote_question",
+            data_type=DataType.TEXT,
+            description="The question being voted on",
+        ),
+        Property(
+            name="vote_result",
+            data_type=DataType.TEXT,
+            description="Result of the vote (Passed, Failed, etc.)",
+        ),
+        Property(
+            name="congress",
+            data_type=DataType.INT,
+            description="Congress number (e.g., 119)",
+        ),
+        Property(
+            name="session",
+            data_type=DataType.INT,
+            description="Session number (1 or 2)",
+        ),
+    ]
+
+    added_count = 0
+    skipped_count = 0
+
+    for prop in voting_properties:
+        if prop.name in existing_props:
+            logger.debug("Property %s already exists, skipping", prop.name)
+            skipped_count += 1
+            continue
+
+        try:
+            collection.config.add_property(prop)
+            logger.info("Added %s property to %s", prop.name, CONGRESSIONAL_DATA_COLLECTION_NAME)
+            added_count += 1
+        except Exception as exc:
+            logger.error("Failed to add %s property: %s", prop.name, exc)
+            return False
+
+    logger.info(
+        "Voting fields migration complete: %d added, %d already existed",
+        added_count,
+        skipped_count,
+    )
+    return True

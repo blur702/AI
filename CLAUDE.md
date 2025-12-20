@@ -262,6 +262,7 @@ Parallel scraper system for House of Representatives member websites. Scrapes me
 - **Supervisor** (`congressional_parallel_supervisor.py`): Orchestrates 20 parallel workers
 - **Workers** (`congressional_worker.py`): Each scrapes assigned subset of members
 - **Scraper** (`congressional_scraper.py`): Core scraping logic with rate limiting
+- **Votes Scraper** (`congressional_votes_scraper.py`): Fetches roll call votes from Congress.gov API
 
 ### Data Flow
 
@@ -327,7 +328,41 @@ python -m api_gateway.services.congressional_scraper status
 
 CongressionalData collection fields:
 
+**Core fields:**
 - `member_name`, `state`, `district`, `party`, `chamber`
 - `title`, `topic`, `content_text`, `url`
+- `content_type` ("page", "rss", or "vote")
 - `policy_topics` (auto-classified via Ollama)
 - `scraped_at`, `content_hash`, `uuid`
+
+**Voting record fields:**
+- `vote_id` (e.g., "119-1-123")
+- `bill_number`, `bill_title`
+- `vote_position` ("Yea", "Nay", "Present", "Not Voting")
+- `vote_date`, `roll_call_number`
+- `vote_question`, `vote_result`
+- `congress`, `session`
+
+### Voting Records
+
+Voting records are fetched from the Congress.gov API (requires `CONGRESS_API_KEY`).
+
+```bash
+# Scrape all voting records for current congress
+python -m api_gateway.services.congressional_scraper scrape --votes-only
+
+# Limit to first 100 votes
+python -m api_gateway.services.congressional_scraper scrape --votes-only --max-votes 100
+
+# Specify congress and session
+python -m api_gateway.services.congressional_scraper scrape --votes-only --congress 119 --session 1
+
+# Use dedicated votes scraper directly
+python -m api_gateway.services.congressional_votes_scraper scrape --max-votes 50
+python -m api_gateway.services.congressional_votes_scraper status
+```
+
+**API Key:** Get a free key at https://api.congress.gov/sign-up/ and set:
+```bash
+CONGRESS_API_KEY=your-api-key-here
+```
