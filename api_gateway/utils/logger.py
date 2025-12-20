@@ -157,20 +157,20 @@ def get_logger(name: str) -> logging.Logger:
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
 
-# File handler - skip if explicitly disabled or running as worker
-if not _should_skip_file_handler():
-log_path = _get_log_file_path()
-# Ensure parent directory exists
-log_path.parent.mkdir(parents=True, exist_ok=True)
-try:
-file_handler = SafeRotatingFileHandler(
-str(log_path), maxBytes=5 * 1024 * 1024, backupCount=3
-)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-except OSError as exc:
-# Fall back to console-only logging if file handler fails
-logger.warning("Failed to create file handler at %s: %s", log_path, exc)
+    # File handler - skip if explicitly disabled or running as worker
+    if not _should_skip_file_handler():
+        log_path = _get_log_file_path()
+        # Ensure parent directory exists
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            file_handler = SafeRotatingFileHandler(
+                str(log_path), maxBytes=5 * 1024 * 1024, backupCount=3
+            )
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+        except OSError as exc:
+            # Fall back to console-only logging if file handler fails
+            logger.warning("Failed to create file handler at %s: %s", log_path, exc)
 
     logger.propagate = False
     return logger
