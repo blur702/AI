@@ -1,14 +1,25 @@
 {
   "mcpServers": {
     "drupal-remote": {
-      "command": "C:\\Program Files\\PuTTY\\plink.exe",
+      "command": "C:/Program Files/PuTTY/plink.exe",
       "args": [
         "-ssh",
-        "-pw", "T917nY9ILYmJGtUq",
+        "-pw", "${DRUPAL_SSH_PASSWORD}",
         "-hostkey", "ssh-ed25519 255 SHA256:EnWadrWQBKWVjQ8UV9ynQuSJbAjEuaMimajwlXoZecw",
         "root@65.181.112.77",
         "/opt/mcp-server/run.sh"
-      ]
+      ],
+      "env": {
+        "DRUPAL_SSH_PASSWORD": "${DRUPAL_SSH_PASSWORD}"
+      }
+    },
+    "coderabbit": {
+      "command": "python",
+      "args": ["-m", "mcp_servers.coderabbit.main"],
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}",
+        "GITHUB_REPO": "blur702/AI"
+      }
     }
   }
 }
