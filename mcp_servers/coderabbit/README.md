@@ -20,7 +20,7 @@ MCP (Model Context Protocol) server that enables Claude Code to interact with Co
    export GITHUB_TOKEN=your-github-token-here
    ```
 
-2. The server is configured in `.mcp.json` at the project root.
+1. The server is configured in `.mcp.json` at the project root.
 
 ## Usage with Claude Code
 
@@ -39,10 +39,10 @@ You: "Check PR #28 for CodeRabbit suggestions and apply them"
 
 Claude Code will:
 1. Call get_coderabbit_reviews(28) to see review status
-2. Call get_pending_fixes(28) to extract actionable fixes
-3. Call apply_fix() for each fix
-4. Call run_linters() to fix any remaining issues
-5. Optionally call dismiss_review() if all fixes are applied
+1. Call get_pending_fixes(28) to extract actionable fixes
+1. Call apply_fix() for each fix
+1. Call run_linters() to fix any remaining issues
+1. Optionally call dismiss_review() if all fixes are applied
 ```
 
 ## Running Standalone
