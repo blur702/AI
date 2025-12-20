@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "drupal-remote": {
-      "command": "C:\Program Files\PuTTY\plink.exe",
+      "command": "C:/Program Files/PuTTY/plink.exe",
       "args": [
         "-ssh",
         "-pw", "${DRUPAL_SSH_PASSWORD}",
@@ -16,7 +16,7 @@
     "coderabbit": {
       "command": "python",
       "args": ["-m", "mcp_servers.coderabbit.main"],
-      "cwd": "D:\AI",
+      "cwd": "D:/AI",
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}",
         "GITHUB_REPO": "blur702/AI",

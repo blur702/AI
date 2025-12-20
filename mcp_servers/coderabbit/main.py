@@ -321,7 +321,7 @@ def _get_github_api() -> GitHubAPI:
 
 
 @mcp.tool()
-def list_open_prs() -> list[dict[str, Any]]:
+def list_open_prs() -> list[dict[str, Any]] | dict[str, Any]:
     """
     List open pull requests in the repository.
 
@@ -350,7 +350,7 @@ def list_open_prs() -> list[dict[str, Any]]:
 
 
 @mcp.tool()
-def get_coderabbit_reviews(pr_number: int) -> list[dict[str, Any]]:
+def get_coderabbit_reviews(pr_number: int) -> list[dict[str, Any]] | dict[str, Any]:
     """
     Get CodeRabbit reviews for a specific PR.
 
@@ -384,7 +384,7 @@ def get_coderabbit_reviews(pr_number: int) -> list[dict[str, Any]]:
 
 
 @mcp.tool()
-def get_pending_fixes(pr_number: int) -> list[dict[str, Any]]:
+def get_pending_fixes(pr_number: int) -> list[dict[str, Any]] | dict[str, Any]:
     """
     Extract pending fix suggestions from CodeRabbit comments.
 
