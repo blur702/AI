@@ -24,7 +24,7 @@ class Settings:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # Project root for applying fixes
-    PROJECT_ROOT: str = os.getenv("PROJECT_ROOT", "D:/AI")
+    PROJECT_ROOT: str = os.getenv("PROJECT_ROOT", os.getcwd())
 
 
 settings = Settings()

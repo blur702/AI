@@ -16,11 +16,9 @@
     "coderabbit": {
       "command": "python",
       "args": ["-m", "mcp_servers.coderabbit.main"],
-      "cwd": "D:/AI",
       "env": {
         "GITHUB_TOKEN": "${GITHUB_TOKEN}",
-        "GITHUB_REPO": "blur702/AI",
-        "PROJECT_ROOT": "D:/AI"
+        "GITHUB_REPO": "blur702/AI"
       }
     }
   }

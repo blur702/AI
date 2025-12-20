@@ -321,36 +321,39 @@ def _get_github_api() -> GitHubAPI:
 
 
 @mcp.tool()
-def list_open_prs() -> list[dict[str, Any]] | dict[str, Any]:
+def list_open_prs() -> dict[str, Any]:
     """
     List open pull requests in the repository.
 
     Returns:
-        List of PRs with number, title, state, author, and created_at
+        Dict with success status and data (list of PRs) or error message
     """
     logger.info("Listing open PRs")
     try:
         api = _get_github_api()
         prs = api.list_open_prs()
-        return [
-            {
-                "number": pr["number"],
-                "title": pr["title"],
-                "state": pr["state"],
-                "draft": pr.get("draft", False),
-                "author": pr["user"]["login"],
-                "created_at": pr["created_at"],
-                "url": pr["html_url"],
-            }
-            for pr in prs
-        ]
+        return {
+            "success": True,
+            "data": [
+                {
+                    "number": pr["number"],
+                    "title": pr["title"],
+                    "state": pr["state"],
+                    "draft": pr.get("draft", False),
+                    "author": pr["user"]["login"],
+                    "created_at": pr["created_at"],
+                    "url": pr["html_url"],
+                }
+                for pr in prs
+            ],
+        }
     except Exception as e:
         logger.exception("Failed to list PRs")
         return {"success": False, "message": str(e)}
 
 
 @mcp.tool()
-def get_coderabbit_reviews(pr_number: int) -> list[dict[str, Any]] | dict[str, Any]:
+def get_coderabbit_reviews(pr_number: int) -> dict[str, Any]:
     """
     Get CodeRabbit reviews for a specific PR.
 
@@ -358,7 +361,7 @@ def get_coderabbit_reviews(pr_number: int) -> list[dict[str, Any]] | dict[str, A
         pr_number: The pull request number
 
     Returns:
-        List of CodeRabbit reviews with id, state, body preview, and submitted_at
+        Dict with success status and data (list of reviews) or error message
     """
     logger.info("Getting CodeRabbit reviews for PR #%d", pr_number)
     try:
@@ -377,14 +380,14 @@ def get_coderabbit_reviews(pr_number: int) -> list[dict[str, Any]] | dict[str, A
                     "commit_id": review.get("commit_id", "")[:7],
                 })
 
-        return coderabbit_reviews
+        return {"success": True, "data": coderabbit_reviews}
     except Exception as e:
         logger.exception("Failed to get reviews")
         return {"success": False, "message": str(e)}
 
 
 @mcp.tool()
-def get_pending_fixes(pr_number: int) -> list[dict[str, Any]] | dict[str, Any]:
+def get_pending_fixes(pr_number: int) -> dict[str, Any]:
     """
     Extract pending fix suggestions from CodeRabbit comments.
 
@@ -392,8 +395,7 @@ def get_pending_fixes(pr_number: int) -> list[dict[str, Any]] | dict[str, Any]:
         pr_number: The pull request number
 
     Returns:
-        List of actionable fixes with fix_id, file_path, description, category,
-        old_code, and new_code
+        Dict with success status and data (list of fixes) or error message
     """
     logger.info("Getting pending fixes for PR #%d", pr_number)
     try:
@@ -417,7 +419,7 @@ def get_pending_fixes(pr_number: int) -> list[dict[str, Any]] | dict[str, Any]:
                 fixes.append(asdict(fix))
 
         logger.info("Found %d pending fixes", len(fixes))
-        return fixes
+        return {"success": True, "data": fixes}
     except Exception as e:
         logger.exception("Failed to get pending fixes")
         return {"success": False, "message": str(e)}
