@@ -525,8 +525,8 @@ def migrate_add_voting_fields(client: weaviate.WeaviateClient) -> bool:
         config = collection.config.get()
         existing_props = {p.name for p in config.properties}
     except Exception as exc:
-        logger.warning("Could not check existing properties: %s", exc)
-        existing_props = set()
+        logger.error("Could not check existing properties: %s", exc)
+        return False
 
     # Define new voting properties
     voting_properties = [

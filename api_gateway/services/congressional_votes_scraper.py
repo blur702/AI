@@ -358,9 +358,9 @@ class CongressionalVotesScraper:
             if self._is_cancelled():
                 break
 
-            roll_call = vote_summary.get("rollCallNumber") or vote_summary.get(
-                "voteNumber"
-            )
+            roll_call = vote_summary.get("rollCallVoteNumber") or vote_summary.get(
+                "rollCallNumber"
+            ) or vote_summary.get("voteNumber")
             if not roll_call:
                 continue
 
@@ -476,6 +476,11 @@ def scrape_voting_records(
         logger.info("Running voting records scraper in dry-run mode")
 
     with WeaviateConnection() as client:
+        # Ensure collection exists before migration
+        from .congressional_schema import create_congressional_data_collection
+
+        create_congressional_data_collection(client)
+
         # Run migration to add voting fields
         migrate_add_voting_fields(client)
 

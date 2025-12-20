@@ -262,7 +262,7 @@ Parallel scraper system for House of Representatives member websites. Scrapes me
 - **Supervisor** (`congressional_parallel_supervisor.py`): Orchestrates 20 parallel workers
 - **Workers** (`congressional_worker.py`): Each scrapes assigned subset of members
 - **Scraper** (`congressional_scraper.py`): Core scraping logic with rate limiting
-- **Votes Scraper** (`congressional_votes_scraper.py`): Fetches roll call votes from Congress.gov API
+- **Votes Scraper** (`congressional_votes_scraper.py`): Fetches roll-call votes from Congress.gov API
 
 ### Data Flow
 
@@ -362,7 +362,8 @@ python -m api_gateway.services.congressional_votes_scraper scrape --max-votes 50
 python -m api_gateway.services.congressional_votes_scraper status
 ```
 
-**API Key:** Get a free key at https://api.congress.gov/sign-up/ and set:
+**API Key:** Get a free key at <https://api.congress.gov/sign-up/> and set:
+
 ```bash
 CONGRESS_API_KEY=your-api-key-here
 ```

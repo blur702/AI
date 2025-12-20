@@ -973,8 +973,10 @@ if __name__ == "__main__":
 
             vote_stats = get_voting_stats()
             stats["voting_records"] = vote_stats
-        except Exception:
-            pass
+        except ImportError:
+            pass  # Voting module not available
+        except Exception as exc:
+            logger.debug("Could not fetch voting stats: %s", exc)
 
         print(json.dumps(stats, indent=2))
         sys.exit(0)
