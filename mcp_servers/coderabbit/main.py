@@ -24,7 +24,7 @@ import re
 import subprocess
 import sys
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
@@ -51,7 +51,7 @@ logger = logging.getLogger("mcp.coderabbit")
 mcp = FastMCP("CodeRabbit")
 
 
-@dataclass
+@dataclass(frozen=True)
 class CodeFix:
     """Represents a code fix suggestion from CodeRabbit."""
 
@@ -90,6 +90,7 @@ class GitHubAPI:
     ) -> requests.Response:
         """Make an HTTP request with retry logic."""
         url = f"{self.base_url}{endpoint}"
+        last_exception: Exception | None = None
         for attempt in range(retries):
             try:
                 response = requests.request(
@@ -100,14 +101,15 @@ class GitHubAPI:
                     json=json_data,
                     timeout=30,
                 )
-                if response.status_code in (500, 502, 503, 504):
-                    response.raise_for_status()
-                return response
-            except requests.exceptions.RequestException:
-                if attempt == retries - 1:
-                    raise
+                if response.status_code not in (500, 502, 503, 504):
+                    return response
+                # Server error - retry
+                last_exception = requests.exceptions.HTTPError(response=response)
+            except requests.exceptions.RequestException as e:
+                last_exception = e
+            if attempt < retries - 1:
                 time.sleep(2 ** attempt)
-        raise RuntimeError("Request failed after retries")
+        raise last_exception or RuntimeError("Request failed after retries")
 
     def list_open_prs(self) -> list[dict]:
         """List open pull requests."""
@@ -267,14 +269,15 @@ class CodeRabbitParser:
         new_lines = []
         for line in content.split("\n"):
             if line.startswith("-") and not line.startswith("---"):
-                old_lines.append(line[1:].strip())
+                old_lines.append(line[1:])  # Preserve indentation
             elif line.startswith("+") and not line.startswith("+++"):
-                new_lines.append(line[1:].strip())
+                new_lines.append(line[1:])  # Preserve indentation
             elif not line.startswith("@@"):
-                stripped = line.lstrip(" ")
-                if stripped:
-                    old_lines.append(stripped)
-                    new_lines.append(stripped)
+                # Context line - remove single leading space if present (diff format)
+                context = line[1:] if line.startswith(" ") else line
+                if context or line == "":  # Include empty lines
+                    old_lines.append(context)
+                    new_lines.append(context)
         return old_lines, new_lines
 
     def _extract_description(self, body: str) -> str:
@@ -343,7 +346,7 @@ def list_open_prs() -> list[dict[str, Any]]:
         ]
     except Exception as e:
         logger.exception("Failed to list PRs")
-        return [{"error": str(e)}]
+        return {"success": False, "message": str(e)}
 
 
 @mcp.tool()
@@ -377,7 +380,7 @@ def get_coderabbit_reviews(pr_number: int) -> list[dict[str, Any]]:
         return coderabbit_reviews
     except Exception as e:
         logger.exception("Failed to get reviews")
-        return [{"error": str(e)}]
+        return {"success": False, "message": str(e)}
 
 
 @mcp.tool()
@@ -417,7 +420,7 @@ def get_pending_fixes(pr_number: int) -> list[dict[str, Any]]:
         return fixes
     except Exception as e:
         logger.exception("Failed to get pending fixes")
-        return [{"error": str(e)}]
+        return {"success": False, "message": str(e)}
 
 
 @mcp.tool()
@@ -469,11 +472,12 @@ def apply_fix(
         if start_line > 0 and start_line <= len(lines):
             # Check if old code matches around the line
             old_lines = old_code.split("\n")
-            end_line = start_line + len(old_lines)
-            if end_line <= len(lines):
-                section = "\n".join(lines[start_line - 1 : end_line])
+            start_idx = start_line - 1
+            end_idx = start_idx + len(old_lines)
+            if end_idx <= len(lines):
+                section = "\n".join(lines[start_idx:end_idx])
                 if _fuzzy_match(section, old_code):
-                    lines[start_line - 1 : end_line] = new_code.split("\n")
+                    lines[start_idx:end_idx] = new_code.split("\n")
                     full_path.write_text("\n".join(lines), encoding="utf-8")
                     return {"success": True, "message": "Applied line-based replacement"}
 
@@ -509,10 +513,11 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
     # Ruff
     try:
         cmd = ["ruff", "check", "."] + (["--fix"] if fix else [])
-        result = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=120)
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=120)
         results["ruff"] = {
             "success": result.returncode == 0,
-            "output": result.stdout.decode()[:500],
+            "output": result.stdout[:500],
+            "errors": result.stderr[:200] if result.stderr else None,
         }
     except Exception as e:
         results["ruff"] = {"success": False, "error": str(e)}
@@ -520,10 +525,11 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
     # Black
     try:
         cmd = ["black", "."] if fix else ["black", "--check", "."]
-        result = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=120)
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=120)
         results["black"] = {
             "success": result.returncode == 0,
-            "output": result.stdout.decode()[:500],
+            "output": result.stdout[:500],
+            "errors": result.stderr[:200] if result.stderr else None,
         }
     except Exception as e:
         results["black"] = {"success": False, "error": str(e)}
@@ -531,10 +537,11 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
     # Prettier
     try:
         cmd = ["npx", "prettier"] + (["--write", "."] if fix else ["--check", "."])
-        result = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=120)
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=120)
         results["prettier"] = {
             "success": result.returncode == 0,
-            "output": result.stdout.decode()[:500],
+            "output": result.stdout[:500],
+            "errors": result.stderr[:200] if result.stderr else None,
         }
     except Exception as e:
         results["prettier"] = {"success": False, "error": str(e)}
@@ -542,10 +549,11 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
     # ESLint
     try:
         cmd = ["npx", "eslint", "."] + (["--fix"] if fix else [])
-        result = subprocess.run(cmd, cwd=cwd, capture_output=True, timeout=120)
+        result = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=120)
         results["eslint"] = {
             "success": result.returncode == 0,
-            "output": result.stdout.decode()[:500],
+            "output": result.stdout[:500],
+            "errors": result.stderr[:200] if result.stderr else None,
         }
     except Exception as e:
         results["eslint"] = {"success": False, "error": str(e)}

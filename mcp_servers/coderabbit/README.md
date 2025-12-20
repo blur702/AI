@@ -15,6 +15,7 @@ MCP (Model Context Protocol) server that enables Claude Code to interact with Co
 ## Setup
 
 1. Set your GitHub token as an environment variable:
+
    ```bash
    export GITHUB_TOKEN=your-github-token-here
    ```
@@ -33,7 +34,7 @@ Once configured, you can ask Claude Code things like:
 
 ## Example Workflow
 
-```
+```text
 You: "Check PR #28 for CodeRabbit suggestions and apply them"
 
 Claude Code will:
