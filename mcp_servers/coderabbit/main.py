@@ -522,7 +522,7 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
             "errors": result.stderr[:200] if result.stderr else None,
         }
     except Exception as e:
-        results["ruff"] = {"success": False, "error": str(e)}
+        results["ruff"] = {"success": False, "message": str(e)}
 
     # Black
     try:
@@ -534,7 +534,7 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
             "errors": result.stderr[:200] if result.stderr else None,
         }
     except Exception as e:
-        results["black"] = {"success": False, "error": str(e)}
+        results["black"] = {"success": False, "message": str(e)}
 
     # Prettier
     try:
@@ -546,7 +546,7 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
             "errors": result.stderr[:200] if result.stderr else None,
         }
     except Exception as e:
-        results["prettier"] = {"success": False, "error": str(e)}
+        results["prettier"] = {"success": False, "message": str(e)}
 
     # ESLint
     try:
@@ -558,7 +558,7 @@ def run_linters(fix: bool = True) -> dict[str, Any]:
             "errors": result.stderr[:200] if result.stderr else None,
         }
     except Exception as e:
-        results["eslint"] = {"success": False, "error": str(e)}
+        results["eslint"] = {"success": False, "message": str(e)}
 
     return results
 
@@ -583,7 +583,7 @@ def dismiss_review(pr_number: int, review_id: int, message: str = "Fixes applied
         return {"success": True, "state": result.get("state")}
     except Exception as e:
         logger.exception("Failed to dismiss review")
-        return {"success": False, "error": str(e)}
+        return {"success": False, "message": str(e)}
 
 
 @mcp.tool()
@@ -617,7 +617,7 @@ def get_pr_status(pr_number: int) -> dict[str, Any]:
         }
     except Exception as e:
         logger.exception("Failed to get PR status")
-        return {"error": str(e)}
+        return {"success": False, "message": str(e)}
 
 
 if __name__ == "__main__":

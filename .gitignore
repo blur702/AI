@@ -41,7 +41,8 @@ data/scraper/congressional/heartbeats/
 data/scraper/congressional/remaining_members.json
 data/scraper/congressional/supervisor.pid
 data/scraper/congressional/work_assignments.json
-data/scraper_cache/congressional_docs/
+# All scraper cache directories (can be large)
+data/scraper_cache/
 
 # VSCode workspace settings (machine-specific)
 .vscode/settings.json
