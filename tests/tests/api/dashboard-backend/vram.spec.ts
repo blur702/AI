@@ -40,9 +40,14 @@ test.describe("Dashboard Backend VRAM API", () => {
       // If there are processes using GPU, validate their structure
       if (status.processes.length > 0) {
         const process = status.processes[0];
-        expect(process).toHaveProperty("pid");
-        expect(process).toHaveProperty("name");
-        expect(process).toHaveProperty("memory");
+const process = status.processes[0];
+expect(typeof process.pid).toBe("number");
+expect(typeof process.name).toBe("string");
+expect(typeof process.memory).toBe("number");
+expect(process.pid).toBeGreaterThan(0);
+expect(process.name.length).toBeGreaterThan(0);
+expect(process.memory).toBeGreaterThanOrEqual(0);
+}
       }
     });
 

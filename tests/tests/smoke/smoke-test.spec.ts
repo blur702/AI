@@ -42,7 +42,12 @@ test.describe.parallel("Smoke tests", () => {
     try {
       const health = await gatewayAPI.getHealth();
       expect(health.success).toBe(true);
-    } catch (error: any) {
+} catch (error: unknown) {
+// Skip test if gateway is not running (ECONNREFUSED)
+if (
+(error as NodeJS.ErrnoException).code === "ECONNREFUSED" ||
+(error as Error).message?.includes("ECONNREFUSED")
+) {
       // Skip test if gateway is not running (ECONNREFUSED)
       if (
         error.code === "ECONNREFUSED" ||

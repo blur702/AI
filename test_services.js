@@ -1,5 +1,11 @@
 // Comprehensive AI Services Test Script using Playwright
 const { chromium } = require("playwright");
+const fs = require("fs");
+const path = require("path");
+const fs = require("fs");
+const path = require("path");
+const fs = require("fs");
+const path = require("path");
 
 const services = [
   { name: "Open WebUI", url: "http://localhost:3000", expect: "Open WebUI" },

@@ -17,14 +17,11 @@ test.describe("API Gateway LLM endpoints", () => {
     let isGatewayAvailable = true;
     try {
       await gatewayAPI.listModels();
-    } catch (error: any) {
-      if (
-        error.code === "ECONNREFUSED" ||
-        error.message?.includes("ECONNREFUSED")
-      ) {
-        isGatewayAvailable = false;
-      }
-    }
+} catch (error: unknown) {
+if (
+(error instanceof Error && error.message?.includes("ECONNREFUSED")) ||
+(typeof error === "object" && error !== null && (error as any).code === "ECONNREFUSED")
+) {
 
     // Skip test if gateway is not running
     test.skip(!isGatewayAvailable, "API Gateway is not running (port 1301)");

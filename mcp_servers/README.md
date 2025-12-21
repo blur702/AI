@@ -14,7 +14,7 @@ Provides semantic search over code and documentation stored in Weaviate.
 
 | Tool                   | Description                                                  |
 | ---------------------- | ------------------------------------------------------------ |
-| `search_documentation` | Search markdown docs by semantic similarity                  |
+| `search_documentation` | Search Markdown docs by semantic similarity                  |
 | `search_code`          | Search code entities (functions, classes, etc.) with filters |
 | `search_codebase`      | Combined search across docs and code                         |
 

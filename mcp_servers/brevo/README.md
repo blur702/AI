@@ -165,7 +165,7 @@ VS Code/Claude Desktop
 ### Connection Errors
 
 - Verify internet connectivity
-- Check Brevo service status at https://status.brevo.com
+- Check Brevo service status at [https://status.brevo.com](https://status.brevo.com)
 - Ensure the MCP token is valid
 
 ### Authentication Errors

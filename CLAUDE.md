@@ -365,6 +365,11 @@ python -m api_gateway.services.congressional_votes_scraper status
 ```
 
 **API Key:** Get a free key at <https://api.congress.gov/sign-up/> and set:
+**API Key:** Get a free key at <https://api.congress.gov/sign-up/> and set:
+
+```bash
+CONGRESS_API_KEY=your-api-key-here
+```
 
 ```bash
 CONGRESS_API_KEY=your-api-key-here

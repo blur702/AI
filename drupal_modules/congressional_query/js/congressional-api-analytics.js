@@ -38,7 +38,7 @@
 
       // Convert object to arrays.
       for (let i = 1; i <= 24; i++) {
-        labels.push(i + "h ago");
+        labels.push(`${i}h ago`);
         values.push(data[i] || 0);
       }
 

@@ -100,7 +100,30 @@ export class BaseAPIClient {
       });
 
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as any; // Type assertion after checking
+      const status = err?.response?.status;
+      const data = err?.response?.data;
+      console.error("[BaseAPIClient] Error:", {
+        status,
+        data,
+        message: err?.message,
+        code: err?.code,
+        url: this.baseUrl + config.url,
+      });
+      // Don't retry 4xx client errors
+      if (status >= 400 && status < 500) {
+        throw new APIError("Client error - not retrying", status, data);
+      }
+      if (attempt >= this.maxRetries) {
+        if (err.code === "ECONNABORTED") {
+          throw new TimeoutError(`Request timed out after ${attempt} attempts`);
+        }
+        if (!err.response) {
+          throw new NetworkError(err.message || "Network error");
+        }
+        throw new APIError("API request failed", status, data);
+      }
       const status = error?.response?.status;
       const data = error?.response?.data;
 

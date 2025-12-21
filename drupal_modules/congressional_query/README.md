@@ -61,18 +61,18 @@ Query LLM about congressional members with voting records via SSH tunnel to remo
 
 | Setting         | Description                                                   |
 | --------------- | ------------------------------------------------------------- |
-| Ollama Endpoint | API endpoint (default: http://localhost:11434)                |
+| Ollama Endpoint | API endpoint (default: <http://localhost:11434>)              |
 | LLM Model       | Model for answer generation (default: qwen3-coder-roo:latest) |
 | Embedding Model | Model for embeddings (default: snowflake-arctic-embed:l)      |
 | Temperature     | Generation temperature 0.0-2.0 (default: 0.3)                 |
 
 ### Weaviate Settings
 
-| Setting      | Description                                    |
-| ------------ | ---------------------------------------------- |
-| Weaviate URL | HTTP endpoint (default: http://localhost:8080) |
-| gRPC Port    | gRPC port (default: 50051)                     |
-| Collection   | Collection name (default: CongressionalData)   |
+| Setting      | Description                                      |
+| ------------ | ------------------------------------------------ |
+| Weaviate URL | HTTP endpoint (default: <http://localhost:8080>) |
+| gRPC Port    | gRPC port (default: 50051)                       |
+| Collection   | Collection name (default: CongressionalData)     |
 
 ### Query Settings
 
@@ -169,7 +169,9 @@ Content-Type: application/json
 
 Get conversation history:
 
-```
+Get conversation history:
+
+```http
 GET /api/congressional/chat/{conversation_id}
 ```
 

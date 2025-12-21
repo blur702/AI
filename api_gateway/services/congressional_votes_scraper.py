@@ -140,7 +140,7 @@ class CongressionalVotesScraper:
             self._client.close()
             self._client = None
 
-    def _is_cancelled(self) -> bool:
+    def is_cancelled(self) -> bool:
         if self.check_cancelled:
             try:
                 return bool(self.check_cancelled())
