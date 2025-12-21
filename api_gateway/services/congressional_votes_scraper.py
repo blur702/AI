@@ -42,8 +42,23 @@ logger = get_logger("api_gateway.congressional_votes_scraper")
 # Congress.gov API configuration
 CONGRESS_API_BASE = "https://api.congress.gov/v3"
 DEFAULT_REQUEST_DELAY = 0.5  # Faster than web scraping since it's an API
-DEFAULT_CONGRESS = 119  # Current congress (2025-2026)
 DEFAULT_SESSION = 1
+
+
+def _current_congress() -> int:
+    """
+    Calculate the current Congress number based on the current year.
+
+    Congress number increments every 2 years starting from 1789.
+    The 1st Congress was 1789-1791, so:
+    - 119th Congress: 2025-2026
+    - 120th Congress: 2027-2028
+    """
+    year = datetime.now().year
+    return ((year - 1789) // 2) + 1
+
+
+DEFAULT_CONGRESS = _current_congress()
 
 
 @dataclass

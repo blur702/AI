@@ -574,7 +574,7 @@ class CongressionalDocScraper(BaseDocScraper):
                 message=f"Scraping website for {member.name}",
             )
 
-            queue: list[str] = [member.website_url]
+            queue: deque[str] = deque([member.website_url])
             pages_scraped_for_member = 0
 
             while queue and pages_scraped_for_member < self.scrape_config.max_pages_per_member:
@@ -589,7 +589,7 @@ class CongressionalDocScraper(BaseDocScraper):
                     logger.info("Scrape paused; waiting before continuing")
                     time.sleep(1.0)
 
-                url = queue.pop(0)
+                url = queue.popleft()
                 if url in visited:
                     continue
                 visited.add(url)
@@ -907,8 +907,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--congress",
         type=int,
-        default=119,
-        help="Congress number for voting records (default: 119)",
+        default=None,
+        help="Congress number for voting records (default: current)",
     )
     parser.add_argument(
         "--session",
@@ -932,12 +932,15 @@ if __name__ == "__main__":
                 scrape_voting_records,
             )
 
-            vote_cfg = VoteScrapeConfig(
-                congress=args.congress,
-                session=args.session,
-                max_votes=args.max_votes,
-                dry_run=args.dry_run,
-            )
+            # Build config, using defaults for unspecified values
+            vote_cfg_kwargs: dict = {
+                "session": args.session,
+                "max_votes": args.max_votes,
+                "dry_run": args.dry_run,
+            }
+            if args.congress is not None:
+                vote_cfg_kwargs["congress"] = args.congress
+            vote_cfg = VoteScrapeConfig(**vote_cfg_kwargs)
             result = scrape_voting_records(vote_cfg)
             print(json.dumps(result, indent=2))
             sys.exit(0)
