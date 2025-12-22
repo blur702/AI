@@ -7,7 +7,7 @@
  */
 
 (function (Drupal) {
-  'use strict';
+  "use strict";
 
   /**
    * Focusable element selectors.
@@ -15,18 +15,18 @@
    * @type {string}
    */
   const FOCUSABLE_SELECTORS = [
-    'a[href]',
-    'area[href]',
+    "a[href]",
+    "area[href]",
     'input:not([disabled]):not([type="hidden"])',
-    'select:not([disabled])',
-    'textarea:not([disabled])',
-    'button:not([disabled])',
-    'iframe',
-    'object',
-    'embed',
-    '[contenteditable]',
-    '[tabindex]:not([tabindex="-1"])'
-  ].join(', ');
+    "select:not([disabled])",
+    "textarea:not([disabled])",
+    "button:not([disabled])",
+    "iframe",
+    "object",
+    "embed",
+    "[contenteditable]",
+    '[tabindex]:not([tabindex="-1"])',
+  ].join(", ");
 
   /**
    * Get all focusable elements within a container.
@@ -40,7 +40,11 @@
     const elements = container.querySelectorAll(FOCUSABLE_SELECTORS);
     return Array.from(elements).filter(function (element) {
       // Filter out elements that are not visible
-      return !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+      return !!(
+        element.offsetWidth ||
+        element.offsetHeight ||
+        element.getClientRects().length
+      );
     });
   }
 
@@ -64,7 +68,7 @@
     this.previouslyFocused = document.activeElement;
 
     // Add keyboard listener
-    document.addEventListener('keydown', this.handleKeyDown);
+    document.addEventListener("keydown", this.handleKeyDown);
 
     // Set focus to the first focusable element
     const focusableElements = getFocusableElements(this.container);
@@ -72,12 +76,12 @@
       focusableElements[0].focus();
     } else {
       // If no focusable elements, focus the container itself
-      this.container.setAttribute('tabindex', '-1');
+      this.container.setAttribute("tabindex", "-1");
       this.container.focus();
     }
 
     // Add class to body to prevent scrolling
-    document.body.classList.add('dialog-open');
+    document.body.classList.add("dialog-open");
   };
 
   /**
@@ -85,13 +89,16 @@
    */
   FocusTrap.prototype.deactivate = function () {
     // Remove keyboard listener
-    document.removeEventListener('keydown', this.handleKeyDown);
+    document.removeEventListener("keydown", this.handleKeyDown);
 
     // Remove body class
-    document.body.classList.remove('dialog-open');
+    document.body.classList.remove("dialog-open");
 
     // Restore focus to the previously focused element
-    if (this.previouslyFocused && typeof this.previouslyFocused.focus === 'function') {
+    if (
+      this.previouslyFocused &&
+      typeof this.previouslyFocused.focus === "function"
+    ) {
       this.previouslyFocused.focus();
     }
   };
@@ -103,7 +110,7 @@
    *   The keyboard event.
    */
   FocusTrap.prototype.handleKeyDown = function (event) {
-    if (event.key !== 'Tab') {
+    if (event.key !== "Tab") {
       return;
     }
 
@@ -149,14 +156,16 @@
   Drupal.behaviors.atomicReactFocusTrap = {
     attach: function (context) {
       // Auto-attach to Drupal dialogs
-      const dialogs = context.querySelectorAll('[role="dialog"][aria-modal="true"]');
+      const dialogs = context.querySelectorAll(
+        '[role="dialog"][aria-modal="true"]',
+      );
 
       dialogs.forEach(function (dialog) {
-        if (dialog.hasAttribute('data-focus-trap-initialized')) {
+        if (dialog.hasAttribute("data-focus-trap-initialized")) {
           return;
         }
 
-        dialog.setAttribute('data-focus-trap-initialized', 'true');
+        dialog.setAttribute("data-focus-trap-initialized", "true");
 
         const focusTrap = new FocusTrap(dialog);
 
@@ -164,15 +173,15 @@
         dialog.focusTrap = focusTrap;
 
         // Activate if dialog is visible
-        if (!dialog.hidden && dialog.style.display !== 'none') {
+        if (!dialog.hidden && dialog.style.display !== "none") {
           focusTrap.activate();
         }
 
         // Watch for dialog visibility changes
         const observer = new MutationObserver(function (mutations) {
           mutations.forEach(function (mutation) {
-            if (mutation.type === 'attributes') {
-              const isHidden = dialog.hidden || dialog.style.display === 'none';
+            if (mutation.type === "attributes") {
+              const isHidden = dialog.hidden || dialog.style.display === "none";
               if (isHidden) {
                 focusTrap.deactivate();
               } else {
@@ -184,24 +193,23 @@
 
         observer.observe(dialog, {
           attributes: true,
-          attributeFilter: ['hidden', 'style', 'class']
+          attributeFilter: ["hidden", "style", "class"],
         });
       });
     },
 
     detach: function (context, settings, trigger) {
-      if (trigger !== 'unload') {
+      if (trigger !== "unload") {
         return;
       }
 
-      const dialogs = context.querySelectorAll('[data-focus-trap-initialized]');
+      const dialogs = context.querySelectorAll("[data-focus-trap-initialized]");
 
       dialogs.forEach(function (dialog) {
         if (dialog.focusTrap) {
           dialog.focusTrap.deactivate();
         }
       });
-    }
+    },
   };
-
 })(Drupal);

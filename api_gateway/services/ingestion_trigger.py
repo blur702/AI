@@ -27,7 +27,7 @@ CLI usage (from project root):
     python -m api_gateway.services.ingestion_trigger process-queue --dry-run
 
     # Incremental update (for git hooks - now queues by default)
-    python -m api_gateway.services.ingestion_trigger --files "path/to/file1.py path/to/file2.md"
+    python -m api_gateway.services.ingestion_trigger --files "api_gateway/app.py alltalk_tts/README.md"
 """
 
 from __future__ import annotations
@@ -108,6 +108,7 @@ def _get_ingestion_queue_file() -> Path:
 
 
 INGESTION_QUEUE_FILE = _get_ingestion_queue_file()
+SERVICE_DIRS = {name.lower() for name in AI_SERVICE_DIRS.keys()}
 
 
 def _relative_to_workspace(path: Path) -> str:
@@ -125,6 +126,23 @@ def _relative_to_workspace(path: Path) -> str:
         return str(path.resolve().relative_to(workspace_root))
     except ValueError:
         return str(path.resolve())
+
+
+def _is_service_readme(path: Path) -> bool:
+    """
+    Return True if the path is a README.md under a known service directory.
+
+    This is the only type of markdown file we index since the root docs/
+    directory was deleted and documentation is now stored in vector DB.
+    """
+    if path.name.lower() != "readme.md":
+        return False
+    try:
+        rel_path = path.resolve().relative_to(Path(__file__).resolve().parents[2])
+    except ValueError:
+        return False
+    rel_parts = [part.lower() for part in rel_path.parts]
+    return any(service_dir in rel_parts for service_dir in SERVICE_DIRS)
 
 
 def run_incremental(file_paths: list[str], dry_run: bool = False) -> int:
@@ -158,7 +176,7 @@ def run_incremental(file_paths: list[str], dry_run: bool = False) -> int:
         suffix = file_path.suffix.lower()
         if suffix in CODE_EXTENSIONS:
             code_files.append(file_path)
-        elif suffix in DOC_EXTENSIONS:
+        elif suffix in DOC_EXTENSIONS and _is_service_readme(file_path):
             doc_files.append(file_path)
         else:
             skipped_files.append(f"{file_path_str} (unsupported type)")
@@ -508,7 +526,7 @@ Examples:
   python -m api_gateway.services.ingestion_trigger status
 
   # Incremental update (for git hooks)
-  python -m api_gateway.services.ingestion_trigger --files "api_gateway/app.py docs/README.md"
+  python -m api_gateway.services.ingestion_trigger --files "api_gateway/app.py alltalk_tts/README.md"
         """,
     )
 

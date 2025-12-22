@@ -12,7 +12,8 @@ a {
   text-decoration: underline;
   text-underline-offset: 0.2em;
   text-decoration-thickness: 1px;
-  transition: color var(--transition-fast),
+  transition:
+    color var(--transition-fast),
     text-decoration-color var(--transition-fast);
 }
 
@@ -145,7 +146,9 @@ a[download]::before,
   color: var(--color-text-primary);
   text-decoration: none;
   border-radius: var(--border-radius-md);
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .nav-link:hover {

@@ -4,28 +4,36 @@
  */
 
 (function ($, Drupal, once) {
-  'use strict';
+  "use strict";
 
   /**
    * Congressional Query Form behavior.
    */
   Drupal.behaviors.congressionalQueryForm = {
     attach: function (context, settings) {
-      const $wrapper = $(once('congressional-query-form', '.congressional-query-form-wrapper', context));
+      const $wrapper = $(
+        once(
+          "congressional-query-form",
+          ".congressional-query-form-wrapper",
+          context,
+        ),
+      );
 
       if ($wrapper.length === 0) {
         return;
       }
 
-      const $form = $wrapper.find('form');
-      const $textarea = $form.find('#edit-question');
+      const $form = $wrapper.find("form");
+      const $textarea = $form.find("#edit-question");
       const $submitBtn = $form.find('input[type="submit"]');
-      const $exampleChips = $form.find('.example-question-chip');
+      const $exampleChips = $form.find(".example-question-chip");
       const maxLength = 2000;
 
       // Create character counter if it doesn't exist.
-      if ($textarea.length && !$form.find('.character-counter').length) {
-        const $counter = $('<div class="character-counter" aria-live="polite" role="status"></div>');
+      if ($textarea.length && !$form.find(".character-counter").length) {
+        const $counter = $(
+          '<div class="character-counter" aria-live="polite" role="status"></div>',
+        );
         $textarea.after($counter);
         updateCharacterCounter($textarea, $counter, maxLength);
       }
@@ -33,42 +41,42 @@
       // Handle example question chip clicks.
       $exampleChips.each(function () {
         const $chip = $(this);
-        $chip.on('click', function (e) {
+        $chip.on("click", function (e) {
           e.preventDefault();
-          const question = $chip.attr('data-question');
+          const question = $chip.attr("data-question");
           if (question && $textarea.length) {
             $textarea.val(question);
-            $textarea.trigger('input');
-            $textarea.trigger('focus');
+            $textarea.trigger("input");
+            $textarea.trigger("focus");
             autoResizeTextarea($textarea);
 
             // Visual feedback on chip.
-            $chip.addClass('selected');
+            $chip.addClass("selected");
             setTimeout(function () {
-              $chip.removeClass('selected');
+              $chip.removeClass("selected");
             }, 300);
           }
         });
 
         // Keyboard support for chips.
-        $chip.on('keydown', function (e) {
-          if (e.key === 'Enter' || e.key === ' ') {
+        $chip.on("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            $chip.trigger('click');
+            $chip.trigger("click");
           }
         });
 
         // Ensure chips are focusable.
-        if (!$chip.attr('tabindex')) {
-          $chip.attr('tabindex', '0');
+        if (!$chip.attr("tabindex")) {
+          $chip.attr("tabindex", "0");
         }
       });
 
       // Auto-resize textarea as user types.
       if ($textarea.length) {
-        $textarea.on('input', function () {
+        $textarea.on("input", function () {
           autoResizeTextarea($(this));
-          const $counter = $form.find('.character-counter');
+          const $counter = $form.find(".character-counter");
           if ($counter.length) {
             updateCharacterCounter($(this), $counter, maxLength);
           }
@@ -79,41 +87,41 @@
       }
 
       // Ctrl+Enter to submit form.
-      $textarea.on('keydown', function (e) {
-        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      $textarea.on("keydown", function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
           e.preventDefault();
-          $submitBtn.trigger('click');
+          $submitBtn.trigger("click");
         }
       });
 
       // Form submission loading state.
-      $form.on('submit', function () {
-        const $loadingOverlay = $wrapper.find('.loading-overlay');
+      $form.on("submit", function () {
+        const $loadingOverlay = $wrapper.find(".loading-overlay");
 
         // Show loading state.
         $submitBtn
-          .prop('disabled', true)
-          .addClass('is-loading')
-          .data('original-value', $submitBtn.val())
-          .val(Drupal.t('Processing...'));
+          .prop("disabled", true)
+          .addClass("is-loading")
+          .data("original-value", $submitBtn.val())
+          .val(Drupal.t("Processing..."));
 
         // Show loading overlay if it exists.
         if ($loadingOverlay.length) {
-          $loadingOverlay.removeClass('hidden').attr('aria-hidden', 'false');
+          $loadingOverlay.removeClass("hidden").attr("aria-hidden", "false");
         }
 
         // Announce to screen readers.
-        announceMessage(Drupal.t('Processing your question. Please wait.'));
+        announceMessage(Drupal.t("Processing your question. Please wait."));
       });
 
       // Handle AJAX errors gracefully.
-      $(document).on('ajaxError', function (event, xhr, settings) {
-        if (settings.url && settings.url.includes('congressional')) {
-          resetFormState($submitBtn, $wrapper.find('.loading-overlay'));
-          announceMessage(Drupal.t('An error occurred. Please try again.'));
+      $(document).on("ajaxError", function (event, xhr, settings) {
+        if (settings.url && settings.url.includes("congressional")) {
+          resetFormState($submitBtn, $wrapper.find(".loading-overlay"));
+          announceMessage(Drupal.t("An error occurred. Please try again."));
         }
       });
-    }
+    },
   };
 
   /**
@@ -124,7 +132,7 @@
    */
   function autoResizeTextarea($textarea) {
     // Reset height to auto to get correct scrollHeight.
-    $textarea.css('height', 'auto');
+    $textarea.css("height", "auto");
 
     // Set minimum height.
     const minHeight = 100;
@@ -133,13 +141,13 @@
 
     // Apply new height within bounds.
     const newHeight = Math.min(Math.max(scrollHeight, minHeight), maxHeight);
-    $textarea.css('height', newHeight + 'px');
+    $textarea.css("height", newHeight + "px");
 
     // Show scrollbar if content exceeds max height.
     if (scrollHeight > maxHeight) {
-      $textarea.css('overflow-y', 'auto');
+      $textarea.css("overflow-y", "auto");
     } else {
-      $textarea.css('overflow-y', 'hidden');
+      $textarea.css("overflow-y", "hidden");
     }
   }
 
@@ -158,26 +166,28 @@
     const remaining = maxLength - currentLength;
     const percentage = (currentLength / maxLength) * 100;
 
-    $counter.text(Drupal.t('@remaining characters remaining', {
-      '@remaining': remaining
-    }));
+    $counter.text(
+      Drupal.t("@remaining characters remaining", {
+        "@remaining": remaining,
+      }),
+    );
 
     // Update styling based on remaining characters.
-    $counter.removeClass('counter-warning counter-danger counter-ok');
+    $counter.removeClass("counter-warning counter-danger counter-ok");
 
     if (percentage >= 90) {
-      $counter.addClass('counter-danger');
+      $counter.addClass("counter-danger");
     } else if (percentage >= 75) {
-      $counter.addClass('counter-warning');
+      $counter.addClass("counter-warning");
     } else {
-      $counter.addClass('counter-ok');
+      $counter.addClass("counter-ok");
     }
 
     // Update ARIA attributes.
     if (remaining < 0) {
-      $textarea.attr('aria-invalid', 'true');
+      $textarea.attr("aria-invalid", "true");
     } else {
-      $textarea.removeAttr('aria-invalid');
+      $textarea.removeAttr("aria-invalid");
     }
   }
 
@@ -191,12 +201,12 @@
    */
   function resetFormState($submitBtn, $loadingOverlay) {
     $submitBtn
-      .prop('disabled', false)
-      .removeClass('is-loading')
-      .val($submitBtn.data('original-value') || Drupal.t('Ask Question'));
+      .prop("disabled", false)
+      .removeClass("is-loading")
+      .val($submitBtn.data("original-value") || Drupal.t("Ask Question"));
 
     if ($loadingOverlay.length) {
-      $loadingOverlay.addClass('hidden').attr('aria-hidden', 'true');
+      $loadingOverlay.addClass("hidden").attr("aria-hidden", "true");
     }
   }
 
@@ -211,13 +221,14 @@
     if (Drupal.announce) {
       Drupal.announce(message);
     } else {
-      let $liveRegion = $('#congressional-query-live-region');
+      let $liveRegion = $("#congressional-query-live-region");
       if (!$liveRegion.length) {
-        $liveRegion = $('<div id="congressional-query-live-region" aria-live="polite" class="visually-hidden"></div>');
-        $('body').append($liveRegion);
+        $liveRegion = $(
+          '<div id="congressional-query-live-region" aria-live="polite" class="visually-hidden"></div>',
+        );
+        $("body").append($liveRegion);
       }
       $liveRegion.text(message);
     }
   }
-
 })(jQuery, Drupal, once);

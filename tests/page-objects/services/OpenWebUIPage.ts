@@ -1,5 +1,5 @@
-import { Locator, Page } from '@playwright/test';
-import { BasePage } from '../base/BasePage';
+import { Locator, Page } from "@playwright/test";
+import { BasePage } from "../base/BasePage";
 
 export class OpenWebUIPage extends BasePage {
   // Track the count of assistant messages before sending
@@ -14,18 +14,18 @@ export class OpenWebUIPage extends BasePage {
    */
   async waitForChatLoad(timeoutMs = 15000): Promise<void> {
     try {
-      console.log('[OpenWebUIPage] Waiting for chat interface to load...');
+      console.log("[OpenWebUIPage] Waiting for chat interface to load...");
       // Wait for the main chat container to be visible
       // Open WebUI uses various container selectors depending on version
       await this.page.waitForSelector(
         'textarea, [contenteditable="true"], input[type="text"]',
-        { timeout: timeoutMs, state: 'visible' }
+        { timeout: timeoutMs, state: "visible" },
       );
       // Wait for network to settle
-      await this.page.waitForLoadState('networkidle', { timeout: timeoutMs });
-      console.log('[OpenWebUIPage] Chat interface loaded');
+      await this.page.waitForLoadState("networkidle", { timeout: timeoutMs });
+      console.log("[OpenWebUIPage] Chat interface loaded");
     } catch (error) {
-      console.error('[OpenWebUIPage] Failed to load chat interface', error);
+      console.error("[OpenWebUIPage] Failed to load chat interface", error);
       throw error;
     }
   }
@@ -37,22 +37,26 @@ export class OpenWebUIPage extends BasePage {
   getChatInput(): Locator {
     // Open WebUI can use textarea or contenteditable for chat input
     // Try multiple selectors for compatibility
-    return this.page.locator([
-      // Textarea-based inputs
-      'textarea[placeholder*="message" i]',
-      'textarea[placeholder*="Send" i]',
-      'textarea[placeholder*="Ask" i]',
-      '#chat-textarea',
-      '[data-testid="message-input"]',
-      'textarea.w-full',
-      'textarea',
-      // Contenteditable-based inputs
-      'div[contenteditable="true"][data-testid="message-input"]',
-      'div[contenteditable="true"][placeholder*="message" i]',
-      'div[contenteditable="true"][role="textbox"]',
-      '[contenteditable="true"].chat-input',
-      '[contenteditable="true"]'
-    ].join(', ')).first();
+    return this.page
+      .locator(
+        [
+          // Textarea-based inputs
+          'textarea[placeholder*="message" i]',
+          'textarea[placeholder*="Send" i]',
+          'textarea[placeholder*="Ask" i]',
+          "#chat-textarea",
+          '[data-testid="message-input"]',
+          "textarea.w-full",
+          "textarea",
+          // Contenteditable-based inputs
+          'div[contenteditable="true"][data-testid="message-input"]',
+          'div[contenteditable="true"][placeholder*="message" i]',
+          'div[contenteditable="true"][role="textbox"]',
+          '[contenteditable="true"].chat-input',
+          '[contenteditable="true"]',
+        ].join(", "),
+      )
+      .first();
   }
 
   /**
@@ -60,13 +64,15 @@ export class OpenWebUIPage extends BasePage {
    */
   private getAssistantMessagesLocator(): Locator {
     // Open WebUI shows assistant messages in various containers
-    return this.page.locator([
-      '[data-role="assistant"]',
-      '.message.assistant',
-      '.assistant-message',
-      '[data-message-role="assistant"]',
-      '.chat-message[data-role="assistant"]'
-    ].join(', '));
+    return this.page.locator(
+      [
+        '[data-role="assistant"]',
+        ".message.assistant",
+        ".assistant-message",
+        '[data-message-role="assistant"]',
+        '.chat-message[data-role="assistant"]',
+      ].join(", "),
+    );
   }
 
   /**
@@ -82,23 +88,30 @@ export class OpenWebUIPage extends BasePage {
    */
   async sendMessage(text: string): Promise<void> {
     try {
-      console.log(`[OpenWebUIPage] Sending message: ${text.substring(0, 50)}...`);
+      console.log(
+        `[OpenWebUIPage] Sending message: ${text.substring(0, 50)}...`,
+      );
 
       // Record the count of assistant messages before sending
-      this.assistantMessageCountBeforeSend = await this.getAssistantMessageCount();
-      console.log(`[OpenWebUIPage] Assistant messages before send: ${this.assistantMessageCountBeforeSend}`);
+      this.assistantMessageCountBeforeSend =
+        await this.getAssistantMessageCount();
+      console.log(
+        `[OpenWebUIPage] Assistant messages before send: ${this.assistantMessageCountBeforeSend}`,
+      );
 
       const input = this.getChatInput();
-      await input.waitFor({ state: 'visible', timeout: 10000 });
+      await input.waitFor({ state: "visible", timeout: 10000 });
 
       // Check if it's a contenteditable element
-      const tagName = await input.evaluate(el => el.tagName.toLowerCase());
-      const isContentEditable = await input.evaluate(el => el.getAttribute('contenteditable') === 'true');
+      const tagName = await input.evaluate((el) => el.tagName.toLowerCase());
+      const isContentEditable = await input.evaluate(
+        (el) => el.getAttribute("contenteditable") === "true",
+      );
 
-      if (isContentEditable || tagName === 'div') {
+      if (isContentEditable || tagName === "div") {
         // For contenteditable, we need to use type() or set innerHTML
         await input.click();
-        await input.fill(''); // Clear first
+        await input.fill(""); // Clear first
         await this.page.keyboard.type(text);
       } else {
         // For textarea/input, use fill()
@@ -106,12 +119,12 @@ export class OpenWebUIPage extends BasePage {
       }
 
       // Press Enter to send (Open WebUI uses Enter to submit)
-      await input.press('Enter');
+      await input.press("Enter");
       // Wait a moment for the message to be sent
       await this.page.waitForTimeout(500);
-      console.log('[OpenWebUIPage] Message sent');
+      console.log("[OpenWebUIPage] Message sent");
     } catch (error) {
-      console.error('[OpenWebUIPage] Failed to send message', error);
+      console.error("[OpenWebUIPage] Failed to send message", error);
       throw error;
     }
   }
@@ -122,7 +135,7 @@ export class OpenWebUIPage extends BasePage {
    */
   async waitForLLMResponse(timeoutMs = 30000): Promise<void> {
     try {
-      console.log('[OpenWebUIPage] Waiting for LLM response...');
+      console.log("[OpenWebUIPage] Waiting for LLM response...");
 
       const startTime = Date.now();
       const expectedCount = this.assistantMessageCountBeforeSend + 1;
@@ -136,44 +149,51 @@ export class OpenWebUIPage extends BasePage {
         {
           selector: [
             '[data-role="assistant"]',
-            '.message.assistant',
-            '.assistant-message',
+            ".message.assistant",
+            ".assistant-message",
             '[data-message-role="assistant"]',
-            '.chat-message[data-role="assistant"]'
-          ].join(', '),
-          expectedCount
+            '.chat-message[data-role="assistant"]',
+          ].join(", "),
+          expectedCount,
         },
-        { timeout: timeoutMs }
+        { timeout: timeoutMs },
       );
 
-      console.log('[OpenWebUIPage] New assistant message detected');
+      console.log("[OpenWebUIPage] New assistant message detected");
 
       // Get the newly added assistant message (the one at index = countBefore)
       const assistantMessages = this.getAssistantMessagesLocator();
-      const newMessage = assistantMessages.nth(this.assistantMessageCountBeforeSend);
+      const newMessage = assistantMessages.nth(
+        this.assistantMessageCountBeforeSend,
+      );
 
       // Wait for streaming to complete by checking for loading indicators to disappear
       const loadingSelectors = [
-        '.loading',
+        ".loading",
         '[class*="loading"]',
-        '.animate-pulse',
-        '.typing-indicator',
-        'svg.animate-spin',
-        '[data-loading="true"]'
-      ].join(', ');
+        ".animate-pulse",
+        ".typing-indicator",
+        "svg.animate-spin",
+        '[data-loading="true"]',
+      ].join(", ");
 
       // Give some time for response to start streaming
       await this.page.waitForTimeout(1000);
 
       // Wait for loading indicators within the new message to disappear
-      const remainingTime = Math.max(timeoutMs - (Date.now() - startTime) - 2000, 5000);
+      const remainingTime = Math.max(
+        timeoutMs - (Date.now() - startTime) - 2000,
+        5000,
+      );
       try {
         // Check if there are any loading indicators scoped to the new message
         const loadingIndicator = newMessage.locator(loadingSelectors).first();
-        if (await loadingIndicator.isVisible({ timeout: 1000 }).catch(() => false)) {
+        if (
+          await loadingIndicator.isVisible({ timeout: 1000 }).catch(() => false)
+        ) {
           await loadingIndicator.waitFor({
-            state: 'hidden',
-            timeout: remainingTime
+            state: "hidden",
+            timeout: remainingTime,
           });
         }
       } catch {
@@ -183,9 +203,9 @@ export class OpenWebUIPage extends BasePage {
       // Additional wait for response text to stabilize (no more streaming)
       await this.waitForTextStable(newMessage, 3000);
 
-      console.log('[OpenWebUIPage] LLM response received and stable');
+      console.log("[OpenWebUIPage] LLM response received and stable");
     } catch (error) {
-      console.error('[OpenWebUIPage] Failed to receive LLM response', error);
+      console.error("[OpenWebUIPage] Failed to receive LLM response", error);
       throw error;
     }
   }
@@ -200,20 +220,20 @@ export class OpenWebUIPage extends BasePage {
   private async waitForTextStable(
     locator: Locator,
     stabilityTimeMs = 2000,
-    overallTimeoutMs = 60000
+    overallTimeoutMs = 60000,
   ): Promise<void> {
     const deadline = Date.now() + overallTimeoutMs;
-    let previousText = '';
+    let previousText = "";
     let stableStartTime = Date.now();
 
     while (Date.now() - stableStartTime < stabilityTimeMs) {
       if (Date.now() > deadline) {
         throw new Error(
-          `Text did not stabilize within ${overallTimeoutMs}ms. Last text: "${previousText.substring(0, 100)}..."`
+          `Text did not stabilize within ${overallTimeoutMs}ms. Last text: "${previousText.substring(0, 100)}..."`,
         );
       }
 
-      const currentText = await locator.textContent() || '';
+      const currentText = (await locator.textContent()) || "";
       if (currentText !== previousText) {
         previousText = currentText;
         stableStartTime = Date.now();
@@ -229,9 +249,9 @@ export class OpenWebUIPage extends BasePage {
     const assistantMessages = this.getAssistantMessagesLocator();
     const count = await assistantMessages.count();
     if (count === 0) {
-      return '';
+      return "";
     }
     const lastMessage = assistantMessages.nth(count - 1);
-    return (await lastMessage.textContent()) || '';
+    return (await lastMessage.textContent()) || "";
   }
 }

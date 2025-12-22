@@ -34,26 +34,26 @@ D:\AI/
 
 ## Port Allocation
 
-| Port | Service | Purpose |
-|------|---------|---------|
-| 443 | Nginx | HTTPS external access |
-| 80 | Dashboard | Flask + React UI |
-| 1301 | API Gateway | External REST API |
-| 5678 | N8N | Workflow automation |
-| 7851 | AllTalk | Text-to-speech |
-| 8080 | Weaviate | Vector database |
-| 8188 | ComfyUI | Image generation |
-| 11434 | Ollama | LLM runtime |
+| Port  | Service     | Purpose               |
+| ----- | ----------- | --------------------- |
+| 443   | Nginx       | HTTPS external access |
+| 80    | Dashboard   | Flask + React UI      |
+| 1301  | API Gateway | External REST API     |
+| 5678  | N8N         | Workflow automation   |
+| 7851  | AllTalk     | Text-to-speech        |
+| 8080  | Weaviate    | Vector database       |
+| 8188  | ComfyUI     | Image generation      |
+| 11434 | Ollama      | LLM runtime           |
 
 ---
 
 ## Key Entry Points
 
-| Service | File | Command |
-|---------|------|---------|
-| Dashboard | `dashboard/backend/app.py` | `start_dashboard.bat` |
-| API Gateway | `api_gateway/main.py` | `start_gateway.bat` |
-| N8N | npm global | `start_n8n.bat` |
+| Service               | File                                                        | Command                            |
+| --------------------- | ----------------------------------------------------------- | ---------------------------------- |
+| Dashboard             | `dashboard/backend/app.py`                                  | `start_dashboard.bat`              |
+| API Gateway           | `api_gateway/main.py`                                       | `start_gateway.bat`                |
+| N8N                   | npm global                                                  | `start_n8n.bat`                    |
 | Congressional Scraper | `api_gateway/services/congressional_parallel_supervisor.py` | `start_congressional_parallel.bat` |
 
 ---
@@ -62,15 +62,16 @@ D:\AI/
 
 **Stack**: Flask 3.0 + Flask-SocketIO + psutil
 
-| File | Purpose |
-|------|---------|
-| `app.py` | Main Flask app, WebSocket, auth, static serving |
-| `service_manager.py` | Service lifecycle (start/stop/pause), health checks, idle timeouts |
-| `services_config.py` | Service registry: ports, commands, health endpoints |
-| `ingestion_manager.py` | Weaviate indexing control and progress |
-| `claude_manager.py` | Claude Code WebSocket sessions |
+| File                   | Purpose                                                            |
+| ---------------------- | ------------------------------------------------------------------ |
+| `app.py`               | Main Flask app, WebSocket, auth, static serving                    |
+| `service_manager.py`   | Service lifecycle (start/stop/pause), health checks, idle timeouts |
+| `services_config.py`   | Service registry: ports, commands, health endpoints                |
+| `ingestion_manager.py` | Weaviate indexing control and progress                             |
+| `claude_manager.py`    | Claude Code WebSocket sessions                                     |
 
 **Key Functions**:
+
 - `ServiceManager.start_service(id)` - Launches AI service with VRAM check
 - `ServiceManager.stop_service(id)` - Graceful shutdown with cleanup
 - `IngestionManager.start_ingestion()` - Triggers Weaviate reindexing
@@ -81,11 +82,11 @@ D:\AI/
 
 **Stack**: React 18 + TypeScript + Vite + MUI
 
-| Directory | Contents |
-|-----------|----------|
+| Directory         | Contents                                                     |
+| ----------------- | ------------------------------------------------------------ |
 | `src/components/` | ServiceCard, ResourceManager, CongressionalChat, ClaudePanel |
-| `src/hooks/` | useSocket, useServices, useVram, useClaude, useCongressional |
-| `src/config/` | Service definitions for UI |
+| `src/hooks/`      | useSocket, useServices, useVram, useClaude, useCongressional |
+| `src/config/`     | Service definitions for UI                                   |
 
 **Build**: `npm run build` outputs to `dist/`, served by Flask.
 
@@ -97,15 +98,15 @@ D:\AI/
 
 ### Routes (`routes/`)
 
-| File | Endpoints |
-|------|-----------|
-| `generation.py` | `POST /generate/image\|video\|audio\|music` |
-| `llm.py` | `POST /llm/generate` |
-| `tts.py` | `POST /tts` |
-| `jobs.py` | `GET /jobs/{id}`, WebSocket updates |
-| `congressional.py` | Congressional data queries |
-| `auth.py` | API key management |
-| `health.py` | Health checks |
+| File               | Endpoints                                   |
+| ------------------ | ------------------------------------------- |
+| `generation.py`    | `POST /generate/image\|video\|audio\|music` |
+| `llm.py`           | `POST /llm/generate`                        |
+| `tts.py`           | `POST /tts`                                 |
+| `jobs.py`          | `GET /jobs/{id}`, WebSocket updates         |
+| `congressional.py` | Congressional data queries                  |
+| `auth.py`          | API key management                          |
+| `health.py`        | Health checks                               |
 
 **Auth**: Requires `X-API-Key` header (validated in `middleware/auth.py`).
 
@@ -147,16 +148,16 @@ D:\AI/
 
 ## Weaviate Collections
 
-| Collection | Contents | Source |
-|------------|----------|--------|
-| `CodeEntity` | Functions, classes, methods | Local codebase |
-| `Documentation` | Markdown docs | Local + scraped |
-| `DrupalAPI` | 16k+ Drupal classes/hooks | Remote scrape |
-| `DrupalModuleDocs` | Module READMEs | Remote SSH |
-| `DrupalTwigTemplates` | Twig templates | Remote SSH |
-| `CongressionalData` | House member data | Parallel scraper |
-| `MDNJavaScript` | MDN JS docs | Web scrape |
-| `MDNWebAPIs` | MDN Web API docs | Web scrape |
+| Collection            | Contents                    | Source           |
+| --------------------- | --------------------------- | ---------------- |
+| `CodeEntity`          | Functions, classes, methods | Local codebase   |
+| `Documentation`       | Markdown docs               | Local + scraped  |
+| `DrupalAPI`           | 16k+ Drupal classes/hooks   | Remote scrape    |
+| `DrupalModuleDocs`    | Module READMEs              | Remote SSH       |
+| `DrupalTwigTemplates` | Twig templates              | Remote SSH       |
+| `CongressionalData`   | House member data           | Parallel scraper |
+| `MDNJavaScript`       | MDN JS docs                 | Web scrape       |
+| `MDNWebAPIs`          | MDN Web API docs            | Web scrape       |
 
 **Embedding Model**: `snowflake-arctic-embed:l` (1024 dimensions) via Ollama.
 
@@ -190,34 +191,34 @@ npm run test:ui       # UI tests
 npm run test:smoke    # Quick health checks
 ```
 
-| Directory | Purpose |
-|-----------|---------|
-| `tests/api/` | API endpoint tests |
-| `tests/ui/` | Dashboard UI tests |
-| `tests/smoke/` | Service health checks |
-| `tests/drupal/` | Drupal integration |
+| Directory       | Purpose               |
+| --------------- | --------------------- |
+| `tests/api/`    | API endpoint tests    |
+| `tests/ui/`     | Dashboard UI tests    |
+| `tests/smoke/`  | Service health checks |
+| `tests/drupal/` | Drupal integration    |
 
 ---
 
 ## Databases
 
-| DB | Purpose | Connection |
-|----|---------|------------|
+| DB         | Purpose                       | Connection                         |
+| ---------- | ----------------------------- | ---------------------------------- |
 | PostgreSQL | Jobs, API keys, errors, todos | `localhost:5432`, db: `ai_gateway` |
-| SQLite | API Gateway job queue | `api_gateway.db` |
-| Weaviate | Vector embeddings | `localhost:8080` |
+| SQLite     | API Gateway job queue         | `api_gateway.db`                   |
+| Weaviate   | Vector embeddings             | `localhost:8080`                   |
 
 ---
 
 ## Startup Scripts
 
-| Script | Purpose |
-|--------|---------|
-| `start_dashboard.bat` | Dashboard on port 80 |
-| `start_gateway.bat` | API Gateway on port 1301 |
-| `start_n8n.bat` | N8N on port 5678 |
-| `vram.bat` | Quick VRAM check |
-| `start_congressional_parallel.bat` | Congressional scraper |
+| Script                             | Purpose                  |
+| ---------------------------------- | ------------------------ |
+| `start_dashboard.bat`              | Dashboard on port 80     |
+| `start_gateway.bat`                | API Gateway on port 1301 |
+| `start_n8n.bat`                    | N8N on port 5678         |
+| `vram.bat`                         | Quick VRAM check         |
+| `start_congressional_parallel.bat` | Congressional scraper    |
 
 ---
 

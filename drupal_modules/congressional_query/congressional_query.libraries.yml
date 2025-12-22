@@ -75,7 +75,8 @@ query_history:
 analytics:
   version: 1.0
   js:
-    https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js: { type: external, minified: true }
+https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js:
+{type: external, minified: true}
     js/congressional-analytics.js: {}
   css:
     theme:
@@ -87,7 +88,8 @@ analytics:
 api_analytics:
   version: 1.0
   js:
-    https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js: { type: external, minified: true }
+    https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js:
+      { type: external, minified: true }
     js/congressional-api-analytics.js: {}
   css:
     theme:

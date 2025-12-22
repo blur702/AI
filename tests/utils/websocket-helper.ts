@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+import WebSocket from "ws";
 
 export interface WebSocketHandle {
   socket: WebSocket;
@@ -30,27 +30,27 @@ export function connectWebSocket(url: string): Promise<WebSocketHandle> {
 
     const closeHandler = () => {
       cleanup();
-      reject(new Error('WebSocket closed before connection established'));
+      reject(new Error("WebSocket closed before connection established"));
     };
 
     const cleanup = () => {
-      socket.off('message', messageHandler);
-      socket.off('error', errorHandler);
-      socket.off('open', openHandler);
-      socket.off('close', closeHandler);
+      socket.off("message", messageHandler);
+      socket.off("error", errorHandler);
+      socket.off("open", openHandler);
+      socket.off("close", closeHandler);
     };
 
-    socket.on('message', messageHandler);
-    socket.on('error', errorHandler);
-    socket.on('open', openHandler);
-    socket.on('close', closeHandler);
+    socket.on("message", messageHandler);
+    socket.on("error", errorHandler);
+    socket.on("open", openHandler);
+    socket.on("close", closeHandler);
   });
 }
 
 export async function waitForWebSocketMessage(
   handle: WebSocketHandle,
   predicate: (msg: any) => boolean,
-  timeoutMs = 30_000
+  timeoutMs = 30_000,
 ): Promise<any> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -60,7 +60,7 @@ export async function waitForWebSocketMessage(
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
-  throw new Error('Timed out waiting for matching WebSocket message');
+  throw new Error("Timed out waiting for matching WebSocket message");
 }
 
 export function closeWebSocket(handle: WebSocketHandle): void {

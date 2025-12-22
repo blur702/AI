@@ -186,23 +186,23 @@ drush pm:show webform
 
 ## Library Versions
 
-| Library | Version | Size |
-|---------|---------|------|
-| CodeMirror | 5.65.12 | ~2MB |
-| jQuery InputMask | 5.0.9 | ~100KB |
+| Library               | Version | Size   |
+| --------------------- | ------- | ------ |
+| CodeMirror            | 5.65.12 | ~2MB   |
+| jQuery InputMask      | 5.0.9   | ~100KB |
 | jQuery Intl-Tel-Input | 17.0.19 | ~500KB |
-| jQuery RateIt | 1.1.5 | ~50KB |
-| jQuery Select2 | 4.0.13 | ~300KB |
-| jQuery TextCounter | 0.9.1 | ~10KB |
-| jQuery Timepicker | 1.14.0 | ~100KB |
-| Popper.js | 2.11.6 | ~50KB |
-| Progress Tracker | 2.0.7 | ~30KB |
-| Signature Pad | 2.3.0 | ~20KB |
-| Tabby | 12.0.3 | ~40KB |
-| Tippy.js | 6.3.7 | ~100KB |
+| jQuery RateIt         | 1.1.5   | ~50KB  |
+| jQuery Select2        | 4.0.13  | ~300KB |
+| jQuery TextCounter    | 0.9.1   | ~10KB  |
+| jQuery Timepicker     | 1.14.0  | ~100KB |
+| Popper.js             | 2.11.6  | ~50KB  |
+| Progress Tracker      | 2.0.7   | ~30KB  |
+| Signature Pad         | 2.3.0   | ~20KB  |
+| Tabby                 | 12.0.3  | ~40KB  |
+| Tippy.js              | 6.3.7   | ~100KB |
 
 **Total: ~3.3MB**
 
 ---
 
-*For detailed instructions, see [WEBFORM_LIBRARIES_INSTALLATION.md](./WEBFORM_LIBRARIES_INSTALLATION.md)*
+_For detailed instructions, see [WEBFORM_LIBRARIES_INSTALLATION.md](./WEBFORM_LIBRARIES_INSTALLATION.md)_

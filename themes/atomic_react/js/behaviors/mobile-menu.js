@@ -7,7 +7,7 @@
  */
 
 (function (Drupal) {
-  'use strict';
+  "use strict";
 
   /**
    * Behavior for mobile menu.
@@ -24,8 +24,8 @@
         return;
       }
 
-      const menuToggle = document.getElementById('mobile-menu-toggle');
-      const mobileMenu = document.getElementById('mobile-menu');
+      const menuToggle = document.getElementById("mobile-menu-toggle");
+      const mobileMenu = document.getElementById("mobile-menu");
 
       if (!menuToggle || !mobileMenu) {
         return;
@@ -40,13 +40,13 @@
       function openMenu() {
         isOpen = true;
         mobileMenu.hidden = false;
-        menuToggle.setAttribute('aria-expanded', 'true');
+        menuToggle.setAttribute("aria-expanded", "true");
 
         // Update icons
-        const menuIcon = menuToggle.querySelector('.icon-menu');
-        const closeIcon = menuToggle.querySelector('.icon-close');
-        if (menuIcon) menuIcon.style.display = 'none';
-        if (closeIcon) closeIcon.style.display = 'block';
+        const menuIcon = menuToggle.querySelector(".icon-menu");
+        const closeIcon = menuToggle.querySelector(".icon-close");
+        if (menuIcon) menuIcon.style.display = "none";
+        if (closeIcon) closeIcon.style.display = "block";
 
         // Create focus trap
         if (Drupal.atomicReact && Drupal.atomicReact.FocusTrap) {
@@ -55,11 +55,11 @@
         }
 
         // Prevent body scrolling
-        document.body.style.overflow = 'hidden';
+        document.body.style.overflow = "hidden";
 
         // Announce to screen readers
         if (Drupal.announce) {
-          Drupal.announce(Drupal.t('Navigation menu opened'));
+          Drupal.announce(Drupal.t("Navigation menu opened"));
         }
       }
 
@@ -69,13 +69,13 @@
       function closeMenu() {
         isOpen = false;
         mobileMenu.hidden = true;
-        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.setAttribute("aria-expanded", "false");
 
         // Update icons
-        const menuIcon = menuToggle.querySelector('.icon-menu');
-        const closeIcon = menuToggle.querySelector('.icon-close');
-        if (menuIcon) menuIcon.style.display = 'block';
-        if (closeIcon) closeIcon.style.display = 'none';
+        const menuIcon = menuToggle.querySelector(".icon-menu");
+        const closeIcon = menuToggle.querySelector(".icon-close");
+        if (menuIcon) menuIcon.style.display = "block";
+        if (closeIcon) closeIcon.style.display = "none";
 
         // Deactivate focus trap
         if (focusTrap) {
@@ -84,14 +84,14 @@
         }
 
         // Restore body scrolling
-        document.body.style.overflow = '';
+        document.body.style.overflow = "";
 
         // Return focus to toggle button
         menuToggle.focus();
 
         // Announce to screen readers
         if (Drupal.announce) {
-          Drupal.announce(Drupal.t('Navigation menu closed'));
+          Drupal.announce(Drupal.t("Navigation menu closed"));
         }
       }
 
@@ -107,17 +107,17 @@
       }
 
       // Handle toggle button click
-      menuToggle.addEventListener('click', toggleMenu);
+      menuToggle.addEventListener("click", toggleMenu);
 
       // Handle Escape key
-      document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape' && isOpen) {
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && isOpen) {
           closeMenu();
         }
       });
 
       // Close menu when clicking outside
-      mobileMenu.addEventListener('click', function (event) {
+      mobileMenu.addEventListener("click", function (event) {
         if (event.target === mobileMenu) {
           closeMenu();
         }
@@ -125,7 +125,7 @@
 
       // Close menu on window resize if desktop view
       let resizeTimeout;
-      window.addEventListener('resize', function () {
+      window.addEventListener("resize", function () {
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(function () {
           if (isOpen && window.innerWidth >= 1024) {
@@ -135,16 +135,15 @@
       });
 
       // Handle navigation within menu
-      mobileMenu.addEventListener('click', function (event) {
-        const link = event.target.closest('a');
+      mobileMenu.addEventListener("click", function (event) {
+        const link = event.target.closest("a");
         if (link) {
           // Close menu after navigation (for same-page links)
-          if (link.getAttribute('href').startsWith('#')) {
+          if (link.getAttribute("href").startsWith("#")) {
             closeMenu();
           }
         }
       });
-    }
+    },
   };
-
 })(Drupal);

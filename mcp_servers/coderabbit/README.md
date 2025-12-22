@@ -54,9 +54,9 @@ python -m mcp_servers.coderabbit.main
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| GITHUB_TOKEN | GitHub PAT with repo scope | Required |
-| GITHUB_REPO | Repository (owner/repo) | blur702/AI |
-| PROJECT_ROOT | Project root directory | D:/AI |
-| LOG_LEVEL | Logging level | INFO |
+| Variable     | Description                | Default    |
+| ------------ | -------------------------- | ---------- |
+| GITHUB_TOKEN | GitHub PAT with repo scope | Required   |
+| GITHUB_REPO  | Repository (owner/repo)    | blur702/AI |
+| PROJECT_ROOT | Project root directory     | D:/AI      |
+| LOG_LEVEL    | Logging level              | INFO       |

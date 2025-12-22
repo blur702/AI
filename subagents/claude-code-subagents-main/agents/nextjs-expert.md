@@ -55,4 +55,3 @@ model: claude-sonnet-4-20250514
 - Optimized media assets using Next.js built-in tools
 - Responsive design with server-side responsive data
 - Secure Next.js apps with environments for different stages
-

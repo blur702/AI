@@ -112,4 +112,4 @@ drush watchdog:show --severity=Error
 
 ---
 
-*For detailed procedures and troubleshooting, see [DRUPAL_CORE_UPDATE.md](./DRUPAL_CORE_UPDATE.md)*
+_For detailed procedures and troubleshooting, see [DRUPAL_CORE_UPDATE.md](./DRUPAL_CORE_UPDATE.md)_

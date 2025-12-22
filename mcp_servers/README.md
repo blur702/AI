@@ -12,11 +12,11 @@ Provides semantic search over code and documentation stored in Weaviate.
 
 **Tools Provided:**
 
-| Tool | Description |
-|------|-------------|
-| `search_documentation` | Search markdown docs by semantic similarity |
-| `search_code` | Search code entities (functions, classes, etc.) with filters |
-| `search_codebase` | Combined search across docs and code |
+| Tool                   | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| `search_documentation` | Search Markdown docs by semantic similarity                  |
+| `search_code`          | Search code entities (functions, classes, etc.) with filters |
+| `search_codebase`      | Combined search across docs and code                         |
 
 ## Quick Start
 
@@ -70,10 +70,12 @@ Add to `%APPDATA%\Claude\claude_desktop_config.json`:
 Search markdown documentation by semantic similarity.
 
 **Parameters:**
+
 - `query` (string, required): Search query text
 - `limit` (int, optional): Max results 1-100 (default: 10)
 
 **Returns:**
+
 ```json
 [
   {
@@ -90,6 +92,7 @@ Search markdown documentation by semantic similarity.
 Search code entities (functions, classes, methods, etc.) with optional filters.
 
 **Parameters:**
+
 - `query` (string, required): Natural language description
 - `limit` (int, optional): Max results 1-100 (default: 10)
 - `entity_type` (string, optional): Filter by type
@@ -100,6 +103,7 @@ Search code entities (functions, classes, methods, etc.) with optional filters.
   - Values: `python`, `typescript`, `javascript`, `css`, `rust`
 
 **Returns:**
+
 ```json
 [
   {
@@ -120,10 +124,12 @@ Search code entities (functions, classes, methods, etc.) with optional filters.
 Combined search across both documentation and code.
 
 **Parameters:**
+
 - `query` (string, required): Search query text
 - `limit` (int, optional): Total max results (split between docs and code)
 
 **Returns:**
+
 ```json
 [
   {
@@ -159,14 +165,14 @@ search_codebase("how does the scraper supervisor work")
 
 Environment variables (set in `.env` or shell):
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `WEAVIATE_URL` | `http://localhost:8080` | Weaviate HTTP endpoint |
-| `WEAVIATE_GRPC_HOST` | `localhost` | Weaviate gRPC host |
-| `WEAVIATE_GRPC_PORT` | `50051` | Weaviate gRPC port |
-| `OLLAMA_API_ENDPOINT` | `http://127.0.0.1:11434` | Ollama API for embeddings |
-| `OLLAMA_EMBEDDING_MODEL` | `snowflake-arctic-embed:l` | Embedding model |
-| `LOG_LEVEL` | `INFO` | Logging level |
+| Variable                 | Default                    | Description               |
+| ------------------------ | -------------------------- | ------------------------- |
+| `WEAVIATE_URL`           | `http://localhost:8080`    | Weaviate HTTP endpoint    |
+| `WEAVIATE_GRPC_HOST`     | `localhost`                | Weaviate gRPC host        |
+| `WEAVIATE_GRPC_PORT`     | `50051`                    | Weaviate gRPC port        |
+| `OLLAMA_API_ENDPOINT`    | `http://127.0.0.1:11434`   | Ollama API for embeddings |
+| `OLLAMA_EMBEDDING_MODEL` | `snowflake-arctic-embed:l` | Embedding model           |
+| `LOG_LEVEL`              | `INFO`                     | Logging level             |
 
 ## Architecture
 

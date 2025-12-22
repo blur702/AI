@@ -55,4 +55,3 @@ model: claude-sonnet-4-20250514
 - Deployment strategies for high availability setups
 - Documentation of custom functions and procedures
 - Reports on periodic health checks and maintenance activities
-

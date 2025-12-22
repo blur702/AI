@@ -1,19 +1,19 @@
 ssh:
-  host: ''
+  host: ""
   port: 22
-  username: ''
-  password: ''
-  private_key_path: ''
+  username: ""
+  password: ""
+  private_key_path: ""
   connection_timeout: 30
   command_timeout: 120
   max_retries: 3
   health_check_interval: 300
-  remote_os: 'windows'
+  remote_os: "windows"
 ollama:
-  endpoint: 'http://localhost:11434'
-  model: 'qwen3-coder-roo:latest'
-  fallback_model: ''
-  embedding_model: 'snowflake-arctic-embed:l'
+  endpoint: "http://localhost:11434"
+  model: "qwen3-coder-roo:latest"
+  fallback_model: ""
+  embedding_model: "snowflake-arctic-embed:l"
   temperature: 0.3
   num_predict: 2048
   top_p: null
@@ -25,9 +25,9 @@ ollama:
   response_cache_ttl: 3600
   debug_mode: false
 weaviate:
-  url: 'http://localhost:8080'
+  url: "http://localhost:8080"
   grpc_port: 50051
-  collection: 'CongressionalData'
+  collection: "CongressionalData"
 tunnel:
   local_ollama_port: 11434
   local_weaviate_http_port: 8080

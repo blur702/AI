@@ -131,7 +131,9 @@
   background-color: var(--color-gray-800);
   border-radius: var(--border-radius-full);
   text-decoration: none;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .site-footer__social-link:hover {
@@ -275,8 +277,11 @@
   opacity: 0;
   visibility: hidden;
   transform: translateY(1rem);
-  transition: opacity var(--transition-normal), visibility var(--transition-normal),
-    transform var(--transition-normal), background-color var(--transition-fast);
+  transition:
+    opacity var(--transition-normal),
+    visibility var(--transition-normal),
+    transform var(--transition-normal),
+    background-color var(--transition-fast);
 }
 
 .back-to-top--visible {

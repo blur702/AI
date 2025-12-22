@@ -2,73 +2,77 @@ services:
   congressional_query.ssh_tunnel:
     class: Drupal\congressional_query\Service\SSHTunnelService
     arguments:
-      - '@config.factory'
-      - '@logger.channel.congressional_query'
-      - '@state'
+      - "@config.factory"
+      - "@logger.channel.congressional_query"
+      - "@state"
 
   congressional_query.weaviate_client:
     class: Drupal\congressional_query\Service\WeaviateClientService
     arguments:
-      - '@congressional_query.ssh_tunnel'
-      - '@config.factory'
-      - '@logger.channel.congressional_query'
-      - '@cache.default'
+      - "@congressional_query.ssh_tunnel"
+      - "@config.factory"
+      - "@logger.channel.congressional_query"
+      - "@cache.default"
 
   congressional_query.ollama_llm:
     class: Drupal\congressional_query\Service\OllamaLLMService
     arguments:
-      - '@congressional_query.ssh_tunnel'
-      - '@congressional_query.weaviate_client'
-      - '@config.factory'
-      - '@logger.channel.congressional_query'
-      - '@cache.default'
-      - '@state'
-      - '@current_user'
+      - "@congressional_query.ssh_tunnel"
+      - "@congressional_query.weaviate_client"
+      - "@config.factory"
+      - "@logger.channel.congressional_query"
+      - "@cache.default"
+      - "@state"
+      - "@current_user"
 
   congressional_query.conversation_manager:
     class: Drupal\congressional_query\Service\ConversationManager
     arguments:
-      - '@session'
-      - '@database'
-      - '@current_user'
-      - '@datetime.time'
+      - "@session"
+      - "@database"
+      - "@current_user"
+      - "@datetime.time"
 
   congressional_query.api_key_manager:
     class: Drupal\congressional_query\Service\ApiKeyManager
     arguments:
-      - '@database'
-      - '@config.factory'
-      - '@logger.channel.congressional_query'
-      - '@date.formatter'
+      - "@database"
+      - "@config.factory"
+      - "@logger.channel.congressional_query"
+      - "@date.formatter"
 
   congressional_query.rate_limit_service:
     class: Drupal\congressional_query\Service\RateLimitService
     arguments:
-      - '@flood'
-      - '@database'
-      - '@config.factory'
-      - '@logger.channel.congressional_query'
+      - "@flood"
+      - "@database"
+      - "@config.factory"
+      - "@logger.channel.congressional_query"
 
   congressional_query.api_response_formatter:
     class: Drupal\congressional_query\Service\ApiResponseFormatter
     arguments:
-      - '@date.formatter'
+      - "@date.formatter"
 
   congressional_query.api_request_logger:
     class: Drupal\congressional_query\Service\ApiRequestLogger
     arguments:
-      - '@database'
-      - '@config.factory'
-      - '@logger.channel.congressional_query'
+      - "@database"
+      - "@config.factory"
+      - "@logger.channel.congressional_query"
 
   congressional_query.authentication.api_key:
     class: Drupal\congressional_query\Authentication\ApiKeyAuth
     arguments:
-      - '@congressional_query.api_key_manager'
-      - '@logger.channel.congressional_query'
+      - "@congressional_query.api_key_manager"
+      - "@logger.channel.congressional_query"
     tags:
-      - { name: authentication_provider, provider_id: 'congressional_api_key', priority: 100 }
+      - {
+          name: authentication_provider,
+          provider_id: "congressional_api_key",
+          priority: 100,
+        }
 
   logger.channel.congressional_query:
     parent: logger.channel_base
-    arguments: ['congressional_query']
+    arguments: ["congressional_query"]

@@ -55,4 +55,3 @@ model: claude-sonnet-4-20250514
 - Codebase adhering to established BullMQ best practices
 - Efficient job consistency and state management
 - Reliable integration with Redis ensuring data durability
-

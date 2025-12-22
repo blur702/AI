@@ -1,132 +1,132 @@
 congressional_query.settings:
   type: config_object
-  label: 'Congressional Query settings'
+  label: "Congressional Query settings"
   mapping:
     ssh:
       type: mapping
-      label: 'SSH Configuration'
+      label: "SSH Configuration"
       mapping:
         host:
           type: string
-          label: 'SSH Host'
+          label: "SSH Host"
         port:
           type: integer
-          label: 'SSH Port'
+          label: "SSH Port"
         username:
           type: string
-          label: 'SSH Username'
+          label: "SSH Username"
         password:
           type: string
-          label: 'SSH Password'
+          label: "SSH Password"
         private_key_path:
           type: string
-          label: 'Private Key Path'
+          label: "Private Key Path"
         connection_timeout:
           type: integer
-          label: 'Connection Timeout (seconds)'
+          label: "Connection Timeout (seconds)"
         command_timeout:
           type: integer
-          label: 'Command Timeout (seconds)'
+          label: "Command Timeout (seconds)"
         max_retries:
           type: integer
-          label: 'Max Connection Retries'
+          label: "Max Connection Retries"
         health_check_interval:
           type: integer
-          label: 'Health Check Interval (seconds)'
+          label: "Health Check Interval (seconds)"
         remote_os:
           type: string
-          label: 'Remote OS Type'
+          label: "Remote OS Type"
     ollama:
       type: mapping
-      label: 'Ollama Configuration'
+      label: "Ollama Configuration"
       mapping:
         endpoint:
           type: string
-          label: 'Ollama API Endpoint'
+          label: "Ollama API Endpoint"
         model:
           type: string
-          label: 'LLM Model'
+          label: "LLM Model"
         fallback_model:
           type: string
-          label: 'Fallback LLM Model'
+          label: "Fallback LLM Model"
         embedding_model:
           type: string
-          label: 'Embedding Model'
+          label: "Embedding Model"
         temperature:
           type: float
-          label: 'Temperature'
+          label: "Temperature"
         num_predict:
           type: integer
-          label: 'Max Tokens to Generate'
+          label: "Max Tokens to Generate"
         top_p:
           type: float
-          label: 'Top P (Nucleus Sampling)'
+          label: "Top P (Nucleus Sampling)"
         top_k:
           type: integer
-          label: 'Top K'
+          label: "Top K"
         repeat_penalty:
           type: float
-          label: 'Repeat Penalty'
+          label: "Repeat Penalty"
         seed:
           type: integer
-          label: 'Random Seed'
+          label: "Random Seed"
         stop_sequences:
           type: sequence
-          label: 'Stop Sequences'
+          label: "Stop Sequences"
           sequence:
             type: string
-            label: 'Stop Sequence'
+            label: "Stop Sequence"
         generation_timeout:
           type: integer
-          label: 'Generation Timeout (seconds)'
+          label: "Generation Timeout (seconds)"
         response_cache_ttl:
           type: integer
-          label: 'Response Cache TTL (seconds)'
+          label: "Response Cache TTL (seconds)"
         debug_mode:
           type: boolean
-          label: 'Enable Debug Mode'
+          label: "Enable Debug Mode"
     weaviate:
       type: mapping
-      label: 'Weaviate Configuration'
+      label: "Weaviate Configuration"
       mapping:
         url:
           type: string
-          label: 'Weaviate URL'
+          label: "Weaviate URL"
         grpc_port:
           type: integer
-          label: 'gRPC Port'
+          label: "gRPC Port"
         collection:
           type: string
-          label: 'Collection Name'
+          label: "Collection Name"
     tunnel:
       type: mapping
-      label: 'Tunnel Configuration'
+      label: "Tunnel Configuration"
       mapping:
         local_ollama_port:
           type: integer
-          label: 'Local Ollama Port'
+          label: "Local Ollama Port"
         local_weaviate_http_port:
           type: integer
-          label: 'Local Weaviate HTTP Port'
+          label: "Local Weaviate HTTP Port"
         local_weaviate_grpc_port:
           type: integer
-          label: 'Local Weaviate gRPC Port'
+          label: "Local Weaviate gRPC Port"
     query:
       type: mapping
-      label: 'Query Configuration'
+      label: "Query Configuration"
       mapping:
         default_num_sources:
           type: integer
-          label: 'Default Number of Sources'
+          label: "Default Number of Sources"
         max_context_length:
           type: integer
-          label: 'Max Context Length'
+          label: "Max Context Length"
         log_retention_days:
           type: integer
-          label: 'Log Retention Days'
+          label: "Log Retention Days"
         session_timeout_hours:
           type: integer
-          label: 'Session Timeout Hours'
+          label: "Session Timeout Hours"
         max_stored_turns:
           type: integer
-          label: 'Max Conversation Turns to Store'
+          label: "Max Conversation Turns to Store"

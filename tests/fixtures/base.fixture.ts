@@ -1,13 +1,17 @@
-import { test as base, expect } from '@playwright/test';
-import path from 'path';
-import fs from 'fs';
-import { DashboardAPIClient } from '../api-clients/DashboardAPIClient';
-import { GatewayAPIClient } from '../api-clients/GatewayAPIClient';
-import { ScreenshotManager } from '../utils/screenshot-manager';
-import { ServiceOrchestrator } from '../utils/service-orchestrator';
-import { isVPSEnvironment, getVPSConfig, ServiceId } from '../utils/vps-helpers';
-import prompts from '../test-data/prompts.json';
-import models from '../test-data/models.json';
+import { test as base, expect } from "@playwright/test";
+import path from "path";
+import fs from "fs";
+import { DashboardAPIClient } from "../api-clients/DashboardAPIClient";
+import { GatewayAPIClient } from "../api-clients/GatewayAPIClient";
+import { ScreenshotManager } from "../utils/screenshot-manager";
+import { ServiceOrchestrator } from "../utils/service-orchestrator";
+import {
+  isVPSEnvironment,
+  getVPSConfig,
+  ServiceId,
+} from "../utils/vps-helpers";
+import prompts from "../test-data/prompts.json";
+import models from "../test-data/models.json";
 
 export interface TestData {
   prompts: typeof prompts;
@@ -49,27 +53,38 @@ export const test = base.extend<{
   dashboardAPI: async ({}, use) => {
     // Single-port deployment: Dashboard serves frontend + API on port 80
     // Override with DASHBOARD_API_URL env var for remote testing (e.g., production, staging)
-    const url = process.env.DASHBOARD_API_URL || 'http://localhost';
+    const url = process.env.DASHBOARD_API_URL || "http://localhost";
     // Allow insecure connections for self-signed certs in test environments
-    const allowInsecure = process.env.ALLOW_INSECURE_CONNECTIONS === 'true';
+    const allowInsecure = process.env.ALLOW_INSECURE_CONNECTIONS === "true";
 
     // Build headers with Basic Auth if credentials are provided
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
     const username = process.env.DASHBOARD_AUTH_USERNAME;
     const password = process.env.DASHBOARD_AUTH_PASSWORD;
     if (username && password) {
-      const credentials = Buffer.from(`${username}:${password}`).toString('base64');
-      headers['Authorization'] = `Basic ${credentials}`;
+      const credentials = Buffer.from(`${username}:${password}`).toString(
+        "base64",
+      );
+      headers["Authorization"] = `Basic ${credentials}`;
     }
 
-    await use(new DashboardAPIClient(url, { allowInsecureConnections: allowInsecure, headers }));
+    await use(
+      new DashboardAPIClient(url, {
+        allowInsecureConnections: allowInsecure,
+        headers,
+      }),
+    );
   },
 
   gatewayAPI: async ({}, use) => {
-    const url = process.env.GATEWAY_API_URL || 'http://localhost:1301';
+    const url = process.env.GATEWAY_API_URL || "http://localhost:1301";
     // Allow insecure connections for self-signed certs in test environments
-    const allowInsecure = process.env.ALLOW_INSECURE_CONNECTIONS === 'true';
-    await use(new GatewayAPIClient(url, { allowInsecureConnections: allowInsecure }));
+    const allowInsecure = process.env.ALLOW_INSECURE_CONNECTIONS === "true";
+    await use(
+      new GatewayAPIClient(url, { allowInsecureConnections: allowInsecure }),
+    );
   },
 
   testData: async ({}, use) => {
@@ -77,7 +92,7 @@ export const test = base.extend<{
   },
 
   screenshotManager: async ({ page }, use) => {
-    const baseDir = path.resolve(process.cwd(), 'tests', 'screenshots');
+    const baseDir = path.resolve(process.cwd(), "tests", "screenshots");
     if (!fs.existsSync(baseDir)) {
       fs.mkdirSync(baseDir, { recursive: true });
     }
@@ -98,7 +113,7 @@ export const test = base.extend<{
       healthInterval: vpsConfig.serviceHealthInterval,
       maxRetries: vpsConfig.maxServiceRetries,
       preserveEmbeddingModels: vpsConfig.preserveEmbeddingModels,
-      gpuIntensiveServices: vpsConfig.gpuIntensiveServices
+      gpuIntensiveServices: vpsConfig.gpuIntensiveServices,
     });
 
     await use(orchestrator);
@@ -122,7 +137,7 @@ export const test = base.extend<{
           return;
         }
         await serviceOrchestrator.startServicesForSuite(serviceIds);
-      }
+      },
     };
 
     await use(ensurer);
@@ -133,7 +148,7 @@ export const test = base.extend<{
     await use({
       registerJob(id: string) {
         jobIds.push(id);
-      }
+      },
     });
 
     for (const id of jobIds) {
@@ -150,7 +165,7 @@ export const test = base.extend<{
     await use({
       registerAPIKey(key: string) {
         apiKeys.push(key);
-      }
+      },
     });
 
     // Cleanup: deactivate all registered API keys
@@ -161,7 +176,7 @@ export const test = base.extend<{
         console.warn(`Failed to cleanup API key ${key}`, error);
       }
     }
-  }
+  },
 });
 
 export { expect };

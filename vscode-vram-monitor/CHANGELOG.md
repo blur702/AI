@@ -5,6 +5,7 @@ All notable changes to the VRAM Monitor & Ollama Manager extension will be docum
 ## [0.1.0] - 2025-12-14
 
 ### Added
+
 - Initial release
 - Real-time VRAM monitoring via `vram_manager.py`
 - Status bar indicator with color-coded thresholds

@@ -1,6 +1,6 @@
-import { test as base, expect } from './base.fixture';
-import { waitForServiceReady } from '../utils/wait-helpers';
-import { isVPSEnvironment, ServiceIds, ServiceId } from '../utils/vps-helpers';
+import { test as base, expect } from "./base.fixture";
+import { waitForServiceReady } from "../utils/wait-helpers";
+import { isVPSEnvironment, ServiceIds, ServiceId } from "../utils/vps-helpers";
 
 /**
  * Extended test fixture with service-specific helpers.
@@ -38,19 +38,21 @@ export const test = base.extend<{
         process.env.MUSICGEN_URL,
         process.env.STABLE_AUDIO_URL,
         process.env.ALLTALK_URL,
-        process.env.N8N_URL
+        process.env.N8N_URL,
       ].filter((u): u is string => !!u);
 
       let healthy = true;
       try {
-        await Promise.all(serviceUrls.map((url) => waitForServiceReady(url, 5_000)));
+        await Promise.all(
+          serviceUrls.map((url) => waitForServiceReady(url, 5_000)),
+        );
       } catch {
         healthy = false;
       }
 
       await use(healthy);
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -61,7 +63,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.OLLAMA);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -72,7 +74,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.COMFYUI);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -83,7 +85,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.ALLTALK);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -94,7 +96,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.WAN2GP);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -105,7 +107,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.YUE);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -116,7 +118,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.DIFFRHYTHM);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -127,7 +129,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.MUSICGEN);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -138,7 +140,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.STABLE_AUDIO);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -149,7 +151,7 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.N8N);
       await use();
     },
-    { auto: false }
+    { auto: false },
   ],
 
   /**
@@ -160,8 +162,8 @@ export const test = base.extend<{
       await ensureServices.ensureService(ServiceIds.WEAVIATE);
       await use();
     },
-    { auto: false }
-  ]
+    { auto: false },
+  ],
 });
 
 export { expect };
@@ -181,7 +183,7 @@ export { expect };
 export function requireServices(services: ServiceId[]) {
   test.beforeAll(async ({ ensureServices }) => {
     if (isVPSEnvironment()) {
-      console.log(`[Services] Ensuring services: ${services.join(', ')}`);
+      console.log(`[Services] Ensuring services: ${services.join(", ")}`);
       await ensureServices.ensureServices(services);
     }
   });
@@ -197,8 +199,10 @@ export function requireServices(services: ServiceId[]) {
  *   });
  */
 export async function skipIfServicesUnavailable(
-  dashboardAPI: InstanceType<typeof import('../api-clients/DashboardAPIClient').DashboardAPIClient>,
-  requiredServices: ServiceId[]
+  dashboardAPI: InstanceType<
+    typeof import("../api-clients/DashboardAPIClient").DashboardAPIClient
+  >,
+  requiredServices: ServiceId[],
 ): Promise<void> {
   for (const serviceId of requiredServices) {
     try {

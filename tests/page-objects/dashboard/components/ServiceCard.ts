@@ -1,9 +1,12 @@
-import { Locator, Page } from '@playwright/test';
+import { Locator, Page } from "@playwright/test";
 
 export class ServiceCard {
   readonly root: Locator;
 
-  constructor(private readonly page: Page, rootSelector: string) {
+  constructor(
+    private readonly page: Page,
+    rootSelector: string,
+  ) {
     this.root = this.page.locator(rootSelector);
   }
 
@@ -11,28 +14,28 @@ export class ServiceCard {
    * Get the status indicator element (.status inside .card-port)
    */
   statusIndicator(): Locator {
-    return this.root.locator('.card-port .status');
+    return this.root.locator(".card-port .status");
   }
 
   /**
    * Get the service name element (.card-title)
    */
   name(): Locator {
-    return this.root.locator('.card-title');
+    return this.root.locator(".card-title");
   }
 
   /**
    * Get the service description
    */
   description(): Locator {
-    return this.root.locator('.card-description');
+    return this.root.locator(".card-description");
   }
 
   /**
    * Get the port display
    */
   port(): Locator {
-    return this.root.locator('.card-port');
+    return this.root.locator(".card-port");
   }
 
   async isVisible(): Promise<boolean> {
@@ -43,7 +46,7 @@ export class ServiceCard {
    * Check if service is running (has .status-online indicator)
    */
   async isRunning(): Promise<boolean> {
-    const indicator = this.root.locator('.status-online');
+    const indicator = this.root.locator(".status-online");
     return indicator.isVisible();
   }
 
@@ -51,7 +54,7 @@ export class ServiceCard {
    * Check if service is starting (has .status-starting-indicator)
    */
   async isStarting(): Promise<boolean> {
-    const indicator = this.root.locator('.status-starting-indicator');
+    const indicator = this.root.locator(".status-starting-indicator");
     return indicator.isVisible();
   }
 
@@ -60,7 +63,7 @@ export class ServiceCard {
    */
   async clickOpen(): Promise<void> {
     const openButton = this.root.locator('.btn-open, button:has-text("Open")');
-    await openButton.waitFor({ state: 'visible', timeout: 5000 });
+    await openButton.waitFor({ state: "visible", timeout: 5000 });
     await openButton.click();
   }
 
@@ -68,8 +71,10 @@ export class ServiceCard {
    * Click the Start button to start the service
    */
   async clickStart(): Promise<void> {
-    const startButton = this.root.locator('.btn-start, button:has-text("Start")');
-    await startButton.waitFor({ state: 'visible', timeout: 5000 });
+    const startButton = this.root.locator(
+      '.btn-start, button:has-text("Start")',
+    );
+    await startButton.waitFor({ state: "visible", timeout: 5000 });
     await startButton.click();
   }
 
@@ -78,7 +83,7 @@ export class ServiceCard {
    */
   async clickStop(): Promise<void> {
     const stopButton = this.root.locator('.btn-stop, button:has-text("Stop")');
-    await stopButton.waitFor({ state: 'visible', timeout: 5000 });
+    await stopButton.waitFor({ state: "visible", timeout: 5000 });
     await stopButton.click();
   }
 
@@ -107,11 +112,10 @@ export class ServiceCard {
    * Get the current status class (running, stopped, starting)
    */
   async getStatusClass(): Promise<string> {
-    const classes = await this.root.getAttribute('class') || '';
-    if (classes.includes('status-running')) return 'running';
-    if (classes.includes('status-starting')) return 'starting';
-    if (classes.includes('status-stopped')) return 'stopped';
-    return 'unknown';
+    const classes = (await this.root.getAttribute("class")) || "";
+    if (classes.includes("status-running")) return "running";
+    if (classes.includes("status-starting")) return "starting";
+    if (classes.includes("status-stopped")) return "stopped";
+    return "unknown";
   }
 }
-

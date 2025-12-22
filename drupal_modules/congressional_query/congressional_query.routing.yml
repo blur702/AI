@@ -1,254 +1,254 @@
 congressional_query.query_form:
-  path: '/congressional/query'
+  path: "/congressional/query"
   defaults:
     _form: '\Drupal\congressional_query\Form\CongressionalQueryForm'
-    _title: 'Congressional Query'
+    _title: "Congressional Query"
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
 
 congressional_query.results:
-  path: '/congressional/results/{query_id}'
+  path: "/congressional/results/{query_id}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalQueryController::resultsPage'
-    _title: 'Query Results'
+    _title: "Query Results"
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
     query_id: \d+
 
 congressional_query.chat:
-  path: '/congressional/chat'
+  path: "/congressional/chat"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::chatPage'
-    _title: 'Congressional Chat'
+    _title: "Congressional Chat"
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
 
 congressional_query.chat_send:
-  path: '/congressional/chat/send'
+  path: "/congressional/chat/send"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::sendMessage'
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
   methods: [POST]
 
 congressional_query.chat_history:
-  path: '/congressional/chat/history/{conversation_id}'
+  path: "/congressional/chat/history/{conversation_id}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::getHistory'
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
   methods: [GET]
 
 congressional_query.admin:
-  path: '/admin/config/services/congressional-query'
+  path: "/admin/config/services/congressional-query"
   defaults:
     _form: '\Drupal\congressional_query\Form\CongressionalConfigForm'
-    _title: 'Congressional Query Settings'
+    _title: "Congressional Query Settings"
   requirements:
-    _permission: 'administer congressional query'
+    _permission: "administer congressional query"
 
 congressional_query.admin_dashboard:
-  path: '/admin/reports/congressional-query'
+  path: "/admin/reports/congressional-query"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalAdminController::dashboard'
-    _title: 'Congressional Query Dashboard'
+    _title: "Congressional Query Dashboard"
   requirements:
-    _permission: 'view congressional query logs'
+    _permission: "view congressional query logs"
 
 congressional_query.health_check:
-  path: '/congressional/health'
+  path: "/congressional/health"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalHealthController::check'
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
   methods: [GET]
 
 congressional_query.test_connection:
-  path: '/admin/config/services/congressional-query/test/{type}'
+  path: "/admin/config/services/congressional-query/test/{type}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalHealthController::testConnection'
   requirements:
-    _permission: 'administer congressional query'
-    type: 'ssh|ollama|weaviate'
+    _permission: "administer congressional query"
+    type: "ssh|ollama|weaviate"
   methods: [POST]
 
 congressional_query.chat_stream:
-  path: '/congressional/chat/stream'
+  path: "/congressional/chat/stream"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::sendMessageStream'
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
   methods: [POST]
 
 congressional_query.chat_export:
-  path: '/congressional/chat/export/{conversation_id}'
+  path: "/congressional/chat/export/{conversation_id}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::exportConversation'
-    format: 'json'
+    format: "json"
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
   methods: [GET]
 
 congressional_query.chat_export_format:
-  path: '/congressional/chat/export/{conversation_id}/{format}'
+  path: "/congressional/chat/export/{conversation_id}/{format}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::exportConversation'
   requirements:
-    _permission: 'use congressional query'
-    format: 'json|markdown|html'
+    _permission: "use congressional query"
+    format: "json|markdown|html"
   methods: [GET]
 
 congressional_query.chat_message_edit:
-  path: '/congressional/chat/message/{conversation_id}/{message_index}'
+  path: "/congressional/chat/message/{conversation_id}/{message_index}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::editMessage'
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
     message_index: \d+
   methods: [PATCH]
 
 congressional_query.chat_message_delete:
-  path: '/congressional/chat/message/{conversation_id}/{message_index}'
+  path: "/congressional/chat/message/{conversation_id}/{message_index}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::deleteMessage'
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
     message_index: \d+
   methods: [DELETE]
 
 congressional_query.chat_new:
-  path: '/congressional/chat/new'
+  path: "/congressional/chat/new"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalChatController::newConversation'
   requirements:
-    _permission: 'use congressional query'
+    _permission: "use congressional query"
   methods: [POST]
 
 congressional_query.analytics:
-  path: '/admin/reports/congressional-query/analytics'
+  path: "/admin/reports/congressional-query/analytics"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalAdminController::analytics'
-    _title: 'Congressional Query Analytics'
+    _title: "Congressional Query Analytics"
   requirements:
-    _permission: 'view congressional query logs'
+    _permission: "view congressional query logs"
 
 congressional_query.query_history:
-  path: '/admin/reports/congressional-query/history'
+  path: "/admin/reports/congressional-query/history"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalAdminController::queryHistory'
-    _title: 'Query History'
+    _title: "Query History"
   requirements:
-    _permission: 'view congressional query logs'
+    _permission: "view congressional query logs"
 
 congressional_query.export_history:
-  path: '/admin/reports/congressional-query/history/export/{format}'
+  path: "/admin/reports/congressional-query/history/export/{format}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalAdminController::exportQueryHistory'
   requirements:
-    _permission: 'view congressional query logs'
-    format: 'csv|json'
+    _permission: "view congressional query logs"
+    format: "csv|json"
   methods: [GET]
 
 congressional_query.cache_clear:
-  path: '/admin/config/services/congressional-query/cache/clear'
+  path: "/admin/config/services/congressional-query/cache/clear"
   defaults:
     _form: '\Drupal\congressional_query\Form\CongressionalCacheManagementForm'
-    _title: 'Clear Congressional Query Cache'
+    _title: "Clear Congressional Query Cache"
   requirements:
-    _permission: 'administer congressional query'
+    _permission: "administer congressional query"
 
 congressional_query.cache_clear_ajax:
-  path: '/admin/config/services/congressional-query/cache/clear/{type}'
+  path: "/admin/config/services/congressional-query/cache/clear/{type}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalAdminController::clearCacheAjax'
   requirements:
-    _permission: 'administer congressional query'
-    type: 'collection|member|stats|all'
+    _permission: "administer congressional query"
+    type: "collection|member|stats|all"
   methods: [POST]
 
 congressional_query.bulk_operations:
-  path: '/admin/reports/congressional-query/bulk-operations'
+  path: "/admin/reports/congressional-query/bulk-operations"
   defaults:
     _form: '\Drupal\congressional_query\Form\CongressionalQueryBulkOperationsForm'
-    _title: 'Bulk Query Operations'
+    _title: "Bulk Query Operations"
   requirements:
-    _permission: 'administer congressional query'
+    _permission: "administer congressional query"
 
 congressional_query.delete_query_ajax:
-  path: '/admin/reports/congressional-query/delete/{query_id}'
+  path: "/admin/reports/congressional-query/delete/{query_id}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\CongressionalAdminController::deleteQueryAjax'
   requirements:
-    _permission: 'administer congressional query'
+    _permission: "administer congressional query"
     query_id: \d+
   methods: [POST]
 
 # API Key Management Routes
 congressional_query.api_keys:
-  path: '/admin/config/services/congressional-query/api-keys'
+  path: "/admin/config/services/congressional-query/api-keys"
   defaults:
     _form: '\Drupal\congressional_query\Form\ApiKeyManagementForm'
-    _title: 'API Key Management'
+    _title: "API Key Management"
   requirements:
-    _permission: 'manage congressional query api keys'
+    _permission: "manage congressional query api keys"
 
 congressional_query.api_key_generate:
-  path: '/admin/config/services/congressional-query/api-keys/generate'
+  path: "/admin/config/services/congressional-query/api-keys/generate"
   defaults:
     _form: '\Drupal\congressional_query\Form\ApiKeyGenerateForm'
-    _title: 'Generate API Key'
+    _title: "Generate API Key"
   requirements:
-    _permission: 'manage congressional query api keys'
+    _permission: "manage congressional query api keys"
 
 congressional_query.api_key_revoke:
-  path: '/admin/config/services/congressional-query/api-keys/revoke/{key_id}'
+  path: "/admin/config/services/congressional-query/api-keys/revoke/{key_id}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\ApiKeyController::revoke'
   requirements:
-    _permission: 'manage congressional query api keys'
+    _permission: "manage congressional query api keys"
     key_id: \d+
   methods: [GET, POST]
 
 congressional_query.api_key_reactivate:
-  path: '/admin/config/services/congressional-query/api-keys/reactivate/{key_id}'
+  path: "/admin/config/services/congressional-query/api-keys/reactivate/{key_id}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\ApiKeyController::reactivate'
   requirements:
-    _permission: 'manage congressional query api keys'
+    _permission: "manage congressional query api keys"
     key_id: \d+
   methods: [GET, POST]
 
 congressional_query.api_key_delete:
-  path: '/admin/config/services/congressional-query/api-keys/delete/{key_id}'
+  path: "/admin/config/services/congressional-query/api-keys/delete/{key_id}"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\ApiKeyController::delete'
   requirements:
-    _permission: 'manage congressional query api keys'
+    _permission: "manage congressional query api keys"
     key_id: \d+
   methods: [GET, POST]
 
 # API Analytics Routes
 congressional_query.api_analytics:
-  path: '/admin/reports/congressional-query/api-analytics'
+  path: "/admin/reports/congressional-query/api-analytics"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\ApiAnalyticsController::analytics'
-    _title: 'API Usage Analytics'
+    _title: "API Usage Analytics"
   requirements:
-    _permission: 'view congressional query api logs'
+    _permission: "view congressional query api logs"
 
 congressional_query.api_analytics_data:
-  path: '/admin/reports/congressional-query/api-analytics/data'
+  path: "/admin/reports/congressional-query/api-analytics/data"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\ApiAnalyticsController::analyticsData'
   requirements:
-    _permission: 'view congressional query api logs'
+    _permission: "view congressional query api logs"
   methods: [GET]
 
 # API Documentation Routes
 congressional_query.api_documentation:
-  path: '/api/congressional/documentation'
+  path: "/api/congressional/documentation"
   defaults:
     _controller: '\Drupal\congressional_query\Controller\ApiDocumentationController::documentation'
-    _title: 'Congressional Query API Documentation'
+    _title: "Congressional Query API Documentation"
   requirements:
-    _access: 'TRUE'
+    _access: "TRUE"

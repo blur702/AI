@@ -29,13 +29,13 @@ cp .env.example .env
 
 Environment variables:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `WEAVIATE_URL` | `http://localhost:8080` | Weaviate HTTP endpoint |
-| `WEAVIATE_GRPC_HOST` | `localhost` | Weaviate gRPC host |
-| `WEAVIATE_GRPC_PORT` | `50051` | Weaviate gRPC port |
-| `OLLAMA_EMBEDDING_MODEL` | `snowflake-arctic-embed:l` | Embedding model name |
-| `LOG_LEVEL` | `INFO` | Logging level |
+| Variable                 | Default                    | Description            |
+| ------------------------ | -------------------------- | ---------------------- |
+| `WEAVIATE_URL`           | `http://localhost:8080`    | Weaviate HTTP endpoint |
+| `WEAVIATE_GRPC_HOST`     | `localhost`                | Weaviate gRPC host     |
+| `WEAVIATE_GRPC_PORT`     | `50051`                    | Weaviate gRPC port     |
+| `OLLAMA_EMBEDDING_MODEL` | `snowflake-arctic-embed:l` | Embedding model name   |
+| `LOG_LEVEL`              | `INFO`                     | Logging level          |
 
 ## Running
 
@@ -88,12 +88,14 @@ Add to your Claude Desktop config (`claude_desktop_config.json`):
 Search documentation using semantic similarity.
 
 **Parameters:**
+
 - `query` (string, required): Search query text
 - `limit` (integer, optional, default: 10): Maximum number of results (1-100)
 
 **Returns:**
 
 On success, returns a list of matching documentation chunks:
+
 ```json
 [
   {
@@ -107,25 +109,32 @@ On success, returns a list of matching documentation chunks:
 
 On error, returns an object with an `error` key:
 
-| Error Code | Description |
-|------------|-------------|
+| Error Code             | Description                                                        |
+| ---------------------- | ------------------------------------------------------------------ |
 | `collection_not_found` | Documentation collection doesn't exist. Run `doc_ingestion` first. |
-| `connection_failed` | Failed to connect to Weaviate. Includes `message` with details. |
-| `query_failed` | Query execution error. Includes `message` with details. |
-| `invalid_limit` | Limit parameter out of range (must be 1-100). Includes `message`. |
+| `connection_failed`    | Failed to connect to Weaviate. Includes `message` with details.    |
+| `query_failed`         | Query execution error. Includes `message` with details.            |
+| `invalid_limit`        | Limit parameter out of range (must be 1-100). Includes `message`.  |
 
 **Error Response Examples:**
+
 ```json
-{"error": "collection_not_found"}
+{ "error": "collection_not_found" }
 ```
+
 ```json
-{"error": "connection_failed", "message": "Connection refused"}
+{ "error": "connection_failed", "message": "Connection refused" }
 ```
+
 ```json
-{"error": "invalid_limit", "message": "limit must be an integer between 1 and 100, got -5"}
+{
+  "error": "invalid_limit",
+  "message": "limit must be an integer between 1 and 100, got -5"
+}
 ```
 
 **Successful Request Example:**
+
 ```json
 {
   "name": "search_documentation",
@@ -139,6 +148,7 @@ On error, returns an object with an `error` key:
 **Client Integration Notes:**
 
 When integrating with this tool, clients should:
+
 1. Check if the response is an array (success) or object with `error` key (failure)
 2. Handle `collection_not_found` by prompting user to run documentation ingestion
 3. Handle `connection_failed` by checking Weaviate service status

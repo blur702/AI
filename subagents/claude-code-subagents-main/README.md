@@ -9,6 +9,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 ## Available Subagents
 
 ### Programming Languages & Frameworks
+
 - **[bash-expert](agents/bash-expert.md)** - Master of defensive Bash scripting for production automation, CI/CD pipelines, and system utilities
 - **[python-expert](agents/python-expert.md)** - Master advanced Python features, optimize performance, and ensure code quality
 - **[javascript-expert](agents/javascript-expert.md)** - Modern JavaScript development with ES6+, async patterns, and Node.js APIs
@@ -34,6 +35,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[erlang-expert](agents/erlang-expert.md)** - Erlang development with concurrent programming and fault tolerance
 
 ### Web Development & Frontend
+
 - **[react-expert](agents/react-expert.md)** - React development with hooks, state management, and component architecture
 - **[vue-expert](agents/vue-expert.md)** - Vue.js development with composition API, state management, and SFC
 - **[angular-expert](agents/angular-expert.md)** - Angular development with TypeScript, RxJS, and enterprise patterns
@@ -63,6 +65,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[spring-boot-expert](agents/spring-boot-expert.md)** - Spring Boot development with Java microservices and enterprise patterns
 
 ### Mobile & Desktop Development
+
 - **[react-native-expert](agents/react-native-expert.md)** - React Native development with cross-platform mobile apps
 - **[flutter-expert](agents/flutter-expert.md)** - Flutter development with Dart and cross-platform mobile apps
 - **[ios-expert](agents/ios-expert.md)** - iOS development with Swift, UIKit, and Apple ecosystem
@@ -73,6 +76,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[expo-expert](agents/expo-expert.md)** - Expo development with React Native and managed workflow
 
 ### Databases & Data Management
+
 - **[sql-expert](agents/sql-expert.md)** - SQL development with complex queries, optimization, and database design
 - **[postgres-expert](agents/postgres-expert.md)** - PostgreSQL development with advanced features, extensions, and optimization
 - **[mysql-expert](agents/mysql-expert.md)** - MySQL development with InnoDB, replication, and performance tuning
@@ -90,6 +94,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[vector-db-expert](agents/vector-db-expert.md)** - Vector database development with embeddings and similarity search
 
 ### ORMs & Query Builders
+
 - **[prisma-expert](agents/prisma-expert.md)** - Prisma development with type-safe database access and migrations
 - **[sequelize-expert](agents/sequelize-expert.md)** - Sequelize development with Node.js ORM and database management
 - **[typeorm-expert](agents/typeorm-expert.md)** - TypeORM development with TypeScript ORM and decorators
@@ -97,6 +102,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[mongoose-expert](agents/mongoose-expert.md)** - Mongoose development with MongoDB ODM and schemas
 
 ### Infrastructure & DevOps
+
 - **[docker-expert](agents/docker-expert.md)** - Docker development with containerization, images, and orchestration
 - **[kubernetes-expert](agents/kubernetes-expert.md)** - Kubernetes development with container orchestration and scaling
 - **[terraform-expert](agents/terraform-expert.md)** - Terraform development with infrastructure as code and cloud provisioning
@@ -108,6 +114,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[ansible-expert](agents/ansible-expert.md)** - Ansible development with configuration management and automation
 
 ### Services
+
 - **[stripe-expert](agents/stripe-expert.md)** - Stripe development with payment processing and webhooks
 - **[braintree-expert](agents/braintree-expert.md)** - Braintree development with payment processing and PayPal integration
 - **[sns-expert](agents/sns-expert.md)** - AWS SNS development with messaging and notifications
@@ -117,6 +124,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[keycloak-expert](agents/keycloak-expert.md)** - Keycloak development with identity and access management
 
 ### Messaging & Communication
+
 - **[rabbitmq-expert](agents/rabbitmq-expert.md)** - RabbitMQ development with message queuing and AMQP
 - **[kafka-expert](agents/kafka-expert.md)** - Apache Kafka development with event streaming and distributed systems
 - **[nats-expert](agents/nats-expert.md)** - NATS development with lightweight messaging and pub/sub
@@ -129,6 +137,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[trpc-expert](agents/trpc-expert.md)** - tRPC development with end-to-end type safety and TypeScript APIs
 
 ### Testing & Quality Assurance
+
 - **[jest-expert](agents/jest-expert.md)** - Jest development with JavaScript testing and mocking
 - **[vitest-expert](agents/vitest-expert.md)** - Vitest development with Vite-based testing and modern tooling
 - **[mocha-expert](agents/mocha-expert.md)** - Mocha development with JavaScript testing and flexible frameworks
@@ -141,6 +150,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[puppeteer-expert](agents/puppeteer-expert.md)** - Puppeteer development with Chrome automation and headless browsing
 
 ### Data Science & Machine Learning
+
 - **[pandas-expert](agents/pandas-expert.md)** - Pandas development with data manipulation and analysis
 - **[numpy-expert](agents/numpy-expert.md)** - NumPy development with numerical computing and array operations
 - **[scikit-learn-expert](agents/scikit-learn-expert.md)** - Scikit-learn development with machine learning and data science
@@ -149,6 +159,7 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[langchain-expert](agents/langchain-expert.md)** - LangChain development with LLM applications and RAG systems
 
 ### Monitoring & Observability
+
 - **[prometheus-expert](agents/prometheus-expert.md)** - Prometheus development with metrics collection and monitoring
 - **[grafana-expert](agents/grafana-expert.md)** - Grafana development with visualization and dashboard creation
 - **[loki-expert](agents/loki-expert.md)** - Loki development with log aggregation and querying
@@ -156,25 +167,30 @@ This repository contains 100+ specialized subagents that extend Claude Code's ca
 - **[opentelemetry-expert](agents/opentelemetry-expert.md)** - OpenTelemetry development with observability and tracing
 
 ### Security & Authentication
+
 - **[owasp-top10-expert](agents/owasp-top10-expert.md)** - OWASP Top 10 expert for web application security
 - **[jwt-expert](agents/jwt-expert.md)** - JWT development with token-based authentication and security
 - **[oauth-oidc-expert](agents/oauth-oidc-expert.md)** - OAuth 2.0 and OpenID Connect development with identity protocols
 
 ### Build Tools & Bundlers
+
 - **[webpack-expert](agents/webpack-expert.md)** - Webpack development with module bundling and optimization
 - **[rollup-expert](agents/rollup-expert.md)** - Rollup development with ES module bundling and tree shaking
 
 ### Database Migration & Schema Management
+
 - **[flyway-expert](agents/flyway-expert.md)** - Flyway development with database migrations and version control
 - **[liquibase-expert](agents/liquibase-expert.md)** - Liquibase development with database change management
 - **[prisma-expert](agents/prisma-expert.md)** - Prisma development with database migrations and schema management
 
 ### Background Jobs & Task Queues
+
 - **[celery-expert](agents/celery-expert.md)** - Celery development with distributed task queues and Python
 - **[sidekiq-expert](agents/sidekiq-expert.md)** - Sidekiq development with background job processing and Ruby
 - **[bullmq-expert](agents/bullmq-expert.md)** - BullMQ development with Redis-based job queues and Node.js
 
 ### Runtime & Package Managers
+
 - **[nodejs-expert](agents/nodejs-expert.md)** - Node.js development with runtime, packages, and ecosystem
 - **[bun-expert](agents/bun-expert.md)** - Bun development with fast JavaScript runtime and package manager
 - **[deno-expert](agents/deno-expert.md)** - Deno development with secure JavaScript runtime and TypeScript
@@ -191,10 +207,13 @@ git clone https://github.com/0xfurai/claude-code-subagents.git
 ## Usage
 
 ### Automatic Invocation
+
 Claude Code will automatically delegate to the appropriate subagent based on the task context and the subagent's description.
 
 ### Explicit Invocation
+
 Mention the subagent by name in your request:
+
 ```
 "Use the python-expert to optimize this algorithm"
 "Get the react-expert to refactor this component"
@@ -203,6 +222,7 @@ Mention the subagent by name in your request:
 ## Contributing
 
 To add a new subagent:
+
 1. Create a new `.md` file in the `agents/` directory
 2. Use lowercase, hyphen-separated names
 3. Write clear descriptions for when the subagent should be used

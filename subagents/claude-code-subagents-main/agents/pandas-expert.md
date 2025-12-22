@@ -55,4 +55,3 @@ model: claude-sonnet-4-20250514
 - Performant data transformation functions
 - Effective missing data strategies implemented
 - Insightful exploratory data analysis results
-

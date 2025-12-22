@@ -1,509 +1,549 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}';">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src {{cspSource}} 'unsafe-inline'; script-src 'nonce-{{nonce}}';"
+    />
     <title>VRAM Monitor Dashboard</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: var(--vscode-font-family);
-            font-size: var(--vscode-font-size);
-            color: var(--vscode-foreground);
-            background-color: var(--vscode-sideBar-background);
-            padding: 12px;
-        }
-        .section {
-            margin-bottom: 16px;
-        }
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            cursor: pointer;
-            user-select: none;
-        }
-        .section-title {
-            font-weight: 600;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--vscode-sideBarSectionHeader-foreground);
-        }
-        .section-content {
-            padding-left: 4px;
-        }
-        .gpu-stats {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-        }
-        .stat-label {
-            color: var(--vscode-descriptionForeground);
-        }
-        .stat-value {
-            font-weight: 500;
-        }
-        .progress-container {
-            width: 100%;
-            height: 8px;
-            background-color: var(--vscode-progressBar-background);
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: var(--vscode-progressBar-background);
-            transition: width 0.3s ease;
-        }
-        .progress-bar.green {
-            background-color: #4caf50;
-        }
-        .progress-bar.yellow {
-            background-color: #ff9800;
-        }
-        .progress-bar.red {
-            background-color: #f44336;
-        }
-        .model-list {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .model-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 6px 8px;
-            background-color: var(--vscode-list-hoverBackground);
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        .model-name {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .model-size {
-            color: var(--vscode-descriptionForeground);
-            margin-left: 8px;
-            font-size: 11px;
-        }
-        button {
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: none;
-            padding: 4px 8px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 11px;
-        }
-        button:hover {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        button.secondary {
-            background-color: var(--vscode-button-secondaryBackground);
-            color: var(--vscode-button-secondaryForeground);
-        }
-        button.secondary:hover {
-            background-color: var(--vscode-button-secondaryHoverBackground);
-        }
-        .toolbar {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .filter-input {
-            flex: 1;
-            padding: 4px 8px;
-            background-color: var(--vscode-input-background);
-            color: var(--vscode-input-foreground);
-            border: 1px solid var(--vscode-input-border);
-            border-radius: 2px;
-            font-size: 12px;
-        }
-        .filter-input::placeholder {
-            color: var(--vscode-input-placeholderForeground);
-        }
-        .process-table {
-            width: 100%;
-            font-size: 11px;
-            border-collapse: collapse;
-        }
-        .process-table th,
-        .process-table td {
-            padding: 4px 8px;
-            text-align: left;
-            border-bottom: 1px solid var(--vscode-widget-border);
-        }
-        .process-table th {
-            color: var(--vscode-descriptionForeground);
-            font-weight: 500;
-        }
-        .empty-state {
-            color: var(--vscode-descriptionForeground);
-            font-size: 12px;
-            font-style: italic;
-            padding: 8px 0;
-        }
-        .error-message {
-            color: var(--vscode-errorForeground);
-            background-color: var(--vscode-inputValidation-errorBackground);
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 12px;
-            font-size: 12px;
-        }
-        .loading {
-            opacity: 0.6;
-        }
-        .hidden {
-            display: none;
-        }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--vscode-font-family);
+        font-size: var(--vscode-font-size);
+        color: var(--vscode-foreground);
+        background-color: var(--vscode-sideBar-background);
+        padding: 12px;
+      }
+      .section {
+        margin-bottom: 16px;
+      }
+      .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .section-title {
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--vscode-sideBarSectionHeader-foreground);
+      }
+      .section-content {
+        padding-left: 4px;
+      }
+      .gpu-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .stat-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+      }
+      .stat-label {
+        color: var(--vscode-descriptionForeground);
+      }
+      .stat-value {
+        font-weight: 500;
+      }
+      .progress-container {
+        width: 100%;
+        height: 8px;
+        background-color: var(--vscode-progressBar-background);
+        border-radius: 4px;
+        overflow: hidden;
+        margin: 8px 0;
+      }
+      .progress-bar {
+        height: 100%;
+        background-color: var(--vscode-progressBar-background);
+        transition: width 0.3s ease;
+      }
+      .progress-bar.green {
+        background-color: #4caf50;
+      }
+      .progress-bar.yellow {
+        background-color: #ff9800;
+      }
+      .progress-bar.red {
+        background-color: #f44336;
+      }
+      .model-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .model-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 6px 8px;
+        background-color: var(--vscode-list-hoverBackground);
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      .model-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .model-size {
+        color: var(--vscode-descriptionForeground);
+        margin-left: 8px;
+        font-size: 11px;
+      }
+      button {
+        background-color: var(--vscode-button-background);
+        color: var(--vscode-button-foreground);
+        border: none;
+        padding: 4px 8px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 11px;
+      }
+      button:hover {
+        background-color: var(--vscode-button-hoverBackground);
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      button.secondary {
+        background-color: var(--vscode-button-secondaryBackground);
+        color: var(--vscode-button-secondaryForeground);
+      }
+      button.secondary:hover {
+        background-color: var(--vscode-button-secondaryHoverBackground);
+      }
+      .toolbar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .filter-input {
+        flex: 1;
+        padding: 4px 8px;
+        background-color: var(--vscode-input-background);
+        color: var(--vscode-input-foreground);
+        border: 1px solid var(--vscode-input-border);
+        border-radius: 2px;
+        font-size: 12px;
+      }
+      .filter-input::placeholder {
+        color: var(--vscode-input-placeholderForeground);
+      }
+      .process-table {
+        width: 100%;
+        font-size: 11px;
+        border-collapse: collapse;
+      }
+      .process-table th,
+      .process-table td {
+        padding: 4px 8px;
+        text-align: left;
+        border-bottom: 1px solid var(--vscode-widget-border);
+      }
+      .process-table th {
+        color: var(--vscode-descriptionForeground);
+        font-weight: 500;
+      }
+      .empty-state {
+        color: var(--vscode-descriptionForeground);
+        font-size: 12px;
+        font-style: italic;
+        padding: 8px 0;
+      }
+      .error-message {
+        color: var(--vscode-errorForeground);
+        background-color: var(--vscode-inputValidation-errorBackground);
+        padding: 8px;
+        border-radius: 4px;
+        margin-bottom: 12px;
+        font-size: 12px;
+      }
+      .loading {
+        opacity: 0.6;
+      }
+      .hidden {
+        display: none;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="toolbar">
-        <button id="refreshBtn" title="Refresh">Refresh</button>
+      <button id="refreshBtn" title="Refresh">Refresh</button>
     </div>
 
     <div id="errorContainer" class="hidden"></div>
 
     <div id="gpuSection" class="section">
-        <div class="section-header">
-            <span class="section-title">GPU Stats</span>
+      <div class="section-header">
+        <span class="section-title">GPU Stats</span>
+      </div>
+      <div class="section-content">
+        <div id="gpuName" class="stat-row">
+          <span class="stat-label">GPU</span>
+          <span class="stat-value" id="gpuNameValue">Loading...</span>
         </div>
-        <div class="section-content">
-            <div id="gpuName" class="stat-row">
-                <span class="stat-label">GPU</span>
-                <span class="stat-value" id="gpuNameValue">Loading...</span>
-            </div>
-            <div class="progress-container">
-                <div class="progress-bar" id="vramProgress"></div>
-            </div>
-            <div class="gpu-stats">
-                <div id="usedVramRow" class="stat-row">
-                    <span class="stat-label">Used</span>
-                    <span class="stat-value" id="usedVramValue">-</span>
-                </div>
-                <div id="totalVramRow" class="stat-row">
-                    <span class="stat-label">Total</span>
-                    <span class="stat-value" id="totalVramValue">-</span>
-                </div>
-                <div id="freeVramRow" class="stat-row">
-                    <span class="stat-label">Free</span>
-                    <span class="stat-value" id="freeVramValue">-</span>
-                </div>
-                <div id="utilizationRow" class="stat-row">
-                    <span class="stat-label">Utilization</span>
-                    <span class="stat-value" id="utilizationValue">-</span>
-                </div>
-            </div>
+        <div class="progress-container">
+          <div class="progress-bar" id="vramProgress"></div>
         </div>
+        <div class="gpu-stats">
+          <div id="usedVramRow" class="stat-row">
+            <span class="stat-label">Used</span>
+            <span class="stat-value" id="usedVramValue">-</span>
+          </div>
+          <div id="totalVramRow" class="stat-row">
+            <span class="stat-label">Total</span>
+            <span class="stat-value" id="totalVramValue">-</span>
+          </div>
+          <div id="freeVramRow" class="stat-row">
+            <span class="stat-label">Free</span>
+            <span class="stat-value" id="freeVramValue">-</span>
+          </div>
+          <div id="utilizationRow" class="stat-row">
+            <span class="stat-label">Utilization</span>
+            <span class="stat-value" id="utilizationValue">-</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div id="loadedModelsSection" class="section">
-        <div class="section-header">
-            <span class="section-title">Loaded Models</span>
+      <div class="section-header">
+        <span class="section-title">Loaded Models</span>
+      </div>
+      <div class="section-content">
+        <div id="loadedModelsList" class="model-list">
+          <div class="empty-state">No models loaded</div>
         </div>
-        <div class="section-content">
-            <div id="loadedModelsList" class="model-list">
-                <div class="empty-state">No models loaded</div>
-            </div>
-        </div>
+      </div>
     </div>
 
     <div id="availableModelsSection" class="section">
-        <div class="section-header">
-            <span class="section-title">Available Models</span>
+      <div class="section-header">
+        <span class="section-title">Available Models</span>
+      </div>
+      <div class="section-content">
+        <input
+          type="text"
+          id="modelFilter"
+          class="filter-input"
+          placeholder="Filter models..."
+        />
+        <div
+          id="availableModelsList"
+          class="model-list"
+          style="margin-top: 8px"
+        >
+          <div class="empty-state">Loading...</div>
         </div>
-        <div class="section-content">
-            <input type="text" id="modelFilter" class="filter-input" placeholder="Filter models...">
-            <div id="availableModelsList" class="model-list" style="margin-top: 8px;">
-                <div class="empty-state">Loading...</div>
-            </div>
-        </div>
+      </div>
     </div>
 
     <div id="processesSection" class="section">
-        <div class="section-header">
-            <span class="section-title">GPU Processes</span>
-        </div>
-        <div class="section-content">
-            <table class="process-table" id="processTable">
-                <thead>
-                    <tr>
-                        <th>PID</th>
-                        <th>Name</th>
-                        <th>Memory</th>
-                    </tr>
-                </thead>
-                <tbody id="processTableBody">
-                </tbody>
-            </table>
-            <div id="noProcesses" class="empty-state">No GPU processes</div>
-        </div>
+      <div class="section-header">
+        <span class="section-title">GPU Processes</span>
+      </div>
+      <div class="section-content">
+        <table class="process-table" id="processTable">
+          <thead>
+            <tr>
+              <th>PID</th>
+              <th>Name</th>
+              <th>Memory</th>
+            </tr>
+          </thead>
+          <tbody id="processTableBody"></tbody>
+        </table>
+        <div id="noProcesses" class="empty-state">No GPU processes</div>
+      </div>
     </div>
 
     <script nonce="{{nonce}}">
-        (function() {
-            const vscode = acquireVsCodeApi();
+      (function () {
+        const vscode = acquireVsCodeApi();
 
-            let settings = {
-                showTotalVRAM: true,
-                showUsedVRAM: true,
-                showFreeVRAM: true,
-                showUtilization: true,
-                showLoadedModels: true,
-                showGPUProcesses: true,
-                showGPUName: true,
-                showProgressBar: true
-            };
+        let settings = {
+          showTotalVRAM: true,
+          showUsedVRAM: true,
+          showFreeVRAM: true,
+          showUtilization: true,
+          showLoadedModels: true,
+          showGPUProcesses: true,
+          showGPUName: true,
+          showProgressBar: true,
+        };
 
-            let loadingModels = new Set();
+        let loadingModels = new Set();
 
-            // DOM elements
-            const refreshBtn = document.getElementById('refreshBtn');
-            const errorContainer = document.getElementById('errorContainer');
-            const gpuNameValue = document.getElementById('gpuNameValue');
-            const vramProgress = document.getElementById('vramProgress');
-            const usedVramValue = document.getElementById('usedVramValue');
-            const totalVramValue = document.getElementById('totalVramValue');
-            const freeVramValue = document.getElementById('freeVramValue');
-            const utilizationValue = document.getElementById('utilizationValue');
-            const loadedModelsList = document.getElementById('loadedModelsList');
-            const availableModelsList = document.getElementById('availableModelsList');
-            const modelFilter = document.getElementById('modelFilter');
-            const processTableBody = document.getElementById('processTableBody');
-            const noProcesses = document.getElementById('noProcesses');
+        // DOM elements
+        const refreshBtn = document.getElementById("refreshBtn");
+        const errorContainer = document.getElementById("errorContainer");
+        const gpuNameValue = document.getElementById("gpuNameValue");
+        const vramProgress = document.getElementById("vramProgress");
+        const usedVramValue = document.getElementById("usedVramValue");
+        const totalVramValue = document.getElementById("totalVramValue");
+        const freeVramValue = document.getElementById("freeVramValue");
+        const utilizationValue = document.getElementById("utilizationValue");
+        const loadedModelsList = document.getElementById("loadedModelsList");
+        const availableModelsList = document.getElementById(
+          "availableModelsList",
+        );
+        const modelFilter = document.getElementById("modelFilter");
+        const processTableBody = document.getElementById("processTableBody");
+        const noProcesses = document.getElementById("noProcesses");
 
-            // Visibility elements
-            const gpuNameRow = document.getElementById('gpuName');
-            const usedVramRow = document.getElementById('usedVramRow');
-            const totalVramRow = document.getElementById('totalVramRow');
-            const freeVramRow = document.getElementById('freeVramRow');
-            const utilizationRow = document.getElementById('utilizationRow');
-            const loadedModelsSection = document.getElementById('loadedModelsSection');
-            const processesSection = document.getElementById('processesSection');
+        // Visibility elements
+        const gpuNameRow = document.getElementById("gpuName");
+        const usedVramRow = document.getElementById("usedVramRow");
+        const totalVramRow = document.getElementById("totalVramRow");
+        const freeVramRow = document.getElementById("freeVramRow");
+        const utilizationRow = document.getElementById("utilizationRow");
+        const loadedModelsSection = document.getElementById(
+          "loadedModelsSection",
+        );
+        const processesSection = document.getElementById("processesSection");
 
-            let availableModels = [];
+        let availableModels = [];
 
-            function formatBytes(bytes) {
-                if (bytes >= 1024 * 1024 * 1024) {
-                    return (bytes / (1024 * 1024 * 1024)).toFixed(1) + ' GB';
-                }
-                if (bytes >= 1024 * 1024) {
-                    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-                }
-                return Math.round(bytes) + ' B';
-            }
+        function formatBytes(bytes) {
+          if (bytes >= 1024 * 1024 * 1024) {
+            return (bytes / (1024 * 1024 * 1024)).toFixed(1) + " GB";
+          }
+          if (bytes >= 1024 * 1024) {
+            return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+          }
+          return Math.round(bytes) + " B";
+        }
 
-            function formatMB(mb) {
-                return formatBytes(mb * 1024 * 1024);
-            }
+        function formatMB(mb) {
+          return formatBytes(mb * 1024 * 1024);
+        }
 
-            function getProgressColor(percent) {
-                if (percent <= 50) return 'green';
-                if (percent <= 80) return 'yellow';
-                return 'red';
-            }
+        function getProgressColor(percent) {
+          if (percent <= 50) return "green";
+          if (percent <= 80) return "yellow";
+          return "red";
+        }
 
-            function applySettings() {
-                gpuNameRow.classList.toggle('hidden', !settings.showGPUName);
-                usedVramRow.classList.toggle('hidden', !settings.showUsedVRAM);
-                totalVramRow.classList.toggle('hidden', !settings.showTotalVRAM);
-                freeVramRow.classList.toggle('hidden', !settings.showFreeVRAM);
-                utilizationRow.classList.toggle('hidden', !settings.showUtilization);
-                loadedModelsSection.classList.toggle('hidden', !settings.showLoadedModels);
-                processesSection.classList.toggle('hidden', !settings.showGPUProcesses);
-                document.querySelector('.progress-container').classList.toggle('hidden', !settings.showProgressBar);
-            }
+        function applySettings() {
+          gpuNameRow.classList.toggle("hidden", !settings.showGPUName);
+          usedVramRow.classList.toggle("hidden", !settings.showUsedVRAM);
+          totalVramRow.classList.toggle("hidden", !settings.showTotalVRAM);
+          freeVramRow.classList.toggle("hidden", !settings.showFreeVRAM);
+          utilizationRow.classList.toggle("hidden", !settings.showUtilization);
+          loadedModelsSection.classList.toggle(
+            "hidden",
+            !settings.showLoadedModels,
+          );
+          processesSection.classList.toggle(
+            "hidden",
+            !settings.showGPUProcesses,
+          );
+          document
+            .querySelector(".progress-container")
+            .classList.toggle("hidden", !settings.showProgressBar);
+        }
 
-            function updateGPUStats(vram) {
-                if (!vram || !vram.gpu) {
-                    gpuNameValue.textContent = 'No GPU detected';
-                    vramProgress.style.width = '0%';
-                    vramProgress.className = 'progress-bar';
-                    usedVramValue.textContent = '-';
-                    totalVramValue.textContent = '-';
-                    freeVramValue.textContent = '-';
-                    utilizationValue.textContent = '-';
-                    return;
-                }
+        function updateGPUStats(vram) {
+          if (!vram || !vram.gpu) {
+            gpuNameValue.textContent = "No GPU detected";
+            vramProgress.style.width = "0%";
+            vramProgress.className = "progress-bar";
+            usedVramValue.textContent = "-";
+            totalVramValue.textContent = "-";
+            freeVramValue.textContent = "-";
+            utilizationValue.textContent = "-";
+            return;
+          }
 
-                const gpu = vram.gpu;
-                const aggregate = gpu.aggregate || gpu;
+          const gpu = vram.gpu;
+          const aggregate = gpu.aggregate || gpu;
 
-                gpuNameValue.textContent = gpu.name || 'Unknown GPU';
+          gpuNameValue.textContent = gpu.name || "Unknown GPU";
 
-                const usedMb = aggregate.used_mb || 0;
-                const totalMb = aggregate.total_mb || 1;
-                const freeMb = aggregate.free_mb || 0;
-                const utilization = aggregate.utilization || 0;
-                const percent = totalMb > 0 ? (usedMb / totalMb) * 100 : 0;
+          const usedMb = aggregate.used_mb || 0;
+          const totalMb = aggregate.total_mb || 1;
+          const freeMb = aggregate.free_mb || 0;
+          const utilization = aggregate.utilization || 0;
+          const percent = totalMb > 0 ? (usedMb / totalMb) * 100 : 0;
 
-                vramProgress.style.width = percent.toFixed(1) + '%';
-                vramProgress.className = 'progress-bar ' + getProgressColor(percent);
+          vramProgress.style.width = percent.toFixed(1) + "%";
+          vramProgress.className = "progress-bar " + getProgressColor(percent);
 
-                usedVramValue.textContent = formatMB(usedMb);
-                totalVramValue.textContent = formatMB(totalMb);
-                freeVramValue.textContent = formatMB(freeMb);
-                utilizationValue.textContent = utilization.toFixed(1) + '%';
-            }
+          usedVramValue.textContent = formatMB(usedMb);
+          totalVramValue.textContent = formatMB(totalMb);
+          freeVramValue.textContent = formatMB(freeMb);
+          utilizationValue.textContent = utilization.toFixed(1) + "%";
+        }
 
-            function updateLoadedModels(loaded) {
-                if (!loaded || loaded.length === 0) {
-                    loadedModelsList.innerHTML = '<div class="empty-state">No models loaded</div>';
-                    return;
-                }
+        function updateLoadedModels(loaded) {
+          if (!loaded || loaded.length === 0) {
+            loadedModelsList.innerHTML =
+              '<div class="empty-state">No models loaded</div>';
+            return;
+          }
 
-                loadedModelsList.innerHTML = loaded.map(model => {
-                    const vramSize = formatBytes(model.size_vram || 0);
-                    return `
+          loadedModelsList.innerHTML = loaded
+            .map((model) => {
+              const vramSize = formatBytes(model.size_vram || 0);
+              return `
                         <div class="model-item">
                             <span class="model-name" title="${model.name}">${model.name}</span>
                             <span class="model-size">${vramSize}</span>
                             <button class="secondary" onclick="unloadModel('${model.model}')">Unload</button>
                         </div>
                     `;
-                }).join('');
-            }
+            })
+            .join("");
+        }
 
-            function updateAvailableModels(available, loaded) {
-                availableModels = available || [];
-                const loadedNames = new Set((loaded || []).map(m => m.name));
-                renderAvailableModels(loadedNames);
-            }
+        function updateAvailableModels(available, loaded) {
+          availableModels = available || [];
+          const loadedNames = new Set((loaded || []).map((m) => m.name));
+          renderAvailableModels(loadedNames);
+        }
 
-            function renderAvailableModels(loadedNames) {
-                const filter = modelFilter.value.toLowerCase();
-                const filtered = availableModels.filter(m =>
-                    m.name.toLowerCase().includes(filter)
-                );
+        function renderAvailableModels(loadedNames) {
+          const filter = modelFilter.value.toLowerCase();
+          const filtered = availableModels.filter((m) =>
+            m.name.toLowerCase().includes(filter),
+          );
 
-                if (filtered.length === 0) {
-                    availableModelsList.innerHTML = '<div class="empty-state">No models available</div>';
-                    return;
-                }
+          if (filtered.length === 0) {
+            availableModelsList.innerHTML =
+              '<div class="empty-state">No models available</div>';
+            return;
+          }
 
-                loadedNames = loadedNames || new Set();
+          loadedNames = loadedNames || new Set();
 
-                availableModelsList.innerHTML = filtered.map(model => {
-                    const isLoaded = loadedNames.has(model.name);
-                    const isLoading = loadingModels.has(model.name);
-                    const size = formatBytes(model.size || 0);
-                    const btnText = isLoading ? 'Loading...' : (isLoaded ? 'Loaded' : 'Load');
-                    const disabled = isLoaded || isLoading ? 'disabled' : '';
+          availableModelsList.innerHTML = filtered
+            .map((model) => {
+              const isLoaded = loadedNames.has(model.name);
+              const isLoading = loadingModels.has(model.name);
+              const size = formatBytes(model.size || 0);
+              const btnText = isLoading
+                ? "Loading..."
+                : isLoaded
+                  ? "Loaded"
+                  : "Load";
+              const disabled = isLoaded || isLoading ? "disabled" : "";
 
-                    return `
-                        <div class="model-item ${isLoading ? 'loading' : ''}">
+              return `
+                        <div class="model-item ${isLoading ? "loading" : ""}">
                             <span class="model-name" title="${model.name}">${model.name}</span>
                             <span class="model-size">${size}</span>
                             <button ${disabled} onclick="loadModel('${model.name}')">${btnText}</button>
                         </div>
                     `;
-                }).join('');
-            }
+            })
+            .join("");
+        }
 
-            function updateProcesses(processes) {
-                if (!processes || processes.length === 0) {
-                    processTableBody.innerHTML = '';
-                    noProcesses.classList.remove('hidden');
-                    return;
-                }
+        function updateProcesses(processes) {
+          if (!processes || processes.length === 0) {
+            processTableBody.innerHTML = "";
+            noProcesses.classList.remove("hidden");
+            return;
+          }
 
-                noProcesses.classList.add('hidden');
-                processTableBody.innerHTML = processes.map(proc => `
+          noProcesses.classList.add("hidden");
+          processTableBody.innerHTML = processes
+            .map(
+              (proc) => `
                     <tr>
                         <td>${proc.pid}</td>
                         <td>${proc.name}</td>
-                        <td>${proc.memory || '-'}</td>
+                        <td>${proc.memory || "-"}</td>
                     </tr>
-                `).join('');
-            }
+                `,
+            )
+            .join("");
+        }
 
-            function showError(message) {
-                errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
-                errorContainer.classList.remove('hidden');
-                setTimeout(() => {
-                    errorContainer.classList.add('hidden');
-                }, 5000);
-            }
+        function showError(message) {
+          errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+          errorContainer.classList.remove("hidden");
+          setTimeout(() => {
+            errorContainer.classList.add("hidden");
+          }, 5000);
+        }
 
-            // Global functions for onclick handlers
-            window.loadModel = function(modelName) {
-                loadingModels.add(modelName);
-                renderAvailableModels();
-                vscode.postMessage({ type: 'loadModel', modelName });
-            };
+        // Global functions for onclick handlers
+        window.loadModel = function (modelName) {
+          loadingModels.add(modelName);
+          renderAvailableModels();
+          vscode.postMessage({ type: "loadModel", modelName });
+        };
 
-            window.unloadModel = function(modelName) {
-                vscode.postMessage({ type: 'unloadModel', modelName });
-            };
+        window.unloadModel = function (modelName) {
+          vscode.postMessage({ type: "unloadModel", modelName });
+        };
 
-            // Event listeners
-            refreshBtn.addEventListener('click', () => {
-                vscode.postMessage({ type: 'refresh' });
-            });
+        // Event listeners
+        refreshBtn.addEventListener("click", () => {
+          vscode.postMessage({ type: "refresh" });
+        });
 
-            modelFilter.addEventListener('input', () => {
-                renderAvailableModels();
-            });
+        modelFilter.addEventListener("input", () => {
+          renderAvailableModels();
+        });
 
-            // Message handler
-            window.addEventListener('message', event => {
-                const message = event.data;
+        // Message handler
+        window.addEventListener("message", (event) => {
+          const message = event.data;
 
-                switch (message.type) {
-                    case 'updateData':
-                        updateGPUStats(message.data.vram);
-                        updateLoadedModels(message.data.loaded);
-                        updateAvailableModels(message.data.available, message.data.loaded);
-                        updateProcesses(message.data.vram?.gpu_processes);
-                        loadingModels.clear();
-                        break;
+          switch (message.type) {
+            case "updateData":
+              updateGPUStats(message.data.vram);
+              updateLoadedModels(message.data.loaded);
+              updateAvailableModels(
+                message.data.available,
+                message.data.loaded,
+              );
+              updateProcesses(message.data.vram?.gpu_processes);
+              loadingModels.clear();
+              break;
 
-                    case 'updateSettings':
-                        settings = message.settings;
-                        applySettings();
-                        break;
+            case "updateSettings":
+              settings = message.settings;
+              applySettings();
+              break;
 
-                    case 'error':
-                        showError(message.message);
-                        loadingModels.clear();
-                        break;
+            case "error":
+              showError(message.message);
+              loadingModels.clear();
+              break;
 
-                    case 'modelLoadStarted':
-                        loadingModels.add(message.modelName);
-                        renderAvailableModels();
-                        break;
+            case "modelLoadStarted":
+              loadingModels.add(message.modelName);
+              renderAvailableModels();
+              break;
 
-                    case 'modelUnloaded':
-                        loadingModels.delete(message.modelName);
-                        break;
-                }
-            });
+            case "modelUnloaded":
+              loadingModels.delete(message.modelName);
+              break;
+          }
+        });
 
-            // Initial ready signal
-            vscode.postMessage({ type: 'ready' });
-        })();
+        // Initial ready signal
+        vscode.postMessage({ type: "ready" });
+      })();
     </script>
-</body>
+  </body>
 </html>

@@ -132,7 +132,9 @@
   border-radius: var(--border-radius-full);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: background-color var(--transition-fast), color var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .site-header__theme-toggle:hover {
@@ -193,7 +195,9 @@
 /* Hamburger icon animation */
 .site-header__menu-toggle .icon-menu,
 .site-header__menu-toggle .icon-close {
-  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  transition:
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 .site-header__menu-toggle[aria-expanded="true"] .icon-menu {
