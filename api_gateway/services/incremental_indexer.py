@@ -333,11 +333,7 @@ def index_files(
 
     # Filter to indexable files
     code_files = [f for f in files if f.suffix.lower() in CODE_EXTENSIONS]
-    doc_files = [
-        f
-        for f in files
-        if f.suffix.lower() in DOC_EXTENSIONS and is_service_readme(f)
-    ]
+    doc_files = [f for f in files if f.suffix.lower() in DOC_EXTENSIONS and is_service_readme(f)]
     skipped = len(files) - len(code_files) - len(doc_files)
     stats["skipped"] = skipped
 

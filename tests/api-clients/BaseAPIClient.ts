@@ -156,27 +156,24 @@ export class BaseAPIClient {
     }
   }
 
-  get<T = any>(endpoint: string, params?: Record<string, any>): Promise<T> {
+  get<T>(endpoint: string, params?: Record<string, unknown>): Promise<T> {
     return this.requestWithRetry<T>({ method: "GET", url: endpoint, params });
   }
-
-  post<T = any>(endpoint: string, body?: any): Promise<T> {
+  post<T>(endpoint: string, body?: unknown): Promise<T> {
     return this.requestWithRetry<T>({
       method: "POST",
       url: endpoint,
       data: body,
     });
   }
-
-  put<T = any>(endpoint: string, body?: any): Promise<T> {
+  put<T>(endpoint: string, body?: unknown): Promise<T> {
     return this.requestWithRetry<T>({
       method: "PUT",
       url: endpoint,
       data: body,
     });
   }
-
-  delete<T = any>(endpoint: string): Promise<T> {
+  delete<T>(endpoint: string): Promise<T> {
     return this.requestWithRetry<T>({ method: "DELETE", url: endpoint });
   }
 

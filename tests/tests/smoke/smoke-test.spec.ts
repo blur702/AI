@@ -44,10 +44,18 @@ test.describe.parallel("Smoke tests", () => {
       expect(health.success).toBe(true);
 } catch (error: unknown) {
 // Skip test if gateway is not running (ECONNREFUSED)
+const isErrnoException = (e: unknown): e is NodeJS.ErrnoException =>
+typeof e === "object" && e !== null && "code" in e;
+const hasMessage = (e: unknown): e is Error =>
+e instanceof Error && typeof e.message === "string";
+
 if (
-(error as NodeJS.ErrnoException).code === "ECONNREFUSED" ||
-(error as Error).message?.includes("ECONNREFUSED")
+(isErrnoException(error) && error.code === "ECONNREFUSED") ||
+(hasMessage(error) && error.message.includes("ECONNREFUSED"))
 ) {
+test.skip(true, "API Gateway is not running (port 1301)");
+return;
+}
       // Skip test if gateway is not running (ECONNREFUSED)
       if (
         error.code === "ECONNREFUSED" ||
@@ -177,7 +185,10 @@ test.describe("VPS Service Management", () => {
         "unknown",
       ]).toContain(status.status);
       console.log(`Service ${testServiceId}: ${status.status}`);
-    } catch (error: any) {
+} catch (error: unknown) {
+// Service might not be registered
+console.log(`Service ${testServiceId} not found: ${(error as Error).message}`);
+}
       // Service might not be registered
       console.log(`Service ${testServiceId} not found: ${error.message}`);
     }

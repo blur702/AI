@@ -32,14 +32,16 @@ test.describe("Dashboard Backend VRAM API", () => {
       expect(Array.isArray(status.processes)).toBe(true);
     });
 
-    test("processes have expected schema when present", async ({
-      dashboardAPI,
-    }) => {
-      const status = await dashboardAPI.getVRAMStatus();
-
-      // If there are processes using GPU, validate their structure
-      if (status.processes.length > 0) {
-        const process = status.processes[0];
+const status = await dashboardAPI.getVRAMStatus();
+// If there are processes using GPU, validate their structure
+if (status.processes.length > 0) {
+const process = status.processes[0];
+expect(typeof process.pid).toBe("number");
+expect(typeof process.name).toBe("string");
+expect(typeof process.memory).toBe("number");
+expect(process.pid).toBeGreaterThan(0);
+expect(process.name.length).toBeGreaterThan(0);
+expect(process.memory).toBeGreaterThanOrEqual(0);
 const process = status.processes[0];
 expect(typeof process.pid).toBe("number");
 expect(typeof process.name).toBe("string");
@@ -48,17 +50,23 @@ expect(process.pid).toBeGreaterThan(0);
 expect(process.name.length).toBeGreaterThan(0);
 expect(process.memory).toBeGreaterThanOrEqual(0);
 }
-      }
-    });
+expect(typeof process.pid).toBe("number");
+expect(typeof process.name).toBe("string");
+expect(typeof process.memory).toBe("number");
+expect(process.pid).toBeGreaterThan(0);
+expect(process.name.length).toBeGreaterThan(0);
+expect(process.memory).toBeGreaterThanOrEqual(0);
+}
+});
 
     test("used + free memory approximately equals total", async ({
       dashboardAPI,
     }) => {
       const status = await dashboardAPI.getVRAMStatus();
 
-      const calculatedTotal = status.gpu.used_mb + status.gpu.free_mb;
-      // Allow 5% tolerance for rounding
-      const tolerance = status.gpu.total_mb * 0.05;
+const calculatedTotal = status.gpu.used_mb + status.gpu.free_mb;
+// Allow 5% tolerance for rounding/measurement variance in GPU memory reporting
+const tolerance = status.gpu.total_mb * 0.05;
       expect(Math.abs(calculatedTotal - status.gpu.total_mb)).toBeLessThan(
         tolerance,
       );

@@ -337,7 +337,7 @@ class CongressionalVotesScraper:
         offset = 0
 
         while True:
-            if self._is_cancelled():
+            if self.is_cancelled():
                 logger.info("Vote scraping cancelled")
                 break
 
@@ -360,7 +360,7 @@ class CongressionalVotesScraper:
 
         # Process each vote
         for idx, vote_summary in enumerate(all_votes):
-            if self._is_cancelled():
+            if self.is_cancelled():
                 break
 
             roll_call = (
