@@ -1,13 +1,18 @@
 """
 Documentation ingestion service for Weaviate.
 
-Scans markdown files in the workspace, chunks them by headers for
+Scans AI service README.md files in the workspace, chunks them by headers for
 semantic coherence, and ingests them into a `Documentation` collection
 in Weaviate using manual vectorization via Ollama API
 (bypasses Weaviate's text2vec-ollama to avoid connection issues).
 
-CLI usage (from project root, with api_gateway on PYTHONPATH):
+Scope:
+- AI service directories: alltalk_tts, audiocraft, ComfyUI, DiffRhythm,
+  MusicGPT, stable-audio-tools, Wan2GP, YuE
+- Only README.md files (case-insensitive)
+- Root docs/ directory is excluded (documentation now in vector DB)
 
+CLI usage (from project root, with api_gateway on PYTHONPATH):
     python -m api_gateway.services.doc_ingestion ingest --verbose
     python -m api_gateway.services.doc_ingestion reindex
     python -m api_gateway.services.doc_ingestion status
@@ -100,18 +105,25 @@ AI_SERVICE_DIRS = {
 
 def scan_markdown_files(include_service_readmes: bool = True) -> list[Path]:
     """
-    Scan the workspace for markdown files.
+    Scan the workspace for markdown files to index.
 
-    - Includes all `.md` files under `docs/`
-    - Includes `.md` files in the workspace root
-    - Optionally includes README.md files from AI service directories
-    - Excludes common large/irrelevant directories such as node_modules, .git, venvs.
+    Currently scans:
+    - README.md files from AI service directories (alltalk_tts, audiocraft, ComfyUI, etc.)
+
+    Does NOT scan:
+    - Root docs/ directory (deleted - documentation now in vector DB)
+    - General workspace markdown files
+    - Tool/module subdirectory docs
+
+    Excludes common large/irrelevant directories such as node_modules, .git, venvs.
 
     Args:
         include_service_readmes: If True, include README.md from AI service directories
+
+    Returns:
+        List of Path objects for markdown files to index
     """
     workspace_root = Path(__file__).resolve().parents[2]
-    docs_dir = workspace_root / "docs"
 
     excluded_dirs = {
         ".git",
@@ -120,6 +132,7 @@ def scan_markdown_files(include_service_readmes: bool = True) -> list[Path]:
         ".venv",
         "venv",
         "env",
+        "docs",  # Exclude deleted docs directory - documentation now in vector DB
         # AI service venvs
         "audiocraft_env",
         "wan2gp_env",
@@ -141,17 +154,6 @@ def scan_markdown_files(include_service_readmes: bool = True) -> list[Path]:
 
     markdown_files: list[Path] = []
 
-    # Include docs/ directory
-    if docs_dir.is_dir():
-        for path in docs_dir.rglob("*.md"):
-            if not is_excluded(path):
-                markdown_files.append(path)
-
-    # Include root .md files
-    for path in workspace_root.glob("*.md"):
-        if not is_excluded(path):
-            markdown_files.append(path)
-
     # Include AI service READMEs
     if include_service_readmes:
         for dir_name in AI_SERVICE_DIRS.keys():
@@ -163,13 +165,6 @@ def scan_markdown_files(include_service_readmes: bool = True) -> list[Path]:
                     if readme_path.exists():
                         markdown_files.append(readme_path)
                         break
-                # Also include docs folder within service if it exists
-                service_docs = service_dir / "docs"
-                if service_docs.is_dir():
-                    for path in service_docs.rglob("*.md"):
-                        if not is_excluded(path):
-                            markdown_files.append(path)
-
     # Remove duplicates if any
     unique_files = sorted({p.resolve() for p in markdown_files})
 

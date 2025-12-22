@@ -35,6 +35,7 @@ from api_gateway.services.code_entity_schema import (
 )
 from api_gateway.services.code_parsers import CodeParser
 from api_gateway.services.doc_ingestion import (
+    AI_SERVICE_DIRS,
     chunk_by_headers,
     create_documentation_collection,
     get_doc_text_for_embedding,
@@ -62,6 +63,7 @@ DOC_EXTENSIONS = {".md"}
 
 # Project root
 PROJECT_ROOT = Path(__file__).parent.parent.parent
+SERVICE_DIRS = {name.lower() for name in AI_SERVICE_DIRS.keys()}
 
 
 def get_service_name(file_path: Path) -> str:
@@ -89,6 +91,23 @@ def get_service_name(file_path: Path) -> str:
         return "core"
     except ValueError:
         return "core"
+
+
+def is_service_readme(file_path: Path) -> bool:
+    """
+    Return True if the path is a README.md under a known service directory.
+
+    This is the only type of markdown file we index since the root docs/
+    directory was deleted and documentation is now stored in vector DB.
+    """
+    if file_path.name.lower() != "readme.md":
+        return False
+    try:
+        rel_path = file_path.resolve().relative_to(PROJECT_ROOT)
+    except ValueError:
+        return False
+    rel_parts = [part.lower() for part in rel_path.parts]
+    return any(service_dir in rel_parts for service_dir in SERVICE_DIRS)
 
 
 def index_code_file(
@@ -314,7 +333,11 @@ def index_files(
 
     # Filter to indexable files
     code_files = [f for f in files if f.suffix.lower() in CODE_EXTENSIONS]
-    doc_files = [f for f in files if f.suffix.lower() in DOC_EXTENSIONS]
+    doc_files = [
+        f
+        for f in files
+        if f.suffix.lower() in DOC_EXTENSIONS and is_service_readme(f)
+    ]
     skipped = len(files) - len(code_files) - len(doc_files)
     stats["skipped"] = skipped
 
