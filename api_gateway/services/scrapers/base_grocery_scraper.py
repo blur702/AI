@@ -128,11 +128,10 @@ class BaseGroceryScraper(ABC):
             )
 
         # Ensure minimum time between requests
-        elapsed = asyncio.get_event_loop().time() - self._last_request_time
-        if elapsed < delay:
-            await asyncio.sleep(delay - elapsed)
-
-        self._last_request_time = asyncio.get_event_loop().time()
+elapsed = asyncio.get_running_loop().time() - self._last_request_time
+if elapsed < delay:
+await asyncio.sleep(delay - elapsed)
+self._last_request_time = asyncio.get_running_loop().time()
         self._request_count += 1
 
     async def retry_with_backoff(
@@ -274,15 +273,39 @@ class BaseGroceryScraper(ABC):
             severity: Error severity (info, warning, error, critical)
         """
         try:
-            ctx = context or {}
-            ctx["service_name"] = self.service_name
-            await store_error(
-                service=f"scraper.{self.service_name}",
-                message=message,
-                severity=severity,
-                stack_trace=None,
-            )
-        except Exception as e:
+async def log_error(
+self,
+message: str,
+context: dict[str, Any] | None = None,
+severity: str = "error",
+) -> None:
+try:
+ctx = context or {}
+ctx["service_name"] = self.service_name
+await store_error(
+service=f"scraper.{self.service_name}",
+message=message,
+severity=severity,
+stack_trace=str(ctx) if ctx else None,
+)
+except Exception as e:
+self.logger.warning("Failed to log error to tracker: %s", e)
+await store_error(
+service=f"scraper.{self.service_name}",
+message=message,
+severity=severity,
+stack_trace=str(ctx) if ctx else None,
+)
+except Exception as e:
+self.logger.warning("Failed to log error to tracker: %s", e)
+await store_error(
+service=f"scraper.{self.service_name}",
+message=message,
+severity=severity,
+stack_trace=str(ctx) if ctx else None,
+)
+except Exception as e:
+self.logger.warning("Failed to log error to tracker: %s", e)
             self.logger.warning("Failed to log error to tracker: %s", e)
 
     @abstractmethod

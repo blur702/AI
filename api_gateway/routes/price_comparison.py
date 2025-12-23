@@ -88,24 +88,28 @@ async def search_products(payload: ProductSearchRequest) -> dict:
         for group in results.get("groups", []):
             group_products = []
             for product in group.get("products", []):
-                group_products.append({
-                    "id": product.get("id"),
-                    "service": product.get("service"),
-                    "name": product.get("name"),
-                    "price": product.get("price"),
-                    "size": product.get("size"),
-                    "brand": product.get("brand"),
-                    "url": product.get("url"),
-                    "image_url": product.get("image_url"),
-                    "availability": product.get("availability", True),
-                    "similarity_score": product.get("similarity_score", 0.0),
-                    "attributes": product.get("attributes"),
-                })
-            response_groups.append({
-                "representative_name": group.get("representative_name", ""),
-                "reasoning": group.get("reasoning", ""),
-                "products": group_products,
-            })
+                group_products.append(
+                    {
+                        "id": product.get("id"),
+                        "service": product.get("service"),
+                        "name": product.get("name"),
+                        "price": product.get("price"),
+                        "size": product.get("size"),
+                        "brand": product.get("brand"),
+                        "url": product.get("url"),
+                        "image_url": product.get("image_url"),
+                        "availability": product.get("availability", True),
+                        "similarity_score": product.get("similarity_score", 0.0),
+                        "attributes": product.get("attributes"),
+                    }
+                )
+            response_groups.append(
+                {
+                    "representative_name": group.get("representative_name", ""),
+                    "reasoning": group.get("reasoning", ""),
+                    "products": group_products,
+                }
+            )
 
         return {
             "query": results.get("query", payload.query),
@@ -239,24 +243,28 @@ async def get_comparison(comparison_id: str) -> dict:
         for group in result.get("groups", []):
             group_products = []
             for product in group.get("products", []):
-                group_products.append({
-                    "id": product.get("id"),
-                    "service": product.get("service"),
-                    "name": product.get("name"),
-                    "price": product.get("price"),
-                    "size": product.get("size"),
-                    "brand": product.get("brand"),
-                    "url": product.get("url"),
-                    "image_url": product.get("image_url"),
-                    "availability": product.get("availability", True),
-                    "similarity_score": product.get("similarity_score", 0.0),
-                    "attributes": product.get("attributes"),
-                })
-            response_groups.append({
-                "representative_name": group.get("representative_name", ""),
-                "reasoning": group.get("reasoning", ""),
-                "products": group_products,
-            })
+                group_products.append(
+                    {
+                        "id": product.get("id"),
+                        "service": product.get("service"),
+                        "name": product.get("name"),
+                        "price": product.get("price"),
+                        "size": product.get("size"),
+                        "brand": product.get("brand"),
+                        "url": product.get("url"),
+                        "image_url": product.get("image_url"),
+                        "availability": product.get("availability", True),
+                        "similarity_score": product.get("similarity_score", 0.0),
+                        "attributes": product.get("attributes"),
+                    }
+                )
+            response_groups.append(
+                {
+                    "representative_name": group.get("representative_name", ""),
+                    "reasoning": group.get("reasoning", ""),
+                    "products": group_products,
+                }
+            )
 
         return {
             "comparison_id": result.get("comparison_id"),
@@ -368,7 +376,9 @@ async def get_saved_selections(
                     "product": None,
                     "quantity": selection.quantity,
                     "notes": selection.notes,
-                    "created_at": selection.created_at.isoformat() if selection.created_at else None,
+                    "created_at": (
+                        selection.created_at.isoformat() if selection.created_at else None
+                    ),
                     "best_alternatives": [],
                 }
 
@@ -415,7 +425,9 @@ async def get_saved_selections(
 
                     for similar in similar_products:
                         try:
-                            similar_price_str = similar.price.replace("$", "").replace(",", "").strip()
+                            similar_price_str = (
+                                similar.price.replace("$", "").replace(",", "").strip()
+                            )
                             similar_price = float(similar_price_str)
                         except (ValueError, AttributeError):
                             continue
@@ -424,21 +436,27 @@ async def get_saved_selections(
                             best_price_for_item = similar_price
                             best_service_for_item = similar.service
 
-                        selection_data["best_alternatives"].append({
-                            "service": similar.service,
-                            "name": similar.name,
-                            "price": similar_price,
-                            "savings": round(price_value - similar_price, 2),
-                        })
+                        selection_data["best_alternatives"].append(
+                            {
+                                "service": similar.service,
+                                "name": similar.name,
+                                "price": similar_price,
+                                "savings": round(price_value - similar_price, 2),
+                            }
+                        )
 
                     # Track best price totals by service
                     if best_service_for_item not in best_price_totals:
                         best_price_totals[best_service_for_item] = 0.0
-                    best_price_totals[best_service_for_item] += best_price_for_item * selection.quantity
+                    best_price_totals[best_service_for_item] += (
+                        best_price_for_item * selection.quantity
+                    )
 
                     # Calculate potential savings
                     if best_price_for_item < price_value:
-                        total_potential_savings += (price_value - best_price_for_item) * selection.quantity
+                        total_potential_savings += (
+                            price_value - best_price_for_item
+                        ) * selection.quantity
 
                 selections.append(selection_data)
 
@@ -464,7 +482,9 @@ async def get_saved_selections(
                     "cheapest_service": cheapest_service,
                     "cheapest_total": round(cheapest_total, 2) if cheapest_total else None,
                     "most_expensive_service": most_expensive_service,
-                    "most_expensive_total": round(most_expensive_total, 2) if most_expensive_total else None,
+                    "most_expensive_total": (
+                        round(most_expensive_total, 2) if most_expensive_total else None
+                    ),
                     "potential_savings": round(total_potential_savings, 2),
                     "recommended_service": cheapest_service,
                 },

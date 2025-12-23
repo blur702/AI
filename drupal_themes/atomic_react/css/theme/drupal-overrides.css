@@ -44,7 +44,9 @@
   margin-bottom: -2px;
 }
 
-.tabs__link:hover { color: var(--color-primary); }
+.tabs__link:hover {
+  color: var(--color-primary);
+}
 
 .tabs__link.is-active {
   color: var(--color-primary);
@@ -60,14 +62,18 @@
   color: var(--color-text-secondary);
 }
 
-.field { margin-bottom: var(--spacing-4); }
+.field {
+  margin-bottom: var(--spacing-4);
+}
 
 .field__label {
   font-weight: var(--font-weight-semibold);
   margin-bottom: var(--spacing-1);
 }
 
-.form-item { margin-bottom: var(--spacing-4); }
+.form-item {
+  margin-bottom: var(--spacing-4);
+}
 
 .form-item label {
   display: block;
@@ -86,7 +92,9 @@
   gap: var(--spacing-3);
 }
 
-.block { margin-bottom: var(--spacing-6); }
+.block {
+  margin-bottom: var(--spacing-6);
+}
 
 .block__title {
   margin-bottom: var(--spacing-4);

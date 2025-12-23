@@ -55,8 +55,16 @@ class ProductGroup:
     reasoning: str = ""
 
 
-# Track if model has been warmed up this session
-_model_warmed_up = False
+# Track which models have been warmed up this session
+_warmed_up_models: set[str] = set()
+async def ensure_model_ready(model: str, warmup_timeout: float = 300.0) -> bool:
+global _warmed_up_models
+if model in _warmed_up_models:
+return True
+...
+if await _warmup_model(model, timeout=warmup_timeout):
+_warmed_up_models.add(model)
+return True
 
 
 async def _check_ollama_health(timeout: float = 5.0) -> bool:

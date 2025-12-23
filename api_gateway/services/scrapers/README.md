@@ -8,7 +8,9 @@ This module provides a robust scraping infrastructure for comparing prices acros
 
 ## Architecture
 
-```
+## Architecture
+
+```text
 scrapers/
 ├── __init__.py              # Package exports
 ├── base_grocery_scraper.py  # Abstract base class
@@ -16,17 +18,17 @@ scrapers/
 ├── scraper_factory.py       # Scraper instantiation
 ├── README.md                # This file
 └── tests/
-    └── test_amazon_fresh_scraper.py
+└── test_amazon_fresh_scraper.py
 ```
 
 ## Available Scrapers
 
-| Service | Class | Status |
-|---------|-------|--------|
+| Service      | Class                | Status      |
+| ------------ | -------------------- | ----------- |
 | Amazon Fresh | `AmazonFreshScraper` | Implemented |
-| Instacart | `InstacartScraper` | Planned |
-| DoorDash | `DoorDashScraper` | Planned |
-| Safeway | `SafewayScraper` | Planned |
+| Instacart    | `InstacartScraper`   | Planned     |
+| DoorDash     | `DoorDashScraper`    | Planned     |
+| Safeway      | `SafewayScraper`     | Planned     |
 
 ## Installation
 
@@ -106,18 +108,18 @@ GROCERY_SERVICES = {
 
 ### Required Configuration Keys
 
-| Key | Type | Description |
-|-----|------|-------------|
-| `name` | str | Human-readable service name |
-| `base_url` | str | Service homepage URL |
-| `search_url` | str | Product search endpoint |
+| Key                | Type  | Description                      |
+| ------------------ | ----- | -------------------------------- |
+| `name`             | str   | Human-readable service name      |
+| `base_url`         | str   | Service homepage URL             |
+| `search_url`       | str   | Product search endpoint          |
 | `rate_limit_delay` | float | Minimum seconds between requests |
-| `max_retries` | int | Maximum retry attempts |
+| `max_retries`      | int   | Maximum retry attempts           |
 
 ### Optional Configuration Keys
 
-| Key | Type | Description |
-|-----|------|-------------|
+| Key             | Type | Description                      |
+| --------------- | ---- | -------------------------------- |
 | `requires_auth` | bool | Whether authentication is needed |
 
 ## Adding a New Scraper
@@ -212,12 +214,12 @@ The scraper uses several techniques to avoid detection:
 
 Failed requests are automatically retried with exponential backoff:
 
-| Attempt | Wait Time |
-|---------|-----------|
-| 1 | Immediate |
-| 2 | 2 seconds |
-| 3 | 4 seconds |
-| ... | min(2^n, 60) seconds |
+| Attempt | Wait Time            |
+| ------- | -------------------- |
+| 1       | Immediate            |
+| 2       | 2 seconds            |
+| 3       | 4 seconds            |
+| ...     | min(2^n, 60) seconds |
 
 ### Error Logging
 
@@ -235,14 +237,17 @@ await scraper.log_error(
 
 ### Playwright Installation Issues
 
-**Error:** `playwright._impl._errors.Error: Executable doesn't exist`
+### Playwright Installation Issues
 
+**Error:** `playwright._impl._errors.Error: Executable doesn't exist`
 **Solution:**
+
 ```bash
 playwright install chromium
 ```
 
 **On Linux/Docker:**
+
 ```bash
 playwright install-deps chromium
 playwright install chromium
@@ -253,11 +258,13 @@ playwright install chromium
 **Symptoms:** Wrong location shown, no products found
 
 **Possible causes:**
+
 1. Amazon detected automation
 2. Location modal selectors changed
 3. Network issues
 
 **Debug steps:**
+
 1. Enable debug logging: `LOG_LEVEL=DEBUG`
 2. Check browser screenshots (add `await page.screenshot(...)`)
 3. Verify location modal HTML structure
@@ -267,15 +274,18 @@ playwright install chromium
 **Symptoms:** 503 errors, CAPTCHA pages, empty results
 
 **Solutions:**
+
 1. Increase `rate_limit_delay` in config
 2. Rotate IP addresses (proxy support planned)
 3. Reduce concurrent scrapers
 
 ### Database Errors
 
-**Symptoms:** Products not saving, duplicate key errors
+### Database Errors
 
+**Symptoms:** Products not saving, duplicate key errors
 **Debug:**
+
 ```bash
 python -m api_gateway.services.error_tracker list --service "scraper.amazon_fresh"
 ```
@@ -294,13 +304,13 @@ The scraper logs the following metrics:
 
 ### Benchmarks
 
-| Operation | Typical Time |
-|-----------|-------------|
-| Browser launch | 2-5 seconds |
-| Location set | 3-8 seconds |
-| Product search | 5-15 seconds |
-| Extract 10 products | 2-5 seconds |
-| Database storage | <1 second |
+| Operation           | Typical Time |
+| ------------------- | ------------ |
+| Browser launch      | 2-5 seconds  |
+| Location set        | 3-8 seconds  |
+| Product search      | 5-15 seconds |
+| Extract 10 products | 2-5 seconds  |
+| Database storage    | <1 second    |
 
 **Total:** ~15-30 seconds per search query
 
@@ -308,17 +318,17 @@ The scraper logs the following metrics:
 
 Products are stored in the `products` table:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | UUID | Primary key |
-| `service` | VARCHAR(50) | Service name (indexed) |
-| `name` | VARCHAR(500) | Product name |
-| `price` | VARCHAR(50) | Price string |
-| `size` | VARCHAR(100) | Size/weight |
-| `brand` | VARCHAR(200) | Brand name |
-| `url` | TEXT | Product page URL |
-| `image_url` | TEXT | Product image URL |
-| `availability` | BOOLEAN | In stock status |
-| `extra_data` | JSON | Service-specific data |
-| `scraped_at` | TIMESTAMP | When scraped (indexed) |
-| `created_at` | TIMESTAMP | Record creation time |
+| Column         | Type         | Description            |
+| -------------- | ------------ | ---------------------- |
+| `id`           | UUID         | Primary key            |
+| `service`      | VARCHAR(50)  | Service name (indexed) |
+| `name`         | VARCHAR(500) | Product name           |
+| `price`        | VARCHAR(50)  | Price string           |
+| `size`         | VARCHAR(100) | Size/weight            |
+| `brand`        | VARCHAR(200) | Brand name             |
+| `url`          | TEXT         | Product page URL       |
+| `image_url`    | TEXT         | Product image URL      |
+| `availability` | BOOLEAN      | In stock status        |
+| `extra_data`   | JSON         | Service-specific data  |
+| `scraped_at`   | TIMESTAMP    | When scraped (indexed) |
+| `created_at`   | TIMESTAMP    | Record creation time   |

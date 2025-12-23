@@ -163,7 +163,13 @@ export const ProductCard = memo(function ProductCard({
         </Typography>
 
         {/* Product Details */}
-        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+        <Stack
+          direction="row"
+          spacing={0.5}
+          flexWrap="wrap"
+          useFlexGap
+          sx={{ mb: 1 }}
+        >
           {product.size && (
             <Chip
               label={product.size}
@@ -210,9 +216,7 @@ export const ProductCard = memo(function ProductCard({
             mt: 1,
           }}
         >
-          <Tooltip
-            title={product.availability ? "In Stock" : "Out of Stock"}
-          >
+          <Tooltip title={product.availability ? "In Stock" : "Out of Stock"}>
             <Chip
               icon={
                 product.availability ? (
@@ -240,7 +244,9 @@ export const ProductCard = memo(function ProductCard({
         </Box>
       </CardContent>
 
-      <CardActions sx={{ px: 2, pb: 2, pt: 0, justifyContent: "space-between" }}>
+      <CardActions
+        sx={{ px: 2, pb: 2, pt: 0, justifyContent: "space-between" }}
+      >
         <Button
           size="small"
           variant="outlined"

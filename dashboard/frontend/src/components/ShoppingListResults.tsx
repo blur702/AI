@@ -76,7 +76,7 @@ export const ShoppingListResults = memo(function ShoppingListResults({
     try {
       const response = await fetch(
         `${getApiBase()}/api/price-comparison/shopping-list/${listId}`,
-        { credentials: "include" }
+        { credentials: "include" },
       );
 
       const result = await response.json();
@@ -110,20 +110,40 @@ export const ShoppingListResults = memo(function ShoppingListResults({
     lines.push("");
     lines.push("Item,Quantity,Status");
 
+    const sanitizeCSVField = (field: string): string => {
+      // Prevent CSV injection by prefixing dangerous characters
+      if (/^[=+\-@\t\r]/.test(field)) {
+        return `'${field}`;
+      }
+      // Escape quotes and wrap in quotes if contains comma or quote
+      if (field.includes(",") || field.includes('"') || field.includes("\n")) {
+        return `"${field.replace(/"/g, '""')}"`;
+      }
+      return field;
+    };
+    // In handleExportCSV:
     for (const item of data.items) {
-      lines.push(`"${item.query}",${item.quantity},${item.status}`);
+      lines.push(
+        `${sanitizeCSVField(item.query)},${item.quantity},${item.status}`,
+      );
     }
 
     lines.push("");
     lines.push("Service Totals:");
     lines.push("Service,Total");
-    for (const [service, total] of Object.entries(data.total_stats.service_totals)) {
+    for (const [service, total] of Object.entries(
+      data.total_stats.service_totals,
+    )) {
       lines.push(`${getServiceName(service)},$${total.toFixed(2)}`);
     }
 
     lines.push("");
-    lines.push(`Cheapest Service: ${getServiceName(data.total_stats.cheapest_service || "")}`);
-    lines.push(`Potential Savings: $${data.total_stats.potential_savings.toFixed(2)}`);
+    lines.push(
+      `Cheapest Service: ${getServiceName(data.total_stats.cheapest_service || "")}`,
+    );
+    lines.push(
+      `Potential Savings: $${data.total_stats.potential_savings.toFixed(2)}`,
+    );
 
     const csvContent = lines.join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -164,7 +184,11 @@ export const ShoppingListResults = memo(function ShoppingListResults({
         severity="error"
         action={
           <Box sx={{ display: "flex", gap: 1 }}>
-            <Button size="small" onClick={fetchData} startIcon={<RefreshIcon />}>
+            <Button
+              size="small"
+              onClick={fetchData}
+              startIcon={<RefreshIcon />}
+            >
               Retry
             </Button>
             {onBack && (
@@ -182,7 +206,7 @@ export const ShoppingListResults = memo(function ShoppingListResults({
 
   const { items, total_stats, name, created_at } = data;
   const serviceTotals = Object.entries(total_stats.service_totals).sort(
-    ([, a], [, b]) => a - b
+    ([, a], [, b]) => a - b,
   );
 
   return (
@@ -190,7 +214,13 @@ export const ShoppingListResults = memo(function ShoppingListResults({
       {/* Header */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+            }}
+          >
             <Box>
               <Typography variant="h5" gutterBottom>
                 {name}
@@ -261,7 +291,13 @@ export const ShoppingListResults = memo(function ShoppingListResults({
                         }}
                       >
                         <TableCell>
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1,
+                            }}
+                          >
                             <Box
                               sx={{
                                 width: 16,
@@ -325,7 +361,9 @@ export const ShoppingListResults = memo(function ShoppingListResults({
                     Save ${total_stats.potential_savings.toFixed(2)}
                   </Typography>
                   <Typography variant="body2">
-                    by shopping at {getServiceName(total_stats.cheapest_service || "")} instead of{" "}
+                    by shopping at{" "}
+                    {getServiceName(total_stats.cheapest_service || "")} instead
+                    of{" "}
                     {getServiceName(total_stats.most_expensive_service || "")}
                   </Typography>
                 </Box>
@@ -343,7 +381,10 @@ export const ShoppingListResults = memo(function ShoppingListResults({
           </Typography>
 
           {items.map((item, index) => (
-            <Accordion key={index} defaultExpanded={item.status === "error"}>
+            <Accordion
+              key={item.comparison_id || `${item.query}-${index}`}
+              defaultExpanded={item.status === "error"}
+            >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                 <Box
                   sx={{
@@ -380,7 +421,14 @@ export const ShoppingListResults = memo(function ShoppingListResults({
                         <Typography variant="caption" color="text.secondary">
                           Found at:
                         </Typography>
-                        <Box sx={{ display: "flex", gap: 0.5, mt: 0.5, flexWrap: "wrap" }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            gap: 0.5,
+                            mt: 0.5,
+                            flexWrap: "wrap",
+                          }}
+                        >
                           {item.services_found.map((service) => (
                             <Chip
                               key={service}

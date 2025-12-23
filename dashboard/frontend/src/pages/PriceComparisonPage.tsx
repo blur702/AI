@@ -100,13 +100,26 @@ export default function PriceComparisonPage() {
           message: `Found ${result.groups.reduce((acc, g) => acc + g.products.length, 0)} products in ${result.groups.length} groups`,
           severity: "success",
         });
-      } else {
-        setSnackbar({
-          open: true,
-          message: error || "Search failed",
-          severity: "error",
-        });
-      }
+const handleSearch = useCallback(
+async (query: string, location: string, services: string[]) => {
+clearResults();
+const { result, error: searchError } = await searchProducts(query, location, services);
+if (result && !searchError) {
+setSnackbar({
+open: true,
+message: `Found ${result.groups.reduce((acc, g) => acc + g.products.length, 0)} products in ${result.groups.length} groups`,
+severity: "success",
+});
+} else {
+setSnackbar({
+open: true,
+message: searchError || "Search failed",
+severity: "error",
+});
+}
+},
+[searchProducts, clearResults]
+);
     },
     [searchProducts, clearResults, error]
   );
@@ -333,12 +346,21 @@ export default function PriceComparisonPage() {
       </Box>
 
       {/* Bulk Upload Dialog */}
-      <BulkUploadDialog
-        open={uploadDialogOpen}
-        onClose={() => setUploadDialogOpen(false)}
-        onComplete={handleBulkUploadComplete}
-        sessionToken={sessionToken || ""}
-      />
+<Button
+variant="outlined"
+startIcon={<UploadFileIcon />}
+onClick={() => setUploadDialogOpen(true)}
+disabled={!sessionToken || tokenLoading}
+>
+Upload List
+</Button>
+// And/or add a guard in the dialog:
+<BulkUploadDialog
+open={uploadDialogOpen}
+onClose={() => setUploadDialogOpen(false)}
+onComplete={handleBulkUploadComplete}
+sessionToken={sessionToken ?? ""}
+/>
 
       {/* Snackbar for notifications */}
       <Snackbar

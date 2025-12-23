@@ -136,21 +136,14 @@ def get_configured_services() -> list[str]:
 
 
 async def close_all_scrapers() -> None:
-    """
-    Close all active scraper instances.
+"""
+Close all active scraper instances.
+Should be called during application shutdown to clean up
+browser contexts and other resources.
 
-    Should be called during application shutdown to clean up
-    browser contexts and other resources.
-    """
-    for service_name, scraper in list(_SCRAPER_INSTANCES.items()):
-        try:
-            await scraper.close()
-            logger.info("Closed scraper for '%s'", service_name)
-        except Exception as e:
-            logger.warning("Error closing scraper for '%s': %s", service_name, e)
-
-    _SCRAPER_INSTANCES.clear()
-
+Note: This clears scraper instances but preserves the registry.
+Calling get_scraper() after this will create fresh instances.
+"""
 
 async def scrape_service(
     service_name: str,

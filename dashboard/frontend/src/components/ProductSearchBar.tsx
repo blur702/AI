@@ -30,7 +30,7 @@ export const ProductSearchBar = memo(function ProductSearchBar({
   const [query, setQuery] = useState<string>("");
   const [location, setLocation] = useState<string>("20024");
   const [selectedServices, setSelectedServices] = useState<string[]>(
-    GROCERY_SERVICES.map((s) => s.id)
+    GROCERY_SERVICES.map((s) => s.id),
   );
 
   const handleServiceChange = (event: SelectChangeEvent<string[]>) => {
@@ -143,7 +143,11 @@ export const ProductSearchBar = memo(function ProductSearchBar({
           onClick={handleSearch}
           disabled={disabled || loading || !query.trim()}
           startIcon={
-            loading ? <CircularProgress size={16} color="inherit" /> : <SearchIcon />
+            loading ? (
+              <CircularProgress size={16} color="inherit" />
+            ) : (
+              <SearchIcon />
+            )
           }
           sx={{ minWidth: 100, whiteSpace: "nowrap" }}
         >

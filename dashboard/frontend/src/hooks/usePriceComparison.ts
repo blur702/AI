@@ -231,37 +231,10 @@ export function usePriceComparison(): UsePriceComparisonReturn {
     []
   );
 
-  const getSavedSelections = useCallback(
-    async (sessionToken: string): Promise<void> => {
-      try {
-        const response = await fetch(
-          `${getApiBase()}/api/price-comparison/saved?session_token=${encodeURIComponent(sessionToken)}`,
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
-
-        const data = await response.json();
-
-        if (response.ok) {
-          const responseData = data.data || data;
-          const selections = responseData.selections || [];
-          setSavedSelections(selections);
-
-          // Extract and set aggregation data
-          if (responseData.aggregation) {
-            setSavedAggregation(responseData.aggregation);
-          } else {
-            setSavedAggregation(null);
-          }
-        }
-      } catch (err) {
-        console.error("Error fetching saved selections:", err);
-      }
-    },
-    []
-  );
+} catch (err) {
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
 
   const saveSelection = useCallback(
     async (

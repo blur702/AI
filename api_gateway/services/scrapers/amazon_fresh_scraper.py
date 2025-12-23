@@ -32,9 +32,11 @@ try:
         BrowserContext,
         Page,
         Playwright,
-        async_playwright,
     )
     from playwright.async_api import TimeoutError as PlaywrightTimeout
+    from playwright.async_api import (
+        async_playwright,
+    )
 
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
@@ -110,20 +112,13 @@ class AmazonFreshScraper(BaseGroceryScraper):
         )
 
         # Add stealth scripts to avoid detection
-        await self._context.add_init_script("""
-            // Override webdriver detection
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined
-            });
-            // Override plugins
-            Object.defineProperty(navigator, 'plugins', {
-                get: () => [1, 2, 3, 4, 5]
-            });
-            // Override languages
-            Object.defineProperty(navigator, 'languages', {
-                get: () => ['en-US', 'en']
-            });
-        """)
+// Override plugins
+Object.defineProperty(navigator, 'plugins', {
+get: () => {
+const plugins = {length: 3, item: () => null, namedItem: () => null, refresh: () => {}};
+return Object.setPrototypeOf(plugins, PluginArray.prototype);
+}
+});
 
         self._initialized = True
         return self._context

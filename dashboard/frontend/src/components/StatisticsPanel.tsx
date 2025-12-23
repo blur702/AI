@@ -37,13 +37,12 @@ import {
   getServiceColor,
 } from "../types";
 
-// Service colors for charts
-const SERVICE_COLORS: Record<string, string> = {
-  amazon_fresh: "#FF9900",
-  instacart: "#43B02A",
-  doordash: "#FF3008",
-  safeway: "#E31837",
-};
+import { GROCERY_SERVICES } from "../types";
+
+// Derive colors from centralized config
+const SERVICE_COLORS: Record<string, string> = Object.fromEntries(
+  GROCERY_SERVICES.map((s) => [s.id, s.color]),
+);
 
 interface ServiceStats {
   service: string;
@@ -74,7 +73,7 @@ export const StatisticsPanel = memo(function StatisticsPanel({
     }
 
     const allProducts: Product[] = comparisonResult.groups.flatMap(
-      (g) => g.products
+      (g) => g.products,
     );
 
     // Group by service
@@ -87,7 +86,7 @@ export const StatisticsPanel = memo(function StatisticsPanel({
         acc[product.service].total += product.price;
         return acc;
       },
-      {} as Record<string, { products: Product[]; total: number }>
+      {} as Record<string, { products: Product[]; total: number }>,
     );
 
     const serviceStats: ServiceStats[] = Object.entries(byService).map(
@@ -96,7 +95,7 @@ export const StatisticsPanel = memo(function StatisticsPanel({
         totalPrice: data.total,
         productCount: data.products.length,
         avgPrice: data.total / data.products.length,
-      })
+      }),
     );
 
     // Sort by total price
@@ -146,7 +145,7 @@ export const StatisticsPanel = memo(function StatisticsPanel({
   const pieChartData = useMemo(() => {
     const totalValue = statistics.serviceStats.reduce(
       (acc, s) => acc + s.totalPrice,
-      0
+      0,
     );
     return statistics.serviceStats.map((stat) => ({
       name: getServiceName(stat.service),
@@ -240,7 +239,9 @@ export const StatisticsPanel = memo(function StatisticsPanel({
                     <BarChart data={barChartData} layout="vertical">
                       <XAxis
                         type="number"
-                        tickFormatter={(value: number) => `$${value.toFixed(0)}`}
+                        tickFormatter={(value: number) =>
+                          `$${value.toFixed(0)}`
+                        }
                       />
                       <YAxis type="category" dataKey="name" width={100} />
                       <RechartsTooltip
@@ -292,7 +293,13 @@ export const StatisticsPanel = memo(function StatisticsPanel({
                         cx="50%"
                         cy="50%"
                         outerRadius={80}
-                        label={({ name, percentage }: { name: string; percentage: string | number }) => `${name}: ${percentage}%`}
+                        label={({
+                          name,
+                          percentage,
+                        }: {
+                          name: string;
+                          percentage: string | number;
+                        }) => `${name}: ${percentage}%`}
                         labelLine
                       >
                         {pieChartData.map((entry, index) => (

@@ -39,9 +39,7 @@ function findLowestPriceProduct(products: Product[]): string | null {
   if (products.length === 0) return null;
   const available = products.filter((p) => p.availability);
   if (available.length === 0) return null;
-  const lowest = available.reduce((min, p) =>
-    p.price < min.price ? p : min
-  );
+  const lowest = available.reduce((min, p) => (p.price < min.price ? p : min));
   return lowest.id;
 }
 
@@ -86,7 +84,7 @@ export const ComparisonTable = memo(function ComparisonTable({
     services: [],
   });
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(groups.map((g) => g.representative_name))
+    new Set(groups.map((g) => g.representative_name)),
   );
 
   // Reset expanded groups when new search results arrive
@@ -147,7 +145,12 @@ export const ComparisonTable = memo(function ComparisonTable({
         </Box>
         {[1, 2].map((i) => (
           <Box key={i} sx={{ mb: 3 }}>
-            <Skeleton variant="rectangular" width="100%" height={60} sx={{ mb: 2 }} />
+            <Skeleton
+              variant="rectangular"
+              width="100%"
+              height={60}
+              sx={{ mb: 2 }}
+            />
             <Grid container spacing={2}>
               {[1, 2, 3].map((j) => (
                 <Grid item xs={12} sm={6} md={4} key={j}>
@@ -208,7 +211,11 @@ export const ComparisonTable = memo(function ComparisonTable({
                   key={service}
                   label={service.replace("_", " ")}
                   size="small"
-                  sx={{ fontSize: "0.65rem", height: 20, textTransform: "capitalize" }}
+                  sx={{
+                    fontSize: "0.65rem",
+                    height: 20,
+                    textTransform: "capitalize",
+                  }}
                 />
               ))}
             </Stack>
@@ -220,7 +227,9 @@ export const ComparisonTable = memo(function ComparisonTable({
           {/* Sort Select */}
           <FormControl size="small" sx={{ minWidth: 140 }}>
             <InputLabel id="sort-select-label">
-              <SortIcon sx={{ fontSize: 16, mr: 0.5, verticalAlign: "middle" }} />
+              <SortIcon
+                sx={{ fontSize: 16, mr: 0.5, verticalAlign: "middle" }}
+              />
               Sort
             </InputLabel>
             <Select
@@ -308,7 +317,14 @@ export const ComparisonTable = memo(function ComparisonTable({
               "&:hover": { bgcolor: "action.selected" },
             }}
           >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2, width: "100%" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                width: "100%",
+              }}
+            >
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 {group.representative_name}
               </Typography>

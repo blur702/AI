@@ -1,6 +1,6 @@
-name: 'Atomic React'
+name: "Atomic React"
 type: theme
-description: 'A modern Drupal 11 theme with React integration following Atomic Design principles and WCAG AA accessibility standards.'
+description: "A modern Drupal 11 theme with React integration following Atomic Design principles and WCAG AA accessibility standards."
 core_version_requirement: ^11
 base theme: false
 package: Custom
@@ -13,21 +13,21 @@ libraries-extend:
     - atomic_react/dialog
 
 regions:
-  header: 'Header'
-  primary_menu: 'Primary Navigation'
-  secondary_menu: 'Secondary Navigation'
-  breadcrumb: 'Breadcrumb'
-  highlighted: 'Highlighted'
-  help: 'Help'
-  content: 'Content'
-  sidebar_first: 'Sidebar First'
-  sidebar_second: 'Sidebar Second'
-  footer_first: 'Footer First'
-  footer_second: 'Footer Second'
-  footer_third: 'Footer Third'
-  footer: 'Footer'
-  page_top: 'Page Top'
-  page_bottom: 'Page Bottom'
+  header: "Header"
+  primary_menu: "Primary Navigation"
+  secondary_menu: "Secondary Navigation"
+  breadcrumb: "Breadcrumb"
+  highlighted: "Highlighted"
+  help: "Help"
+  content: "Content"
+  sidebar_first: "Sidebar First"
+  sidebar_second: "Sidebar Second"
+  footer_first: "Footer First"
+  footer_second: "Footer Second"
+  footer_third: "Footer Third"
+  footer: "Footer"
+  page_top: "Page Top"
+  page_bottom: "Page Bottom"
 
 ckeditor5-stylesheets:
   - css/base/typography.css

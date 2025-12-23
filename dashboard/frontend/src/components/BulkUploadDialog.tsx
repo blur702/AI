@@ -132,7 +132,9 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [listId, setListId] = useState<string | null>(null);
-  const [progress, setProgress] = useState<ProgressUpdate["progress"] | null>(null);
+  const [progress, setProgress] = useState<ProgressUpdate["progress"] | null>(
+    null,
+  );
   const [items, setItems] = useState<ProcessedItem[]>([]);
   const [totalStats, setTotalStats] = useState<TotalStats | null>(null);
   const [completed, setCompleted] = useState(false);
@@ -201,7 +203,7 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
       };
       reader.readAsText(file);
     },
-    []
+    [],
   );
 
   const handleManualInputChange = useCallback(
@@ -217,7 +219,7 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
         setParsedItems([]);
       }
     },
-    []
+    [],
   );
 
   const handleRemoveItem = useCallback((index: number) => {
@@ -234,7 +236,7 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("WebSocket connected for job:", jobId);
+      // WebSocket connected successfully
     };
 
     ws.onmessage = (event) => {
@@ -256,7 +258,7 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
             const updatedItems = [...prevItems];
             for (const incomingItem of payload.items!) {
               const existingIndex = updatedItems.findIndex(
-                (item) => item.query === incomingItem.query
+                (item) => item.query === incomingItem.query,
               );
               if (existingIndex >= 0) {
                 updatedItems[existingIndex] = incomingItem;
@@ -307,19 +309,22 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
     setError(null);
 
     try {
-      const response = await fetch(`${getApiBase()}/api/price-comparison/bulk-upload`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          items: parsedItems.map((item) => ({
-            query: item.query,
-            quantity: item.quantity,
-          })),
-          session_token: sessionToken,
-          name: listName,
-        }),
-      });
+      const response = await fetch(
+        `${getApiBase()}/api/price-comparison/bulk-upload`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            items: parsedItems.map((item) => ({
+              query: item.query,
+              quantity: item.quantity,
+            })),
+            session_token: sessionToken,
+            name: listName,
+          }),
+        },
+      );
 
       const data = await response.json();
       const result = data.data || data;
@@ -340,7 +345,7 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
           query: item.query,
           quantity: item.quantity,
           status: "pending" as const,
-        }))
+        })),
       );
 
       connectWebSocket(result.job_id);
@@ -447,12 +452,15 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
                 style={{ display: "none" }}
                 disabled={isUploading}
               />
-              <UploadFileIcon sx={{ fontSize: 40, color: "text.secondary", mb: 1 }} />
+              <UploadFileIcon
+                sx={{ fontSize: 40, color: "text.secondary", mb: 1 }}
+              />
               <Typography variant="body1" gutterBottom>
                 {fileName || "Drop a CSV or TXT file here, or click to browse"}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Format: One product per line, optionally with quantity (e.g., "milk, 2")
+                Format: One product per line, optionally with quantity (e.g.,
+                "milk, 2")
               </Typography>
             </Box>
 
@@ -502,10 +510,17 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
                     >
                       <Typography variant="body2">
                         {item.query}{" "}
-                        <Chip label={`x${item.quantity}`} size="small" sx={{ ml: 1 }} />
+                        <Chip
+                          label={`x${item.quantity}`}
+                          size="small"
+                          sx={{ ml: 1 }}
+                        />
                       </Typography>
                       <Tooltip title="Remove">
-                        <IconButton size="small" onClick={() => handleRemoveItem(index)}>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleRemoveItem(index)}
+                        >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
@@ -523,7 +538,13 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
             {/* Progress Bar */}
             {progress && (
               <Box sx={{ mb: 3 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mb: 1,
+                  }}
+                >
                   <Typography variant="body2">
                     Processing: {progress.current_item}
                   </Typography>
@@ -547,95 +568,108 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
                 icon={<CheckCircleIcon />}
               >
                 <Typography variant="subtitle2">
-                  Processing complete! {totalStats.items_processed} items processed
-                  {totalStats.items_failed > 0 && `, ${totalStats.items_failed} failed`}
+                  Processing complete! {totalStats.items_processed} items
+                  processed
+                  {totalStats.items_failed > 0 &&
+                    `, ${totalStats.items_failed} failed`}
                 </Typography>
               </Alert>
             )}
 
             {/* Service Totals */}
-            {totalStats && Object.keys(totalStats.service_totals).length > 0 && (
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                  Price by Service:
-                </Typography>
-                <TableContainer component={Paper} variant="outlined">
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Service</TableCell>
-                        <TableCell align="right">Total</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {Object.entries(totalStats.service_totals)
-                        .sort(([, a], [, b]) => a - b)
-                        .map(([service, total], index) => (
-                          <TableRow
-                            key={service}
-                            sx={{
-                              bgcolor:
-                                service === totalStats.cheapest_service
-                                  ? "success.dark"
-                                  : "transparent",
-                            }}
-                          >
-                            <TableCell>
-                              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            {totalStats &&
+              Object.keys(totalStats.service_totals).length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                    Price by Service:
+                  </Typography>
+                  <TableContainer component={Paper} variant="outlined">
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Service</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {Object.entries(totalStats.service_totals)
+                          .sort(([, a], [, b]) => a - b)
+                          .map(([service, total], index) => (
+                            <TableRow
+                              key={service}
+                              sx={{
+                                bgcolor:
+                                  service === totalStats.cheapest_service
+                                    ? "success.dark"
+                                    : "transparent",
+                              }}
+                            >
+                              <TableCell>
                                 <Box
                                   sx={{
-                                    width: 12,
-                                    height: 12,
-                                    borderRadius: "50%",
-                                    bgcolor: getServiceColor(service),
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
                                   }}
-                                />
-                                {getServiceName(service)}
-                                {index === 0 && (
-                                  <Chip
-                                    label="Cheapest"
-                                    size="small"
-                                    color="success"
-                                    sx={{ ml: 1, fontSize: "0.6rem" }}
+                                >
+                                  <Box
+                                    sx={{
+                                      width: 12,
+                                      height: 12,
+                                      borderRadius: "50%",
+                                      bgcolor: getServiceColor(service),
+                                    }}
                                   />
-                                )}
-                              </Box>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Typography
-                                sx={{ fontWeight: index === 0 ? 700 : 400 }}
-                              >
-                                ${total.toFixed(2)}
-                              </Typography>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                                  {getServiceName(service)}
+                                  {index === 0 && (
+                                    <Chip
+                                      label="Cheapest"
+                                      size="small"
+                                      color="success"
+                                      sx={{ ml: 1, fontSize: "0.6rem" }}
+                                    />
+                                  )}
+                                </Box>
+                              </TableCell>
+                              <TableCell align="right">
+                                <Typography
+                                  sx={{ fontWeight: index === 0 ? 700 : 400 }}
+                                >
+                                  ${total.toFixed(2)}
+                                </Typography>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
 
-                {/* Potential Savings */}
-                {totalStats.potential_savings > 0 && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mt: 2,
-                      p: 1.5,
-                      bgcolor: "success.dark",
-                      borderRadius: 1,
-                    }}
-                  >
-                    <TrendingDownIcon />
-                    <Typography variant="body2">
-                      Potential savings by choosing {getServiceName(totalStats.cheapest_service || "")}:
-                      <strong> ${totalStats.potential_savings.toFixed(2)}</strong>
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            )}
+                  {/* Potential Savings */}
+                  {totalStats.potential_savings > 0 && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        mt: 2,
+                        p: 1.5,
+                        bgcolor: "success.dark",
+                        borderRadius: 1,
+                      }}
+                    >
+                      <TrendingDownIcon />
+                      <Typography variant="body2">
+                        Potential savings by choosing{" "}
+                        {getServiceName(totalStats.cheapest_service || "")}:
+                        <strong>
+                          {" "}
+                          ${totalStats.potential_savings.toFixed(2)}
+                        </strong>
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              )}
 
             {/* Items List */}
             <Box>
@@ -700,7 +734,11 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
                 )
               }
             >
-              {uploading ? "Uploading..." : processing ? "Processing..." : "Upload & Compare"}
+              {uploading
+                ? "Uploading..."
+                : processing
+                  ? "Processing..."
+                  : "Upload & Compare"}
             </Button>
           </>
         ) : (

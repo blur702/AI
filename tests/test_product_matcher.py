@@ -196,11 +196,13 @@ class TestGroupSimilarProducts:
         """Test basic product grouping."""
         # Create mock products
         products = []
-        for i, (name, service, price, size) in enumerate([
-            ("Organic Milk 1 Gallon", "amazon_fresh", "$5.99", "1 gal"),
-            ("Organic Whole Milk", "instacart", "$6.49", "128 oz"),
-            ("Regular Milk 1 Gallon", "safeway", "$3.99", "1 gal"),
-        ]):
+        for i, (name, service, price, size) in enumerate(
+            [
+                ("Organic Milk 1 Gallon", "amazon_fresh", "$5.99", "1 gal"),
+                ("Organic Whole Milk", "instacart", "$6.49", "128 oz"),
+                ("Regular Milk 1 Gallon", "safeway", "$3.99", "1 gal"),
+            ]
+        ):
             product = MagicMock()
             product.id = f"prod_{i}"
             product.name = name
@@ -376,74 +378,69 @@ class TestIntegration:
     @pytest.mark.asyncio
     async def test_full_comparison_pipeline(self):
         """Test the full comparison pipeline with mocked external calls."""
-        # Create test products
-        products = []
-        for i, (name, service, price, size, _is_organic) in enumerate([
-            ("Organic Milk", "amazon", "$6.99", "64 oz", True),
-            ("Organic Milk", "instacart", "$7.49", "64 oz", True),
-            ("Regular Milk", "safeway", "$4.99", "64 oz", False),
-        ]):
-            product = MagicMock()
-            product.id = f"prod_{i}"
-            product.name = name
-            product.service = service
-            product.price = price
-            product.size = size
-            product.brand = "Test"
-            products.append(product)
 
-        # Mock model selection
+
+products = []
+for i, (name, service, price, size) in enumerate(
+    [
+        ("Organic Milk", "amazon", "$6.99", "64 oz"),
+        ("Organic Milk", "instacart", "$7.49", "64 oz"),
+        ("Regular Milk", "safeway", "$4.99", "64 oz"),
+    ]
+):
+
+    # Mock model selection
+    with patch(
+        "api_gateway.services.product_matcher.ensure_model_available_async",
+        return_value="test-model",
+    ):
         with patch(
-            "api_gateway.services.product_matcher.ensure_model_available_async",
-            return_value="test-model",
+            "api_gateway.services.product_matcher.ensure_model_ready",
+            return_value=True,
         ):
+            # Mock attribute extraction
+            mock_attrs = [
+                ProductAttributes(
+                    brand="Test",
+                    size_oz=64.0,
+                    is_organic=True,
+                    product_type="milk",
+                    confidence=0.9,
+                ),
+                ProductAttributes(
+                    brand="Test",
+                    size_oz=64.0,
+                    is_organic=True,
+                    product_type="milk",
+                    confidence=0.9,
+                ),
+                ProductAttributes(
+                    brand="Test",
+                    size_oz=64.0,
+                    is_organic=False,
+                    product_type="milk",
+                    confidence=0.9,
+                ),
+            ]
+
             with patch(
-                "api_gateway.services.product_matcher.ensure_model_ready",
-                return_value=True,
+                "api_gateway.services.product_matcher.extract_product_attributes",
+                side_effect=mock_attrs,
             ):
-                # Mock attribute extraction
-                mock_attrs = [
-                    ProductAttributes(
-                        brand="Test",
-                        size_oz=64.0,
-                        is_organic=True,
-                        product_type="milk",
-                        confidence=0.9,
-                    ),
-                    ProductAttributes(
-                        brand="Test",
-                        size_oz=64.0,
-                        is_organic=True,
-                        product_type="milk",
-                        confidence=0.9,
-                    ),
-                    ProductAttributes(
-                        brand="Test",
-                        size_oz=64.0,
-                        is_organic=False,
-                        product_type="milk",
-                        confidence=0.9,
-                    ),
-                ]
-
                 with patch(
-                    "api_gateway.services.product_matcher.extract_product_attributes",
-                    side_effect=mock_attrs,
+                    "api_gateway.services.product_matcher._generate_comparison_analysis",
+                    return_value={
+                        "best_value_group": 0,
+                        "reasoning": "Test reasoning",
+                        "price_insights": ["Test insight"],
+                        "recommendations": ["Test recommendation"],
+                    },
                 ):
-                    with patch(
-                        "api_gateway.services.product_matcher._generate_comparison_analysis",
-                        return_value={
-                            "best_value_group": 0,
-                            "reasoning": "Test reasoning",
-                            "price_insights": ["Test insight"],
-                            "recommendations": ["Test recommendation"],
-                        },
-                    ):
-                        result = await compare_products(products, "milk", "20024")
+                    result = await compare_products(products, "milk", "20024")
 
-        assert result["model_used"] == "test-model"
-        assert len(result["groups"]) >= 1
-        assert result["llm_analysis"]["best_value_group"] is not None
+    assert result["model_used"] == "test-model"
+    assert len(result["groups"]) >= 1
+    assert result["llm_analysis"]["best_value_group"] is not None
 
 
 if __name__ == "__main__":

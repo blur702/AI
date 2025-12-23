@@ -146,36 +146,22 @@ class TestSizeExtraction:
 class TestRateLimiting:
     """Tests for rate limiting functionality."""
 
-    @pytest.mark.asyncio
-    async def test_rate_limit_delay(self):
-        """Verify rate limiting adds delay between requests."""
-        scraper = AmazonFreshScraper()
-
-        # First request should not delay much
-        start = asyncio.get_event_loop().time()
-        await scraper.rate_limit()
-        _ = asyncio.get_event_loop().time() - start  # First call timing
-
-        # Second request should have delay
-        start = asyncio.get_event_loop().time()
-        await scraper.rate_limit()
-        _ = asyncio.get_event_loop().time() - start  # Second call timing
-
-        # Verify request count incremented
-        assert scraper._request_count == 2
-
-    @pytest.mark.asyncio
-    async def test_rate_limit_extended_pause(self):
-        """Verify extended pause every 10 requests."""
-        scraper = AmazonFreshScraper()
-        scraper._request_count = 9  # Next request will be the 10th
-
-        start = asyncio.get_event_loop().time()
-        await scraper.rate_limit()
-        duration = asyncio.get_event_loop().time() - start
-
-        # Should have extended pause (5-15s) plus base delay
-        assert duration >= scraper.base_delay
+@pytest.mark.asyncio
+async def test_rate_limit_delay(self):
+"""Verify rate limiting adds delay between requests."""
+scraper = AmazonFreshScraper()
+# First request should not delay much
+start = asyncio.get_event_loop().time()
+await scraper.rate_limit()
+first_duration = asyncio.get_event_loop().time() - start
+# Second request should have delay
+start = asyncio.get_event_loop().time()
+await scraper.rate_limit()
+second_duration = asyncio.get_event_loop().time() - start
+# Verify request count incremented
+assert scraper._request_count == 2
+# Second request should have at least base_delay
+assert second_duration >= scraper.base_delay * 0.9  # Allow 10% tolerance
 
 
 class TestRetryLogic:

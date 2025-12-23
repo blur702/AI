@@ -59,7 +59,9 @@
 }
 
 @media (max-width: 1023px) {
-  .site-header__primary-nav { display: none; }
+  .site-header__primary-nav {
+    display: none;
+  }
 }
 
 .site-header__actions {
@@ -92,7 +94,9 @@
 }
 
 @media (min-width: 1024px) {
-  .site-header__menu-toggle { display: none; }
+  .site-header__menu-toggle {
+    display: none;
+  }
 }
 
 .mobile-menu {
@@ -102,5 +106,7 @@
 }
 
 @media (min-width: 640px) {
-  .site-branding__slogan { display: none; }
+  .site-branding__slogan {
+    display: none;
+  }
 }

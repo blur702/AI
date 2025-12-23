@@ -82,7 +82,7 @@ def mock_ollama_response():
     """Create a mock Ollama API response."""
 
     def _create_response(
-        response_text: str = '{"brand": "Test", "size": "16 oz", "is_organic": false, "product_type": "milk", "confidence": 0.8}'
+        response_text: str = '{"brand": "Test", "size": "16 oz", "is_organic": false, "product_type": "milk", "confidence": 0.8}',
     ):
         return {"response": response_text}
 

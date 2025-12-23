@@ -1,7 +1,7 @@
-name: 'Liberty Theme'
+name: "Liberty Theme"
 type: theme
 base theme: olivero
-description: 'Custom theme created via MCP'
+description: "Custom theme created via MCP"
 package: Custom
 core_version_requirement: ^10 || ^11
 regions:
