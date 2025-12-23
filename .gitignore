@@ -77,5 +77,8 @@ nul
 Thumbs.db
 .secrets/
 
+# Media documentation (local reference files)
+media/docs/
+
 # MCP configuration (contains SSH credentials)
 .mcp.json
