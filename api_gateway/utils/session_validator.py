@@ -42,9 +42,7 @@ return False, "Invalid or expired session token"
 
     except httpx.ConnectError:
         logger.error("Failed to connect to dashboard backend for token validation")
-        # In development, allow requests if dashboard is not running
-        # In production, this should return False
         return False, "Authentication service unavailable"
-    except Exception as e:
-        logger.error("Session validation error: %s", e)
-        return False, f"Validation error: {str(e)}"
+    except Exception:
+        logger.exception("Session validation error")
+        return False, "Validation error"

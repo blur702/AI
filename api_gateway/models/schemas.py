@@ -439,7 +439,7 @@ class ProductInfo(BaseModel):
     id: str
     service: str
     name: str
-    price: str
+    price: float
     size: str | None = None
     brand: str | None = None
     url: str

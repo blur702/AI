@@ -170,10 +170,10 @@ async def process_shopping_list_job(
                         else:
                             price_value = None
 
-if price_value is not None:
-if service not in service_totals:
-service_totals[service] = 0.0
-service_totals[service] += price_value * quantity
+                        if price_value is not None:
+                            if service not in service_totals:
+                                service_totals[service] = 0.0
+                            service_totals[service] += price_value * quantity
 
             processed_items.append({
                 "query": query,
