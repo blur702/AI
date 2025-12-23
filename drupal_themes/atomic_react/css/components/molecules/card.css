@@ -1,0 +1,76 @@
+/**
+ * @file
+ * Card molecule - Accessible card component.
+ */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-background-paper);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: box-shadow var(--transition-normal);
+}
+
+.card--elevated:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.card--outlined {
+  box-shadow: none;
+  border: 1px solid var(--color-gray-300);
+}
+
+.card--clickable {
+  cursor: pointer;
+}
+
+.card--clickable:hover {
+  transform: translateY(-2px);
+}
+
+.card--clickable:focus-within {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.card__media img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.card__header {
+  padding: var(--spacing-4);
+}
+
+.card__title {
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.card__subtitle {
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.card__content {
+  flex: 1;
+  padding: 0 var(--spacing-4) var(--spacing-4);
+}
+
+.card__actions {
+  display: flex;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.card-grid {
+  display: grid;
+  gap: var(--spacing-6);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}

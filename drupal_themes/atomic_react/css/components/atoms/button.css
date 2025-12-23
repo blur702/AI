@@ -1,0 +1,61 @@
+/**
+ * @file
+ * Button atoms - Accessible, reusable button styles.
+ */
+
+.button,
+button[type="submit"],
+input[type="submit"] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-3) var(--spacing-5);
+  min-height: 44px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius-md);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.button--primary,
+button[type="submit"] {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+  border-color: var(--color-primary);
+}
+
+.button--primary:hover,
+button[type="submit"]:hover {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.button--outlined {
+  background-color: transparent;
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.button--outlined:hover {
+  background-color: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+.button:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.button--block {
+  display: flex;
+  width: 100%;
+}

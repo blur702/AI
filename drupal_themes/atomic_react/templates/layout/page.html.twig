@@ -1,0 +1,113 @@
+<div class="page">
+  <header class="site-header" role="banner">
+    <div class="site-header__inner container">
+      <div class="site-branding">
+        {% if site_logo %}
+          <div class="site-branding__logo">
+            <a href="{{ front_page }}" rel="home">
+              <img src="{{ site_logo }}" alt="{{ site_name }} {{ 'home'|t }}">
+            </a>
+          </div>
+        {% endif %}
+        <div class="site-branding__text">
+          {% if site_name %}
+            <span class="site-branding__name">
+              <a href="{{ front_page }}" rel="home">{{ site_name }}</a>
+            </span>
+          {% endif %}
+          {% if site_slogan %}
+            <span class="site-branding__slogan">{{ site_slogan }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if page.header %}
+        <div class="region-header">{{ page.header }}</div>
+      {% endif %}
+
+      <nav class="site-header__nav" aria-label="{{ 'Main navigation'|t }}">
+        {% if page.primary_menu %}
+          <div class="site-header__primary-nav primary-nav">{{ page.primary_menu }}</div>
+        {% endif %}
+        {% if page.secondary_menu %}
+          <div class="secondary-nav">{{ page.secondary_menu }}</div>
+        {% endif %}
+      </nav>
+
+      <div class="site-header__actions">
+        <button type="button" class="site-header__theme-toggle" id="theme-toggle" aria-label="{{ 'Toggle dark mode'|t }}">
+          <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="icon-moon" style="display:none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <button type="button" class="site-header__menu-toggle" id="mobile-menu-toggle" aria-label="{{ 'Toggle menu'|t }}" aria-expanded="false" aria-controls="mobile-menu">
+          <svg class="icon-menu" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          <svg class="icon-close" style="display:none" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="mobile-menu" id="mobile-menu" aria-label="{{ 'Mobile navigation'|t }}" hidden>
+    <div class="mobile-menu__inner container">
+      {% if page.primary_menu %}{{ page.primary_menu }}{% endif %}
+    </div>
+  </nav>
+
+  {% if page.breadcrumb %}
+    <div class="region-breadcrumb container">{{ page.breadcrumb }}</div>
+  {% endif %}
+
+  {% if page.highlighted %}
+    <div class="region-highlighted"><div class="container">{{ page.highlighted }}</div></div>
+  {% endif %}
+
+  {% if page.help %}
+    <div class="region-help container">{{ page.help }}</div>
+  {% endif %}
+
+  <main id="main-content" class="page-content" role="main" tabindex="-1">
+    <div class="container">
+      {{ messages }}
+      {% set layout_class = '' %}
+      {% if page.sidebar_first and page.sidebar_second %}
+        {% set layout_class = 'layout-with-sidebar layout-both-sidebars' %}
+      {% elseif page.sidebar_first %}
+        {% set layout_class = 'layout-with-sidebar layout-sidebar-first' %}
+      {% elseif page.sidebar_second %}
+        {% set layout_class = 'layout-with-sidebar layout-sidebar-second' %}
+      {% endif %}
+
+      <div class="content-layout {{ layout_class }}">
+        {% if page.sidebar_first %}
+          <aside class="region-sidebar-first" role="complementary">{{ page.sidebar_first }}</aside>
+        {% endif %}
+        <div class="region-content">{{ page.content }}</div>
+        {% if page.sidebar_second %}
+          <aside class="region-sidebar-second" role="complementary">{{ page.sidebar_second }}</aside>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    {% if page.footer_first or page.footer_second or page.footer_third %}
+      <div class="site-footer__main">
+        <div class="footer-regions">
+          {% if page.footer_first %}<div class="region-footer-first">{{ page.footer_first }}</div>{% endif %}
+          {% if page.footer_second %}<div class="region-footer-second">{{ page.footer_second }}</div>{% endif %}
+          {% if page.footer_third %}<div class="region-footer-third">{{ page.footer_third }}</div>{% endif %}
+        </div>
+      </div>
+    {% endif %}
+    <div class="site-footer__bottom">
+      <div class="site-footer__bottom-inner container">
+        {% if page.footer %}<div class="region-footer">{{ page.footer }}</div>{% endif %}
+        <p class="site-footer__copyright">&copy; {{ "now"|date("Y") }} {{ site_name }}. {{ 'All rights reserved.'|t }}</p>
+      </div>
+    </div>
+  </footer>
+
+  <button type="button" class="back-to-top" id="back-to-top" aria-label="{{ 'Back to top'|t }}">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="18 15 12 9 6 15"></polyline></svg>
+  </button>
+</div>

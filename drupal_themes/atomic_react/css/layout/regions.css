@@ -1,0 +1,65 @@
+/**
+ * @file
+ * Drupal region styles - Layout for theme regions.
+ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-content {
+  flex: 1 0 auto;
+}
+
+.region-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.region-breadcrumb {
+  padding: var(--spacing-3) 0;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.region-highlighted {
+  padding: var(--spacing-6) 0;
+  background-color: var(--color-background-paper);
+}
+
+.region-content {
+  padding: var(--spacing-6) 0;
+}
+
+@media (min-width: 1024px) {
+  .layout-with-sidebar {
+    display: grid;
+    gap: var(--spacing-8);
+  }
+  .layout-sidebar-first { grid-template-columns: var(--sidebar-width) 1fr; }
+  .layout-sidebar-second { grid-template-columns: 1fr var(--sidebar-width); }
+}
+
+.footer-regions {
+  display: grid;
+  gap: var(--spacing-6);
+  padding: var(--spacing-8) 0;
+}
+
+@media (min-width: 768px) {
+  .footer-regions { grid-template-columns: repeat(3, 1fr); }
+}
+
+.region-footer {
+  padding: var(--spacing-4) 0;
+  border-top: 1px solid var(--color-gray-300);
+  text-align: center;
+}
+
+.region:empty { display: none; }
+
+.region > .block { margin-bottom: var(--spacing-6); }
+.region > .block:last-child { margin-bottom: 0; }
