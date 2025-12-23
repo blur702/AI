@@ -873,3 +873,6 @@ api_gateway/services/congressional_parallel_supervisor.py
 api_gateway/services/congressional_worker.py
 api_gateway/services/congressional_parallel_supervisor.py
 api_gateway/services/congressional_worker.py
+api_gateway/services/doc_ingestion.py
+api_gateway/services/incremental_indexer.py
+api_gateway/services/ingestion_trigger.py
