@@ -10,6 +10,14 @@ This module provides a robust scraping infrastructure for comparing prices acros
 
 ## Architecture
 
+````text
+scrapers/
+├── __init__.py              # Package exports
+├── base_grocery_scraper.py  # Abstract base class
+├── amazon_fresh_scraper.py  # Amazon Fresh implementation
+├── scraper_factory.py       # Scraper instantiation
+├── README.md                # This file
+## Architecture
 ```text
 scrapers/
 ├── __init__.py              # Package exports
@@ -20,6 +28,30 @@ scrapers/
 └── tests/
 └── test_amazon_fresh_scraper.py
 ```
+```text
+scrapers/
+├── __init__.py              # Package exports
+├── base_grocery_scraper.py  # Abstract base class
+├── amazon_fresh_scraper.py  # Amazon Fresh implementation
+├── scraper_factory.py       # Scraper instantiation
+├── README.md                # This file
+└── tests/
+└── test_amazon_fresh_scraper.py
+```
+```text
+scrapers/
+├── __init__.py              # Package exports
+├── base_grocery_scraper.py  # Abstract base class
+├── amazon_fresh_scraper.py  # Amazon Fresh implementation
+├── scraper_factory.py       # Scraper instantiation
+├── README.md                # This file
+└── tests/
+└── test_amazon_fresh_scraper.py
+````
+
+└── test_amazon_fresh_scraper.py
+
+````
 
 ## Available Scrapers
 
@@ -36,7 +68,7 @@ scrapers/
 
 ```bash
 pip install playwright
-```
+````
 
 ### 2. Install Browser Binaries
 
@@ -238,6 +270,29 @@ await scraper.log_error(
 ### Playwright Installation Issues
 
 ### Playwright Installation Issues
+
+**Error:** `playwright._impl._errors.Error: Executable doesn't exist`
+**Solution:**
+
+```bash
+playwright install chromium
+```
+
+**On Linux/Docker:**
+
+### Database Errors
+
+**Symptoms:** Products not saving, duplicate key errors
+**Debug:**
+
+```bash
+python -m api_gateway.services.error_tracker list --service "scraper.amazon_fresh"
+```
+
+```bash
+playwright install-deps chromium
+playwright install chromium
+```
 
 **Error:** `playwright._impl._errors.Error: Executable doesn't exist`
 **Solution:**

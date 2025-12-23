@@ -235,25 +235,32 @@ class TestDatabaseStorage:
             )
         ]
 
-        # Mock the database session
-        with patch("api_gateway.services.scrapers.base_grocery_scraper.AsyncSessionLocal") as mock_session:
-            mock_session_instance = AsyncMock()
-            mock_session.return_value.__aenter__ = AsyncMock(return_value=mock_session_instance)
-            mock_session.return_value.__aexit__ = AsyncMock(return_value=None)
+stored = await scraper.store_products(scraped)
+# Verify session.add was called and products returned
+assert mock_session_instance.add.called
+assert mock_session_instance.commit.called
+assert len(stored) == 1
 
-            # Mock the query to return no existing product
-            mock_result = MagicMock()
-            mock_result.scalar_one_or_none.return_value = None
-            mock_session_instance.execute = AsyncMock(return_value=mock_result)
-            mock_session_instance.add = MagicMock()
-            mock_session_instance.commit = AsyncMock()
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
 
-            stored = await scraper.store_products(scraped)
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
 
-            # Verify session.add was called and products returned
-            assert mock_session_instance.add.called
-            assert mock_session_instance.commit.called
-            assert len(stored) == 1
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
 
 
 class TestScrapedProduct:
@@ -285,15 +292,13 @@ class TestPlaywrightAvailability:
         # This just checks the flag exists and is a boolean
         assert isinstance(PLAYWRIGHT_AVAILABLE, bool)
 
-    @pytest.mark.asyncio
-    async def test_scrape_without_playwright(self):
-        """Scraping without Playwright returns empty list and logs error."""
-        if PLAYWRIGHT_AVAILABLE:
-            pytest.skip("Playwright is available, cannot test unavailable path")
-
-        scraper = AmazonFreshScraper()
-        result = await scraper.scrape_products("test query", "20024")
-        assert result == []
+@pytest.mark.asyncio
+async def test_scrape_without_playwright(self):
+"""Scraping without Playwright returns empty list and logs error."""
+with patch("api_gateway.services.scrapers.amazon_fresh_scraper.PLAYWRIGHT_AVAILABLE", False):
+scraper = AmazonFreshScraper()
+result = await scraper.scrape_products("test query", "20024")
+assert result == []
 
 
 class TestScraperFactory:

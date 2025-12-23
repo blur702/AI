@@ -1430,7 +1430,91 @@ return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
 # Check expiration
 if session["expires_at"] <= datetime.now(UTC):
 del _session_store[token]
+@app.route("/api/auth/validate", methods=["POST"])
+def api_auth_validate():
+"""Validate a session token without requiring Basic Auth.
+Used by API gateway to validate tokens for price comparison requests.
+Request body:
+token: The session token to validate
+Returns:
+JSON with valid status and username if token is valid
+"""
+data = request.get_json() or {}
+token = data.get("token")
+if not token:
+return jsonify({"valid": False, "error": "No token provided"}), 400
+with _session_lock:
+# Cleanup expired sessions
+_cleanup_expired_sessions()
+
+# Check if token exists and is valid
+session = _session_store.get(token)
+if not session:
 return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
+
+# Check expiration
+if session["expires_at"] <= datetime.now(UTC):
+del _session_store[token]
+return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
+
+username = session.get("username", "unknown")
+return jsonify({"valid": True, "username": username})
+def api_auth_validate():
+"""Validate a session token without requiring Basic Auth.
+Used by API gateway to validate tokens for price comparison requests.
+Request body:
+token: The session token to validate
+Returns:
+JSON with valid status and username if token is valid
+"""
+data = request.get_json() or {}
+token = data.get("token")
+if not token:
+return jsonify({"valid": False, "error": "No token provided"}), 400
+with _session_lock:
+# Cleanup expired sessions
+_cleanup_expired_sessions()
+
+# Check if token exists and is valid
+session = _session_store.get(token)
+if not session:
+return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
+
+# Check expiration
+if session["expires_at"] <= datetime.now(UTC):
+del _session_store[token]
+return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
+
+username = session.get("username", "unknown")
+return jsonify({"valid": True, "username": username})
+def api_auth_validate():
+"""Validate a session token without requiring Basic Auth.
+Used by API gateway to validate tokens for price comparison requests.
+Request body:
+token: The session token to validate
+Returns:
+JSON with valid status and username if token is valid
+"""
+data = request.get_json() or {}
+token = data.get("token")
+if not token:
+return jsonify({"valid": False, "error": "No token provided"}), 400
+with _session_lock:
+# Cleanup expired sessions
+_cleanup_expired_sessions()
+
+# Check if token exists and is valid
+session = _session_store.get(token)
+if not session:
+return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
+
+# Check expiration
+if session["expires_at"] <= datetime.now(UTC):
+del _session_store[token]
+return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
+
+username = session.get("username", "unknown")
+return jsonify({"valid": True, "username": username})
 
 username = session.get("username", "unknown")
 return jsonify({"valid": True, "username": username})

@@ -108,9 +108,9 @@ export interface ProductSearchRequest {
 }
 
 export interface BulkUploadRequest {
-  items: ShoppingListItem[];
-  session_token?: string;
-  name?: string;
+items: ShoppingListItem[];
+session_token: string;
+name?: string;
 }
 
 // Available grocery services

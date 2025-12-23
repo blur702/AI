@@ -212,8 +212,12 @@ return Object.setPrototypeOf(plugins, PluginArray.prototype);
             page: Playwright page instance
             query: Product search query
         """
-        # Construct search URL
-        search_url = f"{self.search_url}?k={query.replace(' ', '+')}&i=amazonfresh"
+from urllib.parse import quote_plus
+
+
+async def _search_products(self, page: "Page", query: str) -> None:
+# Construct search URL
+search_url = f"{self.search_url}?k={quote_plus(query)}&i=amazonfresh"
 
         self.logger.info("Searching for: %s", query)
         await page.goto(search_url, wait_until="domcontentloaded", timeout=self.timeout_ms)

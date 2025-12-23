@@ -144,6 +144,15 @@ browser contexts and other resources.
 Note: This clears scraper instances but preserves the registry.
 Calling get_scraper() after this will create fresh instances.
 """
+Note: This clears scraper instances but preserves the registry.
+Calling get_scraper() after this will create fresh instances.
+"""
+Note: This clears scraper instances but preserves the registry.
+Calling get_scraper() after this will create fresh instances.
+"""
+Note: This clears scraper instances but preserves the registry.
+Calling get_scraper() after this will create fresh instances.
+"""
 
 async def scrape_service(
     service_name: str,

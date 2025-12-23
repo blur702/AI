@@ -403,6 +403,63 @@ raise Exception(progress_update.get("error", "Processing failed"))
 # If we didn't get a completed status, use last update as result
 if final_result is None:
 final_result = progress_update if progress_update is not None else {"status": "completed"}
+final_result = None
+progress_update = None
+async for progress_update in processor_func(job.request_data, job.id):
+# Update job with progress and notify WebSocket clients
+await self.queue_manager.update_job_status(
+job.id,
+JobStatus.running,
+result=progress_update,
+)
+event.set()
+event.clear()
+# Check if this is the final result
+if progress_update.get("status") == "completed":
+final_result = progress_update
+elif progress_update.get("status") == "error":
+raise Exception(progress_update.get("error", "Processing failed"))
+# If we didn't get a completed status, use last update as result
+if final_result is None:
+final_result = progress_update if progress_update is not None else {"status": "completed"}
+final_result = None
+progress_update = None
+async for progress_update in processor_func(job.request_data, job.id):
+# Update job with progress and notify WebSocket clients
+await self.queue_manager.update_job_status(
+job.id,
+JobStatus.running,
+result=progress_update,
+)
+event.set()
+event.clear()
+# Check if this is the final result
+if progress_update.get("status") == "completed":
+final_result = progress_update
+elif progress_update.get("status") == "error":
+raise Exception(progress_update.get("error", "Processing failed"))
+# If we didn't get a completed status, use last update as result
+if final_result is None:
+final_result = progress_update if progress_update is not None else {"status": "completed"}
+final_result = None
+progress_update = None
+async for progress_update in processor_func(job.request_data, job.id):
+# Update job with progress and notify WebSocket clients
+await self.queue_manager.update_job_status(
+job.id,
+JobStatus.running,
+result=progress_update,
+)
+event.set()
+event.clear()
+# Check if this is the final result
+if progress_update.get("status") == "completed":
+final_result = progress_update
+elif progress_update.get("status") == "error":
+raise Exception(progress_update.get("error", "Processing failed"))
+# If we didn't get a completed status, use last update as result
+if final_result is None:
+final_result = progress_update if progress_update is not None else {"status": "completed"}
             if final_result is None:
                 final_result = progress_update if progress_update else {"status": "completed"}
 

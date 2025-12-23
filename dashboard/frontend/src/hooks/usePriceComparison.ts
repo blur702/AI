@@ -236,45 +236,18 @@ console.error("Error fetching saved selections:", err);
 setError("Failed to load saved selections");
 }
 
-  const saveSelection = useCallback(
-    async (
-      sessionToken: string,
-      productId: string,
-      quantity = 1
-    ): Promise<boolean> => {
-      try {
-        const params = new URLSearchParams({
-          session_token: sessionToken,
-          product_id: productId,
-          quantity: quantity.toString(),
-        });
-
-        const response = await fetch(
-          `${getApiBase()}/api/price-comparison/save?${params.toString()}`,
-          {
-            method: "POST",
-            credentials: "include",
-          }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok || !data.data?.saved) {
-          setError(data.error || data.message || "Failed to save selection");
-          return false;
-        }
-
-        // Refresh saved selections
-        await getSavedSelections(sessionToken);
-        return true;
-      } catch (err) {
-        console.error("Error saving selection:", err);
-        setError("Connection error while saving selection");
-        return false;
-      }
-    },
-    [getSavedSelections]
-  );
+const response = await fetch(
+`${getApiBase()}/api/price-comparison/save`,
+{
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-Session-Token": sessionToken,
+},
+body: JSON.stringify({ product_id: productId, quantity }),
+credentials: "include",
+}
+);
 
   const deleteSelection = useCallback(
     async (selectionId: string, sessionToken: string): Promise<boolean> => {
@@ -288,7 +261,13 @@ setError("Failed to load saved selections");
         );
 
         const data = await response.json();
-
+} catch (err) {
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
         if (!response.ok || !data.data?.deleted) {
           setError(data.error || data.message || "Failed to delete selection");
           return false;
