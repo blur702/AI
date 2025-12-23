@@ -289,6 +289,33 @@ playwright install chromium
 python -m api_gateway.services.error_tracker list --service "scraper.amazon_fresh"
 ```
 
+### Database Errors
+
+**Symptoms:** Products not saving, duplicate key errors
+**Debug:**
+
+```bash
+python -m api_gateway.services.error_tracker list --service "scraper.amazon_fresh"
+```
+
+### Database Errors
+
+**Symptoms:** Products not saving, duplicate key errors
+**Debug:**
+
+```bash
+python -m api_gateway.services.error_tracker list --service "scraper.amazon_fresh"
+```
+
+### Database Errors
+
+**Symptoms:** Products not saving, duplicate key errors
+**Debug:**
+
+```bash
+python -m api_gateway.services.error_tracker list --service "scraper.amazon_fresh"
+```
+
 ```bash
 playwright install-deps chromium
 playwright install chromium

@@ -359,6 +359,24 @@ if self.search_url.startswith("http"):
 search_url = f"{self.search_url}?q={encoded_query}"
 else:
 search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
+# Construct search URL - use search_url directly if absolute
+encoded_query = quote_plus(query)
+if self.search_url.startswith("http"):
+search_url = f"{self.search_url}?q={encoded_query}"
+else:
+search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
+# Construct search URL - use search_url directly if absolute
+encoded_query = quote_plus(query)
+if self.search_url.startswith("http"):
+search_url = f"{self.search_url}?q={encoded_query}"
+else:
+search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
+# Construct search URL - use search_url directly if absolute
+encoded_query = quote_plus(query)
+if self.search_url.startswith("http"):
+search_url = f"{self.search_url}?q={encoded_query}"
+else:
+search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
 
         self.logger.info("Searching for: %s", query)
         await page.goto(search_url, wait_until="domcontentloaded", timeout=self.timeout_ms)

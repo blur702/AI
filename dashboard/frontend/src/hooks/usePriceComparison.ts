@@ -268,6 +268,15 @@ setError("Failed to load saved selections");
 console.error("Error fetching saved selections:", err);
 setError("Failed to load saved selections");
 }
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
         if (!response.ok || !data.data?.deleted) {
           setError(data.error || data.message || "Failed to delete selection");
           return false;

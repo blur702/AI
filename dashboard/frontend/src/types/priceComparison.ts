@@ -141,7 +141,7 @@ export const GROCERY_SERVICES: {
 // Helper to get service color
 export function getServiceColor(service: string): string {
   const found = GROCERY_SERVICES.find(
-    (s) => s.id === service || s.name.toLowerCase() === service.toLowerCase()
+    (s) => s.id === service || s.name.toLowerCase() === service.toLowerCase(),
   );
   return found?.color ?? "#9E9E9E";
 }
@@ -149,7 +149,7 @@ export function getServiceColor(service: string): string {
 // Helper to get service display name
 export function getServiceName(service: string): string {
   const found = GROCERY_SERVICES.find(
-    (s) => s.id === service || s.name.toLowerCase() === service.toLowerCase()
+    (s) => s.id === service || s.name.toLowerCase() === service.toLowerCase(),
   );
   return found?.name ?? service;
 }
