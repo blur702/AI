@@ -496,36 +496,9 @@ export const BulkUploadDialog = memo(function BulkUploadDialog({
                     p: 1,
                   }}
                 >
-                  {parsedItems.map((item, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        py: 0.5,
-                        px: 1,
-                        "&:hover": { bgcolor: "action.hover" },
-                      }}
-                    >
-                      <Typography variant="body2">
-                        {item.query}{" "}
-                        <Chip
-                          label={`x${item.quantity}`}
-                          size="small"
-                          sx={{ ml: 1 }}
-                        />
-                      </Typography>
-                      <Tooltip title="Remove">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleRemoveItem(index)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  ))}
+{parsedItems.map((item, index) => (
+<Box
+key={`${item.query}-${index}`}
                 </Box>
               </Box>
             )}

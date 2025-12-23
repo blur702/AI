@@ -216,6 +216,12 @@ self.logger.debug("Selector %s not found, trying next", selector)
 continue
 self.logger.debug("Selector %s not found, trying next", selector)
 continue
+self.logger.debug("Selector %s not found, trying next", selector)
+continue
+self.logger.debug("Selector %s not found, trying next", selector)
+continue
+self.logger.debug("Selector %s not found, trying next", selector)
+continue
         Returns:
             True if navigation was successful
         """

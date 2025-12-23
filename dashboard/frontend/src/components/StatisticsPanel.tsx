@@ -43,7 +43,27 @@ const SERVICE_COLORS: Record<string, string> = {
   instacart: "#43B02A",
   doordash: "#FF3008",
   safeway: "#E31837",
-};
+import { GROCERY_SERVICES } from "../types";
+
+// Derive colors from centralized config
+const SERVICE_COLORS: Record<string, string> = Object.fromEntries(
+GROCERY_SERVICES.map(s => [s.id, s.color])
+import { GROCERY_SERVICES } from "../types";
+// Derive colors from centralized config
+const SERVICE_COLORS: Record<string, string> = Object.fromEntries(
+GROCERY_SERVICES.map((s) => [s.id, s.color]),
+);
+interface ServiceStats {
+// Derive colors from centralized config
+const SERVICE_COLORS: Record<string, string> = Object.fromEntries(
+GROCERY_SERVICES.map((s) => [s.id, s.color]),
+);
+interface ServiceStats {
+// Derive colors from centralized config
+const SERVICE_COLORS: Record<string, string> = Object.fromEntries(
+GROCERY_SERVICES.map((s) => [s.id, s.color]),
+);
+interface ServiceStats {
 
 interface ServiceStats {
   service: string;

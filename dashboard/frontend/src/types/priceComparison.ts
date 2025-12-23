@@ -21,7 +21,7 @@ export interface Product {
   id: string;
   service: string;
   name: string;
-  price: number;
+  price: string;
   size: string | null;
   brand: string | null;
   url: string;

@@ -277,6 +277,15 @@ setError("Failed to load saved selections");
 console.error("Error fetching saved selections:", err);
 setError("Failed to load saved selections");
 }
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
+console.error("Error fetching saved selections:", err);
+setError("Failed to load saved selections");
+}
         if (!response.ok || !data.data?.deleted) {
           setError(data.error || data.message || "Failed to delete selection");
           return false;
@@ -292,7 +301,18 @@ setError("Failed to load saved selections");
       }
     },
     [getSavedSelections]
-  );
+const response = await fetch(
+`${getApiBase()}/api/price-comparison/save`,
+{
+method: "POST",
+headers: {
+"Content-Type": "application/json",
+"X-Session-Token": sessionToken,
+},
+body: JSON.stringify({ product_id: productId, quantity }),
+credentials: "include",
+}
+);
 
   const clearResults = useCallback(() => {
     setComparisonResult(null);

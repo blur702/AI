@@ -585,6 +585,45 @@ await session.commit()
 except Exception as e:
 logger.error("Failed to update shopping list %s: %s", list_id, e)
 # Still return results even if DB update failed
+try:
+result = await session.execute(
+select(ShoppingList).where(ShoppingList.id == list_id)
+)
+shopping_list = result.scalar_one_or_none()
+if shopping_list:
+shopping_list.items_json = processed_items
+shopping_list.total_stats = total_stats
+shopping_list.status = "completed"
+await session.commit()
+except Exception as e:
+logger.error("Failed to update shopping list %s: %s", list_id, e)
+# Still return results even if DB update failed
+try:
+result = await session.execute(
+select(ShoppingList).where(ShoppingList.id == list_id)
+)
+shopping_list = result.scalar_one_or_none()
+if shopping_list:
+shopping_list.items_json = processed_items
+shopping_list.total_stats = total_stats
+shopping_list.status = "completed"
+await session.commit()
+except Exception as e:
+logger.error("Failed to update shopping list %s: %s", list_id, e)
+# Still return results even if DB update failed
+try:
+result = await session.execute(
+select(ShoppingList).where(ShoppingList.id == list_id)
+)
+shopping_list = result.scalar_one_or_none()
+if shopping_list:
+shopping_list.items_json = processed_items
+shopping_list.total_stats = total_stats
+shopping_list.status = "completed"
+await session.commit()
+except Exception as e:
+logger.error("Failed to update shopping list %s: %s", list_id, e)
+# Still return results even if DB update failed
 except Exception as e:
 logger.error("Failed to update shopping list %s: %s", list_id, e)
 # Still return results even if DB update failed

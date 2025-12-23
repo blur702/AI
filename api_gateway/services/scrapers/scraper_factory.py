@@ -147,9 +147,22 @@ Calling get_scraper() after this will create fresh instances.
 Note: This clears scraper instances but preserves the registry.
 Calling get_scraper() after this will create fresh instances.
 """
+
 Note: This clears scraper instances but preserves the registry.
 Calling get_scraper() after this will create fresh instances.
 """
+global _SCRAPER_INSTANCES
+
+for service_name, scraper in list(_SCRAPER_INSTANCES.items()):
+try:
+if hasattr(scraper, "close"):
+await scraper.close()
+logger.info("Closed scraper for '%s'", service_name)
+except Exception as e:
+logger.warning("Error closing scraper '%s': %s", service_name, e)
+
+_SCRAPER_INSTANCES.clear()
+logger.info("All scrapers closed")
 Note: This clears scraper instances but preserves the registry.
 Calling get_scraper() after this will create fresh instances.
 """

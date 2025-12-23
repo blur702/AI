@@ -283,17 +283,50 @@ added_product = add_call_args[0][0]
 assert added_product.name == "Test Milk"
 assert added_product.service == "amazon_fresh"
 
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
+
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
+
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
+
 
 class TestScrapedProduct:
     """Tests for ScrapedProduct dataclass."""
-
+@pytest.mark.asyncio
+async def test_scrape_without_playwright(self):
+"""Scraping without Playwright returns empty list and logs error."""
+with patch("api_gateway.services.scrapers.amazon_fresh_scraper.PLAYWRIGHT_AVAILABLE", False):
+scraper = AmazonFreshScraper()
+result = await scraper.scrape_products("test query", "20024")
+assert result == []
     def test_scraped_product_defaults(self):
         """Verify default values for optional fields."""
         product = ScrapedProduct(
             name="Test Product",
             price="$1.99",
             url="https://example.com/product",
-        )
+@pytest.mark.asyncio
+async def test_scrape_without_playwright(self):
+"""Scraping without Playwright returns empty list and logs error."""
+with patch("api_gateway.services.scrapers.amazon_fresh_scraper.PLAYWRIGHT_AVAILABLE", False):
+scraper = AmazonFreshScraper()
+result = await scraper.scrape_products("test query", "20024")
+assert result == []
 
         assert product.name == "Test Product"
         assert product.price == "$1.99"

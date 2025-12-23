@@ -378,6 +378,54 @@ stack_trace=str(ctx) if ctx else None,
 )
 except Exception as e:
 self.logger.warning("Failed to log error to tracker: %s", e)
+self,
+message: str,
+context: dict[str, Any] | None = None,
+severity: str = "error",
+) -> None:
+try:
+ctx = context or {}
+ctx["service_name"] = self.service_name
+await store_error(
+service=f"scraper.{self.service_name}",
+message=message,
+severity=severity,
+stack_trace=str(ctx) if ctx else None,
+)
+except Exception as e:
+self.logger.warning("Failed to log error to tracker: %s", e)
+self,
+message: str,
+context: dict[str, Any] | None = None,
+severity: str = "error",
+) -> None:
+try:
+ctx = context or {}
+ctx["service_name"] = self.service_name
+await store_error(
+service=f"scraper.{self.service_name}",
+message=message,
+severity=severity,
+stack_trace=str(ctx) if ctx else None,
+)
+except Exception as e:
+self.logger.warning("Failed to log error to tracker: %s", e)
+self,
+message: str,
+context: dict[str, Any] | None = None,
+severity: str = "error",
+) -> None:
+try:
+ctx = context or {}
+ctx["service_name"] = self.service_name
+await store_error(
+service=f"scraper.{self.service_name}",
+message=message,
+severity=severity,
+stack_trace=str(ctx) if ctx else None,
+)
+except Exception as e:
+self.logger.warning("Failed to log error to tracker: %s", e)
 await store_error(
 service=f"scraper.{self.service_name}",
 message=message,

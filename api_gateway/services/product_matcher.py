@@ -57,15 +57,7 @@ class ProductGroup:
 
 # Track which models have been warmed up this session
 _warmed_up_models: set[str] = set()
-async def ensure_model_ready(model: str, warmup_timeout: float = 300.0) -> bool:
-global _warmed_up_models
-if model in _warmed_up_models:
-return True
-...
-if await _warmup_model(model, timeout=warmup_timeout):
-_warmed_up_models.add(model)
-return True
-
+async def _check_ollama_health(timeout: float = 5.0) -> bool:
 
 async def _check_ollama_health(timeout: float = 5.0) -> bool:
     """Check if Ollama API is responsive."""
@@ -568,14 +560,24 @@ async def _generate_comparison_analysis(
             p = match.product
             unit_price = match.attributes.unit_price
 products_info.append(
+(
+f"  - {p.name[:60]} | {p.service} | {p.price} | "
+f"Size: {p.size or 'N/A'} | "
+products_info.append(
 f"  - {p.name[:60]} | {p.service} | {p.price} | "
 f"Size: {p.size or 'N/A'} | "
 f"Unit price: ${unit_price:.3f}/oz"
 if unit_price
 else f"  - {p.name[:60]} | {p.service} | {p.price}"
 )
+f"  - {p.name[:60]} | {p.service} | {p.price} | "
+f"Size: {p.size or 'N/A'} | "
+f"Unit price: ${unit_price:.3f}/oz"
+if unit_price
 else f"  - {p.name[:60]} | {p.service} | {p.price}"
 )
+)
+if unit_price
 else f"  - {p.name[:60]} | {p.service} | {p.price}"
 )
 

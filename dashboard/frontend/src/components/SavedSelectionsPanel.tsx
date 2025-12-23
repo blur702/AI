@@ -24,7 +24,7 @@ import type { SavedAggregation } from "../hooks/usePriceComparison";
 interface SavedSelectionsPanelProps {
   selections: SavedSelection[];
   aggregation?: SavedAggregation | null;
-  onDelete: (selectionId: string) => void;
+  onDelete?: (selectionId: string) => void;
   loading?: boolean;
 }
 
@@ -38,7 +38,7 @@ export const SavedSelectionsPanel = memo(function SavedSelectionsPanel({
   const total = useMemo(() => {
     return selections.reduce(
       (acc, s) => acc + (s.product?.price ?? 0) * s.quantity,
-      0
+      0,
     );
   }, [selections]);
 
@@ -49,12 +49,19 @@ export const SavedSelectionsPanel = memo(function SavedSelectionsPanel({
     const lines: string[] = [];
     lines.push("Product Name,Service,Price,Quantity,Subtotal");
 
+    const escapeCSV = (str: string) => {
+      if (str.includes('"') || str.includes(",") || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
     for (const selection of selections) {
       const product = selection.product;
       if (!product) continue;
       const subtotal = product.price * selection.quantity;
       lines.push(
-        `"${product.name}",${getServiceName(product.service)},$${product.price.toFixed(2)},${selection.quantity},$${subtotal.toFixed(2)}`
+        `${escapeCSV(product.name)},${escapeCSV(getServiceName(product.service))},$${product.price.toFixed(2)},${selection.quantity},$${subtotal.toFixed(2)}`,
       );
     }
 
@@ -197,7 +204,10 @@ export const SavedSelectionsPanel = memo(function SavedSelectionsPanel({
                         sx={{
                           bgcolor: getServiceColor(service),
                           color: "white",
-                          fontWeight: service === aggregation.cheapest_service ? 700 : 400,
+                          fontWeight:
+                            service === aggregation.cheapest_service
+                              ? 700
+                              : 400,
                         }}
                       />
                     ))}
@@ -213,128 +223,133 @@ export const SavedSelectionsPanel = memo(function SavedSelectionsPanel({
         <CardContent>
           {/* Selection List */}
           <List>
-          {selections.map((selection) => (
-            <ListItem
-              key={selection.selection_id}
-              divider
-              sx={{
-                "&:hover": {
-                  bgcolor: "action.hover",
-                },
-              }}
-            >
-              <ListItemText
-                primary={
-                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                    {selection.product?.name ?? "Unknown Product"}
-                  </Typography>
-                }
-                secondary={
-                  <Box
-                    component="span"
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      mt: 0.5,
-                    }}
+            {selections.map((selection) => (
+              <ListItem
+                key={selection.selection_id}
+                divider
+                sx={{
+                  "&:hover": {
+                    bgcolor: "action.hover",
+                  },
+                }}
+              >
+                <ListItemText
+                  primary={
+                    <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                      {selection.product?.name ?? "Unknown Product"}
+                    </Typography>
+                  }
+                  secondary={
+                    <Box
+                      component="span"
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        mt: 0.5,
+                      }}
+                    >
+                      {selection.product && (
+                        <>
+                          <Chip
+                            label={getServiceName(selection.product.service)}
+                            size="small"
+                            sx={{
+                              bgcolor: getServiceColor(
+                                selection.product.service,
+                              ),
+                              color: "white",
+                              fontSize: "0.65rem",
+                            }}
+                          />
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            color="primary"
+                            sx={{ fontWeight: 600 }}
+                          >
+                            ${selection.product.price.toFixed(2)}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            component="span"
+                            color="text.secondary"
+                          >
+                            x{selection.quantity}
+                          </Typography>
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            color="text.secondary"
+                            sx={{ ml: 1 }}
+                          >
+                            = $
+                            {(
+                              selection.product.price * selection.quantity
+                            ).toFixed(2)}
+                          </Typography>
+                        </>
+                      )}
+                    </Box>
+                  }
+                />
+                <ListItemSecondaryAction>
+                  <IconButton
+                    edge="end"
+                    onClick={() => onDelete(selection.selection_id)}
+                    size="small"
+                    color="error"
+                    title="Remove from list"
                   >
-                    {selection.product && (
-                      <>
-                        <Chip
-                          label={getServiceName(selection.product.service)}
-                          size="small"
-                          sx={{
-                            bgcolor: getServiceColor(selection.product.service),
-                            color: "white",
-                            fontSize: "0.65rem",
-                          }}
-                        />
-                        <Typography
-                          variant="body2"
-                          component="span"
-                          color="primary"
-                          sx={{ fontWeight: 600 }}
-                        >
-                          ${selection.product.price.toFixed(2)}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          component="span"
-                          color="text.secondary"
-                        >
-                          x{selection.quantity}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          component="span"
-                          color="text.secondary"
-                          sx={{ ml: 1 }}
-                        >
-                          = ${(selection.product.price * selection.quantity).toFixed(2)}
-                        </Typography>
-                      </>
-                    )}
-                  </Box>
-                }
-              />
-              <ListItemSecondaryAction>
-                <IconButton
-                  edge="end"
-                  onClick={() => onDelete(selection.selection_id)}
-                  size="small"
-                  color="error"
-                  title="Remove from list"
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </ListItemSecondaryAction>
-            </ListItem>
-          ))}
-        </List>
+                    <DeleteIcon />
+                  </IconButton>
+                </ListItemSecondaryAction>
+              </ListItem>
+            ))}
+          </List>
 
-        <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 2 }} />
 
-        {/* Total and Export */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: 2,
-          }}
-        >
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
-              Total ({selections.length} items)
-            </Typography>
-            <Typography variant="h5" color="primary" sx={{ fontWeight: 700 }}>
-              ${total.toFixed(2)}
-            </Typography>
+          {/* Total and Export */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 2,
+            }}
+          >
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 500 }}>
+                Total ({selections.length} items)
+              </Typography>
+              <Typography variant="h5" color="primary" sx={{ fontWeight: 700 }}>
+                ${total.toFixed(2)}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportCSV}
+              >
+                Export CSV
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={handleExportJSON}
+              >
+                Export JSON
+              </Button>
+            </Box>
           </Box>
-
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              onClick={handleExportCSV}
-            >
-              Export CSV
-            </Button>
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<DownloadIcon />}
-              onClick={handleExportJSON}
-            >
-              Export JSON
-            </Button>
-          </Box>
-        </Box>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
     </Box>
   );
 });
