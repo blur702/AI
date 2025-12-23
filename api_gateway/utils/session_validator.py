@@ -1,0 +1,54 @@
+"""
+Session Token Validation Utility.
+
+Validates session tokens against the dashboard backend's session store.
+Used by price comparison endpoints to ensure requests are authenticated.
+"""
+
+import httpx
+
+from ..config import settings
+from .logger import get_logger
+
+logger = get_logger("api_gateway.utils.session_validator")
+
+# Dashboard backend URL (same machine, different port)
+DASHBOARD_URL = f"http://127.0.0.1:{settings.DASHBOARD_PORT}"
+
+
+async def validate_session_token(token: str | None) -> tuple[bool, str | None]:
+    """
+    Validate a session token against the dashboard backend.
+
+    Args:
+        token: Session token to validate
+
+    Returns:
+        Tuple of (is_valid, username or error_message)
+    """
+    if not token:
+        return False, "No session token provided"
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.post(
+                f"{DASHBOARD_URL}/api/auth/validate",
+                json={"token": token},
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("valid"):
+                    return True, data.get("username")
+
+            # Token is invalid or expired
+            return False, "Invalid or expired session token"
+
+    except httpx.ConnectError:
+        logger.error("Failed to connect to dashboard backend for token validation")
+        # In development, allow requests if dashboard is not running
+        # In production, this should return False
+        return False, "Authentication service unavailable"
+    except Exception as e:
+        logger.error("Session validation error: %s", e)
+        return False, f"Validation error: {str(e)}"

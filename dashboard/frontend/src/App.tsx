@@ -33,7 +33,9 @@ import { useSocket } from "./hooks/useSocket";
 import DashboardHome from "./pages/DashboardHome";
 import ModelsPage from "./pages/ModelsPage";
 import CongressionalDataPage from "./pages/CongressionalDataPage";
+import PriceComparisonPage from "./pages/PriceComparisonPage";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import "./App.css";
 
 const DRAWER_WIDTH = 240;
@@ -54,6 +56,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Congressional Data",
     icon: <AccountBalanceIcon />,
     path: "/congressional",
+  },
+  {
+    id: "price-comparison",
+    label: "Price Comparison",
+    icon: <ShoppingCartIcon />,
+    path: "/price-comparison",
   },
   {
     id: "main",
@@ -280,6 +288,7 @@ function App() {
           <Route path="/" element={<DashboardHome />} />
           <Route path="/models" element={<ModelsPage />} />
           <Route path="/congressional" element={<CongressionalDataPage />} />
+          <Route path="/price-comparison" element={<PriceComparisonPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 

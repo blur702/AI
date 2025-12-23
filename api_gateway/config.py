@@ -67,6 +67,7 @@ class Settings:
     """
 
     API_PORT: int = int(os.getenv("API_PORT", "1301"))
+    DASHBOARD_PORT: int = int(os.getenv("DASHBOARD_PORT", "80"))
 
     # PostgreSQL configuration
     POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
@@ -200,7 +201,95 @@ class Settings:
         "yue": "http://localhost:7870",
         "diffrhythm": "http://localhost:7871",
         "stable_audio": "http://localhost:7873",
+        # Internal services (handled by job_queue.py, not HTTP)
+        "shopping_list_processor": "internal://shopping_list_processor",
     }
+
+    # Grocery delivery services configuration
+    GROCERY_SERVICES: dict[str, dict] = {
+        "amazon_fresh": {
+            "name": "Amazon Fresh",
+            "base_url": "https://www.amazon.com/alm/storefront",
+            "search_url": "https://www.amazon.com/s",
+            "requires_auth": True,
+            "rate_limit_delay": 2.0,
+            "max_retries": 3,
+        },
+        "instacart": {
+            "name": "Instacart",
+            "base_url": "https://www.instacart.com",
+            "search_url": "https://www.instacart.com/store/search",
+            "requires_auth": False,
+            "rate_limit_delay": 1.5,
+            "max_retries": 3,
+        },
+        "doordash": {
+            "name": "DoorDash",
+            "base_url": "https://www.doordash.com",
+            "search_url": "https://www.doordash.com/convenience",
+            "requires_auth": False,
+            "rate_limit_delay": 2.0,
+            "max_retries": 3,
+        },
+        "safeway": {
+            "name": "Safeway Delivery",
+            "base_url": "https://www.safeway.com",
+            "search_url": "https://www.safeway.com/shop/search-results.html",
+            "requires_auth": False,
+            "rate_limit_delay": 1.5,
+            "max_retries": 3,
+        },
+    }
+
+    # Default location for grocery searches
+    DEFAULT_LOCATION: dict[str, str] = {
+        "zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
+        "city": "Washington",
+        "state": "DC",
+    }
+
+    # Price comparison settings
+    PRICE_COMPARISON_SETTINGS: dict = {
+        "cache_ttl_hours": int(os.getenv("PRICE_CACHE_TTL_HOURS", "2")),
+        "max_products_per_service": int(os.getenv("MAX_PRODUCTS_PER_SERVICE", "10")),
+        "similarity_threshold": 0.7,
+        "timeout_seconds": 30,
+    }
+
+    # Shopping list processing settings
+    # Note: parallel_processing is disabled to avoid overwhelming scrapers
+    SHOPPING_LIST_SETTINGS: dict = {
+        "max_items": int(os.getenv("SHOPPING_LIST_MAX_ITEMS", "100")),
+        "timeout_per_item": int(os.getenv("SHOPPING_LIST_TIMEOUT_PER_ITEM", "60")),
+        "parallel_processing": False,  # Disabled to avoid rate limiting
+        "progress_batch_size": 1,  # Emit progress after every N items (1 = every item)
+    }
+
+    # Required keys for each grocery service configuration
+    _GROCERY_SERVICE_REQUIRED_KEYS = ["name", "base_url", "search_url", "rate_limit_delay", "max_retries"]
+
+    @classmethod
+    def validate_grocery_services(cls) -> None:
+        """
+        Validate that GROCERY_SERVICES configuration has all required keys.
+
+        Raises:
+            ValueError: If any service is missing required configuration keys
+        """
+        errors = []
+        for service_name, config in cls.GROCERY_SERVICES.items():
+            missing = [key for key in cls._GROCERY_SERVICE_REQUIRED_KEYS if key not in config]
+            if missing:
+                errors.append(f"{service_name}: missing keys {missing}")
+
+            # Validate types
+            if "rate_limit_delay" in config and not isinstance(config["rate_limit_delay"], (int, float)):
+                errors.append(f"{service_name}: rate_limit_delay must be a number")
+            if "max_retries" in config and not isinstance(config["max_retries"], int):
+                errors.append(f"{service_name}: max_retries must be an integer")
+
+        if errors:
+            raise ValueError("Invalid GROCERY_SERVICES configuration:\n  " + "\n  ".join(errors))
 
     # SSH and Drupal integration configuration.
     DRUPAL_SSH_HOST: str = os.getenv("DRUPAL_SSH_HOST", "65.181.112.77")
@@ -216,3 +305,6 @@ class Settings:
 
 
 settings = Settings()
+
+# Validate grocery services configuration at module load time
+Settings.validate_grocery_services()

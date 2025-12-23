@@ -1405,6 +1405,34 @@ def api_auth_revoke():
     return jsonify({"success": False, "message": "No valid session to revoke"}), 400
 
 
+@app.route("/api/auth/validate", methods=["POST"])
+def api_auth_validate():
+    """Validate a session token without requiring Basic Auth.
+
+    Used by API gateway to validate tokens for price comparison requests.
+
+    Request body:
+        token: The session token to validate
+
+    Returns:
+        JSON with valid status and username if token is valid
+    """
+    data = request.get_json() or {}
+    token = data.get("token")
+
+    if not token:
+        return jsonify({"valid": False, "error": "No token provided"}), 400
+
+    if validate_session_token(token):
+        # Get session info
+        with _session_lock:
+            session = _session_store.get(token, {})
+            username = session.get("username", "unknown")
+        return jsonify({"valid": True, "username": username})
+
+    return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
+
+
 @app.route("/api/health", methods=["GET"])
 @require_auth
 def api_health():

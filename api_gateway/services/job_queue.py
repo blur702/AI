@@ -3,11 +3,27 @@ Async job queue management for long-running generation tasks.
 
 Provides job creation, status tracking, and background processing
 for AI generation requests that may take extended time to complete.
+
+Progress Tracking:
+    For jobs that support progress updates (like shopping_list_processor),
+    the result structure includes a progress field:
+    {
+        "status": "processing",
+        "progress": {
+            "items_completed": N,
+            "total_items": M,
+            "current_item": "...",
+            "items": [...],
+            "total_stats": {...}
+        }
+    }
+    The job worker emits WebSocket events for each progress update.
 """
 
 import asyncio
+import importlib
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Callable
 
 import httpx
 from sqlalchemy import select
@@ -18,6 +34,15 @@ from ..utils.error_logger import log_error, log_exception, mark_job_errors_resol
 from ..utils.exceptions import JobNotFoundError, JobTimeoutError, ServiceUnavailableError
 from ..utils.logger import logger
 from .vram_service import VRAMService
+
+# Registry of internal service processors
+# Maps service name to (module_path, function_name)
+INTERNAL_PROCESSORS: dict[str, tuple[str, str]] = {
+    "shopping_list_processor": (
+        "api_gateway.services.shopping_list_processor",
+        "process_shopping_list_job",
+    ),
+}
 
 
 class JobQueueManager:
@@ -212,7 +237,12 @@ class JobWorker:
         Execute a single job by forwarding request to the target service.
 
         Handles VRAM management, timeout enforcement, status updates, and
-        event notifications for WebSocket clients.
+        event notifications for WebSocket clients. Supports both external HTTP
+        services and internal processors (like shopping_list_processor).
+
+        For internal services (registered in INTERNAL_PROCESSORS), the processor
+        function is called directly and may yield progress updates via an
+        async generator pattern.
 
         Args:
             job: Job instance to process
@@ -228,6 +258,11 @@ class JobWorker:
         event = self.get_event(job.id)
         event.set()
         event.clear()
+
+        # Check if this is an internal service
+        if job.service in INTERNAL_PROCESSORS:
+            await self._process_internal_job(job, event)
+            return
 
         service_url = settings.SERVICES.get(job.service)
         if not service_url:
@@ -305,5 +340,81 @@ class JobWorker:
                 )
             except Exception as log_exc:  # noqa: BLE001
                 logger.warning(f"Failed to record job failure error: {log_exc}")
+        finally:
+            event.set()
+
+    async def _process_internal_job(self, job: Job, event: asyncio.Event) -> None:
+        """
+        Process an internal service job (not HTTP-based).
+
+        Internal processors are async generators that yield progress updates
+        and finally return the completed result. Each progress update triggers
+        a WebSocket event and updates the job result.
+
+        Args:
+            job: Job instance to process
+            event: asyncio.Event for WebSocket notifications
+        """
+        module_path, func_name = INTERNAL_PROCESSORS[job.service]
+
+        try:
+            # Dynamically import the processor module and function
+            module = importlib.import_module(module_path)
+            processor_func: Callable = getattr(module, func_name)
+
+            start = datetime.now(UTC)
+            logger.info(f"Starting internal processor {job.service} for job {job.id}")
+
+            # Process the job - processor is an async generator yielding progress
+            final_result = None
+            async for progress_update in processor_func(job.request_data, job.id):
+                # Update job with progress and notify WebSocket clients
+                await self.queue_manager.update_job_status(
+                    job.id,
+                    JobStatus.running,
+                    result=progress_update,
+                )
+                event.set()
+                event.clear()
+
+                # Check if this is the final result
+                if progress_update.get("status") == "completed":
+                    final_result = progress_update
+                elif progress_update.get("status") == "error":
+                    raise Exception(progress_update.get("error", "Processing failed"))
+
+            # If we didn't get a completed status, use last update as result
+            if final_result is None:
+                final_result = progress_update if progress_update else {"status": "completed"}
+
+            elapsed = (datetime.now(UTC) - start).total_seconds()
+            logger.info(f"Internal job {job.id} completed in {elapsed:.2f}s")
+
+            await self.queue_manager.update_job_status(
+                job.id, JobStatus.completed, result=final_result
+            )
+            try:
+                await mark_job_errors_resolved(
+                    job.id,
+                    resolution="Job completed successfully after previous failures",
+                )
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(f"Failed to mark job errors resolved: {exc}")
+
+        except Exception as exc:  # noqa: BLE001
+            logger.exception(f"Internal job {job.id} failed")
+            await self.queue_manager.update_job_status(
+                job.id, JobStatus.failed, error=str(exc)
+            )
+            try:
+                await log_exception(
+                    service=job.service,
+                    exc=exc,
+                    severity=ErrorSeverity.error,
+                    context={"job_id": job.id},
+                    job_id=job.id,
+                )
+            except Exception as log_exc:  # noqa: BLE001
+                logger.warning(f"Failed to record internal job error: {log_exc}")
         finally:
             event.set()

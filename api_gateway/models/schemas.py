@@ -371,3 +371,198 @@ class CongressionalChatResponse(BaseModel):
     sources: list[CongressionalChatSource]
     conversation_id: str
     model: str
+
+
+# -----------------------------------------------------------------------------
+# Price Comparison Schemas
+# -----------------------------------------------------------------------------
+
+
+class ProductSearchRequest(BaseModel):
+    """
+    Request model for product search.
+
+    Attributes:
+        query: Product to search for
+        services: Specific services to search (default: all)
+        location: Zip code for location-based results
+    """
+
+    query: str = Field(..., min_length=1, max_length=200, description="Product to search for")
+    services: list[str] | None = Field(
+        None, description="Specific services to search (default: all)"
+    )
+    location: str = Field("20024", description="Zip code for location-based results")
+
+
+class ProductAttributes(BaseModel):
+    """
+    LLM-extracted product attributes for comparison.
+
+    Attributes:
+        brand: Extracted brand name
+        size: Original size string
+        size_oz: Normalized size in ounces
+        unit_price: Price per ounce
+        is_organic: Whether product is organic
+        product_type: Product category (e.g., "milk", "bread")
+        confidence: LLM confidence in extraction (0.0-1.0)
+    """
+
+    brand: str | None = None
+    size: str | None = None
+    size_oz: float | None = None
+    unit_price: float | None = None
+    is_organic: bool = False
+    product_type: str | None = None
+    confidence: float = 0.5
+
+
+class ProductInfo(BaseModel):
+    """
+    Individual product information with similarity data.
+
+    Attributes:
+        id: Product UUID
+        service: Service name (e.g., "amazon_fresh")
+        name: Product display name
+        price: Price string (e.g., "$3.99")
+        size: Product size (e.g., "1 gal")
+        brand: Brand name
+        url: Product page URL
+        image_url: Product image URL
+        availability: Whether product is in stock
+        similarity_score: Similarity to group representative (0.0-1.0)
+        attributes: LLM-extracted product attributes
+    """
+
+    id: str
+    service: str
+    name: str
+    price: str
+    size: str | None = None
+    brand: str | None = None
+    url: str
+    image_url: str | None = None
+    availability: bool = True
+    similarity_score: float = 0.0
+    attributes: ProductAttributes | None = None
+
+
+class ProductGroup(BaseModel):
+    """
+    Group of similar products with reasoning.
+
+    Attributes:
+        representative_name: Name of the representative product for this group
+        reasoning: LLM explanation for why products are grouped together
+        products: List of products in this group
+    """
+
+    representative_name: str = ""
+    reasoning: str = ""
+    products: list[ProductInfo] = []
+
+
+class ProductSearchResponse(BaseModel):
+    """
+    Response model for product search.
+
+    Attributes:
+        query: Original search query
+        comparison_id: UUID of the comparison record
+        location: Zip code for location-based results
+        status: Search status (completed, error, partial)
+        services_scraped: List of services that were successfully scraped
+        groups: Products grouped by similarity with reasoning
+        llm_analysis: LLM's comparison insights (best value, recommendations)
+        model_used: Which Ollama model performed analysis
+        from_cache: Whether results came from cache
+        errors: List of errors encountered during search
+    """
+
+    query: str
+    comparison_id: str | None = None
+    location: str | None = None
+    status: str = "completed"
+    services_scraped: list[str] = []
+    groups: list[ProductGroup] = []
+    llm_analysis: dict[str, Any] | None = None
+    model_used: str | None = None
+    from_cache: bool = False
+    errors: list[str] | None = None
+
+
+class BulkUploadItem(BaseModel):
+    """
+    Single item in a bulk upload request.
+
+    Attributes:
+        query: Product search query
+        quantity: Number of items needed
+    """
+
+    query: str = Field(..., min_length=1, max_length=200)
+    quantity: int = Field(1, ge=1)
+
+
+class BulkUploadRequest(BaseModel):
+    """
+    Request model for bulk shopping list upload.
+
+    Attributes:
+        items: List of items with quantities
+        name: Name for this list
+        session_token: Session token for user identification
+    """
+
+    items: list[BulkUploadItem] = Field(..., description="List of items with quantities")
+    name: str = Field("Shopping List", description="Name for this list")
+    session_token: str = Field(..., description="Session token")
+
+
+class BulkUploadResponse(BaseModel):
+    """
+    Response model for bulk upload.
+
+    Attributes:
+        list_id: UUID of the shopping list
+        job_id: UUID of the processing job
+        status: Current processing status
+    """
+
+    list_id: str
+    job_id: str
+    status: str
+
+
+class SavedSelectionInfo(BaseModel):
+    """
+    Information about a saved product selection.
+
+    Attributes:
+        id: Selection UUID
+        product: Product information
+        quantity: Quantity saved
+        notes: User notes
+        created_at: When selection was saved
+    """
+
+    id: str
+    product: ProductInfo
+    quantity: int = 1
+    notes: str | None = None
+    created_at: datetime
+
+
+class SavedSelectionsResponse(BaseModel):
+    """
+    Response model for saved selections.
+
+    Attributes:
+        selections: List of saved product selections
+        total_items: Total number of items saved
+    """
+
+    selections: list[SavedSelectionInfo]
+    total_items: int
