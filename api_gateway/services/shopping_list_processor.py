@@ -166,16 +166,13 @@ async def process_shopping_list_job(
                         if isinstance(price, (int, float)):
                             price_value = float(price)
                         elif isinstance(price, str):
-                            price_value = product_matcher._parse_price(price)
+                            price_value = parse_price(price)
                         else:
                             price_value = None
 
                         if price_value is not None:
                             if service not in service_totals:
-if price_value is not None:
-if service not in service_totals:
-service_totals[service] = 0.0
-service_totals[service] += price_value * quantity
+                                service_totals[service] = 0.0
                             service_totals[service] += price_value * quantity
 
             processed_items.append({

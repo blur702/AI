@@ -29,16 +29,24 @@ async def validate_session_token(token: str | None) -> tuple[bool, str | None]:
     if not token:
         return False, "No session token provided"
 
-if response.status_code == 200:
-data = response.json()
-if data.get("valid"):
-return True, data.get("username")
-return False, "Invalid or expired session token"
-if response.status_code >= 500:
-logger.error("Dashboard backend error: %s", response.status_code)
-return False, "Authentication service error"
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(
+                f"{DASHBOARD_URL}/api/auth/validate",
+                headers={"X-Session-Token": token},
+            )
 
-return False, "Invalid or expired session token"
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("valid"):
+                    return True, data.get("username")
+                return False, "Invalid or expired session token"
+
+            if response.status_code >= 500:
+                logger.error("Dashboard backend error: %s", response.status_code)
+                return False, "Authentication service error"
+
+            return False, "Invalid or expired session token"
 
     except httpx.ConnectError:
         logger.error("Failed to connect to dashboard backend for token validation")

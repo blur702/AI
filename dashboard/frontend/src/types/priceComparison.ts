@@ -18,11 +18,18 @@ export interface ProductAttributes {
 
 // Individual product from a grocery service
 export interface Product {
-id: string;
-service: string;
-name: string;
-price: string;
-size: string | null;
+  id: string;
+  service: string;
+  name: string;
+  price: number;
+  size: string | null;
+  brand: string | null;
+  url: string;
+  image_url: string | null;
+  availability: boolean;
+  similarity_score: number;
+  attributes: ProductAttributes | null;
+}
 
 // Group of comparable products identified by LLM
 export interface ProductGroup {
@@ -108,9 +115,9 @@ export interface ProductSearchRequest {
 }
 
 export interface BulkUploadRequest {
-items: ShoppingListItem[];
-session_token: string;
-name?: string;
+  items: ShoppingListItem[];
+  session_token: string;
+  name?: string;
 }
 
 // Available grocery services
