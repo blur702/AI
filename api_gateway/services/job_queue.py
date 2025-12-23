@@ -22,8 +22,9 @@ Progress Tracking:
 
 import asyncio
 import importlib
+from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any, Callable
+from typing import Any
 
 import httpx
 from sqlalchemy import select
@@ -367,6 +368,7 @@ class JobWorker:
 
             # Process the job - processor is an async generator yielding progress
             final_result = None
+            progress_update = None
             async for progress_update in processor_func(job.request_data, job.id):
                 # Update job with progress and notify WebSocket clients
                 await self.queue_manager.update_job_status(

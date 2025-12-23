@@ -8,8 +8,8 @@ from fastapi import APIRouter, Query
 from sqlalchemy import select
 
 from ..config import settings
-from ..models.database import AsyncSessionLocal, Comparison, Product, SavedSelection
 from ..middleware.response import unified_response
+from ..models.database import AsyncSessionLocal, Product, SavedSelection
 from ..models.schemas import (
     BulkUploadRequest,
     ProductSearchRequest,
