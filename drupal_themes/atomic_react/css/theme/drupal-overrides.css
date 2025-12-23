@@ -1,0 +1,105 @@
+/**
+ * @file
+ * Drupal-specific overrides - Styles for Drupal system output.
+ */
+
+.messages {
+  padding: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid;
+}
+
+.messages--status {
+  background-color: rgba(46, 125, 50, 0.1);
+  border-color: var(--color-success);
+}
+
+.messages--warning {
+  background-color: rgba(237, 108, 2, 0.1);
+  border-color: var(--color-warning);
+}
+
+.messages--error {
+  background-color: rgba(211, 47, 47, 0.1);
+  border-color: var(--color-error);
+}
+
+.tabs__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+  border-bottom: 2px solid var(--color-gray-200);
+  margin-bottom: var(--spacing-6);
+}
+
+.tabs__link {
+  display: inline-flex;
+  padding: var(--spacing-3) var(--spacing-4);
+  min-height: 44px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tabs__link:hover { color: var(--color-primary); }
+
+.tabs__link.is-active {
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.node__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.field { margin-bottom: var(--spacing-4); }
+
+.field__label {
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-1);
+}
+
+.form-item { margin-bottom: var(--spacing-4); }
+
+.form-item label {
+  display: block;
+  margin-bottom: var(--spacing-1);
+  font-weight: var(--font-weight-medium);
+}
+
+.form-required::after {
+  content: " *";
+  color: var(--color-error);
+}
+
+.form-actions {
+  margin-top: var(--spacing-6);
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.block { margin-bottom: var(--spacing-6); }
+
+.block__title {
+  margin-bottom: var(--spacing-4);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.views-row {
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.views-row:last-child {
+  border-bottom: none;
+}

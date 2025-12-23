@@ -1,0 +1,106 @@
+/**
+ * @file
+ * Header organism - Site header with branding and navigation.
+ */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-sticky);
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+  height: var(--header-height);
+  padding: 0 var(--spacing-4);
+  max-width: var(--container-xl);
+  margin: 0 auto;
+}
+
+.site-branding {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.site-branding__logo img {
+  height: 40px;
+  width: auto;
+}
+
+.site-branding__name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.site-branding__name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-branding__name a:hover {
+  color: var(--color-primary);
+}
+
+.site-branding__slogan {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.site-header__nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+@media (max-width: 1023px) {
+  .site-header__primary-nav { display: none; }
+}
+
+.site-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.site-header__theme-toggle,
+.site-header__menu-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--border-radius-full);
+  color: var(--color-text-secondary);
+  transition: background-color var(--transition-fast);
+}
+
+.site-header__theme-toggle:hover,
+.site-header__menu-toggle:hover {
+  background-color: var(--color-gray-100);
+}
+
+.site-header__theme-toggle:focus-visible,
+.site-header__menu-toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+}
+
+@media (min-width: 1024px) {
+  .site-header__menu-toggle { display: none; }
+}
+
+.mobile-menu {
+  background-color: var(--color-background);
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: var(--spacing-4) 0;
+}
+
+@media (min-width: 640px) {
+  .site-branding__slogan { display: none; }
+}

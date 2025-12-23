@@ -1,0 +1,59 @@
+/**
+ * @file
+ * Form field molecule - Label + input + help text + error message.
+ */
+
+.form-field {
+  margin-bottom: var(--spacing-5);
+}
+
+.form-field__label {
+  display: block;
+  margin-bottom: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.form-field__label--required::after {
+  content: " *";
+  color: var(--color-error);
+}
+
+.form-field__help {
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.form-field__error {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  margin-top: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+}
+
+.form-field__error::before {
+  content: "⚠";
+}
+
+.form-field--has-error .form-field__label {
+  color: var(--color-error);
+}
+
+.form-field--has-error input {
+  border-color: var(--color-error);
+}
+
+.form-fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.form-fieldset__legend {
+  margin-bottom: var(--spacing-4);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
