@@ -17,6 +17,7 @@ import random
 import re
 import time
 from typing import Any
+from urllib.parse import quote_plus
 
 from api_gateway.config import settings
 from api_gateway.utils.logger import get_logger
@@ -217,8 +218,8 @@ class AmazonFreshScraper(BaseGroceryScraper):
             page: Playwright page instance
             query: Product search query
         """
-        # Construct search URL
-        search_url = f"{self.search_url}?k={query.replace(' ', '+')}&i=amazonfresh"
+        # Construct search URL with proper encoding
+        search_url = f"{self.search_url}?k={quote_plus(query)}&i=amazonfresh"
 
         self.logger.info("Searching for: %s", query)
         await page.goto(search_url, wait_until="domcontentloaded", timeout=self.timeout_ms)

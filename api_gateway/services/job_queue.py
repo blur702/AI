@@ -368,6 +368,7 @@ class JobWorker:
 
             # Process the job - processor is an async generator yielding progress
             final_result = None
+            progress_update = None  # Initialize to avoid NameError if generator yields nothing
             async for progress_update in processor_func(job.request_data, job.id):
                 # Update job with progress and notify WebSocket clients
                 await self.queue_manager.update_job_status(

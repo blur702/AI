@@ -17,6 +17,7 @@ import random
 import re
 import time
 from typing import Any
+from urllib.parse import quote
 
 from api_gateway.config import settings
 from api_gateway.utils.logger import get_logger
@@ -243,9 +244,8 @@ class InstacartScraper(BaseGroceryScraper):
             page: Playwright page instance
             query: Product search query
         """
-        # Construct search URL
-        encoded_query = query.replace(" ", "%20")
-        search_url = f"{self.search_url}?search_term={encoded_query}"
+        # Construct search URL with proper encoding
+        search_url = f"{self.search_url}?search_term={quote(query)}"
 
         self.logger.info("Searching for: %s", query)
         await page.goto(search_url, wait_until="domcontentloaded", timeout=self.timeout_ms)

@@ -232,7 +232,7 @@ class PHPDocsScraper(BaseDocScraper):
     def get_seed_urls(self) -> list[str]:
         """Get seed URLs for all PHP documentation sections."""
         urls = []
-        for section_key, section in PHP_SECTIONS.items():
+        for _section_key, section in PHP_SECTIONS.items():
             urls.extend(section["seed_urls"])
             logger.info("Added %d seed URLs for %s", len(section["seed_urls"]), section["name"])
         return urls
