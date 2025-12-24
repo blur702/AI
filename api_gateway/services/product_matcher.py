@@ -55,9 +55,9 @@ class ProductGroup:
     reasoning: str = ""
 
 
-# Track which models have been warmed up this session
-_warmed_up_models: set[str] = set()
-async def _check_ollama_health(timeout: float = 5.0) -> bool:
+# Track if model has been warmed up this session
+_model_warmed_up = False
+
 
 async def _check_ollama_health(timeout: float = 5.0) -> bool:
     """Check if Ollama API is responsive."""
@@ -559,27 +559,11 @@ async def _generate_comparison_analysis(
         for match in group.products[:5]:  # Limit to 5 per group for prompt size
             p = match.product
             unit_price = match.attributes.unit_price
-products_info.append(
-(
-f"  - {p.name[:60]} | {p.service} | {p.price} | "
-f"Size: {p.size or 'N/A'} | "
-products_info.append(
-f"  - {p.name[:60]} | {p.service} | {p.price} | "
-f"Size: {p.size or 'N/A'} | "
-f"Unit price: ${unit_price:.3f}/oz"
-if unit_price
-else f"  - {p.name[:60]} | {p.service} | {p.price}"
-)
-f"  - {p.name[:60]} | {p.service} | {p.price} | "
-f"Size: {p.size or 'N/A'} | "
-f"Unit price: ${unit_price:.3f}/oz"
-if unit_price
-else f"  - {p.name[:60]} | {p.service} | {p.price}"
-)
-)
-if unit_price
-else f"  - {p.name[:60]} | {p.service} | {p.price}"
-)
+            products_info.append(
+                f"  - {p.name[:60]} | {p.service} | {p.price} | "
+                f"Size: {p.size or 'N/A'} | "
+                f"Unit price: ${unit_price:.3f}/oz" if unit_price else f"  - {p.name[:60]} | {p.service} | {p.price}"
+            )
 
         group_summaries.append(f"Group {i + 1} ({len(group.products)} products):\n" + "\n".join(products_info))
 

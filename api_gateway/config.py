@@ -244,45 +244,9 @@ class Settings:
     # Default location for grocery searches
     DEFAULT_LOCATION: dict[str, str] = {
         "zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-        "city": os.getenv("DEFAULT_CITY", "Washington"),
-        "state": os.getenv("DEFAULT_STATE", "DC"),
-DEFAULT_LOCATION: dict[str, str] = {
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-DEFAULT_LOCATION: dict[str, str] = {
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-DEFAULT_LOCATION: dict[str, str] = {
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-DEFAULT_LOCATION: dict[str, str] = {
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
+        "city": "Washington",
+        "state": "DC",
+    }
 
     # Price comparison settings
     PRICE_COMPARISON_SETTINGS: dict = {

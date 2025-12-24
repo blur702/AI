@@ -136,45 +136,21 @@ def get_configured_services() -> list[str]:
 
 
 async def close_all_scrapers() -> None:
-"""
-Close all active scraper instances.
-Should be called during application shutdown to clean up
-browser contexts and other resources.
+    """
+    Close all active scraper instances.
 
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
+    Should be called during application shutdown to clean up
+    browser contexts and other resources.
+    """
+    for service_name, scraper in list(_SCRAPER_INSTANCES.items()):
+        try:
+            await scraper.close()
+            logger.info("Closed scraper for '%s'", service_name)
+        except Exception as e:
+            logger.warning("Error closing scraper for '%s': %s", service_name, e)
 
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
-global _SCRAPER_INSTANCES
+    _SCRAPER_INSTANCES.clear()
 
-for service_name, scraper in list(_SCRAPER_INSTANCES.items()):
-try:
-if hasattr(scraper, "close"):
-await scraper.close()
-logger.info("Closed scraper for '%s'", service_name)
-except Exception as e:
-logger.warning("Error closing scraper '%s': %s", service_name, e)
-
-_SCRAPER_INSTANCES.clear()
-logger.info("All scrapers closed")
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
 
 async def scrape_service(
     service_name: str,

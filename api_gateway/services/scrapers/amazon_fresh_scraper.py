@@ -32,11 +32,9 @@ try:
         BrowserContext,
         Page,
         Playwright,
-    )
-    from playwright.async_api import TimeoutError as PlaywrightTimeout
-    from playwright.async_api import (
         async_playwright,
     )
+    from playwright.async_api import TimeoutError as PlaywrightTimeout
 
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
@@ -112,13 +110,20 @@ class AmazonFreshScraper(BaseGroceryScraper):
         )
 
         # Add stealth scripts to avoid detection
-// Override plugins
-Object.defineProperty(navigator, 'plugins', {
-get: () => {
-const plugins = {length: 3, item: () => null, namedItem: () => null, refresh: () => {}};
-return Object.setPrototypeOf(plugins, PluginArray.prototype);
-}
-});
+        await self._context.add_init_script("""
+            // Override webdriver detection
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+            // Override plugins
+            Object.defineProperty(navigator, 'plugins', {
+                get: () => [1, 2, 3, 4, 5]
+            });
+            // Override languages
+            Object.defineProperty(navigator, 'languages', {
+                get: () => ['en-US', 'en']
+            });
+        """)
 
         self._initialized = True
         return self._context
@@ -212,18 +217,9 @@ return Object.setPrototypeOf(plugins, PluginArray.prototype);
             page: Playwright page instance
             query: Product search query
         """
-from urllib.parse import quote_plus
+        # Construct search URL
+        search_url = f"{self.search_url}?k={query.replace(' ', '+')}&i=amazonfresh"
 
-
-async def _search_products(self, page: "Page", query: str) -> None:
-# Construct search URL
-search_url = f"{self.search_url}?k={quote_plus(query)}&i=amazonfresh"
-from urllib.parse import quote_plus
-
-
-async def _search_products(self, page: "Page", query: str) -> None:
-# Construct search URL
-search_url = f"{self.search_url}?k={quote_plus(query)}&i=amazonfresh"
         self.logger.info("Searching for: %s", query)
         await page.goto(search_url, wait_until="domcontentloaded", timeout=self.timeout_ms)
         await self._random_delay(2, 4)

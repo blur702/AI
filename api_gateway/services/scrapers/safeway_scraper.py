@@ -33,11 +33,9 @@ try:
         BrowserContext,
         Page,
         Playwright,
-    )
-    from playwright.async_api import TimeoutError as PlaywrightTimeout
-    from playwright.async_api import (
         async_playwright,
     )
+    from playwright.async_api import TimeoutError as PlaywrightTimeout
 
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
@@ -331,70 +329,12 @@ class SafewayScraper(BaseGroceryScraper):
             page: Playwright page instance
             query: Product search query
         """
-from urllib.parse import quote_plus
-
-
-async def _search_products(self, page: "Page", query: str) -> None:
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
-# Construct search URL - use search_url directly if absolute
-encoded_query = quote_plus(query)
-if self.search_url.startswith("http"):
-search_url = f"{self.search_url}?q={encoded_query}"
-else:
-search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
+        # Construct search URL - use search_url directly if absolute
+        encoded_query = query.replace(" ", "%20")
+        if self.search_url.startswith("http"):
+            search_url = f"{self.search_url}?q={encoded_query}"
+        else:
+            search_url = f"{self.base_url}{self.search_url}?q={encoded_query}"
 
         self.logger.info("Searching for: %s", query)
         await page.goto(search_url, wait_until="domcontentloaded", timeout=self.timeout_ms)
