@@ -32,9 +32,11 @@ try:
         BrowserContext,
         Page,
         Playwright,
-        async_playwright,
     )
     from playwright.async_api import TimeoutError as PlaywrightTimeout
+    from playwright.async_api import (
+        async_playwright,
+    )
 
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
@@ -110,7 +112,8 @@ class InstacartScraper(BaseGroceryScraper):
         )
 
         # Add stealth scripts to avoid detection
-        await self._context.add_init_script("""
+        await self._context.add_init_script(
+            """
             // Override webdriver detection
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => undefined
@@ -123,7 +126,8 @@ class InstacartScraper(BaseGroceryScraper):
             Object.defineProperty(navigator, 'languages', {
                 get: () => ['en-US', 'en']
             });
-        """)
+        """
+        )
 
         self._initialized = True
         return self._context
@@ -309,9 +313,7 @@ class InstacartScraper(BaseGroceryScraper):
 
         return products
 
-    async def _extract_single_product(
-        self, card: Any, page: "Page"
-    ) -> ScrapedProduct | None:
+    async def _extract_single_product(self, card: Any, page: "Page") -> ScrapedProduct | None:
         """
         Extract data from a single product card.
 

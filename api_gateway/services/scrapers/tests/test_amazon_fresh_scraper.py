@@ -304,6 +304,27 @@ added_product = add_call_args[0][0]
 assert added_product.name == "Test Milk"
 assert added_product.service == "amazon_fresh"
 
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
+
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
+
+# Verify the Product model was created with correct data
+add_call_args = mock_session_instance.add.call_args
+if add_call_args:
+added_product = add_call_args[0][0]
+assert added_product.name == "Test Milk"
+assert added_product.service == "amazon_fresh"
+
 
 class TestScrapedProduct:
     """Tests for ScrapedProduct dataclass."""

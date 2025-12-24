@@ -98,13 +98,13 @@ export interface ShoppingListItemResult {
   best_service: string | null;
 }
 
-// Aggregate statistics for shopping list
 export interface ShoppingListStats {
-  total_items: number;
-  items_found: number;
-  lowest_total_by_service: Record<string, number>;
+  service_totals: Record<string, number>;
+  cheapest_service: string | null;
+  most_expensive_service: string | null;
   potential_savings: number;
-  recommended_service: string | null;
+  items_processed: number;
+  items_failed: number;
 }
 
 // API request types

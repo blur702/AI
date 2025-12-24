@@ -506,7 +506,46 @@ async def process_shopping_list(
             shopping_list.items_json = processed_items
             shopping_list.total_stats = total_stats
             shopping_list.status = "completed"
-            await session.commit()
+async with AsyncSessionLocal() as session:
+try:
+result = await session.execute(
+select(ShoppingList).where(ShoppingList.id == list_id)
+)
+shopping_list = result.scalar_one_or_none()
+if shopping_list:
+shopping_list.items_json = processed_items
+shopping_list.total_stats = total_stats
+shopping_list.status = "completed"
+await session.commit()
+except Exception as e:
+logger.error("Failed to update shopping list %s: %s", list_id, e)
+# Still return results even if DB update failed
+try:
+result = await session.execute(
+select(ShoppingList).where(ShoppingList.id == list_id)
+)
+shopping_list = result.scalar_one_or_none()
+if shopping_list:
+shopping_list.items_json = processed_items
+shopping_list.total_stats = total_stats
+shopping_list.status = "completed"
+await session.commit()
+except Exception as e:
+logger.error("Failed to update shopping list %s: %s", list_id, e)
+# Still return results even if DB update failed
+try:
+result = await session.execute(
+select(ShoppingList).where(ShoppingList.id == list_id)
+)
+shopping_list = result.scalar_one_or_none()
+if shopping_list:
+shopping_list.items_json = processed_items
+shopping_list.total_stats = total_stats
+shopping_list.status = "completed"
+await session.commit()
+except Exception as e:
+logger.error("Failed to update shopping list %s: %s", list_id, e)
+# Still return results even if DB update failed
 
     logger.info(
         "Shopping list %s complete: %d items, potential savings: $%.2f",
@@ -523,7 +562,21 @@ async def process_shopping_list(
         "status": "completed",
     }
 
-
+async with AsyncSessionLocal() as session:
+try:
+result = await session.execute(
+select(ShoppingList).where(ShoppingList.id == list_id)
+)
+shopping_list = result.scalar_one_or_none()
+if shopping_list:
+shopping_list.items_json = processed_items
+shopping_list.total_stats = total_stats
+shopping_list.status = "completed"
+await session.commit()
+except Exception as e:
+logger.error("Failed to update shopping list %s: %s", list_id, e)
+# Still return results even if DB update failed
+logger.info(
 async def get_shopping_list(list_id: str) -> dict | None:
     """
     Retrieve a shopping list by ID.
@@ -536,7 +589,21 @@ async def get_shopping_list(list_id: str) -> dict | None:
     """
     async with AsyncSessionLocal() as session:
         result = await session.execute(
-            select(ShoppingList).where(ShoppingList.id == list_id)
+async with AsyncSessionLocal() as session:
+try:
+result = await session.execute(
+select(ShoppingList).where(ShoppingList.id == list_id)
+)
+shopping_list = result.scalar_one_or_none()
+if shopping_list:
+shopping_list.items_json = processed_items
+shopping_list.total_stats = total_stats
+shopping_list.status = "completed"
+await session.commit()
+except Exception as e:
+logger.error("Failed to update shopping list %s: %s", list_id, e)
+# Still return results even if DB update failed
+logger.info(
         )
         shopping_list = result.scalar_one_or_none()
 

@@ -48,7 +48,8 @@ from sqlalchemy import select
 from ..config import settings
 from ..models.database import AsyncSessionLocal, ShoppingList
 from ..utils.logger import get_logger
-from . import comparison_manager, product_matcher
+from . import comparison_manager
+from .product_matcher import parse_price  # After making it public
 
 logger = get_logger("api_gateway.services.shopping_list_processor")
 
@@ -171,8 +172,14 @@ async def process_shopping_list_job(
 
                         if price_value:
                             if service not in service_totals:
-                                service_totals[service] = 0.0
-                            service_totals[service] += price_value * quantity
+if price_value is not None:
+if service not in service_totals:
+service_totals[service] = 0.0
+service_totals[service] += price_value * quantity
+if price_value is not None:
+if service not in service_totals:
+service_totals[service] = 0.0
+service_totals[service] += price_value * quantity
 
             processed_items.append({
                 "query": query,

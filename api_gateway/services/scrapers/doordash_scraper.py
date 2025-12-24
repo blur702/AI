@@ -33,9 +33,11 @@ try:
         BrowserContext,
         Page,
         Playwright,
-        async_playwright,
     )
     from playwright.async_api import TimeoutError as PlaywrightTimeout
+    from playwright.async_api import (
+        async_playwright,
+    )
 
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
@@ -203,7 +205,9 @@ class DoorDashScraper(BaseGroceryScraper):
         except Exception as e:
             self.logger.error("Error setting location: %s", e)
             return False
-
+except Exception:
+self.logger.debug("Selector %s not found, trying next", selector)
+continue
     async def _navigate_to_grocery(self, page: "Page") -> bool:
         """
         Navigate to grocery/convenience section on DoorDash.
