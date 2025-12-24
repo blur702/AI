@@ -1028,7 +1028,7 @@ def main(argv: list[str] | None = None) -> None:
 
     except Exception as exc:
         logger.exception("Command failed: %s", exc)
-        raise SystemExit(1)
+        raise SystemExit(1) from exc
 
 
 if __name__ == "__main__":

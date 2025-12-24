@@ -183,7 +183,7 @@ def clean_all():
     logger.info("Deleting all documentation collections...")
 
     with WeaviateConnection() as client:
-        for name, scraper_class in ALL_SCRAPERS.items():
+        for _name, scraper_class in ALL_SCRAPERS.items():
             # Create scraper with defaults to get collection_name
             scraper = scraper_class()
             collection_name = scraper.collection_name

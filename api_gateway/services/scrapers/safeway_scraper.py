@@ -18,6 +18,7 @@ import random
 import re
 import time
 from typing import Any
+from urllib.parse import quote
 
 from api_gateway.config import settings
 from api_gateway.utils.logger import get_logger
@@ -329,8 +330,8 @@ class SafewayScraper(BaseGroceryScraper):
             page: Playwright page instance
             query: Product search query
         """
-        # Construct search URL - use search_url directly if absolute
-        encoded_query = query.replace(" ", "%20")
+        # Construct search URL with proper encoding
+        encoded_query = quote(query)
         if self.search_url.startswith("http"):
             search_url = f"{self.search_url}?q={encoded_query}"
         else:

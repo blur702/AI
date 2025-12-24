@@ -452,8 +452,7 @@ def ingest_documentation(
                 emit_progress(
                     "processing", idx + 1, total_files, f"Processing {_relative_to_workspace(path)}"
                 )
-                for chunk in chunks:
-                    yield chunk
+                yield from chunks
             except Exception as exc:  # noqa: BLE001
                 errors += 1
                 processed_files += 1

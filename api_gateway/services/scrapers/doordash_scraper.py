@@ -18,6 +18,7 @@ import random
 import re
 import time
 from typing import Any
+from urllib.parse import quote
 
 from api_gateway.config import settings
 from api_gateway.utils.logger import get_logger
@@ -316,12 +317,13 @@ class DoorDashScraper(BaseGroceryScraper):
 
         self.logger.warning("Could not find search input, trying URL-based search")
 
-        # Fallback: try URL-based search
+        # Fallback: try URL-based search with proper encoding
         current_url = page.url
+        encoded_query = quote(query)
         if "?" in current_url:
-            search_url = f"{current_url}&query={query.replace(' ', '%20')}"
+            search_url = f"{current_url}&query={encoded_query}"
         else:
-            search_url = f"{current_url}?query={query.replace(' ', '%20')}"
+            search_url = f"{current_url}?query={encoded_query}"
 
         await page.goto(search_url, wait_until="domcontentloaded", timeout=self.timeout_ms)
         await self._random_delay(2, 4)

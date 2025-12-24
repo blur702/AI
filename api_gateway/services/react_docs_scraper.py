@@ -235,7 +235,7 @@ class ReactEcosystemScraper(BaseDocScraper):
         parsed = urlparse(url)
 
         # Find matching library for this URL
-        for lib_key, lib in REACT_LIBRARIES.items():
+        for _lib_key, lib in REACT_LIBRARIES.items():
             lib_parsed = urlparse(lib["base_url"])
             if parsed.netloc == lib_parsed.netloc:
                 # Check if URL matches any pattern for this library
