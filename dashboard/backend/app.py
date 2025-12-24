@@ -1430,91 +1430,7 @@ def api_auth_validate():
             username = session.get("username", "unknown")
         return jsonify({"valid": True, "username": username})
 
-@app.route("/api/auth/validate", methods=["POST"])
-def api_auth_validate():
-"""Validate a session token without requiring Basic Auth.
-Used by API gateway to validate tokens for price comparison requests.
-Request body:
-token: The session token to validate
-Returns:
-JSON with valid status and username if token is valid
-"""
-data = request.get_json() or {}
-token = data.get("token")
-if not token:
-return jsonify({"valid": False, "error": "No token provided"}), 400
-with _session_lock:
-# Cleanup expired sessions
-_cleanup_expired_sessions()
-
-# Check if token exists and is valid
-session = _session_store.get(token)
-if not session:
-return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
-
-# Check expiration
-if session["expires_at"] <= datetime.now(UTC):
-del _session_store[token]
-return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
-
-username = session.get("username", "unknown")
-return jsonify({"valid": True, "username": username})
-def api_auth_validate():
-"""Validate a session token without requiring Basic Auth.
-Used by API gateway to validate tokens for price comparison requests.
-Request body:
-token: The session token to validate
-Returns:
-JSON with valid status and username if token is valid
-"""
-data = request.get_json() or {}
-token = data.get("token")
-if not token:
-return jsonify({"valid": False, "error": "No token provided"}), 400
-with _session_lock:
-# Cleanup expired sessions
-_cleanup_expired_sessions()
-
-# Check if token exists and is valid
-session = _session_store.get(token)
-if not session:
-return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
-
-# Check expiration
-if session["expires_at"] <= datetime.now(UTC):
-del _session_store[token]
-return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
-
-username = session.get("username", "unknown")
-return jsonify({"valid": True, "username": username})
-def api_auth_validate():
-"""Validate a session token without requiring Basic Auth.
-Used by API gateway to validate tokens for price comparison requests.
-Request body:
-token: The session token to validate
-Returns:
-JSON with valid status and username if token is valid
-"""
-data = request.get_json() or {}
-token = data.get("token")
-if not token:
-return jsonify({"valid": False, "error": "No token provided"}), 400
-with _session_lock:
-# Cleanup expired sessions
-_cleanup_expired_sessions()
-
-# Check if token exists and is valid
-session = _session_store.get(token)
-if not session:
-return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
-
-# Check expiration
-if session["expires_at"] <= datetime.now(UTC):
-del _session_store[token]
-return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
-
-username = session.get("username", "unknown")
-return jsonify({"valid": True, "username": username})
+    return jsonify({"valid": False, "error": "Invalid or expired token"}), 401
 
 
 @app.route("/api/health", methods=["GET"])
@@ -1629,13 +1545,7 @@ def api_list_ollama_models():
                     }
                 )
                 continue
-Repository: blur702/AI
-Length of output: 1677
----
-</details>
-**Fix corrupted `/api/auth/validate` endpoint and align it with the gateway client**
-The `/api/auth/validate` block is severely broken:
-Additionally, the API contract is broken. The `session_validator.py` gateway client (line 34–37) calls:
+
             info = get_ollama_model_info(model["name"], available_models=models)
             detailed_models.append(
                 {
@@ -1663,13 +1573,7 @@ Additionally, the API contract is broken. The `session_validator.py` gateway cli
         }
     )
 
-Repository: blur702/AI
-Length of output: 1677
----
-</details>
-**Fix corrupted `/api/auth/validate` endpoint and align it with the gateway client**
-The `/api/auth/validate` block is severely broken:
-Additionally, the API contract is broken. The `session_validator.py` gateway client (line 34–37) calls:
+
 @app.route("/api/models/ollama/loaded", methods=["GET"])
 @require_auth
 def api_loaded_ollama_models():
@@ -1685,15 +1589,7 @@ def api_loaded_ollama_models():
             "count": len(models),
         }
     )
-Repository: blur702/AI
-Length of output: 4537
----
-</details>
-**Fix corrupted `api_auth_validate` endpoint and align contract with gateway client**
-The endpoint definition is severely broken and will prevent the app from starting:
-Additionally, there is a critical contract mismatch:
-**Required fix:**
-Replace the entire corrupted block with a single, correctly indented handler that supports both GET and POST, reading the token from the `X-Session-Token` header first and falling back to JSON body for POST:
+
 
 @app.route("/api/models/ollama/load", methods=["POST"])
 @require_auth
@@ -1755,15 +1651,7 @@ def api_load_ollama_model():
         202,
     )  # 202 Accepted
 
-Repository: blur702/AI
-Length of output: 4537
----
-</details>
-**Fix corrupted `api_auth_validate` endpoint and align contract with gateway client**
-The endpoint definition is severely broken and will prevent the app from starting:
-Additionally, there is a critical contract mismatch:
-**Required fix:**
-Replace the entire corrupted block with a single, correctly indented handler that supports both GET and POST, reading the token from the `X-Session-Token` header first and falling back to JSON body for POST:
+
 @app.route("/api/models/ollama/unload", methods=["POST"])
 @require_auth
 def api_unload_ollama_model():

@@ -32,11 +32,9 @@ try:
         BrowserContext,
         Page,
         Playwright,
-    )
-    from playwright.async_api import TimeoutError as PlaywrightTimeout
-    from playwright.async_api import (
         async_playwright,
     )
+    from playwright.async_api import TimeoutError as PlaywrightTimeout
 
     PLAYWRIGHT_AVAILABLE = True
 except ImportError:
@@ -220,12 +218,7 @@ class AmazonFreshScraper(BaseGroceryScraper):
             query: Product search query
         """
         # Construct search URL
-from urllib.parse import quote_plus
-
-
-async def _search_products(self, page: "Page", query: str) -> None:
-# Construct search URL
-search_url = f"{self.search_url}?k={quote_plus(query)}&i=amazonfresh"
+        search_url = f"{self.search_url}?k={query.replace(' ', '+')}&i=amazonfresh"
 
         self.logger.info("Searching for: %s", query)
         await page.goto(search_url, wait_until="domcontentloaded", timeout=self.timeout_ms)
