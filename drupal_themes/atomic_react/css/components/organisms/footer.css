@@ -29,11 +29,15 @@
 }
 
 @media (min-width: 640px) {
-  .site-footer__grid { grid-template-columns: repeat(2, 1fr); }
+  .site-footer__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (min-width: 1024px) {
-  .site-footer__grid { grid-template-columns: 2fr 1fr 1fr 1fr; }
+  .site-footer__grid {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
 }
 
 .site-footer__column-title {

@@ -212,6 +212,138 @@ class Error(Base):
     resolved_at = Column(DateTime, nullable=True)
 
 
+# -----------------------------------------------------------------------------
+# Price Comparison Models
+# -----------------------------------------------------------------------------
+
+
+class Product(Base):
+    """
+    Grocery product from a delivery service.
+
+    Stores product information scraped from Amazon Fresh, Instacart, DoorDash,
+    Safeway, etc. Price stored as string to preserve formatting (e.g., "2 for $5").
+
+    Attributes:
+        id: UUID primary key
+        service: Service name (e.g., "amazon_fresh", "instacart")
+        name: Product display name
+        price: Price string (e.g., "$3.99", "2 for $5")
+        size: Product size (e.g., "1 gal", "16 oz")
+        brand: Brand name
+        url: Product page URL
+        image_url: Product image URL
+        availability: Whether product is in stock
+        extra_data: Flexible JSON storage for service-specific data
+        scraped_at: Timestamp when product was scraped
+        created_at: Timestamp when record was created
+    """
+
+    __tablename__ = "products"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    service = Column(String(50), nullable=False, index=True)
+    name = Column(String(500), nullable=False)
+    price = Column(String(50), nullable=False)
+    size = Column(String(100), nullable=True)
+    brand = Column(String(200), nullable=True)
+    url = Column(Text, nullable=False)
+    image_url = Column(Text, nullable=True)
+    availability = Column(Boolean, default=True, nullable=False)
+    extra_data = Column(JSON, nullable=True)
+    scraped_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+
+
+class Comparison(Base):
+    """
+    Product comparison across multiple grocery services.
+
+    Stores LLM-analyzed comparisons grouping similar products from different
+    services. Includes cache expiration for price freshness.
+
+    Attributes:
+        id: UUID primary key
+        query: Original search query (indexed)
+        location: Zip code for location-based results
+        products_json: Array of product IDs grouped by similarity
+        llm_analysis: LLM's comparison insights (best value, reasoning, etc.)
+        model_used: Which Ollama model performed analysis
+        created_at: Timestamp when comparison was created (indexed)
+        expires_at: Cache expiration for price freshness
+    """
+
+    __tablename__ = "comparisons"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    query = Column(String(500), nullable=False, index=True)
+    location = Column(String(20), nullable=False)
+    products_json = Column(JSON, nullable=False)
+    llm_analysis = Column(JSON, nullable=True)
+    model_used = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False, index=True)
+    expires_at = Column(DateTime, nullable=True)
+
+
+class SavedSelection(Base):
+    """
+    User's saved product selection for shopping cart.
+
+    Links dashboard sessions to saved products with quantities.
+
+    Attributes:
+        id: UUID primary key
+        session_token: Dashboard session token (indexed)
+        product_id: Foreign key to products.id (indexed)
+        quantity: Number of items saved
+        notes: User notes (e.g., "preferred brand")
+        created_at: Timestamp when selection was saved
+    """
+
+    __tablename__ = "saved_selections"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_token = Column(String(100), nullable=False, index=True)
+    product_id = Column(String, nullable=False, index=True)
+    quantity = Column(Integer, default=1, nullable=False)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+
+
+class ShoppingList(Base):
+    """
+    User's shopping list for batch price comparison.
+
+    Stores multiple items with per-service totals and processing status.
+
+    Attributes:
+        id: UUID primary key
+        session_token: Dashboard session token (indexed)
+        name: List name (e.g., "Weekly Groceries")
+        items_json: Array of {query, quantity, comparison_id}
+        total_stats: Per-service totals, savings, etc.
+        status: Processing status (pending/processing/completed)
+        created_at: Timestamp when list was created
+        updated_at: Timestamp when list was last updated
+    """
+
+    __tablename__ = "shopping_lists"
+
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    session_token = Column(String(100), nullable=False, index=True)
+    name = Column(String(200), nullable=False)
+    items_json = Column(JSON, nullable=False)
+    total_stats = Column(JSON, nullable=True)
+    status = Column(String(20), default="pending", nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(UTC),
+        onupdate=lambda: datetime.now(UTC),
+        nullable=False,
+    )
+
+
 # PostgreSQL connection pool configuration
 engine: AsyncEngine = create_async_engine(
     settings.DATABASE_URL,

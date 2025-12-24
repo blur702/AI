@@ -373,3 +373,26 @@ export type {
   CongressionalChatResponse,
   ChatHistoryItem,
 } from "./congressional";
+
+// Re-export Price Comparison types
+export type {
+  ProductAttributes,
+  Product,
+  ProductGroup,
+  ComparisonResult,
+  SearchProgress,
+  SavedSelection,
+  ShoppingListItem,
+  BulkUploadResult,
+  ShoppingListItemResult,
+  ShoppingListStats,
+  ProductSearchRequest,
+  BulkUploadRequest,
+  GroceryService,
+} from "./priceComparison";
+
+export {
+  GROCERY_SERVICES,
+  getServiceColor,
+  getServiceName,
+} from "./priceComparison";
