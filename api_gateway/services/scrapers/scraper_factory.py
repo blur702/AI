@@ -136,24 +136,9 @@ def get_configured_services() -> list[str]:
 
 
 async def close_all_scrapers() -> None:
-"""
-Close all active scraper instances.
-Should be called during application shutdown to clean up
-browser contexts and other resources.
+    """
+    Close all active scraper instances.
 
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
-browser contexts and other resources.
-
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
-browser contexts and other resources.
-
-Note: This clears scraper instances but preserves the registry.
-Calling get_scraper() after this will create fresh instances.
-"""
     Should be called during application shutdown to clean up
     browser contexts and other resources.
     """

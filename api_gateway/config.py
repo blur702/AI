@@ -244,25 +244,9 @@ class Settings:
     # Default location for grocery searches
     DEFAULT_LOCATION: dict[str, str] = {
         "zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-        "city": "Washington",
-        "state": "DC",
-DEFAULT_LOCATION: dict[str, str] = {
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-DEFAULT_LOCATION: dict[str, str] = {
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
+        "city": os.getenv("DEFAULT_CITY", "Washington"),
+        "state": os.getenv("DEFAULT_STATE", "DC"),
+    }
 
     # Price comparison settings
     PRICE_COMPARISON_SETTINGS: dict = {
@@ -270,11 +254,7 @@ DEFAULT_LOCATION: dict[str, str] = {
         "max_products_per_service": int(os.getenv("MAX_PRODUCTS_PER_SERVICE", "10")),
         "similarity_threshold": 0.7,
         "timeout_seconds": 30,
-DEFAULT_LOCATION: dict[str, str] = {
-"zip_code": os.getenv("DEFAULT_ZIP_CODE", "20024"),
-"city": os.getenv("DEFAULT_CITY", "Washington"),
-"state": os.getenv("DEFAULT_STATE", "DC"),
-}
+    }
 
     # Shopping list processing settings
     # Note: parallel_processing is disabled to avoid overwhelming scrapers
